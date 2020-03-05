@@ -8,7 +8,7 @@ import java.util.Objects;
 @Table(name = "lkcrm_crm_customer_stats", schema = "", catalog = "")
 public class LkCrmCustomerStatsEntity {
     private int id;
-    private int userId;
+    private Long userId;
     private int customerNum;
     private Timestamp createTime;
 
@@ -24,11 +24,11 @@ public class LkCrmCustomerStatsEntity {
 
     @Basic
     @Column(name = "user_id")
-    public int getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 

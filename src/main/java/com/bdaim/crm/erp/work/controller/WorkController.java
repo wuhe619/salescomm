@@ -136,7 +136,7 @@ public class WorkController extends BasicAction {
     @RequestMapping(value = "/leave")
     public R leave() {
         String workId = getPara("workId");
-        Integer userId = BaseUtil.getUserId().intValue();
+        Long userId = BaseUtil.getUserId();
         return (workService.leave(workId, userId));
         //return (R.ok().put("data", workService.leave(workId, userId)));
     }
@@ -148,7 +148,7 @@ public class WorkController extends BasicAction {
     @RequestMapping(value = "/removeWorkOwnerUser")
     public R removeWorkOwnerUser() {
         String workId = getPara("workId");
-        Integer userId = getInt("ownerUserId");
+        Long userId = getLong("ownerUserId");
         return (workService.leave(workId, userId));
         //return (R.ok().put("data", workService.leave(workId, userId)));
     }

@@ -31,7 +31,7 @@ public class LabelService {
 //        boolean bol;
         if (taskLabel.getLabelId() == null) {
             taskLabel.setCreateTime(new Timestamp(System.currentTimeMillis()));
-            taskLabel.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            taskLabel.setCreateUserId(BaseUtil.getUser().getUserId());
 //            bol = taskLable.save();
             crmWorkTaskLabelDao.save(taskLabel);
         } else {
@@ -43,14 +43,14 @@ public class LabelService {
     }
 
     public R deleteLabel(String labelId) {
-//        Integer count = Db.queryInt("select count(*) from 72crm_task where label_id like concat('%,',?,',%');", labelId);
+//        Integer count = Db.queryInt("select count(*) from lkcrm_task where label_id like concat('%,',?,',%');", labelId);
         String sql = "select count(*) from lkcrm_task where label_id like concat('%,',?,',%')";
         int count = crmWorkTaskLabelDao.queryForInt(sql, labelId);
         if (count > 0) {
             return R.error("使用中的标签不能删除");
         }
         String delSql = "delete from lkcrm_work_task_label where label_id = ?";
-//        Db.delete("delete from 72crm_work_task_label where label_id = ?", labelId);
+//        Db.delete("delete from lkcrm_work_task_label where label_id = ?", labelId);
         crmWorkTaskLabelDao.executeUpdateSQL(delSql, labelId);
         return R.ok();
     }
@@ -82,7 +82,7 @@ public class LabelService {
 
     public R getLabelListByOwn() {
         Long userId = BaseUtil.getUserId();
-//        List<String> labelIdList = Db.query("select label_id from `72crm_task` where create_user_id = ? or main_user_id = ? or owner_user_id like concat('%,',?,',%') and ishidden = 0", userId, userId, userId);
+//        List<String> labelIdList = Db.query("select label_id from `lkcrm_task` where create_user_id = ? or main_user_id = ? or owner_user_id like concat('%,',?,',%') and ishidden = 0", userId, userId, userId);
         String labelIdsSql = "select label_id from `lkcrm_task` where " +
                 "create_user_id = ? or main_user_id = ? or owner_user_id like concat('%,',?,',%') and ishidden = 0";
         List<String> labelIdList = crmWorkTaskLabelDao.queryForList(labelIdsSql, userId, userId, userId);
@@ -93,7 +93,7 @@ public class LabelService {
 //            resultList = new WorkTaskLabel().dao().findAll();
             resultList = crmWorkTaskLabelDao.getAll();
         } else {
-//            resultList = new WorkTaskLabel().find("select * from `72crm_work_task_label` where label_id in (?)", String.join(",", collect));
+//            resultList = new WorkTaskLabel().find("select * from `lkcrm_work_task_label` where label_id in (?)", String.join(",", collect));
             resultList = crmWorkTaskLabelDao.findByIds(list);
         }
         return R.ok().put("data", resultList);

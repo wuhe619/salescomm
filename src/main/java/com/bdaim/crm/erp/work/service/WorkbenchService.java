@@ -67,23 +67,23 @@ public class WorkbenchService {
                 task.set("isEnd", 0);
             }
             Integer taskId = task.getInt("task_id");
-//            task.set("mainUser", Db.findFirst("select user_id,realname,img from 72crm_admin_user where user_id = ?", task.getInt("main_user_id")));
+//            task.set("mainUser", Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?", task.getInt("main_user_id")));
             task.set("mainUser", workbenchDao.getMainUser(task.getInt("main_user_id")));
-//            task.set("createUser", Db.findFirst("select user_id,realname,img from 72crm_admin_user where user_id = ?", task.getInt("create_user_id")));
+//            task.set("createUser", Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?", task.getInt("create_user_id")));
             task.set("createUser", workbenchDao.getCreateUser(task.getInt("create_user_id")));
             ArrayList<Record> labelList = new ArrayList<>();
             if (StrUtil.isNotBlank(task.getStr("label_id"))) {
                 String[] lableIds = task.getStr("label_id").split(",");
                 for (String lableId : lableIds) {
                     if (StrUtil.isNotBlank(lableId)) {
-//                        Record lable = Db.findFirst("select label_id,name as labelName,color from 72crm_work_task_label where label_id = ?", lableId);
+//                        Record lable = Db.findFirst("select label_id,name as labelName,color from lkcrm_work_task_label where label_id = ?", lableId);
                         Record lable = JavaBeanUtil.mapToRecord(workbenchDao.getLableById(lableId));
                         labelList.add(lable);
                     }
                 }
             }
             task.set("labelList", labelList);
-            TaskRelation taskRelation = new TaskRelation().findFirst("select * from `72crm_task_relation` where task_id = ?", taskId);
+            TaskRelation taskRelation = new TaskRelation().findFirst("select * from `lkcrm_task_relation` where task_id = ?", taskId);
             int relationCount = 0;
             if (taskRelation != null) {
                 relationCount += TagUtil.toSet(taskRelation.getBusinessIds()).size();

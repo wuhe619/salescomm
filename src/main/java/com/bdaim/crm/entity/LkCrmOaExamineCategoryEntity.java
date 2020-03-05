@@ -11,7 +11,7 @@ public class LkCrmOaExamineCategoryEntity {
     private String title;
     private String remarks;
     private Integer type;
-    private Integer createUserId;
+    private Long createUserId;
     private Integer status;
     private Integer isSys;
     private Integer examineType;
@@ -21,7 +21,7 @@ public class LkCrmOaExamineCategoryEntity {
     private Timestamp updateTime;
     private Integer isDeleted;
     private Timestamp deleteTime;
-    private Integer deleteUserId;
+    private Long deleteUserId;
 
     @Id
     @Column(name = "category_id")
@@ -66,11 +66,11 @@ public class LkCrmOaExamineCategoryEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public Integer getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(Integer createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 
@@ -166,11 +166,11 @@ public class LkCrmOaExamineCategoryEntity {
 
     @Basic
     @Column(name = "delete_user_id")
-    public Integer getDeleteUserId() {
+    public Long getDeleteUserId() {
         return deleteUserId;
     }
 
-    public void setDeleteUserId(Integer deleteUserId) {
+    public void setDeleteUserId(Long deleteUserId) {
         this.deleteUserId = deleteUserId;
     }
 

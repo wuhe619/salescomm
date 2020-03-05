@@ -10,7 +10,7 @@ public class LkCrmWorkTaskClassEntity {
     private Integer classId;
     private String name;
     private Timestamp createTime;
-    private Integer createUserId;
+    private Long createUserId;
     private Integer status;
     private Integer workId;
     private Integer orderNum;
@@ -48,11 +48,11 @@ public class LkCrmWorkTaskClassEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public Integer getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(Integer createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 

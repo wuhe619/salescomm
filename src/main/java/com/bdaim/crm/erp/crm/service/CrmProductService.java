@@ -101,7 +101,7 @@ public class CrmProductService {
             crmProduct.setCreateUserId(BaseUtil.getUser().getUserId());
             crmProduct.setCreateTime(DateUtil.date().toTimestamp());
             crmProduct.setUpdateTime(DateUtil.date().toTimestamp());
-            crmProduct.setOwnerUserId(BaseUtil.getUser().getUserId().intValue());
+            crmProduct.setOwnerUserId(BaseUtil.getUser().getUserId());
             crmProduct.setBatchId(batchId);
             boolean save = (int) crmProductDao.saveReturnPk(crmProduct) > 0;
             crmRecordService.addRecord(crmProduct.getProductId(), CrmEnum.PRODUCT_TYPE_KEY.getTypes());

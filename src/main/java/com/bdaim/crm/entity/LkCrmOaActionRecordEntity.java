@@ -8,7 +8,7 @@ import java.util.Objects;
 @Table(name = "lkcrm_oa_action_record", schema = "", catalog = "")
 public class LkCrmOaActionRecordEntity {
     private int logId;
-    private int userId;
+    private Long userId;
     private int type;
     private Integer actionId;
     private Timestamp createTime;
@@ -29,11 +29,11 @@ public class LkCrmOaActionRecordEntity {
 
     @Basic
     @Column(name = "user_id")
-    public int getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
