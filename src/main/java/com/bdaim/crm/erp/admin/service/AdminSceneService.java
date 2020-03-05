@@ -8,7 +8,10 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.*;
-import com.bdaim.crm.entity.*;
+import com.bdaim.crm.entity.LkCrmAdminSceneDefaultEntity;
+import com.bdaim.crm.entity.LkCrmAdminSceneEntity;
+import com.bdaim.crm.entity.LkCrmCustomerEntity;
+import com.bdaim.crm.entity.LkCrmLeadsEntity;
 import com.bdaim.crm.erp.admin.entity.AdminScene;
 import com.bdaim.crm.erp.crm.service.CrmBusinessService;
 import com.bdaim.crm.utils.BaseUtil;
@@ -18,11 +21,8 @@ import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
-import com.jfinal.aop.Before;
-import com.jfinal.json.Json;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -170,25 +170,7 @@ public class AdminSceneService {
                     .add("create_user_id", "创建人", "user", settingArr)
                     .add("update_time", "更新时间", "datetime", settingArr)
                     .add("create_time", "创建时间", "datetime", settingArr);
-        } else if (7 == label) {
-            List<Map<String, Object>> checkList = new ArrayList<>();
-            checkList.add(new JSONObject().fluentPut("name", "待审核").fluentPut("value", 0));
-            checkList.add(new JSONObject().fluentPut("name", "审核中").fluentPut("value", 1));
-            checkList.add(new JSONObject().fluentPut("name", "审核通过").fluentPut("value", 2));
-            checkList.add(new JSONObject().fluentPut("name", "审核未通过").fluentPut("value", 3));
-            checkList.add(new JSONObject().fluentPut("name", "已撤回").fluentPut("value", 4));
-            fieldUtil.add("number", "回款编号", "number", settingArr)
-                    .add("check_status", "审核状态", "checkStatus", checkList)
-                    .add("customer_name", "客户名称", "customer", settingArr)
-                    .add("contract_num", "合同编号", "contract", settingArr)
-                    .add("return_time", "回款日期", "date", settingArr)
-                    .add("money", "回款金额", "floatnumber", settingArr)
-                    .add("remark", "备注", "textarea", settingArr)
-                    .add("owner_user_id", "负责人", "user", settingArr)
-                    .add("create_user_id", "创建人", "user", settingArr)
-                    .add("update_time", "更新时间", "datetime", settingArr)
-                    .add("create_time", "创建时间", "datetime", settingArr);
-        } else if (8 == label) {
+        }  else if (8 == label) {
             fieldUtil.add("leads_name", "线索名称", "text", settingArr)
                     .add("super_phone", "电话", "text", settingArr)
                     .add("super_telphone", "手机", "mobile", settingArr)
@@ -233,7 +215,6 @@ public class AdminSceneService {
      * @author wyq
      * 增加场景
      */
-    @Before(Tx.class)
     public R addScene(LkCrmAdminSceneEntity adminScene) {
         Long userId = BaseUtil.getUser().getUserId();
         adminScene.setIsHide(0).setSort(99999).setIsSystem(0).setCreateTime(DateUtil.date().toTimestamp()).setUserId(userId);
@@ -250,7 +231,6 @@ public class AdminSceneService {
      * @author wyq
      * 更新场景
      */
-    @Before(Tx.class)
     public R updateScene(LkCrmAdminSceneEntity adminScene) {
         Long userId = BaseUtil.getUser().getUserId();
         LkCrmAdminSceneEntity oldAdminScene = crmAdminSceneDao.get(adminScene.getSceneId());
@@ -267,7 +247,6 @@ public class AdminSceneService {
      * @author wyq
      * 设置默认场景
      */
-    @Before(Tx.class)
     public R setDefaultScene(Integer sceneId) {
         Long userId = BaseUtil.getUser().getUserId();
         LkCrmAdminSceneEntity oldAdminScene = crmAdminSceneDao.get(sceneId);
@@ -282,7 +261,6 @@ public class AdminSceneService {
      * @author wyq
      * 删除场景
      */
-    @Before(Tx.class)
     public R deleteScene(AdminScene adminScene) {
         if (1 == crmAdminSceneDao.get(adminScene.getSceneId()).getIsSystem()) {
             return R.error("系统场景不能删除");
@@ -295,7 +273,6 @@ public class AdminSceneService {
      * @author wyq
      * 查询场景
      */
-    @Before(Tx.class)
     public R queryScene(Integer type) {
         Long userId = BaseUtil.getUser().getUserId();
         //查询userId下是否有系统场景，没有则插入
@@ -411,7 +388,6 @@ public class AdminSceneService {
      * @author wyq
      * 设置场景
      */
-    @Before(Tx.class)
     public R sceneConfig(AdminScene adminScene) {
         Long userId = BaseUtil.getUser().getUserId();
         String[] sortArr = adminScene.getNoHideIds().split(",");
@@ -658,7 +634,7 @@ public class AdminSceneService {
             Page page = crmAdminSceneDao.sqlPageQuery("select *,IFNULL((select SUM(a.money) from lkcrm_crm_receivables as a where a.contract_id = contractview.contract_id),0) as receivedMoney" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
 
             String receivedMoney = crmAdminSceneDao.queryForObject("select SUM(money) from lkcrm_crm_receivables where receivables_id in (" + totalMoney.getStr("contractIds") + ")");
-            JSONObject jsonObject = JSONObject.parseObject(Json.getJson().toJson(BaseUtil.crmPage(page)), JSONObject.class);
+            JSONObject jsonObject = JSONObject.parseObject(JSON.toJSONString(BaseUtil.crmPage(page)), JSONObject.class);
             return R.ok().put("data", jsonObject.fluentPut("money", new JSONObject().fluentPut("contractMoney", totalMoney.getStr("contractMoney") != null ? totalMoney.getStr("contractMoney") : "0").fluentPut("receivedMoney", StringUtil.isNotEmpty(receivedMoney) ? receivedMoney : "0")));
         }
         com.bdaim.common.dto.Page recordPage = crmAdminSceneDao.sqlPageQuery("select *" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
