@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
@@ -24,7 +25,6 @@ import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.beans.BeanUtils;
@@ -46,7 +46,7 @@ public class TaskService {
     private AdminFileService adminFileService;
 
     @Autowired
-    private LkCrmTaskDao crmTaskDao;
+    private LkCrmTaskDao taskDao;
 
     @Autowired
     private LkCrmWorkTaskLabelDao crmWorkTaskLabelDao;
@@ -129,7 +129,7 @@ public class TaskService {
             task.setUpdateTime(DateUtil.date().toTimestamp());
             task.setCreateUserId(user.getUserId());
             task.setBatchId(IdUtil.simpleUUID());
-            bol = (int) crmTaskDao.saveReturnPk(task) > 0;
+            bol = (int) taskDao.saveReturnPk(task) > 0;
             LkCrmWorkTaskLogEntity workTaskLog = new LkCrmWorkTaskLogEntity();
             workTaskLog.setUserId(user.getUserId());
             workTaskLog.setTaskId(task.getTaskId());
@@ -146,7 +146,7 @@ public class TaskService {
             taskRelation.setCreateTime(DateUtil.date().toTimestamp());
             taskRelation.setTaskId(task.getTaskId());
             //taskRelation.save();
-            crmTaskDao.saveOrUpdate(taskRelation);
+            taskDao.saveOrUpdate(taskRelation);
         }
         task.getMainUserId();
         oaActionRecordService.addRecord(task.getTaskId(), OaEnum.TASK_TYPE_KEY.getTypes(), task.getUpdateTime() == null ? 1 : 2, oaActionRecordService.getJoinIds(user.getUserId().intValue(), getJoinUserIds(task)), oaActionRecordService.getJoinIds(user.getDeptId(), ""));
@@ -299,23 +299,25 @@ public class TaskService {
      * 查询任务列表
      */
     public R getTaskList(Integer type, Integer status, Integer priority, Integer date, List<Integer> userIds, BasePageRequest<Task> basePageRequest, String name) {
-        Page<Record> page = new Page<>();
+        Page page = new Page();
         if (userIds.size() == 0) {
-            page.setList(new ArrayList<>());
-            return R.ok().put("data", page);
+            page.setData(new ArrayList<>());
+            return R.ok().put("data", BaseUtil.crmPage(page));
         }
         if (basePageRequest.getPageType() == 0) {
-            List<Record> recordList = Db.find(Db.getSqlPara("work.task.getTaskList",
-                    Kv.by("type", type).set("userIds", userIds).set("status", status).
-                            set("priority", priority).set("date", date).set("taskName", name)));
+            LkCrmSqlParams sqlParams = taskDao.getTaskList(type, userIds, status,
+                    priority, date, name);
+            List<Map<String, Object>> maps = taskDao.queryListBySql(sqlParams.getSql(), sqlParams.getParams().toArray());
+            List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
             return R.ok().put("data", queryUser(recordList));
         } else {
-            page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(),
-                    Db.getSqlPara("work.task.getTaskList",
-                            Kv.by("type", type).set("userIds", userIds).set("status", status).
-                                    set("priority", priority).set("date", date).set("taskName", name)));
-            page.setList(queryUser(page.getList()));
-            return R.ok().put("data", page);
+            LkCrmSqlParams sqlParams = taskDao.getTaskList(type, userIds, status,
+                    priority, date, name);
+            page = taskDao.sqlPageQuery(sqlParams.getSql(),
+                    basePageRequest.getPage(), basePageRequest.getLimit(), sqlParams.getParams().toArray());
+
+            page.setData(queryUser(page.getData()));
+            return R.ok().put("data", BaseUtil.crmPage(page));
         }
 
     }
@@ -399,7 +401,7 @@ public class TaskService {
 
     private void saveWorkTaskLog(LkCrmWorkTaskLogEntity workTaskLog) {
         workTaskLog.setCreateTime(DateUtil.date().toTimestamp());
-        crmTaskDao.saveOrUpdate(workTaskLog);
+        taskDao.saveOrUpdate(workTaskLog);
         //workTaskLog.save();
     }
 
@@ -409,9 +411,9 @@ public class TaskService {
         workTaskLog.setUserId(userId);
         workTaskLog.setTaskId(task.getTaskId());
 
-        LkCrmTaskEntity auldTask = crmTaskDao.get(task.getTaskId());
+        LkCrmTaskEntity auldTask = taskDao.get(task.getTaskId());
         BeanUtils.copyProperties(task, auldTask, JavaBeanUtil.getNullPropertyNames(task));
-        crmTaskDao.update(auldTask);
+        taskDao.update(auldTask);
 
         //判断描述是否修改
        /* if (task.getDescription() != null){
@@ -571,17 +573,17 @@ public class TaskService {
     @Before(Tx.class)
     public R deleteTask(Integer taskId) {
 //        Task task = new Task().dao().findById(taskId);
-        LkCrmTaskEntity task = crmTaskDao.get(taskId);
+        LkCrmTaskEntity task = taskDao.get(taskId);
         if (task == null) {
             return R.error("任务不存在！");
         }
 //        boolean bol;
         if (task.getPid() != 0) {
 //            bol = task.delete();
-            crmTaskDao.delete(taskId);
+            taskDao.delete(taskId);
         } else {
             String updateSql = "update lkcrm_task set ishidden = 1,hidden_time = now() where task_id = ?";
-            crmTaskDao.executeUpdateSQL(updateSql, taskId);
+            taskDao.executeUpdateSQL(updateSql, taskId);
 //            bol = Db.update("update lkcrm_task set ishidden = 1,hidden_time = now() where task_id = ?", taskId) > 0;
         }
         return R.ok();
@@ -598,7 +600,7 @@ public class TaskService {
         if (AuthUtil.oaAnth(relation.toRecord())) {
             return R.noAuth();
         }
-        com.bdaim.common.dto.Page paginate = crmTaskDao.queryTaskRelation(basePageRequest.getPage(), basePageRequest.getLimit(), relation.getBusinessIds(), relation.getContactsIds(), relation.getContractIds(), relation.getCustomerIds());
+        com.bdaim.common.dto.Page paginate = taskDao.queryTaskRelation(basePageRequest.getPage(), basePageRequest.getLimit(), relation.getBusinessIds(), relation.getContactsIds(), relation.getContractIds(), relation.getCustomerIds());
         //Page<Record> paginate = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("work.task.queryTaskRelation", Kv.by("businessIds", relation.getBusinessIds()).set("contactsIds", relation.getContactsIds()).set("contractIds", relation.getContractIds()).set("customerIds", relation.getCustomerIds())));
         paginate.getData().forEach(s -> {
             composeUser(JavaBeanUtil.mapToRecord((Map<String, Object>) s));
@@ -626,8 +628,12 @@ public class TaskService {
 
 
     public R getTaskList(BasePageRequest basePageRequest, String labelId, String ishidden) {
-        Page<Record> recordList = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("work.task.myTask", Kv.by("userId", BaseUtil.getUser().getUserId()).set("labelId", labelId).set("ishidden", ishidden)));
-        return R.ok().put("data", recordList);
+//        Page<Record> recordList = Db.paginate(basePageRequest.getPage(),
+//                basePageRequest.getLimit(),
+//                Db.getSqlPara("work.task.myTask",
+//                        Kv.by("userId", BaseUtil.getUser().getUserId()).set("labelId", labelId).set("ishidden", ishidden)));
+        //TODO
+        return R.ok().put("data", null);
     }
 
     public R archiveByTaskId(Integer taskId) {
