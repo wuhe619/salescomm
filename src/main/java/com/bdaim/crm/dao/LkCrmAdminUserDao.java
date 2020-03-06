@@ -99,7 +99,7 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
             sql += " and f.role_id = ? ";
             params.add(roleId);
         }
-        return super.queryListBySql(sql, params.toArray());
+        return super.sqlQuery(sql, params.toArray());
     }
 
     public Page queryUserListByPage(int page, int limit, String name, List<Integer> deptId, Integer status, String roleId) {

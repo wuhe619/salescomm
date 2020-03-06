@@ -76,7 +76,7 @@ public class OaLogService {
             String userIdsSql = "SELECT user_id FROM `lkcrm_admin_user` where user_id != ?";
             userIds = crmOaLogDao.queryListForLong(userIdsSql, user.getUserId());
         } else {
-            userIds = new AdminUserService().queryUserByParentUser(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
+            userIds = adminUserService.queryUserByParentUser(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
             if (object.containsKey("createUserId")) {
                 if (!userIds.contains(Long.valueOf(object.getInteger("createUserId")))) {
                     return new Page<>();

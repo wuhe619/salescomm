@@ -90,7 +90,7 @@ public class OaActionRecordService {
             String sql = "SELECT user_id FROM `lkcrm_admin_user` where user_id != ?";
             userIdList = recordDao.queryListForLong(sql, user.getUserId());
         } else {
-            userIdList = new AdminUserService().queryUserByParentUser(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
+            userIdList = adminUserService.queryUserByParentUser(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
         }
         userIdList.add(user.getUserId());
         if (type.equals(OaEnum.ALL_TYPE_KEY.getTypes())) {

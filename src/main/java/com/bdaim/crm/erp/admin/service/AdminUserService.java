@@ -17,12 +17,8 @@ import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.Sort;
 import com.bdaim.crm.utils.TagUtil;
 import com.bdaim.util.JavaBeanUtil;
-import com.bdaim.util.SqlAppendUtil;
 import com.jfinal.aop.Before;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.SqlPara;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
 
@@ -161,7 +157,7 @@ public class AdminUserService {
             deptIdList.add(request.getData().getDeptId());
             deptIdList.addAll(queryChileDeptIds(request.getData().getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM));
         }
-        if (request.getPageType() == 0) {
+        if (request.getPageType() != null && request.getPageType() == 0) {
             List<Map<String, Object>> recordMaps = crmAdminUserDao.queryUserList(request.getData().getRealname(),
                     deptIdList, request.getData().getStatus(), roleId);
             List<Record> recordList = JavaBeanUtil.mapToRecords(recordMaps);

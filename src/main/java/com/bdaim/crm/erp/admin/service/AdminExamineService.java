@@ -108,13 +108,16 @@ public class AdminExamineService {
         //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("admin.examine.queryExaminePage"));
         page.getData().forEach(s -> {
             Record record = JavaBeanUtil.mapToRecord((Map<String, Object>) s);
-            List data = new ArrayList();
-            data.add(crmAdminExamineStepDao.queryExamineStepByExamineId(record.getInt("examine_id")));
+            List<Map<String, Object>> data = new ArrayList();
+            LkCrmAdminExamineStepEntity entity = crmAdminExamineStepDao.queryExamineStepByExamineId(record.getInt("examine_id"));
+            if (entity != null) {
+                data.add(BeanUtil.beanToMap(entity));
+            }
             List<Record> stepList = JavaBeanUtil.mapToRecords(data);
             if (stepList != null) {
                 stepList.forEach(step -> {
                     if (step.getStr("check_user_id") != null && step.getStr("check_user_id").split(",").length > 0) {
-                        List<Record> userList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_user WHERE id (" + SqlAppendUtil.sqlAppendWhereIn(step.getStr("check_user_id").split(",")) + ");"));
+                        List<Record> userList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_user WHERE id IN (" + SqlAppendUtil.sqlAppendWhereIn(step.getStr("check_user_id").split(",")) + ");"));
                         //List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", step.getStr("check_user_id").split(","))));
                         step.set("userList", userList);
                     } else {
@@ -124,7 +127,7 @@ public class AdminExamineService {
                 record.set("stepList", stepList);
             }
             if (record.getStr("user_ids") != null && record.getStr("user_ids").split(",").length > 0) {
-                List<Record> userList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_user WHERE id (" + SqlAppendUtil.sqlAppendWhereIn(record.getStr("user_ids").split(",")) + ");"));
+                List<Record> userList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_user WHERE id IN (" + SqlAppendUtil.sqlAppendWhereIn(record.getStr("user_ids").split(",")) + ");"));
                 //List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", record.getStr("user_ids").split(","))));
                 record.set("userIds", userList);
             } else {
@@ -132,7 +135,7 @@ public class AdminExamineService {
             }
             if (record.getStr("dept_ids") != null && record.getStr("dept_ids").split(",").length > 0) {
                 // TODO 用户角色权限需要修改
-                List<Record> deptList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_user WHERE id (" + SqlAppendUtil.sqlAppendWhereIn(record.getStr("dept_ids").split(",")) + ");"));
+                List<Record> deptList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_user WHERE id IN (" + SqlAppendUtil.sqlAppendWhereIn(record.getStr("dept_ids").split(",")) + ");"));
                 //List<Record> deptList = Db.find(Db.getSqlPara("admin.dept.queryByIds", Kv.by("ids", record.getStr("dept_ids").split(","))));
                 record.set("deptIds", deptList);
             } else {
