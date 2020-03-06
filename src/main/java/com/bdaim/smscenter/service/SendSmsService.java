@@ -645,6 +645,11 @@ public class SendSmsService{
                 values.add(vCode);
                 values.add("10");
                 break;
+            case 11:
+                templateId = "2774";
+                values.add(vCode);
+                values.add("11");
+                break;
             default:
                 throw new RuntimeException("type match value！");
         }
