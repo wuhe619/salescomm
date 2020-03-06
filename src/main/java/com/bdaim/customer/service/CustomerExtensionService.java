@@ -27,6 +27,9 @@ public class CustomerExtensionService {
 
     public String saveExtension(JSONObject info) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        if(!info.containsKey("clazz")){
+            info.put("calzz","toB");
+        }
         String sql = "insert into op_crm_clue_log(content,create_time,update_time) values (?, ?, ?)";
         jdbcTemplate.update(sql, info.toJSONString(), timestamp, timestamp);
         return "Success";
@@ -34,6 +37,9 @@ public class CustomerExtensionService {
 
     public String updateExtension(long id, JSONObject info) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        if(!info.containsKey("clazz")){
+            info.put("calzz","toB");
+        }
         String sql = "update op_crm_clue_log set content = ? ,update_time = ? where id = ? ";
         jdbcTemplate.update(sql, info.toJSONString(), timestamp, id);
         return "Success";
@@ -63,12 +69,12 @@ public class CustomerExtensionService {
             p.add(info.getString("id"));
             sql.append(" and  id in (?)");
         }
-        if(info.containsKey("clazz") && "toC".equals(info.getString("clazz").trim())) {
+        if(info.containsKey("clazz")) {
             p.add(info.getString("clazz").trim());
             sql.append(" and content->'$.clazz' = ?");
         }else{
-            //p.add(info.getString("clazz").trim());
-            sql.append(" and content not like %clazz% ");
+            p.add("other");
+            sql.append(" and content->'$.clazz' = ?");
         }
         sql.append(" order by create_time desc");
 //        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (page.getPageNum() - 1) * page.getPageSize() + ", " + page.getPageSize());
