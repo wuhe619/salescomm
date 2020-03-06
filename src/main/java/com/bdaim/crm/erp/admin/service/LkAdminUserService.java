@@ -31,6 +31,7 @@ import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -163,7 +164,16 @@ public class LkAdminUserService {
                 return R.error("用户名不能修改！");
             }
 //            bol = adminUser.update();
-            crmAdminUserDao.update(adminUser);
+            LkCrmAdminUserEntity entity = crmAdminUserDao.get(adminUser.getUserId());
+            BeanUtils.copyProperties(adminUser, entity, JavaBeanUtil.getNullPropertyNames(adminUser));
+            crmAdminUserDao.update(entity);
+            // 修改用户信息
+            CustomerUser customerUser = customerUserDao.get(adminUser.getUserId());
+            if (customerUser != null) {
+                customerUser.setRealname(entity.getRealname());
+                customerUserDao.update(customerUser);
+            }
+
             String delSql1 = "delete from lkcrm_admin_user_role where user_id = ?";
             crmAdminUserDao.executeUpdateSQL(delSql1, adminUser.getUserId());
             String delSql2 = "delete from lkcrm_admin_scene where user_id = ? and is_system = 1";
