@@ -353,9 +353,12 @@ public class LkAdminUserService {
 
     public R resetPassword(String ids, String pwd) {
         for (String id : ids.split(",")) {
-            AdminUser adminUser = new AdminUser().dao().findById(id);
-            String password = BaseUtil.sign(adminUser.getUsername() + pwd, adminUser.getSalt());
+            //LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(NumberUtil.parseLong(id));
+            //String password = BaseUtil.sign(adminUser.getUsername() + pwd, adminUser.getSalt());
+            String password = CipherUtil.generatePassword(pwd);
             String updateSql = "update lkcrm_admin_user set password = ? where user_id = ?";
+            crmAdminUserDao.executeUpdateSQL(updateSql, password, id);
+            updateSql = "update t_customer_user set password = ? where id = ?";
             crmAdminUserDao.executeUpdateSQL(updateSql, password, id);
         }
         return R.ok();
