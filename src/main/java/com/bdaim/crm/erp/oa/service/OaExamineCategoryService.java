@@ -89,25 +89,20 @@ public class OaExamineCategoryService {
         //设置审批步骤
         if (oaExamineCategory.getExamineType() == 1) {
             if (examineStepList.size() != 0) {
-//                Db.delete("delete from lkcrm_oa_examine_step where category_id = ?", categoryId);
                 String delSql = "delete from lkcrm_oa_examine_step where category_id = ?";
                 categoryDao.executeUpdateSQL(delSql, categoryId);
                 examineStepList.forEach(x -> {
                     x.setCategoryId(categoryId);
-//                    x.save();
                     stepDao.save(x);
                 });
             }
         }
-//        return bol ? R.ok().put("data", Kv.by("categoryId", oaExamineCategory.getCategoryId())) : R.error();
         return R.ok().put("data", Kv.by("categoryId", oaExamineCategory.getCategoryId()));
     }
 
     public R queryExamineCategoryList(BasePageRequest basePageRequest) {
         Page<Record> paginate = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select * ", "from lkcrm_oa_examine_category where is_deleted = 0");
         paginate.getList().forEach(record -> {
-//                    List<Record> stepList = Db.find("select * from lkcrm_oa_examine_step where category_id = ?",
-//                            record.getStr("category_id"));
                     String stepListSql = "select * from lkcrm_oa_examine_step where category_id = ?";
                     List<Record> stepList = JavaBeanUtil.mapToRecords(categoryDao.queryListBySql(stepListSql,
                             record.getStr("category_id")));
@@ -138,8 +133,6 @@ public class OaExamineCategoryService {
     }
 
     public R deleteExamineCategory(String id) {
-//        int update = Db.update("update lkcrm_oa_examine_category set is_deleted = 1,delete_user_id = ?," +
-//                "delete_time = now() where category_id = ?", BaseUtil.getUser().getUserId(), id);
         String updateSql = "update lkcrm_oa_examine_category set is_deleted = 1,delete_user_id = ?,delete_time = now() where category_id = ?";
         int update = categoryDao.executeUpdateSQL(updateSql, BaseUtil.getUser().getUserId(), id);
         return update > 0 ? R.ok() : R.error();
@@ -147,7 +140,6 @@ public class OaExamineCategoryService {
 
 
     public R queryUserList() {
-//        List<Record> recordList = Db.find("select a.user_id,a.realname,a.username,a.img,b.name as deptName from lkcrm_admin_user a left join lkcrm_admin_dept b on a.dept_id = b.dept_id");
         String sql = "select a.user_id,a.realname,a.username,a.img,b.name as deptName from lkcrm_admin_user a " +
                 "left join lkcrm_admin_dept b on a.dept_id = b.dept_id";
         List<Record> recordList = JavaBeanUtil.mapToRecords(categoryDao.queryListBySql(sql));
@@ -155,17 +147,14 @@ public class OaExamineCategoryService {
     }
 
     public R queryDeptList() {
-//        List<Record> recordList = Db.find("select * from lkcrm_admin_dept");
         String listSql = "select * from lkcrm_admin_dept";
         List<Record> recordList = JavaBeanUtil.mapToRecords(categoryDao.queryListBySql(listSql));
         return R.ok().put("data", recordList);
     }
 
     public R queryExamineCategoryById(String id) {
-//        Record examineCategory = Db.findFirst("select * from lkcrm_oa_examine_category where category_id = ?", id);
         String sql1 = "select * from lkcrm_oa_examine_category where category_id = ?";
         Record examineCategory = JavaBeanUtil.mapToRecord(categoryDao.queryUniqueSql(sql1, id));
-//        List<Record> stepList = Db.find("select a.*,b.realname,b.img from lkcrm_oa_examine_step a left join lkcrm_admin_user b on a.user_id = b.user_id where category_id = ?", id);
         String sql2 = "select a.*,b.realname,b.img from lkcrm_oa_examine_step a left join lkcrm_admin_user b on a.user_id = b.user_id where category_id = ?";
         List<Record> stepList = JavaBeanUtil.mapToRecords(categoryDao.queryListBySql(sql2, id));
         examineCategory.set("stepList", stepList);
@@ -203,7 +192,6 @@ public class OaExamineCategoryService {
     }
 
     public R updateStatus(String id) {
-//        int update = Db.update("update lkcrm_oa_examine_category set status = abs(status-1) where category_id = ?", id);
         String updateSql = "update lkcrm_oa_examine_category set status = abs(status-1) where category_id = ?";
         int update = categoryDao.executeUpdateSQL(updateSql, id);
         return update > 0 ? R.ok() : R.error();

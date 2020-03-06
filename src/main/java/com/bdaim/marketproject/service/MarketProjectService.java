@@ -13,7 +13,10 @@ import com.bdaim.common.service.PhoneService;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerLabelDao;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customer.dto.*;
+import com.bdaim.customer.dto.CustomerDTO;
+import com.bdaim.customer.dto.CustomerLabelDTO;
+import com.bdaim.customer.dto.CustomerPropertyEnum;
+import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
@@ -39,7 +42,6 @@ import com.bdaim.template.dao.MarketTemplateDao;
 import com.bdaim.template.entity.MarketTemplate;
 import com.bdaim.util.*;
 import com.bdaim.util.excel.ExcelAfterWriteHandlerImpl;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +53,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -177,6 +178,48 @@ public class MarketProjectService {
             LOG.error("保存营销项目异常,", e);
             return 0;
         }
+    }
+
+    /**
+     *  创建项目和公海并返回公海ID
+     * @param dto
+     * @param custId
+     * @param userId
+     * @return
+     */
+    public long saveMarketProjectAndSeaReturnId(MarketProjectDTO dto, String custId, long userId) {
+        long seaId = 0;
+        MarketProject marketProject = new MarketProject();
+        marketProject.setIndustryId(dto.getIndustryId());
+        marketProject.setName(dto.getName());
+        marketProject.setStatus(1);
+        marketProject.setCustId(custId);
+        marketProject.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        try {
+            int id = (int) marketProjectDao.saveReturnPk(marketProject);
+            dto.setId(id);
+            if (StringUtil.isNotEmpty(custId)) {
+                // 处理项目和客户的关联关系
+                String marketProjectId = String.valueOf(id);
+                List<String> custIds = new ArrayList<>();
+                custIds.add(custId);
+                this.saveMarketProjectRelationEnterprises(marketProjectId, custIds);
+                //服务权限 1-营销任务 2-公海 多个逗号隔开
+                CustomerProperty cpd = customerDao.getProperty(custId, CustomerPropertyEnum.SERVICE_MODE.getKey());
+                if (cpd != null && "2".equals(cpd.getPropertyValue())) {
+                    // 客户级别的项目自动创建公海
+                    CustomerSeaParam customerSea = new CustomerSeaParam();
+                    customerSea.setName(dto.getName() + "公海");
+                    customerSea.setMarketProjectId(id);
+                    customerSea.setCustId(custId);
+                    customerSea.setCreateUid(userId);
+                    seaId = customerSeaService.addSea(customerSea);
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("保存营销项目异常,", e);
+        }
+        return seaId;
     }
 
     /**

@@ -13,6 +13,17 @@ public class LkCrmAdminDeptEntity {
     private String remark;
     private String custId;
 
+    public LkCrmAdminDeptEntity() {
+    }
+
+    public LkCrmAdminDeptEntity(Integer pid, String name, Integer num, String remark, String custId) {
+        this.pid = pid;
+        this.name = name;
+        this.num = num;
+        this.remark = remark;
+        this.custId = custId;
+    }
+
     @Id
     @Column(name = "dept_id")
     @GeneratedValue

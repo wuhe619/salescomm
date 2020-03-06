@@ -133,7 +133,6 @@ public class OaExamineService {
     private void setCountRecord(Record record) {
         Integer examineId = record.getInt("examine_id");
         String categoryTitle = record.getStr("categoryTitle");
-//        Record countRecord = Db.findFirst("select count(*) as count,sum(duration) as duration,sum(money) as moeny from lkcrm_oa_examine_travel where examine_id = ?", examineId);
         String sql = "select count(*) as count,sum(duration) as duration,sum(money) as moeny from lkcrm_oa_examine_travel where examine_id = ?";
         Record countRecord = JavaBeanUtil.mapToRecord(crmOaExamineDao.queryUniqueSql(sql, examineId));
         StringBuilder causeTitle = new StringBuilder();
@@ -208,13 +207,10 @@ public class OaExamineService {
         } else {
             oaExamine.setUpdateTime(new Date());
             bol = oaExamine.update();
-//            Db.delete("delete from lkcrm_oa_examine_travel where examine_id = ?", oaExamine.getExamineId());
             String delSql1 = "delete from lkcrm_oa_examine_travel where examine_id = ?";
             crmOaExamineDao.executeUpdateSQL(delSql1, oaExamine.getExamineId());
-//            Db.delete("delete from lkcrm_oa_examine_relation where examine_id = ?", oaExamine.getExamineId());
             String delSql2 = "delete from lkcrm_oa_examine_relation where examine_id = ?";
             crmOaExamineDao.executeUpdateSQL(delSql2, oaExamine.getExamineId());
-//            recordId = Db.queryInt("select  record_id from lkcrm_oa_examine_record where examine_id = ? limit 1", oaExamine.getExamineId());
             String intSql = "select  record_id from lkcrm_oa_examine_record where examine_id = ? limit 1";
             recordId = crmOaExamineDao.queryForInt(intSql, oaExamine.getExamineId());
         }
@@ -235,7 +231,6 @@ public class OaExamineService {
 //            oaExamineRecord.update();
             recordDao.save(oaExamineRecord);
             //更新审核日志状态
-//            Db.update("update lkcrm_oa_examine_log set is_recheck = 1 where record_id = ?", recordId);
             String updateSql = "update lkcrm_oa_examine_log set is_recheck = 1 where record_id = ?";
             recordDao.executeUpdateSQL(updateSql, recordId);
         }
@@ -244,9 +239,11 @@ public class OaExamineService {
         if (examineType == 1) {
             Integer stepType = oaExamineStep.getStepType();
             if (stepType == 1) {
-                checkUserIds = Db.queryInt("select parent_id from lkcrm_admin_user where user_id = ?", BaseUtil.getUser().getUserId()) + "";
+                String sql = "select parent_id from lkcrm_admin_user where user_id = ?";
+                checkUserIds = crmOaExamineDao.queryForInt(sql, BaseUtil.getUser().getUserId()) + "";
             } else if (stepType == 4) {
-                checkUserIds = Db.queryInt("select parent_id from lkcrm_admin_user where user_id = (select parent_id from lkcrm_admin_user where user_id = ?)", BaseUtil.getUser().getUserId()) + "";
+                String sql = "select parent_id from lkcrm_admin_user where user_id = (select parent_id from lkcrm_admin_user where user_id = ?)";
+                checkUserIds = crmOaExamineDao.queryForInt(sql, BaseUtil.getUser().getUserId()) + "";
             } else {
                 checkUserIds = oaExamineStep.getCheckUserId();
             }

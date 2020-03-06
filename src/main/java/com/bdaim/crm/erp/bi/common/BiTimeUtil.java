@@ -10,7 +10,7 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.SqlPara;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.erp.admin.service.AdminDeptService;
+import com.bdaim.crm.erp.admin.service.LkAdminDeptService;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -111,7 +111,7 @@ public class BiTimeUtil {
         if (userId != null){
             userIds = userId.toString();
         }else if(deptId!=null){
-            List<Record> records = Aop.get(AdminDeptService.class).queryDeptByParentDept(deptId, BaseConstant.AUTH_DATA_RECURSION_NUM);
+            List<Record> records = Aop.get(LkAdminDeptService.class).queryDeptByParentDept(deptId, BaseConstant.AUTH_DATA_RECURSION_NUM);
             List<Integer> deptIds = new ArrayList<>();
             deptIds.add(deptId);
             records.forEach(dept ->deptIds.add(dept.getInt("id")));

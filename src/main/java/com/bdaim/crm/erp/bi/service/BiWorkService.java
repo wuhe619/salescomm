@@ -2,6 +2,7 @@ package com.bdaim.crm.erp.bi.service;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.crm.dao.LkCrmBiDao;
 import com.bdaim.crm.dao.LkCrmOaExamineCategoryDao;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Aop;
@@ -28,18 +29,23 @@ public class BiWorkService {
     private BiTimeUtil biTimeUtil;
     @Autowired
     private LkCrmOaExamineCategoryDao categoryDao;
+    @Autowired
+    private LkCrmBiDao biDao;
 
 
     /**
      * 查询日志统计信息
+     *
      * @author Chacker
      */
     public List<Record> logStatistics(Integer deptId, Long userId, String type) {
         Record record = new Record().set("deptId", deptId).set("userId", userId).set("type", type);
         biTimeUtil.analyzeType(record);
         List<Record> records = new ArrayList<>();
-        for (String uid : StrUtil.splitTrim(record.getStr("userIds"),",")) {
-            List<Record> recordList = Db.find(Db.getSqlPara("bi.work.queryLogByUser", record.set("userId", uid)));
+        for (String uid : StrUtil.splitTrim(record.getStr("userIds"), ",")) {
+            List<Map<String, Object>> recordMaps = biDao.queryLogByUser(record.get("sqlDateFormat"),
+                    record.get("beginTime"), record.get("finalTime"), uid);
+            List<Record> recordList = JavaBeanUtil.mapToRecords(recordMaps);
             if (recordList.size() > 0) {
                 Record userRecord = new Record().setColumns(recordList.get(0)).remove("sum", "send_user_ids", "read_user_ids");
                 int commentCount = 0, unCommentCount = 0, unReadCont = 0, count = recordList.size();
@@ -51,15 +57,15 @@ public class BiWorkService {
                     }
                     String sendUser = task.getStr("send_user_ids");
                     if (StrUtil.isNotEmpty(sendUser) && sendUser.split(",").length > 0) {
-                        if(!isIntersection(StrUtil.splitTrim(sendUser,","), StrUtil.splitTrim(record.getStr("read_user_ids"),","))){
+                        if (!isIntersection(StrUtil.splitTrim(sendUser, ","), StrUtil.splitTrim(record.getStr("read_user_ids"), ","))) {
                             unReadCont++;
                         }
                     }
                 }
-                userRecord.set("commentCount",commentCount)
-                        .set("unCommentCount",unCommentCount)
-                        .set("unReadCont",unReadCont)
-                        .set("count",count);
+                userRecord.set("commentCount", commentCount)
+                        .set("unCommentCount", unCommentCount)
+                        .set("unReadCont", unReadCont)
+                        .set("count", count);
                 records.add(userRecord);
             }
         }
@@ -68,50 +74,56 @@ public class BiWorkService {
 
     /**
      * 查询审批统计信息
+     *
      * @author Chacker
      */
-    public JSONObject examineStatistics(Integer deptId, Long userId, String type){
-        JSONObject object=new JSONObject();
+    public JSONObject examineStatistics(Integer deptId, Long userId, String type) {
+        JSONObject object = new JSONObject();
         Record record = new Record().set("deptId", deptId).set("userId", userId).set("type", type);
         biTimeUtil.analyzeType(record);
-//        List<Record> categoryList= Db.find(Db.getSql("bi.work.queryExamineCategory"));
         String categoryListSql = "SELECT category_id,title FROM lkcrm_oa_examine_category WHERE 1=1";
-        List<Map<String,Object>> categoryListMap = categoryDao.queryListBySql(categoryListSql);
+        List<Map<String, Object>> categoryListMap = biDao.queryListBySql(categoryListSql);
         List<Record> categoryList = JavaBeanUtil.mapToRecords(categoryListMap);
-        object.put("categoryList",categoryList);
-        List<String> users= StrUtil.splitTrim(record.getStr("userIds"),",");
-        if(users.size()==0){
-            object.put("userList",users);
-        }else {
-            SqlPara sql= Db.getSqlPara("bi.work.examineStatistics",record.set("categorys",categoryList).set("userList",users));
-            List<Record> userList= Db.find(sql);
-            object.put("userList",userList);
+        object.put("categoryList", categoryList);
+        List<String> users = StrUtil.splitTrim(record.getStr("userIds"), ",");
+        if (users.size() == 0) {
+            object.put("userList", users);
+        } else {
+            List<Map<String, Object>> userMaps = biDao.examineStatistics(categoryList, users, record.get("sqlDateFormat"),
+                    record.get("beginTime"), record.get("finalTime"));
+            List<Record> userList = JavaBeanUtil.mapToRecords(userMaps);
+            object.put("userList", userList);
         }
         return object;
     }
 
     /**
      * 审批详情
+     *
      * @author Chacker
      */
-    public Record examineInfo(BasePageRequest request){
+    public Record examineInfo(BasePageRequest request) {
         JSONObject jsonObject = request.getJsonObject();
         Record record = new Record().set("userId", jsonObject.getInteger("userId")).set("type", jsonObject.get("type"));
         biTimeUtil.analyzeType(record);
-        Kv kv= Kv.by("userId", jsonObject.get("userId")).set("categoryId", jsonObject.get("categoryId")).set("startTime", record.get("beginDate")).set("endTime", record.get("endDate"));
-        Page<Record> recordList = Db.paginate(request.getPage(), request.getLimit(), Db.getSqlPara("oa.examine.myInitiate", kv));
+        Kv kv = Kv.by("userId", jsonObject.get("userId")).set("categoryId", jsonObject.get("categoryId"))
+                .set("startTime", record.get("beginDate")).set("endTime", record.get("endDate"));
+        Page<Record> recordList = Db.paginate(request.getPage(), request.getLimit(),
+                Db.getSqlPara("oa.examine.myInitiate", kv));
         Aop.get(OaExamineService.class).transfer(recordList.getList());
-        SqlPara sqlPara= Db.getSqlPara("bi.work.queryExamineCount",kv);
-        Record info= Db.findFirst(sqlPara);
-        info.set("list",recordList.getList()).set("totalRow",recordList.getTotalRow());
+        Map<String, Object> map = biDao.queryExamineCount(jsonObject.get("categoryId"), record.get("beginDate"),
+                record.get("endDate"), jsonObject.get("userId"));
+        Record info = JavaBeanUtil.mapToRecord(map);
+        info.set("list", recordList.getList()).set("totalRow", recordList.getTotalRow());
         return info;
     }
 
 
     /**
      * 判断两个数组是否有交集
-     * @author Chacker
+     *
      * @return true为存在交集
+     * @author Chacker
      */
     private static boolean isIntersection(List<String> m, List<String> n) {
         // 将较长的数组转换为set

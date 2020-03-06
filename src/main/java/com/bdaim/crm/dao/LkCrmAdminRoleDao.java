@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.crm.entity.LkCrmAdminRoleEntity;
 import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -41,6 +42,18 @@ public class LkCrmAdminRoleDao extends SimpleHibernateDao<LkCrmAdminRoleEntity, 
     public List<Map<String, Object>> getRoleListByRoleType(Integer roleType) {
         String sql = " select role_id as id ,role_name as title,role_name as remark,data_type as type,status,role_type as pid,label from lkcrm_admin_role WHERE role_type=? and is_hidden = 1";
         List<Map<String, Object>> maps = sqlQuery(sql, roleType);
+        return maps;
+    }
+
+    public List<Map<String, Object>> getRoleListByRoleType(Integer roleType, String custId) {
+        String sql = " select role_id as id ,role_name as title,role_name as remark,data_type as type,status,role_type as pid,label from lkcrm_admin_role WHERE role_type=? and is_hidden = 1";
+        List param = new ArrayList();
+        param.add(roleType);
+        if (StringUtil.isNotEmpty(custId)) {
+            sql += " AND cust_id = ? ";
+            param.add(custId);
+        }
+        List<Map<String, Object>> maps = sqlQuery(sql, param.toArray());
         return maps;
     }
 

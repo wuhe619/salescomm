@@ -5,8 +5,8 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminMenuDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
-import com.bdaim.crm.erp.admin.service.AdminRoleService;
-import com.bdaim.crm.erp.admin.service.AdminUserService;
+import com.bdaim.crm.erp.admin.service.LkAdminRoleService;
+import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.jfinal.plugin.activerecord.Record;
 import org.slf4j.Logger;
@@ -29,20 +29,20 @@ public class AuthUtil {
 
     public static final Logger LOG = LoggerFactory.getLogger(AuthUtil.class);
 
-    private static AdminUserService adminUserService;
+    private static LkAdminUserService adminUserService;
 
     private static LkCrmAdminUserDao crmAdminUserDao;
 
-    private static AdminRoleService adminRoleService;
+    private static LkAdminRoleService adminRoleService;
 
     private static LkCrmAdminMenuDao crmAdminMenuDao;
 
-    public static AdminUserService getAdminUserService() {
+    public static LkAdminUserService getAdminUserService() {
         return adminUserService;
     }
 
     @Resource
-    public void setAdminUserService(AdminUserService adminUserService) {
+    public void setAdminUserService(LkAdminUserService adminUserService) {
         AuthUtil.adminUserService = adminUserService;
     }
 
@@ -55,12 +55,12 @@ public class AuthUtil {
         AuthUtil.crmAdminUserDao = crmAdminUserDao;
     }
 
-    public AdminRoleService getAdminRoleService() {
+    public LkAdminRoleService getAdminRoleService() {
         return adminRoleService;
     }
 
     @Resource
-    public void setAdminRoleService(AdminRoleService adminRoleService) {
+    public void setAdminRoleService(LkAdminRoleService adminRoleService) {
         AuthUtil.adminRoleService = adminRoleService;
     }
 

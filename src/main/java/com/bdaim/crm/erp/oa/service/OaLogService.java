@@ -9,7 +9,7 @@ import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
-import com.bdaim.crm.erp.admin.service.AdminUserService;
+import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaLog;
 import com.bdaim.crm.erp.oa.entity.OaLogRelation;
@@ -44,7 +44,7 @@ public class OaLogService {
     @Resource
     private LkCrmOaLogDao crmOaLogDao;
     @Resource
-    private AdminUserService adminUserService;
+    private LkAdminUserService adminUserService;
     @Resource
     private CustomerUserDao customerUserDao;
     @Resource
@@ -76,7 +76,7 @@ public class OaLogService {
             String userIdsSql = "SELECT user_id FROM `lkcrm_admin_user` where user_id != ?";
             userIds = crmOaLogDao.queryListForLong(userIdsSql, user.getUserId());
         } else {
-            userIds = new AdminUserService().queryUserByParentUser(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
+            userIds = adminUserService.queryUserByParentUser(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
             if (object.containsKey("createUserId")) {
                 if (!userIds.contains(Long.valueOf(object.getInteger("createUserId")))) {
                     return new Page<>();
@@ -184,7 +184,6 @@ public class OaLogService {
      * @author Chacker
      */
     public Record queryById(Integer id) {
-//        Record record = Db.findFirst(Db.getSqlPara("oa.log.queryList", Kv.by("logId", id)));
         String sql = "SELECT " +
                 " a.*,b.dept_id,b.realname,b.img AS userImg, " +
                 " soal.customer_ids,soal.contacts_ids,soal.business_ids, " +
@@ -194,7 +193,7 @@ public class OaLogService {
                 " LEFT JOIN lkcrm_admin_user AS b ON a.create_user_id = b.user_id " +
                 " LEFT JOIN lkcrm_oa_log_relation AS soal ON soal.log_id = a.log_id  " +
                 "WHERE 1 = 1 AND a.log_id = ?";
-        Record record = JavaBeanUtil.mapToRecord(crmOaLogDao.queryUniqueSql(sql));
+        Record record = JavaBeanUtil.mapToRecord(crmOaLogDao.queryUniqueSql(sql, id));
         queryLogDetail(record, BaseUtil.getUser().getUserId());
         return record;
     }
