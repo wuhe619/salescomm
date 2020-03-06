@@ -19,12 +19,18 @@ import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
 import com.jfinal.core.paragetter.Para;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -33,6 +39,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/task")
 public class TaskController extends BasicAction {
+    @InitBinder
+    protected void init(ServletRequestDataBinder binder) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        dateFormat.setLenient(false);
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
+    }
 
     @Resource
     private TaskService taskService;
@@ -104,7 +116,7 @@ public class TaskController extends BasicAction {
         if (task.getWorkId() != null) {
             Integer isOpen = new Work().findById(task.getWorkId()).getIsOpen();
             if (isOpen == 0 && !AuthUtil.isWorkAuth(task.getWorkId().toString(), "task:save")) {
-                return(R.noAuth());
+                return (R.noAuth());
                 //return;
             }
         }
@@ -113,7 +125,7 @@ public class TaskController extends BasicAction {
         }
         if (task.getStartTime() != null && task.getStopTime() != null) {
             if (task.getStartTime().getTime() > task.getStopTime().getTime()) {
-                return(R.error("开始时间不能大于结束时间"));
+                return (R.error("开始时间不能大于结束时间"));
                 //return;
             }
         }
@@ -249,7 +261,7 @@ public class TaskController extends BasicAction {
      * crm查询关联任务
      */
     @RequestMapping(value = "/queryTaskRelation", method = RequestMethod.POST)
-    public R queryTaskRelation(@Para("") BasePageRequest<TaskRelation> basePageRequest,TaskRelation taskRelation) {
+    public R queryTaskRelation(@Para("") BasePageRequest<TaskRelation> basePageRequest, TaskRelation taskRelation) {
         basePageRequest.setData(taskRelation);
         return (taskService.queryTaskRelation(basePageRequest));
     }
