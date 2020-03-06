@@ -12,6 +12,7 @@ public class LkCrmAdminUserRoleEntity {
 
     @Id
     @Column(name = "id")
+    @GeneratedValue
     public int getId() {
         return id;
     }
@@ -40,6 +41,27 @@ public class LkCrmAdminUserRoleEntity {
         this.roleId = roleId;
     }
 
+    private String userIds;
+
+    @Transient
+    public String getUserIds() {
+        return userIds;
+    }
+
+    public void setUserIds(String userIds) {
+        this.userIds = userIds;
+    }
+
+    private String roleIds;
+
+    @Transient
+    public String getRoleIds(){
+        return roleIds;
+    }
+
+    public void setRoleIds(String roleIds){
+        this.roleIds = roleIds;
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -14,6 +14,9 @@ public class LkCrmAdminRoleEntity {
     private int dataType;
     private int isHidden;
     private Integer label;
+    private String custId;
+
+    private String menuIds;
 
     @Id
     @Column(name = "role_id")
@@ -94,6 +97,25 @@ public class LkCrmAdminRoleEntity {
 
     public void setLabel(Integer label) {
         this.label = label;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
+    }
+
+    @Transient
+    public String getMenuIds() {
+        return menuIds;
+    }
+
+    public void setMenuIds(String menuIds) {
+        this.menuIds = menuIds;
     }
 
     @Override

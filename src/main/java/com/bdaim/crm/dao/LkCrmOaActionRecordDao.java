@@ -20,7 +20,7 @@ public class LkCrmOaActionRecordDao extends SimpleHibernateDao<LkCrmOaActionReco
         param.add(userId);
         param.add(deptId);
         param.add(userId);
-        StringBuffer sql = new StringBuffer(" select a.log_id,a.action_id,a.content as action_content,a.create_time,a.type,a.user_id from 72crm_oa_action_record a  where 1 = 1 and " +
+        StringBuffer sql = new StringBuffer(" select a.log_id,a.action_id,a.content as action_content,a.create_time,a.type,a.user_id from lkcrm_oa_action_record a  where 1 = 1 and " +
                 " case when type = 2 or type = 3 or type = 4 or type = 5 then  (a.join_user_ids like concat('%,',?,',%') or a.dept_ids like concat('%,',?,',%') or a.user_id = ?)");
         sql.append(" else ( ");
         if (!CollectionUtils.isEmpty(userIds)) {
@@ -33,7 +33,7 @@ public class LkCrmOaActionRecordDao extends SimpleHibernateDao<LkCrmOaActionReco
             }
         }
         param.add(userId);
-        sql.append(" or a.user_id = ? )");
+        sql.append(" or a.user_id = ? ) END ");
         if (type != null) {
             sql.append(" and a.type = ? ");
             param.add(type);

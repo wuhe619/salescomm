@@ -22,10 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 封装Hibernate原生API的DAO泛型基类.
@@ -1108,13 +1105,26 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
     public List queryListBySql(String sql, Class className, final Object... values) {
         Session session = getSession();
         Query query = session.createSQLQuery(sql).addEntity(className);
-        ;
         if (values != null)
             for (int i = 0; i < values.length; i++) {
                 query.setParameter(i, values[i]);
             }
         List rs = query.list();
         return rs;
+    }
+
+    public T queryUniqueBySql(String sql, Class className, Object... values) {
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql).addEntity(className);
+        if (values != null)
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        List rs = query.list();
+        if (!CollectionUtils.isEmpty(rs)) {
+            return (T) rs.get(0);
+        }
+        return null;
     }
 
     public List<Map<String, Object>> queryListBySql(String sql) {
@@ -1172,7 +1182,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
             }
             return result;
         } else {
-            return null;
+            return Collections.emptyList();
         }
     }
 

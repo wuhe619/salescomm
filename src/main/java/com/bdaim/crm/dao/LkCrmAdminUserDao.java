@@ -60,7 +60,7 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
     public List<Map<String, Object>> queryUserList(String name, List<Integer> deptId, Integer status, String roleId) {
         String sql = "SELECT " +
                 " a.realname,a.username,a.user_id,a.sex,a.mobile,a.email, " +
-                " e.NAME AS deptName,a.STATUS,a.create_time,a.dept_id,a.post, " +
+                " e.NAME AS deptName,a.status,a.create_time,a.dept_id,a.post, " +
                 " a.parent_id,a.img, " +
                 " ( SELECT b.realname FROM lkcrm_admin_user b WHERE b.user_id = a.parent_id ) AS parentName, " +
                 " ( " +
@@ -107,7 +107,7 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
     }
 
     public Page queryUserListByPage(int page, int limit, String name, List<Integer> deptId, Integer status, String roleId) {
-        String sql = "SELECT a.realname,a.username,a.user_id,a.sex,a.mobile,a.email, e.NAME AS deptName,a.STATUS,a.create_time,a.dept_id,a.post, a.parent_id,a.img, ( SELECT b.realname FROM lkcrm_admin_user b WHERE b.user_id = a.parent_id ) AS parentName, ( SELECT group_concat( d.role_id ) FROM lkcrm_admin_user_role AS c LEFT JOIN lkcrm_admin_role AS d ON c.role_id = d.role_id WHERE c.user_id = a.user_id ) AS roleId, ( SELECT group_concat( d.role_name ) FROM lkcrm_admin_user_role AS c LEFT JOIN lkcrm_admin_role AS d ON c.role_id = d.role_id WHERE c.user_id = a.user_id ) AS roleName FROM lkcrm_admin_user a LEFT JOIN lkcrm_admin_dept e ON a.dept_id = e.dept_id  ";
+        String sql = "SELECT a.realname,a.username,a.user_id,a.sex,a.mobile,a.email, e.NAME AS deptName,a.status,a.create_time,a.dept_id,a.post, a.parent_id,a.img, ( SELECT b.realname FROM lkcrm_admin_user b WHERE b.user_id = a.parent_id ) AS parentName, ( SELECT group_concat( d.role_id ) FROM lkcrm_admin_user_role AS c LEFT JOIN lkcrm_admin_role AS d ON c.role_id = d.role_id WHERE c.user_id = a.user_id ) AS roleId, ( SELECT group_concat( d.role_name ) FROM lkcrm_admin_user_role AS c LEFT JOIN lkcrm_admin_role AS d ON c.role_id = d.role_id WHERE c.user_id = a.user_id ) AS roleName FROM lkcrm_admin_user a LEFT JOIN lkcrm_admin_dept e ON a.dept_id = e.dept_id  ";
         sql += " INNER JOIN t_customer_user h ON a.user_id = h.id ";
         if (StringUtil.isNotEmpty(roleId)) {
             sql += " LEFT JOIN lkcrm_admin_user_role f ON a.user_id = f.user_id ";
