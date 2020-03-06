@@ -3,12 +3,13 @@ package com.bdaim.crm.erp.oa.service;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.dao.LkCrmAdminRoleDao;
+import com.bdaim.crm.entity.LkCrmAdminRoleEntity;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
@@ -27,6 +28,7 @@ import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -82,7 +84,7 @@ public class OaAnnouncementService {
      */
     @Before(Tx.class)
     public R delete(Integer id) {
-        AdminRole adminRole = AdminRole.dao.findFirst(Db.getSql("admin.role.queryAnnouncementByUserId"), BaseUtil.getUser().getUserId().intValue());
+        LkCrmAdminRoleEntity adminRole = adminRoleDao.queryAnnouncementByUserId(BaseUtil.getUser().getUserId());
         if (adminRole == null && !BaseUtil.getUser().getUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
             return R.error("没有删除公告权限，不能删除公告！");
         }
@@ -108,7 +110,7 @@ public class OaAnnouncementService {
      * 倒叙查询公告集合
      */
     public R queryList(BasePageRequest<OaAnnouncement> basePageRequest, Integer type) {
-        AdminRole adminRole = AdminRole.dao.findFirst(Db.getSql("admin.role.queryAnnouncementByUserId"), BaseUtil.getUser().getUserId().intValue());
+        LkCrmAdminRoleEntity adminRole = adminRoleDao.queryAnnouncementByUserId(BaseUtil.getUser().getUserId());
         int status = 1;
         if (adminRole == null && !BaseUtil.getUser().getUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
             status = 0;
@@ -125,8 +127,10 @@ public class OaAnnouncementService {
         }
 
         String cc = " order by an.announcement_id desc";
-        Page<Record> page = Db.paginateByFullSql(basePageRequest.getPage(), basePageRequest.getLimit(), tatal + sql, queryList + sql + cc);
-        for (Record r : page.getList()) {
+        Page page = adminRoleDao.pageByFullSql(basePageRequest.getPage(), basePageRequest.getLimit(),
+                tatal + sql, queryList + sql + cc);
+        for (Map<String, Object> obj : (List<Map<String, Object>>) page.getData()) {
+            Record r = JavaBeanUtil.mapToRecord(obj);
             r.set("is_update", status);
             r.set("is_delete", status);
             if (r.getStr("read_user_ids") != null) {
@@ -136,11 +140,11 @@ public class OaAnnouncementService {
             }
         }
         Map<String, Object> map = new HashMap<>();
-        map.put("totalRow", page.getTotalRow());
-        map.put("totalPage", page.getTotalPage());
-        map.put("pageSize", page.getPageSize());
-        map.put("pageNumber", page.getPageNumber());
-        map.put("list", page.getList());
+        map.put("totalRow", page.getTotal());
+//        map.put("totalPage", page.get());
+        map.put("pageSize", page.getLimit());
+        map.put("pageNumber", page.getPageIndex());
+        map.put("list", page.getData());
         map.put("is_save", status);
         return R.ok().put("data", map);
     }
@@ -152,4 +156,5 @@ public class OaAnnouncementService {
         oaAnnouncement.setReadUserIds("," + String.join(",", hashSet) + ",");
         oaAnnouncement.update();
     }
+
 }

@@ -65,11 +65,11 @@ public class LkCrmTaskDao extends SimpleHibernateDao<LkCrmTaskEntity, Integer> {
         StringBuffer sqlBuffer = new StringBuffer();
         List<Object> params = new ArrayList<>();
         sqlBuffer.append("select a.*,")
-                .append("(select count(*) from 72crm_task_comment where type_id = a.task_id and type = 1) as commentCount,")
-                .append("(select count(*) from 72crm_task where pid = a.task_id and status = 5) as childWCCount,")
-                .append("(select count(*) from 72crm_task where pid = a.task_id) as childAllCount,")
-                .append("(select count(*) from 72crm_admin_file where batch_id = a.batch_id) as fileCount")
-                .append(" from 72crm_task a where a.pid = 0 and a.ishidden = 0 ");
+                .append("(select count(*) from lkcrm_task_comment where type_id = a.task_id and type = 1) as commentCount,")
+                .append("(select count(*) from lkcrm_task where pid = a.task_id and status = 5) as childWCCount,")
+                .append("(select count(*) from lkcrm_task where pid = a.task_id) as childAllCount,")
+                .append("(select count(*) from lkcrm_admin_file where batch_id = a.batch_id) as fileCount")
+                .append(" from lkcrm_task a where a.pid = 0 and a.ishidden = 0 ");
         if (type == null || type == 0) {
             sqlBuffer.append(" and ( a.main_user_id in ( ")
                     .append(SqlAppendUtil.sqlAppendWhereIn(userIds))
@@ -84,13 +84,11 @@ public class LkCrmTaskDao extends SimpleHibernateDao<LkCrmTaskEntity, Integer> {
                 params.add(userIds.get(i));
             }
             sqlBuffer.append("    )   ) ");
-        }
-        if (type == 2) {
+        } else if (type == 2) {
             sqlBuffer.append(" and  a.create_user_id in ( ")
                     .append(SqlAppendUtil.sqlAppendWhereIn(userIds))
                     .append(" ) ");
-        }
-        if (type == 3) {
+        } else if (type == 3) {
             sqlBuffer.append(" and   ( ");
             for (int i = 0; i < userIds.size(); i++) {
                 if (i != 0) {
@@ -109,18 +107,21 @@ public class LkCrmTaskDao extends SimpleHibernateDao<LkCrmTaskEntity, Integer> {
             sqlBuffer.append(" and a.priority = ? ");
             params.add(priority);
         }
-        if (date == 1) {
-            sqlBuffer.append(" and TO_DAYS(a.stop_time) = TO_DAYS(now()) ");
-        }
-        if (date == 2) {
-            sqlBuffer.append(" and to_days(NOW()) - TO_DAYS(a.stop_time) = -1 ");
-        }
+        if (date != null) {
+            if (date == 1) {
+                sqlBuffer.append(" and TO_DAYS(a.stop_time) = TO_DAYS(now()) ");
+            }
+            if (date == 2) {
+                sqlBuffer.append(" and to_days(NOW()) - TO_DAYS(a.stop_time) = -1 ");
+            }
 
-        if (date == 3) {
-            sqlBuffer.append(" and to_days(NOW()) - TO_DAYS(a.stop_time) >= -7 and to_days(NOW()) - TO_DAYS(a.stop_time) <= 0 ");
-        }
-        if (date == 4) {
-            sqlBuffer.append(" and to_days(NOW()) - TO_DAYS(a.stop_time) >= -30 and to_days(NOW()) - TO_DAYS(a.stop_time) <= 0 ");
+            if (date == 3) {
+                sqlBuffer.append(" and to_days(NOW()) - TO_DAYS(a.stop_time) >= -7 and to_days(NOW()) - TO_DAYS(a.stop_time) <= 0 ");
+            }
+            if (date == 4) {
+                sqlBuffer.append(" and to_days(NOW()) - TO_DAYS(a.stop_time) >= -30 and to_days(NOW()) - TO_DAYS(a.stop_time) <= 0 ");
+            }
+
         }
         if (StringUtil.isNotEmpty(name)) {
             sqlBuffer.append(" and a.name like concat('%', ?,'%') ");
