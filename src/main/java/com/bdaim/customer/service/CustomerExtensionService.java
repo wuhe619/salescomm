@@ -48,6 +48,13 @@ public class CustomerExtensionService {
     public Page query(JSONObject info, PageParam page) {
         StringBuffer sql = new StringBuffer("select id,content,create_time from op_crm_clue_log where 1=1");
         List<Object> p = new ArrayList<>();
+        if(info.containsKey("clazz")) {
+            p.add(info.getString("clazz").trim());
+            sql.append(" and content->'$.clazz' = ?");
+        }else{
+            p.add("other");
+            sql.append(" and content->'$.clazz' = ?");
+        }
         if (StringUtil.isNotEmpty(info.getString("custName"))) {
             p.add("%" + info.getString("custName") + "%");
             sql.append(" and content-> '$.custName' like ? ");
@@ -69,16 +76,10 @@ public class CustomerExtensionService {
             p.add(info.getString("id"));
             sql.append(" and  id in (?)");
         }
-        if(info.containsKey("clazz")) {
-            p.add(info.getString("clazz").trim());
-            sql.append(" and content->'$.clazz' = ?");
-        }else{
-            p.add("other");
-            sql.append(" and content->'$.clazz' = ?");
-        }
+
         sql.append(" order by create_time desc");
 //        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (page.getPageNum() - 1) * page.getPageSize() + ", " + page.getPageSize());
-        logger.info("sql{},param{}",sql.toString(),p.toArray());
+        logger.info("sql {},param{}",sql.toString(),p.toArray());
         Page list = customerDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize(), p.toArray());
         logger.info("list::{}",list);
         List list1 = new ArrayList();
