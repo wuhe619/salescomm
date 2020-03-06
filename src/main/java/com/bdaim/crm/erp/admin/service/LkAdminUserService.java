@@ -416,9 +416,20 @@ public class LkAdminUserService {
     }
 
     public R setUserStatus(String ids, String status) {
-        for (Integer id : TagUtil.toSet(ids)) {
+        for (Long id : TagUtil.toLongSet(ids)) {
             String sql = "update lkcrm_admin_user set status = ? where user_id = ?";
             crmAdminUserDao.executeUpdateSQL(sql, status, id);
+            sql = "update t_customer_user set status = ? where id = ?";
+            int userStatus = 0;
+            if ("0".equals(status)) {
+                //禁用
+                userStatus = 1;
+            }
+            if ("1".equals(status)) {
+                //激活
+                userStatus = 0;
+            }
+            crmAdminUserDao.executeUpdateSQL(sql, userStatus, id);
         }
         return R.ok();
     }
