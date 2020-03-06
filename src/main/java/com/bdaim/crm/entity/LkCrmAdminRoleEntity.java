@@ -18,6 +18,20 @@ public class LkCrmAdminRoleEntity {
 
     private String menuIds;
 
+    public LkCrmAdminRoleEntity() {
+    }
+
+    public LkCrmAdminRoleEntity(String roleName, Integer roleType, String remark, Integer status, int dataType, int isHidden, Integer label, String custId) {
+        this.roleName = roleName;
+        this.roleType = roleType;
+        this.remark = remark;
+        this.status = status;
+        this.dataType = dataType;
+        this.isHidden = isHidden;
+        this.label = label;
+        this.custId = custId;
+    }
+
     @Id
     @Column(name = "role_id")
     @GeneratedValue
