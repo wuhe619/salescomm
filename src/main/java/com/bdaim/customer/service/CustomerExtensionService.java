@@ -73,8 +73,8 @@ public class CustomerExtensionService {
             sql.append(" and content->'$.source' =? ");
         }
         if (StringUtil.isNotEmpty(info.getString("id"))) {
-            p.add(info.getString("id"));
-            sql.append(" and  id in (?)");
+//            p.add(info.getString("id"));
+            sql.append(" and  id in ("+info.getString("id")+")");
         }
 
         sql.append(" order by create_time desc");
