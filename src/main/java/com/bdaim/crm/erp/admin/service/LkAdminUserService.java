@@ -220,7 +220,7 @@ public class LkAdminUserService {
 
     private void updateScene(LkCrmAdminUserEntity adminUser) {
         List<Long> ids = new ArrayList<>();
-        if (adminUser.getUserId() == 0 && adminUser.getParentId() != null) {
+        if (adminUser.getUserId() == 0 && adminUser.getParentId() != null ) {
             ids.add(adminUser.getParentId());
         } else if (adminUser.getUserId() != 0) {
 //            AdminUser oldAdminUser = AdminUser.dao.findById(adminUser.getUserId());
@@ -248,7 +248,7 @@ public class LkAdminUserService {
     private List<Long> queryTopUserId(Long userId, Integer deepness) {
         List<Long> arrUsers = new ArrayList<>();
         if (deepness-- > 0) {
-            AdminUser adminUser = AdminUser.dao.findById(userId);
+            LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(userId);
             if (adminUser.getParentId() != null && !adminUser.getParentId().equals(0L)) {
                 arrUsers.addAll(queryTopUserId(adminUser.getParentId(), deepness));
             }
