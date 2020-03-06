@@ -28,6 +28,7 @@ import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -101,7 +102,8 @@ public class OaActionRecordService {
             page = recordDao.queryList(pageRequest.getPage(),pageRequest.getLimit(),
                     userIdList,user.getUserId(),user.getDeptId(),type);
         }
-        List<Record> recordList = page.getData();
+        List<Map<String,Object>> maps = page.getData();
+        List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
         recordList.forEach(record -> {
             record.set("type_name", OaEnum.getName(record.getInt("type")));
             Integer userId = record.getInt("user_id");
