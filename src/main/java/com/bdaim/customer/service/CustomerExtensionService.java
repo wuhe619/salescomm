@@ -5,6 +5,8 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ import java.util.Map;
 
 @Service
 public class CustomerExtensionService {
+    private static Logger logger = LoggerFactory.getLogger(CustomerExtensionService.class);
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
@@ -63,11 +67,14 @@ public class CustomerExtensionService {
             p.add(info.getString("clazz").trim());
             sql.append(" and content->'$.clazz' = ?");
         }else{
+            //p.add(info.getString("clazz").trim());
             sql.append(" and content not like %clazz% ");
         }
         sql.append(" order by create_time desc");
 //        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (page.getPageNum() - 1) * page.getPageSize() + ", " + page.getPageSize());
+        logger.info("sql{},param{}",sql.toString(),p.toArray());
         Page list = customerDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize(), p.toArray());
+        logger.info("list::{}",list);
         List list1 = new ArrayList();
         list.getData().stream().forEach(m -> {
             Map map = (Map) m;
