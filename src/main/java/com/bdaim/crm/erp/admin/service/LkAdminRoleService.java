@@ -96,6 +96,9 @@ public class LkAdminRoleService {
         if (number > 0) {
             return R.error("角色名已存在");
         }
+        adminRole.setStatus(1);
+        adminRole.setDataType(5);
+        adminRole.setIsHidden(1);
         return (int) crmAdminRoleDao.saveReturnPk(adminRole) > 0 ? R.ok() : R.error();
     }
 
@@ -252,14 +255,17 @@ public class LkAdminRoleService {
         }
         int i = 1;
         if (numberSb.length() == 0) {
-            while (numberSb.toString().contains("(" + i + ")")) {
+            while (numberSb.toString().contains("（" + i + "）")) {
                 i++;
             }
         }
-        adminRole.setRoleName(pre + "(" + i + ")");
+        adminRole.setRoleName(pre + "（" + i + "）");
         //adminRole.setRoleId(null);
-        crmAdminRoleDao.save(adminRole);
-        Integer copyRoleId = adminRole.getRoleId();
+        crmAdminRoleDao.getSession().clear();
+        LkCrmAdminRoleEntity newAdminRole = new LkCrmAdminRoleEntity(adminRole.getRoleName(), adminRole.getRoleType(), adminRole.getRemark(), adminRole.getStatus()
+                , adminRole.getDataType(), adminRole.getIsHidden(), adminRole.getLabel(), adminRole.getCustId());
+        Integer copyRoleId = (int) crmAdminRoleDao.saveReturnPk(newAdminRole);
+        //Integer copyRoleId = newAdminRole.getRoleId();
         adminMenuService.saveRoleMenu(copyRoleId, adminRole.getDataType(), menuIdsList);
     }
 
