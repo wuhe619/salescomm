@@ -28,7 +28,7 @@ public class BasePageRequest<T> {
     /**
      * 分页类型
      */
-    private Integer pageType;
+    private Integer pageType = 1;
 
     private JSONObject jsonObject;
 
@@ -42,7 +42,7 @@ public class BasePageRequest<T> {
     }
 
     public BasePageRequest(Kv kv, Class<T> clazz) {
-        this(kv.toJson(),clazz);
+        this(kv.toJson(), clazz);
     }
 
     public BasePageRequest(String rowData, Class<T> clazz) {
@@ -51,7 +51,7 @@ public class BasePageRequest<T> {
         this.setPage(getIntAndRemove("page", 1));
         this.setLimit(getIntAndRemove("limit", 10));
         this.setPageType(getIntAndRemove("pageType", 1));
-        if(clazz!=null){
+        if (clazz != null) {
             this.setData(jsonObject.toJavaObject(clazz));
         }
     }

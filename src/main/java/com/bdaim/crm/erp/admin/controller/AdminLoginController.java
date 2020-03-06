@@ -5,18 +5,14 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.bdaim.common.controller.BasicAction;
 import com.jfinal.aop.Clear;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
-import com.jfinal.kit.Prop;
-import com.jfinal.kit.PropKit;
 import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Db;
 import com.bdaim.crm.common.config.redis.Redis;
 import com.bdaim.crm.common.config.redis.RedisManager;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
-import com.bdaim.crm.erp.admin.service.AdminRoleService;
+import com.bdaim.crm.erp.admin.service.LkAdminRoleService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,7 +37,7 @@ public class AdminLoginController extends BasicAction {
 
 
     @Resource
-    private AdminRoleService adminRoleService;
+    private LkAdminRoleService adminRoleService;
 
     //public final static Prop prop = PropKit.use("config/crm9-config.txt");
 

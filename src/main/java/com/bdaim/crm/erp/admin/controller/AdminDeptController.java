@@ -3,7 +3,7 @@ package com.bdaim.crm.erp.admin.controller;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.entity.LkCrmAdminDeptEntity;
-import com.bdaim.crm.erp.admin.service.AdminDeptService;
+import com.bdaim.crm.erp.admin.service.LkAdminDeptService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +20,7 @@ import javax.annotation.Resource;
 public class AdminDeptController extends BasicAction {
 
     @Resource
-    private AdminDeptService adminDeptService;
+    private LkAdminDeptService adminDeptService;
 
     /**
      * @author hmb

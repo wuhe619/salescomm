@@ -5,14 +5,14 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
-import com.bdaim.crm.erp.admin.entity.AdminRole;
+import com.bdaim.crm.entity.LkCrmAdminRoleEntity;
+import com.bdaim.crm.entity.LkCrmAdminUserRoleEntity;
 import com.bdaim.crm.erp.admin.entity.AdminUserRole;
-import com.bdaim.crm.erp.admin.service.AdminRoleService;
+import com.bdaim.crm.erp.admin.service.LkAdminRoleService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.jfinal.aop.Before;
 import com.jfinal.core.paragetter.Para;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +22,7 @@ import javax.annotation.Resource;
 @RequestMapping("/system/role")
 public class AdminRoleController extends BasicAction {
     @Resource
-    private AdminRoleService adminRoleService;
+    private LkAdminRoleService adminRoleService;
 
     /**
      * @author wyq
@@ -52,7 +52,7 @@ public class AdminRoleController extends BasicAction {
     @Permissions("manage:permission")
     @Before(Tx.class)
     @RequestMapping(value = "/add", method = RequestMethod.POST)
-    public R add(@Para("") AdminRole adminRole) {
+    public R add(LkCrmAdminRoleEntity adminRole) {
         return (adminRoleService.save(adminRole));
     }
 
@@ -64,8 +64,8 @@ public class AdminRoleController extends BasicAction {
     @NotNullValidate(value = "roleId", message = "角色id不能为空")
     @NotNullValidate(value = "roleName", message = "角色名称不能为空")
     @RequestMapping(value = "/update", method = RequestMethod.POST)
-    public R update(@Para("") AdminRole adminRole) {
-        Integer number = Db.queryInt("select count(*) from 72crm_admin_role where role_name = ? and role_type = ? and role_id != ?", adminRole.getRoleName(), adminRole.getRoleType(), adminRole.getRoleId());
+    public R update(@Para("") LkCrmAdminRoleEntity adminRole) {
+        Integer number = adminRoleService.checkCustRoleExist( adminRole.getRoleName(), adminRole.getRoleType(), adminRole.getRoleId(), BaseUtil.getCustId());
         if (number > 0) {
             return (R.error("角色名已存在"));
         } else {
@@ -155,7 +155,7 @@ public class AdminRoleController extends BasicAction {
      */
     @Permissions("manage:permission")
     @RequestMapping(value = "/relatedUser", method = RequestMethod.POST)
-    public R relatedUser(AdminUserRole adminUserRole) {
+    public R relatedUser(LkCrmAdminUserRoleEntity adminUserRole) {
         return (adminRoleService.relatedUser(adminUserRole));
     }
 

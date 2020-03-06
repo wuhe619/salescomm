@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.admin.controller;
 
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -7,12 +8,10 @@ import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.entity.LkCrmAdminUserEntity;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
-import com.bdaim.crm.erp.admin.service.AdminUserService;
+import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
-import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
-import com.jfinal.upload.UploadFile;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -25,10 +24,10 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("/system/user")
-public class AdminUserController extends Controller {
+public class AdminUserController extends BasicAction {
 
     @Resource
-    private AdminUserService adminUserService;
+    private LkAdminUserService adminUserService;
 
     @Resource
     private AdminFileService adminFileService;
@@ -40,7 +39,7 @@ public class AdminUserController extends Controller {
      */
     @Permissions("manage:user")
     @RequestMapping(value = "/setUser")
-    public R setUser(@Para("") LkCrmAdminUserEntity adminUser) {
+    public R setUser(LkCrmAdminUserEntity adminUser) {
 //        renderJson(adminUserService.setUser(adminUser, getPara("roleIds")));
         return adminUserService.setUser(adminUser, getPara("roleIds"));
     }
@@ -146,11 +145,11 @@ public class AdminUserController extends Controller {
     @RequestMapping(value = "/updateImg")
     public R updateImg() {
         String prefix = BaseUtil.getDate();
-        UploadFile uploadFile = getFile("file", prefix);
-        R r = adminFileService.upload(uploadFile, null, "file", "/" + prefix);
+        //UploadFile uploadFile = getFile("file", prefix);
+        R r = adminFileService.upload0(BaseUtil.getRequest(), null, "file", "/" + prefix);
         if (r.isSuccess()) {
             String url = (String) r.get("url");
-            if (adminUserService.updateImg(url, getParaToLong("userId"))) {
+            if (adminUserService.updateImg(url, getLong("userId"))) {
 //                renderJson(R.ok());
                 return R.ok();
             }

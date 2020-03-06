@@ -409,16 +409,22 @@ public class BasicAction {
     }
 
     public Integer getParaToInt(String name) {
-        return NumberConvertUtil.parseInt(getPara(name));
+        if (StringUtil.isEmpty(getPara(name))) {
+            return null;
+        }
+        return Integer.parseInt(getPara(name));
     }
 
 
     public Integer getInt(String name) {
-        return NumberConvertUtil.parseInt(getPara(name));
+        return getParaToInt(name);
     }
 
 
     public Long getLong(String name) {
+        if (StringUtil.isEmpty(getPara(name))) {
+            return null;
+        }
         return NumberConvertUtil.parseLong(getPara(name));
     }
 
@@ -427,9 +433,9 @@ public class BasicAction {
         Map<String, String[]> paraMap = this.request.getParameterMap();
         Iterator var3 = paraMap.entrySet().iterator();
 
-        while(var3.hasNext()) {
-            Map.Entry<String, String[]> entry = (Map.Entry)var3.next();
-            String[] values = (String[])entry.getValue();
+        while (var3.hasNext()) {
+            Map.Entry<String, String[]> entry = (Map.Entry) var3.next();
+            String[] values = (String[]) entry.getValue();
             String value = values != null && values.length > 0 ? values[0] : null;
             kv.put(entry.getKey(), "".equals(value) ? null : value);
         }

@@ -19,16 +19,17 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class AdminDeptService {
+public class LkAdminDeptService {
     @Autowired
     private LkCrmAdminDeptDao crmAdminDeptDao;
     @Autowired
-    private AdminUserService adminUserService;
+    private LkAdminUserService adminUserService;
     @Autowired
     private LkCrmAdminRoleDao crmAdminRoleDao;
 
     public R setDept(LkCrmAdminDeptEntity adminDept) {
         boolean bol;
+        adminDept.setCustId(BaseUtil.getCustId());
         if (adminDept.getDeptId() == null) {
             bol = (int) crmAdminDeptDao.saveReturnPk(adminDept) > 0;
         } else {
@@ -48,7 +49,8 @@ public class AdminDeptService {
             crmAdminDeptDao.update(adminDept);
             bol = true;
         }
-        return R.isSuccess(bol, "设置失败");
+        //return R.isSuccess(bol, "设置失败");
+        return R.isSuccess(bol);
     }
 
     public List<Record> queryDeptTree(String type, Integer id) {
