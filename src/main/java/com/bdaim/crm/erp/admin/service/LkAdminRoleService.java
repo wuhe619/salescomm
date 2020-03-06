@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.config.cache.CaffeineCache;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.dao.LkCrmAdminMenuDao;
 import com.bdaim.crm.dao.LkCrmAdminRoleDao;
 import com.bdaim.crm.entity.LkCrmAdminMenuEntity;
 import com.bdaim.crm.entity.LkCrmAdminRoleEntity;
@@ -14,6 +13,7 @@ import com.bdaim.crm.entity.LkCrmAdminRoleMenuEntity;
 import com.bdaim.crm.entity.LkCrmAdminUserRoleEntity;
 import com.bdaim.crm.erp.admin.entity.AdminRole;
 import com.bdaim.crm.erp.admin.entity.AdminUserRole;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
@@ -24,7 +24,6 @@ import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -34,7 +33,7 @@ import java.util.Map;
 
 @Service
 @Transactional
-public class AdminRoleService {
+public class LkAdminRoleService {
 
     @Autowired
     private AdminMenuService adminMenuService;
@@ -52,7 +51,11 @@ public class AdminRoleService {
             Record record = new Record();
             record.set("name", roleTypeCaseName(roleType));
             record.set("pid", roleType);
-            List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminRoleDao.getRoleListByRoleType(roleType));
+            String custId = BaseUtil.getCustId();
+            if (1 == roleType) {
+                custId = "";
+            }
+            List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminRoleDao.getRoleListByRoleType(roleType, custId));
             recordList.forEach(role -> {
                 List<Integer> crm = crmAdminRoleDao.getRoleMenu(role.getInt("id"), 1, 1);
                 List<Integer> bi = crmAdminRoleDao.getRoleMenu(role.getInt("id"), 2, 2);
@@ -76,12 +79,12 @@ public class AdminRoleService {
      * @author wyq
      * 新建
      */
-    public R save(AdminRole adminRole) {
+    public R save(LkCrmAdminRoleEntity adminRole) {
         Integer number = crmAdminRoleDao.queryForInt("select count(*) from lkcrm_admin_role where role_name = ? and role_type = ?", adminRole.getRoleName(), adminRole.getRoleType());
         if (number > 0) {
             return R.error("角色名已存在");
         }
-        return adminRole.save() ? R.ok() : R.error();
+        return (int) crmAdminRoleDao.saveReturnPk(adminRole) > 0 ? R.ok() : R.error();
     }
 
     /**

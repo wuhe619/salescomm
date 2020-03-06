@@ -9,7 +9,7 @@ import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
-import com.bdaim.crm.erp.admin.service.AdminUserService;
+import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaLog;
 import com.bdaim.crm.erp.oa.entity.OaLogRelation;
@@ -44,7 +44,7 @@ public class OaLogService {
     @Resource
     private LkCrmOaLogDao crmOaLogDao;
     @Resource
-    private AdminUserService adminUserService;
+    private LkAdminUserService adminUserService;
     @Resource
     private CustomerUserDao customerUserDao;
     @Resource

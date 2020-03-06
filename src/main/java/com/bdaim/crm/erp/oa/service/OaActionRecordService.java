@@ -10,11 +10,10 @@ import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmOaActionRecordDao;
 import com.bdaim.crm.dao.LkCrmOaEventDao;
 import com.bdaim.crm.entity.LkCrmOaActionRecordEntity;
-import com.bdaim.crm.erp.admin.service.AdminUserService;
+import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaActionRecord;
 import com.bdaim.crm.utils.BaseUtil;
-import com.bdaim.crm.utils.CrmPage;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
 import com.bdaim.util.JavaBeanUtil;
@@ -38,7 +37,7 @@ public class OaActionRecordService {
     private OaLogService oaLogService;
 
     @Resource
-    private AdminUserService adminUserService;
+    private LkAdminUserService adminUserService;
 
     @Resource
     private OaEventService oaEventService;

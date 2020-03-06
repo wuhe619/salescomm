@@ -5,9 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
+import com.bdaim.crm.entity.LkCrmAdminRoleEntity;
 import com.bdaim.crm.erp.admin.entity.AdminRole;
 import com.bdaim.crm.erp.admin.entity.AdminUserRole;
-import com.bdaim.crm.erp.admin.service.AdminRoleService;
+import com.bdaim.crm.erp.admin.service.LkAdminRoleService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.jfinal.aop.Before;
@@ -22,7 +23,7 @@ import javax.annotation.Resource;
 @RequestMapping("/system/role")
 public class AdminRoleController extends BasicAction {
     @Resource
-    private AdminRoleService adminRoleService;
+    private LkAdminRoleService adminRoleService;
 
     /**
      * @author wyq
@@ -52,7 +53,7 @@ public class AdminRoleController extends BasicAction {
     @Permissions("manage:permission")
     @Before(Tx.class)
     @RequestMapping(value = "/add", method = RequestMethod.POST)
-    public R add(@Para("") AdminRole adminRole) {
+    public R add(LkCrmAdminRoleEntity adminRole) {
         return (adminRoleService.save(adminRole));
     }
 

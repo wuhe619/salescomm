@@ -19,11 +19,11 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class AdminDeptService {
+public class LkAdminDeptService {
     @Autowired
     private LkCrmAdminDeptDao crmAdminDeptDao;
     @Autowired
-    private AdminUserService adminUserService;
+    private LkAdminUserService adminUserService;
     @Autowired
     private LkCrmAdminRoleDao crmAdminRoleDao;
 

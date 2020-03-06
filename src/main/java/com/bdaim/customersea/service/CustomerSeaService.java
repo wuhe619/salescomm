@@ -766,6 +766,28 @@ public class CustomerSeaService {
         return status;
     }
 
+    public long addSea(CustomerSeaParam param) {
+        Timestamp time = new Timestamp(System.currentTimeMillis());
+        long id = 0L;
+        // 保存公海
+        CustomerSea customerSea = new CustomerSea(param);
+        customerSea.setStatus(2);
+        customerSea.setTaskPhoneIndex(0);
+        customerSea.setTaskSmsIndex(0);
+        customerSea.setQuantity("0");
+        customerSea.setCreateTime(time);
+        id = (long) customerSeaDao.saveReturnPk(customerSea);
+        customerSea.setId(id);
+        // 创建公海数据表
+        createCustomerSeaDataTable(String.valueOf(customerSea.getId()));
+        param.setId(customerSea.getId());
+        // 保存公海属性
+        saveCustomerSeaProperty(param);
+        // 创建默认线索导入客群
+        createDefaultClueCGroup(customerSea.getId(), param.getName() + "(默认客群)", param.getCustId());
+        return id;
+    }
+
     /**
      * 公海分页
      *

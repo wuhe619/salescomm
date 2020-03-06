@@ -9,17 +9,29 @@ import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminDeptDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
+import com.bdaim.crm.entity.LkCrmAdminDeptEntity;
 import com.bdaim.crm.entity.LkCrmAdminUserEntity;
+import com.bdaim.crm.entity.LkCrmAdminUserRoleEntity;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
-import com.bdaim.crm.erp.admin.entity.AdminUserRole;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.Sort;
 import com.bdaim.crm.utils.TagUtil;
+import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
+import com.bdaim.customer.user.dto.UserCallConfigDTO;
+import com.bdaim.customersea.service.CustomerSeaService;
+import com.bdaim.marketproject.dto.MarketProjectDTO;
+import com.bdaim.marketproject.service.MarketProjectService;
+import com.bdaim.util.CipherUtil;
+import com.bdaim.util.IDHelper;
 import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -29,15 +41,81 @@ import java.util.*;
 
 @Service("adminUserService")
 @Transactional
-public class AdminUserService {
+public class LkAdminUserService {
     @Resource
-    private AdminRoleService adminRoleService;
+    private LkAdminRoleService adminRoleService;
     @Resource
-    private AdminDeptService adminDeptService;
+    private LkAdminDeptService adminDeptService;
     @Resource
     private LkCrmAdminUserDao crmAdminUserDao;
     @Resource
     private LkCrmAdminDeptDao crmAdminDeptDao;
+    @Autowired
+    private CustomerUserDao customerUserDao;
+    @Autowired
+    private CustomerSeaService customerSeaService;
+    @Autowired
+    private MarketProjectService marketProjectService;
+
+    private void saveBpUser(long id, String userName, String realName, String password, String custId, int userType,
+                            String callType, String callChannel, UserCallConfigDTO userDTO) {
+        CustomerUser cu = new CustomerUser();
+        cu.setId(id);
+        cu.setAccount(userName);
+        cu.setRealname(realName);
+        if (null == password || "".equals(password)) {
+            password = "123456";
+        }
+        //password = CipherUtil.generatePassword(password);
+        cu.setPassword(password);
+        cu.setStatus(0);
+        cu.setCust_id(custId);
+        cu.setUserType(userType); //2:添加普通员工 3:项目管理员
+        cu.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
+        customerUserDao.save(cu);
+
+        List<CustomerUserPropertyDO> list = new ArrayList<>();
+        CustomerUserPropertyDO mobile_num = new CustomerUserPropertyDO(cu.getId().toString(), "mobile_num", userDTO.getMobileNumber(), new Timestamp(System.currentTimeMillis()));
+        CustomerUserPropertyDO email = new CustomerUserPropertyDO(cu.getId().toString(), "email", userDTO.getEmail(), new Timestamp(System.currentTimeMillis()));
+        CustomerUserPropertyDO title = new CustomerUserPropertyDO(cu.getId().toString(), "title", userDTO.getTitle(), new Timestamp(System.currentTimeMillis()));
+        if (2 == userType) {
+            CustomerUserPropertyDO work_num = new CustomerUserPropertyDO(cu.getId().toString(), "work_num", userDTO.getWorkNum(), new Timestamp(System.currentTimeMillis()));
+            //添加员工配置双呼默认审核通过
+            if (StringUtil.isNotEmpty(userDTO.getWorkNum())) {
+                CustomerUserPropertyDO work_num_status = new CustomerUserPropertyDO(cu.getId().toString(), "work_num_status", "1", new Timestamp(System.currentTimeMillis()));
+                list.add(work_num_status);
+            }
+            CustomerUserPropertyDO seats_account = new CustomerUserPropertyDO(cu.getId().toString(), "seats_account", userDTO.getSeatsAccount(), new Timestamp(System.currentTimeMillis()));
+            CustomerUserPropertyDO seats_password = new CustomerUserPropertyDO(cu.getId().toString(), "seats_password", userDTO.getSeatsPassword(), new Timestamp(System.currentTimeMillis()));
+            CustomerUserPropertyDO extension_number = new CustomerUserPropertyDO(cu.getId().toString(), "extension_number", userDTO.getExtensionNumber(), new Timestamp(System.currentTimeMillis()));
+            CustomerUserPropertyDO extension_password = new CustomerUserPropertyDO(cu.getId().toString(), "extension_password", userDTO.getExtensionPassword(), new Timestamp(System.currentTimeMillis()));
+            CustomerUserPropertyDO call_type = new CustomerUserPropertyDO(cu.getId().toString(), "call_type", callType.trim(), new Timestamp(System.currentTimeMillis()));
+            CustomerUserPropertyDO call_channel = new CustomerUserPropertyDO(cu.getId().toString(), "call_channel", callChannel, new Timestamp(System.currentTimeMillis()));
+            if ("1".equals(userDTO.getAddAgentMethod())) {//api方式添加座席
+                CustomerUserPropertyDO add_agent_method = new CustomerUserPropertyDO(cu.getId().toString(), "add_agent_method", userDTO.getAddAgentMethod(), new Timestamp(System.currentTimeMillis()));
+                list.add(add_agent_method);
+            }
+            list.add(work_num);
+
+            list.add(seats_account);
+            list.add(seats_password);
+            list.add(extension_number);
+            list.add(extension_password);
+            list.add(call_type);
+            list.add(call_channel);
+        } else if (3 == userType) { //项目管理员需要添加所分配的项目
+            String hasMarketProjectStr = userDTO.getHasMarketProject();
+            if (StringUtil.isNotEmpty(hasMarketProjectStr)) {
+                hasMarketProjectStr = "," + hasMarketProjectStr + ",";
+            }
+            CustomerUserPropertyDO hasMarketProject = new CustomerUserPropertyDO(cu.getId().toString(), "hasMarketProject", hasMarketProjectStr, new Timestamp(System.currentTimeMillis()));
+            list.add(hasMarketProject);
+        }
+        list.add(mobile_num);
+        list.add(email);
+        list.add(title);
+        this.customerUserDao.batchSaveOrUpdate(list);
+    }
 
     @Before(Tx.class)
     public R setUser(LkCrmAdminUserEntity adminUser, String roleIds) {
@@ -49,14 +127,22 @@ public class AdminUserService {
             if (count > 0) {
                 return R.error("手机号重复！");
             }
+            Long userId = IDHelper.getUserID();
+            adminUser.setUserId(userId);
             String salt = IdUtil.fastSimpleUUID();
+            adminUser.setCustId(BaseUtil.getCustId());
             adminUser.setNum(RandomUtil.randomNumbers(15));
             adminUser.setSalt(salt);
-            adminUser.setPassword(BaseUtil.sign((adminUser.getUsername().trim() + adminUser.getPassword().trim()), salt));
+            //adminUser.setPassword(BaseUtil.sign((adminUser.getUsername().trim() + adminUser.getPassword().trim()), salt));
+            adminUser.setPassword(CipherUtil.generatePassword(adminUser.getPassword()));
             adminUser.setCreateTime(new Timestamp(System.currentTimeMillis()));
             adminUser.setMobile(adminUser.getUsername());
 //            bol = adminUser.save();
-            crmAdminUserDao.save(adminUser);
+            crmAdminUserDao.saveReturnPk(adminUser);
+            UserCallConfigDTO userDTO = new UserCallConfigDTO();
+            userDTO.setMobileNumber(adminUser.getMobile());
+            userDTO.setEmail(adminUser.getEmail());
+            saveBpUser(userId, adminUser.getUsername(), adminUser.getRealname(), adminUser.getPassword(), BaseUtil.getCustId(), 2, "", "", userDTO);
         } else {
             if (adminUser.getParentId() != null && adminUser.getParentId() != 0) {
                 List<Record> topUserList = queryTopUserList(adminUser.getUserId());
@@ -86,12 +172,49 @@ public class AdminUserService {
         if (StrUtil.isNotBlank(roleIds)) {
             Long userId = adminUser.getUserId();
             for (Integer roleId : TagUtil.toSet(roleIds)) {
-                AdminUserRole adminUserRole = new AdminUserRole();
+                LkCrmAdminUserRoleEntity adminUserRole = new LkCrmAdminUserRoleEntity();
                 adminUserRole.setUserId(userId);
                 adminUserRole.setRoleId(roleId);
-                adminUserRole.save();
+                crmAdminUserDao.saveOrUpdate(adminUserRole);
             }
         }
+        return R.isSuccess(true);
+    }
+
+    public R createInitData(LkCrmAdminUserEntity adminUser, Long userId, String custId) {
+        boolean bol;
+        //updateScene(adminUser);
+        // 创建部门
+        LkCrmAdminDeptEntity dept = new LkCrmAdminDeptEntity(0, "办公室", null, "", custId);
+        int deptId = (int) crmAdminDeptDao.saveReturnPk(dept);
+        //创建crm用户
+        String sql = "select count(*) from lkcrm_admin_user where username = ?";
+        Integer count = crmAdminUserDao.queryForInt(sql, adminUser.getUsername());
+        if (count > 0) {
+            return R.error("用户名称重复！");
+        }
+        adminUser.setUserId(userId);
+        String salt = IdUtil.fastSimpleUUID();
+        adminUser.setCustId(custId);
+        adminUser.setNum(RandomUtil.randomNumbers(15));
+        adminUser.setSalt(salt);
+        //adminUser.setPassword(BaseUtil.sign((adminUser.getUsername().trim() + adminUser.getPassword().trim()), salt));
+        adminUser.setPassword(adminUser.getPassword());
+        adminUser.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        adminUser.setMobile(adminUser.getUsername());
+        adminUser.setDeptId(deptId);
+        crmAdminUserDao.saveReturnPk(adminUser);
+        // 关联管理员角色
+        LkCrmAdminUserRoleEntity adminUserRole = new LkCrmAdminUserRoleEntity();
+        adminUserRole.setUserId(userId);
+        adminUserRole.setRoleId(1);
+        crmAdminUserDao.saveOrUpdate(adminUserRole);
+        //创建默认公海
+        MarketProjectDTO dto = new MarketProjectDTO();
+        dto.setIndustryId(-1);
+        dto.setName("默认公海项目");
+        dto.setType("2");
+        marketProjectService.saveMarketProjectAndSeaReturnId(dto, custId, userId);
         return R.isSuccess(true);
     }
 

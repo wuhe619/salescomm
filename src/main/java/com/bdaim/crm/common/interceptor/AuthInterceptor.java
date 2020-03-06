@@ -2,7 +2,7 @@ package com.bdaim.crm.common.interceptor;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.annotation.Permissions;
-import com.bdaim.crm.erp.admin.service.AdminRoleService;
+import com.bdaim.crm.erp.admin.service.LkAdminRoleService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.jfinal.aop.Aop;
@@ -20,7 +20,7 @@ public class AuthInterceptor implements Interceptor {
         //TODO 权限功能后台拦截
         Permissions permissions=invocation.getMethod().getAnnotation(Permissions.class);
         if(permissions!=null&&permissions.value().length>0){
-            JSONObject jsonObject= Aop.get(AdminRoleService.class).auth(BaseUtil.getUserId());
+            JSONObject jsonObject= Aop.get(LkAdminRoleService.class).auth(BaseUtil.getUserId());
             //组装应有权限列表
             List<String> arr=queryAuth(jsonObject, "");
             boolean isRelease=false;

@@ -7,12 +7,11 @@ import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.entity.LkCrmTaskEntity;
 import com.bdaim.crm.entity.LkCrmTaskRelationEntity;
 import com.bdaim.crm.entity.LkCrmWorkTaskClassEntity;
-import com.bdaim.crm.erp.admin.service.AdminUserService;
+import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.work.entity.Task;
 import com.bdaim.crm.erp.work.entity.TaskRelation;
 import com.bdaim.crm.erp.work.entity.Work;
-import com.bdaim.crm.erp.work.entity.WorkTaskClass;
 import com.bdaim.crm.erp.work.service.TaskService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
@@ -49,7 +48,7 @@ public class TaskController extends BasicAction {
     @Resource
     private TaskService taskService;
     @Resource
-    private AdminUserService adminUserService;
+    private LkAdminUserService adminUserService;
 
     /**
      * @param taskClass 任务类别对象

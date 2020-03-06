@@ -11,10 +11,13 @@ import com.bdaim.callcenter.dto.XzCallcenterSeatParam;
 import com.bdaim.callcenter.dto.XzCompanyCallcenterParam;
 import com.bdaim.callcenter.service.impl.SeatsService;
 import com.bdaim.callcenter.util.XzCallCenterUtil;
+import com.bdaim.common.dao.DicDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.entity.Dic;
 import com.bdaim.common.exception.ParamException;
 import com.bdaim.common.exception.TouchException;
+import com.bdaim.crm.entity.LkCrmAdminUserEntity;
+import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dao.CustomerUserPropertyDao;
@@ -35,10 +38,9 @@ import com.bdaim.smscenter.dto.SmsPriceConfig;
 import com.bdaim.supplier.fund.entity.FundProductApply;
 import com.bdaim.util.*;
 import com.bdaim.util.wechat.WeChatUtil;
-import com.bdaim.common.dao.DicDao;
-import org.hibernate.transform.Transformers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -87,6 +89,9 @@ public class CustomerUserService {
 
     @Resource
     private UnicomService unicomService;
+
+    @Autowired
+    private LkAdminUserService lkAdminUserService;
 
 
     /**
@@ -259,8 +264,20 @@ public class CustomerUserService {
         // 所属行业
         //customerDao.saveOrUpdate(new CustomerProperty(customerId, "industryId", value.getIndustryId()));
 
-        //服务模式 1:CRM 2:营销任务
+        //服务模式 2:CRM 1:营销任务
         customerDao.saveOrUpdate(new CustomerProperty(customerId, "service_mode", value.getServiceMode()));
+        if ("2".equals(value.getServiceMode())) {
+            LkCrmAdminUserEntity adminUser = new LkCrmAdminUserEntity();
+            adminUser.setUserId(cu.getId());
+            adminUser.setCustId(customerId);
+            adminUser.setUsername(value.getUserName());
+            adminUser.setRealname(value.getRealName());
+            adminUser.setStatus(1);
+            adminUser.setMobile(value.getMobile());
+            adminUser.setEmail(value.getEmail());
+            adminUser.setParentId(0L);
+            lkAdminUserService.createInitData(adminUser, cu.getId(), customerId);
+        }
 
         // 处理用户自建属性
         customerUserDao.saveOrUpdate(new CustomerUserPropertyDO(String.valueOf(cu.getId()), "email", value.getEmail(), new Timestamp(System.currentTimeMillis())));

@@ -44,7 +44,7 @@ public class AdminSceneService {
     private LkCrmAdminSceneDao crmAdminSceneDao;
 
     @Resource
-    private AdminUserService adminUserService;
+    private LkAdminUserService adminUserService;
 
     @Resource
     private LkCrmLeadsDao crmLeadsDao;
