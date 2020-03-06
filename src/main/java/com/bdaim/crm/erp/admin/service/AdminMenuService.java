@@ -105,7 +105,7 @@ public class AdminMenuService {
      */
     public boolean saveRoleMenu(Integer roleId, Integer dateType, List<Integer> menuIdList) {
         //return Db.tx(() -> {
-        LkCrmAdminRoleEntity adminRole = new LkCrmAdminRoleEntity();
+        LkCrmAdminRoleEntity adminRole = crmAdminRoleDao.get(roleId);
         adminRole.setRoleId(roleId);
         adminRole.setDataType(dateType);
         crmAdminRoleDao.update(adminRole);

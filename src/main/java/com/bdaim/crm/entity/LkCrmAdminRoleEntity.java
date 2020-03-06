@@ -11,12 +11,26 @@ public class LkCrmAdminRoleEntity {
     private Integer roleType;
     private String remark;
     private Integer status;
-    private int dataType;
-    private int isHidden;
+    private Integer dataType;
+    private Integer isHidden;
     private Integer label;
     private String custId;
 
     private String menuIds;
+
+    public LkCrmAdminRoleEntity() {
+    }
+
+    public LkCrmAdminRoleEntity(String roleName, Integer roleType, String remark, Integer status, int dataType, int isHidden, Integer label, String custId) {
+        this.roleName = roleName;
+        this.roleType = roleType;
+        this.remark = remark;
+        this.status = status;
+        this.dataType = dataType;
+        this.isHidden = isHidden;
+        this.label = label;
+        this.custId = custId;
+    }
 
     @Id
     @Column(name = "role_id")
@@ -71,21 +85,21 @@ public class LkCrmAdminRoleEntity {
 
     @Basic
     @Column(name = "data_type")
-    public int getDataType() {
+    public Integer getDataType() {
         return dataType;
     }
 
-    public void setDataType(int dataType) {
+    public void setDataType(Integer dataType) {
         this.dataType = dataType;
     }
 
     @Basic
     @Column(name = "is_hidden")
-    public int getIsHidden() {
+    public Integer getIsHidden() {
         return isHidden;
     }
 
-    public void setIsHidden(int isHidden) {
+    public void setIsHidden(Integer isHidden) {
         this.isHidden = isHidden;
     }
 
