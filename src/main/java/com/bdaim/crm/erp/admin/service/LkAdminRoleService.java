@@ -255,11 +255,11 @@ public class LkAdminRoleService {
         }
         int i = 1;
         if (numberSb.length() == 0) {
-            while (numberSb.toString().contains("(" + i + ")")) {
+            while (numberSb.toString().contains("（" + i + "）")) {
                 i++;
             }
         }
-        adminRole.setRoleName(pre + "(" + i + ")");
+        adminRole.setRoleName(pre + "（" + i + "）");
         //adminRole.setRoleId(null);
         crmAdminRoleDao.getSession().clear();
         LkCrmAdminRoleEntity newAdminRole = new LkCrmAdminRoleEntity(adminRole.getRoleName(), adminRole.getRoleType(), adminRole.getRemark(), adminRole.getStatus()

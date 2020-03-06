@@ -11,8 +11,8 @@ public class LkCrmAdminRoleEntity {
     private Integer roleType;
     private String remark;
     private Integer status;
-    private int dataType;
-    private int isHidden;
+    private Integer dataType;
+    private Integer isHidden;
     private Integer label;
     private String custId;
 
@@ -85,21 +85,21 @@ public class LkCrmAdminRoleEntity {
 
     @Basic
     @Column(name = "data_type")
-    public int getDataType() {
+    public Integer getDataType() {
         return dataType;
     }
 
-    public void setDataType(int dataType) {
+    public void setDataType(Integer dataType) {
         this.dataType = dataType;
     }
 
     @Basic
     @Column(name = "is_hidden")
-    public int getIsHidden() {
+    public Integer getIsHidden() {
         return isHidden;
     }
 
-    public void setIsHidden(int isHidden) {
+    public void setIsHidden(Integer isHidden) {
         this.isHidden = isHidden;
     }
 
