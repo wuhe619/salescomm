@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmOaActionRecordDao;
@@ -13,12 +14,12 @@ import com.bdaim.crm.erp.admin.service.AdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaActionRecord;
 import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.crm.utils.CrmPage;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.SqlPara;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,13 +94,16 @@ public class OaActionRecordService {
             userIdList = adminUserService.queryUserByParentUser(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
         }
         userIdList.add(user.getUserId());
+        Page page;
         if (type.equals(OaEnum.ALL_TYPE_KEY.getTypes())) {
-            sqlPara = Db.getSqlPara("oa.record.queryList", Kv.by("userId", user.getUserId()).set("deptId", user.getDeptId()).set("userIds", userIdList));
+            page = recordDao.queryList(pageRequest.getPage(),pageRequest.getLimit(),
+                    userIdList,user.getUserId(),user.getDeptId(),null);
         } else {
-            sqlPara = Db.getSqlPara("oa.record.queryList", Kv.by("userId", user.getUserId()).set("deptId", user.getDeptId()).set("type", type).set("userIds", userIdList));
+            page = recordDao.queryList(pageRequest.getPage(),pageRequest.getLimit(),
+                    userIdList,user.getUserId(),user.getDeptId(),type);
         }
-        Page<Record> pageData = Db.paginate(pageRequest.getPage(), pageRequest.getLimit(), sqlPara);
-        pageData.getList().forEach(record -> {
+        List<Record> recordList = page.getData();
+        recordList.forEach(record -> {
             record.set("type_name", OaEnum.getName(record.getInt("type")));
             Integer userId = record.getInt("user_id");
             String userSql = "select user_id,realname,img from lkcrm_admin_user where user_id = ?";
@@ -136,7 +140,7 @@ public class OaActionRecordService {
                 record.setColumns(info).set("create_time", createTime);
             }
         });
-        return R.ok().put("data", pageData);
+        return R.ok().put("data", BaseUtil.crmPage(page));
     }
 
     public R queryEvent(String month) {
