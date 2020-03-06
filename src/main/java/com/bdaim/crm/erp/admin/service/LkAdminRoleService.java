@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.admin.service;
 
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ReUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -7,6 +8,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.config.cache.CaffeineCache;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminRoleDao;
+import com.bdaim.crm.dao.LkCrmAdminUserDao;
 import com.bdaim.crm.entity.LkCrmAdminMenuEntity;
 import com.bdaim.crm.entity.LkCrmAdminRoleEntity;
 import com.bdaim.crm.entity.LkCrmAdminRoleMenuEntity;
@@ -14,6 +16,8 @@ import com.bdaim.crm.entity.LkCrmAdminUserRoleEntity;
 import com.bdaim.crm.erp.admin.entity.AdminUserRole;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
@@ -30,6 +34,7 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -40,6 +45,12 @@ public class LkAdminRoleService {
 
     @Autowired
     public LkCrmAdminRoleDao crmAdminRoleDao;
+
+    @Autowired
+    public LkCrmAdminUserDao crmAdminUserDao;
+
+    @Autowired
+    public CustomerUserDao customerUserDao;
 
     /**
      * @author wyq
@@ -262,10 +273,10 @@ public class LkAdminRoleService {
             String[] roleIdsArr = adminUserRole.getRoleIds().split(",");
             for (String userId : userIdsArr) {
                 for (String roleId : roleIdsArr) {
-                    crmAdminRoleDao.executeUpdateSQL("delete from lkcrm_admin_user_role where user_id = ? and role_id = ?", Integer.valueOf(userId), Integer.valueOf(roleId));
+                    crmAdminRoleDao.executeUpdateSQL("delete from lkcrm_admin_user_role where user_id = ? and role_id = ?", userId, roleId);
                     LkCrmAdminUserRoleEntity userRole = new LkCrmAdminUserRoleEntity();
-                    userRole.setUserId(Long.valueOf(userId));
-                    userRole.setRoleId(Integer.valueOf(roleId));
+                    userRole.setUserId(NumberUtil.parseLong(userId));
+                    userRole.setRoleId(NumberUtil.parseInt(roleId));
                     crmAdminRoleDao.saveOrUpdate(userRole);
                 }
             }
@@ -280,7 +291,14 @@ public class LkAdminRoleService {
      * 解除角色关联员工
      */
     public R unbindingUser(AdminUserRole adminUserRole) {
-        if (adminUserRole.getUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
+        /*if (adminUserRole.getUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
+            return R.error("超级管理员不可被更改");
+        }*/
+        CustomerUser user = customerUserDao.get(adminUserRole.getUserId());
+        if (user == null) {
+            return R.error("解除角色关联员工异常");
+        }
+        if (Objects.equals(user.getUserType(), 1)) {
             return R.error("超级管理员不可被更改");
         }
         return crmAdminRoleDao.executeUpdateSQL("delete from lkcrm_admin_user_role where user_id = ? and role_id = ?", adminUserRole.getUserId(), adminUserRole.getRoleId()) > 0 ? R.ok() : R.error();

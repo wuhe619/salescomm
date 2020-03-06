@@ -12,6 +12,7 @@ public class LkCrmAdminUserRoleEntity {
 
     @Id
     @Column(name = "id")
+    @GeneratedValue
     public int getId() {
         return id;
     }
