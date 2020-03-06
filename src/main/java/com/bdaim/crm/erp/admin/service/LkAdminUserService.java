@@ -121,6 +121,7 @@ public class LkAdminUserService {
     @Before(Tx.class)
     public R setUser(LkCrmAdminUserEntity adminUser, String roleIds) {
         boolean bol;
+        adminUser.setCustId(BaseUtil.getCustId());
         updateScene(adminUser);
         if (adminUser.getUserId() == 0) {
             String sql = "select count(*) from lkcrm_admin_user where username = ?";
@@ -323,7 +324,7 @@ public class LkAdminUserService {
     public List<Integer> queryChileDeptIds(Integer deptId, Integer deepness) {
         String sql = "select dept_id from lkcrm_admin_dept where pid = ?";
         List<Integer> list = crmAdminUserDao.queryListForInteger(sql, deptId);
-        if (list.size() != 0 && deepness > 0) {
+        if (list != null && list.size() != 0 && deepness > 0) {
             int size = list.size();
             for (int i = 0; i < size; i++) {
                 list.addAll(queryChileDeptIds(list.get(i), deepness - 1));
