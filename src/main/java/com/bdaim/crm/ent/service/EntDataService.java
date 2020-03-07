@@ -516,4 +516,77 @@ public class EntDataService {
             }
         }
     }
+
+    public void importQY9DataToES(String tableName, String sTag, String industryEn, String index, String type) {
+        List<Map<String, Object>> count = null;
+        try {
+            count = jdbcTemplate.queryForList("select count(0) count from " + tableName);
+        } catch (DataAccessException e) {
+            LOG.error("查询数据异常,", e);
+            return;
+        }
+        long total = 0L;
+        if (count.size() > 0) {
+            total = NumberConvertUtil.parseLong(count.get(0).get("count"));
+        }
+        System.out.println(tableName + "-" + total);
+        int limit = 10000;
+        for (int i = 0; i <= total; i += limit) {
+            List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from " + tableName + " LIMIT ?,?", i, limit);
+            if (list.size() > 0) {
+                List<JSONObject> data = new ArrayList<>();
+                for (Map<String, Object> m : list) {
+                    JSONObject jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
+                    jsonObject.put("createTime", m.get("create_time"));
+                    jsonObject.put("updateTime", m.get("update_time"));
+                    jsonObject.put("province", m.get("province"));
+                    if (jsonObject.getTimestamp("createTime") != null) {
+                        jsonObject.put("createTime", jsonObject.getTimestamp("createTime").getTime());
+                    }
+                    if (jsonObject.getTimestamp("updateTime") != null) {
+                        jsonObject.put("updateTime", jsonObject.getTimestamp("updateTime").getTime());
+                    }
+                    for (Map.Entry<String, Object> k : jsonObject.entrySet()) {
+                        if ("-".equals(String.valueOf(k.getValue()))) {
+                            k.setValue("");
+                        }
+                        boolean s = k.getKey().indexOf("Date") > 0 || k.getKey().indexOf("date") > 0 ||
+                                k.getKey().indexOf("Time") > 0 || k.getKey().indexOf("time") > 0;
+
+                        if (s && StringUtil.isNotEmpty(String.valueOf(k.getValue()))) {
+                            if (String.valueOf(k.getValue()).indexOf("2") < 0) {
+                                k.setValue(null);
+                                continue;
+                            }
+                            k.setValue(String.valueOf(k.getValue()).replaceAll(" ", "")
+                                    .replaceAll("年", "-").replaceAll("月", "-")
+                                    .replaceAll("日", "-"));
+                        }
+
+                        if (s && StringUtil.isNotEmpty(String.valueOf(k.getValue()))
+                                && String.valueOf(k.getValue()).indexOf("-") > 1) {
+                            k.setValue(String.valueOf(k.getValue()).replaceAll(" ", ""));
+                            if (String.valueOf(k.getValue()).indexOf("至") > 1) {
+                                System.out.println("至:" + k.getValue());
+                                if (k.getKey().equals("fromTime")) {
+                                    k.setValue(String.valueOf(k.getValue()).split("至")[0].replaceAll(" ", ""));
+                                } else if (k.getKey().equals("toTime") && String.valueOf(k.getValue()).split("至").length > 1) {
+                                    k.setValue(String.valueOf(k.getValue()).split("至")[1].replaceAll(" ", ""));
+                                }
+                            }
+                            DateTime parse = DateUtil.parse(String.valueOf(k.getValue()).replaceAll("至", "")
+                                    .replaceAll("年", "-").replaceAll("月", "-")
+                                    .replaceAll("日", "-"), "yyyy-MM-dd");
+                            k.setValue(parse.getTime());
+                        }
+                    }
+                    jsonObject.put("industryEn", industryEn);
+                    jsonObject.put("s_tag", sTag);
+                    jsonObject.put("id", MD5Util.encode32Bit(jsonObject.getString("entName") + "lianke" + jsonObject.getString("creditCode")));
+                    data.add(jsonObject);
+                }
+                elasticSearchService.bulkInsertDocument0(index, type, data);
+            }
+        }
+    }
 }
