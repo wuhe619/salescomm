@@ -11,7 +11,7 @@ public class  LkCrmCustomerEntity {
     private String customerName;
     private Integer followup;
     private String custId;
-    private int isLock;
+    private Integer isLock;
     private Timestamp nextTime;
     private String dealStatus;
     private String mobile;
@@ -88,11 +88,11 @@ public class  LkCrmCustomerEntity {
 
     @Basic
     @Column(name = "is_lock")
-    public int getIsLock() {
+    public Integer getIsLock() {
         return isLock;
     }
 
-    public void setIsLock(int isLock) {
+    public void setIsLock(Integer isLock) {
         this.isLock = isLock;
     }
 

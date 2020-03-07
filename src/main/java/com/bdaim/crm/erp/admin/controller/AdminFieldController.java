@@ -17,7 +17,6 @@ import com.bdaim.crm.erp.oa.service.OaExamineCategoryService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
-import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
@@ -27,7 +26,7 @@ import javax.annotation.Resource;
 import java.util.*;
 
 /**
- * @author hmb
+ * crm自定义字段
  */
 @RestController
 @RequestMapping("/field")
@@ -187,8 +186,10 @@ public class AdminFieldController extends BasicAction {
      * 设置字段样式
      */
     @RequestMapping(value = "/setFelidStyle", method = RequestMethod.POST)
-    public R setFelidStyle(@RequestParam Map param) {
-        return (adminFieldService.setFelidStyle((Kv) param));
+    public R setFelidStyle() {
+        Kv kv = new Kv();
+        kv.putAll(getKv());
+        return (adminFieldService.setFelidStyle(kv));
     }
 
     /**
@@ -210,7 +211,7 @@ public class AdminFieldController extends BasicAction {
      */
     @NotNullValidate(value = "label", message = "label不能为空")
     @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
-    public R queryListHead(@Para("") LkCrmAdminFieldSortEntity adminFieldSort) {
+    public R queryListHead(LkCrmAdminFieldSortEntity adminFieldSort) {
         List<Record> records;
         if (adminFieldSort.getLabel() == 10) {
             records = oaExamineCategoryService.queryFieldList();
@@ -230,7 +231,7 @@ public class AdminFieldController extends BasicAction {
             }
         });
         ///resp.setData(JavaBeanUtil.recordToMap(records));
-        return (R.ok().put("data", JavaBeanUtil.recordToMap(records)));
+        return (R.ok().put("data", records));
     }
 
     /**
@@ -239,7 +240,7 @@ public class AdminFieldController extends BasicAction {
      */
     @NotNullValidate(value = "label", message = "label不能为空")
     @RequestMapping(value = "/queryFieldConfig", method = RequestMethod.POST)
-    public R queryFieldConfig(@Para("") AdminFieldSort adminFieldSort) {
+    public R queryFieldConfig(AdminFieldSort adminFieldSort) {
         return (adminFieldService.queryFieldConfig(adminFieldSort));
     }
 
@@ -250,7 +251,7 @@ public class AdminFieldController extends BasicAction {
     @NotNullValidate(value = "label", message = "label不能为空")
     @NotNullValidate(value = "noHideIds", message = "显示列不能为空")
     @RequestMapping(value = "/fieldConfig", method = RequestMethod.POST)
-    public R fieldConfig(@Para("") AdminFieldSort adminFieldSort) {
+    public R fieldConfig(AdminFieldSort adminFieldSort) {
         return (adminFieldService.fieldConfig(adminFieldSort));
     }
 

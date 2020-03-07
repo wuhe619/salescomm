@@ -19,7 +19,7 @@ public class BiFunnelController extends Controller {
     /**
      * 销售漏斗
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/sellFunnel")
     public R sellFunnel(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type,
@@ -31,7 +31,7 @@ public class BiFunnelController extends Controller {
     /**
      * 新增商机分析图
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/addBusinessAnalyze")
     public R addBusinessAnalyze(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type,
@@ -43,7 +43,7 @@ public class BiFunnelController extends Controller {
     /**
      * 新增商机分析表
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/sellFunnelList")
     public R sellFunnelList(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type,
@@ -55,7 +55,7 @@ public class BiFunnelController extends Controller {
     /**
      * 商机转化率分析
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/win")
     public R win(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type,

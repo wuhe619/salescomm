@@ -6,24 +6,30 @@ import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.entity.LkCrmTaskEntity;
 import com.bdaim.crm.entity.LkCrmTaskRelationEntity;
-import com.bdaim.crm.erp.admin.service.AdminUserService;
+import com.bdaim.crm.entity.LkCrmWorkTaskClassEntity;
+import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.work.entity.Task;
 import com.bdaim.crm.erp.work.entity.TaskRelation;
 import com.bdaim.crm.erp.work.entity.Work;
-import com.bdaim.crm.erp.work.entity.WorkTaskClass;
 import com.bdaim.crm.erp.work.service.TaskService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
 import com.jfinal.core.paragetter.Para;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -32,24 +38,30 @@ import java.util.List;
 @RestController
 @RequestMapping("/task")
 public class TaskController extends BasicAction {
+    @InitBinder
+    protected void init(ServletRequestDataBinder binder) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        dateFormat.setLenient(false);
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
+    }
 
     @Resource
     private TaskService taskService;
     @Resource
-    private AdminUserService adminUserService;
+    private LkAdminUserService adminUserService;
 
     /**
      * @param taskClass 任务类别对象
-     * @author hmb
+     * @author Chacker
      * 设置任务类别
      */
     @RequestMapping(value = "/setTaskClass", method = RequestMethod.POST)
-    public R setTaskClass(@Para("") WorkTaskClass taskClass) {
+    public R setTaskClass(@Para("") LkCrmWorkTaskClassEntity taskClass) {
         return (taskService.setTaskClass(taskClass));
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 交换任务列表排序
      */
     @RequestMapping(value = "/changeOrderTaskClass", method = RequestMethod.POST)
@@ -62,7 +74,7 @@ public class TaskController extends BasicAction {
 
     /**
      * @param task 任务对象
-     * @author hmb
+     * @author Chacker
      * 设置oa任务
      */
     @RequestMapping(value = "/setTask", method = RequestMethod.POST)
@@ -103,7 +115,7 @@ public class TaskController extends BasicAction {
         if (task.getWorkId() != null) {
             Integer isOpen = new Work().findById(task.getWorkId()).getIsOpen();
             if (isOpen == 0 && !AuthUtil.isWorkAuth(task.getWorkId().toString(), "task:save")) {
-                return(R.noAuth());
+                return (R.noAuth());
                 //return;
             }
         }
@@ -112,7 +124,7 @@ public class TaskController extends BasicAction {
         }
         if (task.getStartTime() != null && task.getStopTime() != null) {
             if (task.getStartTime().getTime() > task.getStopTime().getTime()) {
-                return(R.error("开始时间不能大于结束时间"));
+                return (R.error("开始时间不能大于结束时间"));
                 //return;
             }
         }
@@ -133,7 +145,7 @@ public class TaskController extends BasicAction {
 
 
     /**
-     * @author hmb
+     * @author Chacker
      * 查询任务列表
      */
     @RequestMapping(value = "/getTaskList", method = RequestMethod.POST)
@@ -145,7 +157,7 @@ public class TaskController extends BasicAction {
 
 
     /**
-     * @author hmb
+     * @author Chacker
      * 查询oa任务信息
      */
     @RequestMapping(value = "/queryTaskInfo", method = RequestMethod.POST)
@@ -160,7 +172,7 @@ public class TaskController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 查询项目任务详情
      */
     @RequestMapping(value = "/queryTaskById", method = RequestMethod.POST)
@@ -228,12 +240,12 @@ public class TaskController extends BasicAction {
      * 添加任务与业务关联
      */
     @RequestMapping(value = "/svaeTaskRelation", method = RequestMethod.POST)
-    public R svaeTaskRelation(@Para("") TaskRelation taskRelation) {
+    public R svaeTaskRelation(@Para("") LkCrmTaskRelationEntity taskRelation) {
         return (taskService.svaeTaskRelation(taskRelation, BaseUtil.getUser().getUserId().intValue()));
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 删除任务
      * taskId 任务id
      */
@@ -244,18 +256,18 @@ public class TaskController extends BasicAction {
     }
 
     /**
-     * @author wyq
+     * @author Chacker
      * crm查询关联任务
      */
     @RequestMapping(value = "/queryTaskRelation", method = RequestMethod.POST)
-    public R queryTaskRelation(@Para("") BasePageRequest<TaskRelation> basePageRequest,TaskRelation taskRelation) {
+    public R queryTaskRelation(@Para("") BasePageRequest<TaskRelation> basePageRequest, TaskRelation taskRelation) {
         basePageRequest.setData(taskRelation);
         return (taskService.queryTaskRelation(basePageRequest));
     }
 
     /**
      * @param taskId
-     * @author hmb
+     * @author Chacker
      * 根据任务id归档任务
      */
     @RequestMapping(value = "/archiveByTaskId", method = RequestMethod.POST)

@@ -80,4 +80,9 @@ public class LkCrmContractDao extends SimpleHibernateDao<LkCrmContractEntity, In
     }
 
 
+    public int updateCheckStatusById(int check_status, int contractId) {
+        return super.executeUpdateSQL(" update lkcrm_crm_contract set check_status = ? where contract_id = ?", check_status, contractId);
+    }
+
+
 }

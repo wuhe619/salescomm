@@ -13,7 +13,6 @@ import com.bdaim.crm.entity.LkCrmAdminFieldEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldSortEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
-import com.bdaim.crm.erp.admin.entity.AdminField;
 import com.bdaim.crm.erp.admin.entity.AdminFieldSort;
 import com.bdaim.crm.utils.*;
 import com.bdaim.customer.dao.CustomerLabelDao;
@@ -23,7 +22,6 @@ import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
@@ -319,24 +317,24 @@ public class AdminFieldService {
                 create = "create or replace view customerview  as select a.*,b.realname as create_user_name,c.realname as owner_user_name,z.* from lkcrm_crm_customer as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join fieldcustomerview as z on a.batch_id = z.field_batch_id";
                 break;
             case 3:
-                filedCreate = String.format(Db.getSql("admin.field.fieldcontactsview"), sql, userJoin.append(deptJoin), label);
-                create = Db.getSql("admin.field.contactsview");
+                filedCreate = String.format("create or replace view fieldcontactsview as select %s batch_id as field_batch_id from 72crm_admin_fieldv as a inner join 72crm_admin_field d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view contactsview as select a.*,a.name as contacts_name ,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,z.* from 72crm_crm_contacts as a left join 72crm_admin_user as b on a.create_user_id = b.user_id left join 72crm_admin_user as c on a.owner_user_id = c.user_id left join 72crm_crm_customer as d on a.customer_id = d.customer_id left join fieldcontactsview as z on a.batch_id = z.field_batch_id";
                 break;
             case 4:
-                filedCreate = String.format(Db.getSql("admin.field.fieldproductview"), sql, userJoin.append(deptJoin), label);
-                create = Db.getSql("admin.field.productview");
+                filedCreate = String.format("create or replace view fieldproductview as select %s batch_id as field_batch_id from 72crm_admin_fieldv as a inner join 72crm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view productview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.name as category_name,z.* from 72crm_crm_product as a left join 72crm_admin_user as b on a.create_user_id = b.user_id left join 72crm_admin_user as c on a.owner_user_id = c.user_id left join 72crm_crm_product_category as d on a.category_id = d.category_id left join fieldproductview as z on a.batch_id = z.field_batch_id";
                 break;
             case 5:
-                filedCreate = String.format(Db.getSql("admin.field.fieldbusinessview"), sql, userJoin.append(deptJoin), label);
-                create = Db.getSql("admin.field.businessview");
+                filedCreate = String.format("create or replace view fieldbusinessview as select %s batch_id as field_batch_id from 72crm_admin_fieldv as a inner join 72crm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != ''and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view businessview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,e.name as type_name,f.name as status_name,z.* from 72crm_crm_business as a left join 72crm_admin_user as b on a.create_user_id = b.user_id left join 72crm_admin_user as c on a.owner_user_id = c.user_id left join 72crm_crm_customer as d on a.customer_id = d.customer_id left join 72crm_crm_business_type as e on a.type_id = e.type_id left join 72crm_crm_business_status as f on a.status_id = f.status_id left join fieldbusinessview as z on a.batch_id = z.field_batch_id";
                 break;
             case 6:
-                filedCreate = String.format(Db.getSql("admin.field.fieldcontractview"), sql, userJoin.append(deptJoin), label);
-                create = Db.getSql("admin.field.contractview");
+                filedCreate = String.format("create or replace view fieldcontractview as select %s batch_id as field_batch_id from 72crm_admin_fieldv as a inner join 72crm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view contractview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,e.business_name,f.name as contacts_name,g.realname as company_user_name,z.* from 72crm_crm_contract as a left join 72crm_admin_user as b on a.create_user_id = b.user_id left join 72crm_admin_user as c on a.owner_user_id = c.user_id left join 72crm_crm_customer as d on a.customer_id = d.customer_id left join 72crm_crm_business as e on a.business_id = e.business_id left join 72crm_crm_contacts as f on a.contacts_id = f.contacts_id left join 72crm_admin_user as g on a.company_user_id = g.user_id left join fieldcontractview as z on a.batch_id = z.field_batch_id";
                 break;
             case 7:
-                filedCreate = String.format(Db.getSql("admin.field.fieldreceivablesview"), sql, userJoin.append(deptJoin), label);
-                create = Db.getSql("admin.field.receivablesview");
+                filedCreate = String.format("create or replace view fieldreceivablesview as select %s batch_id as field_batch_id from 72crm_admin_fieldv as a inner join 72crm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view receivablesview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,e.name as contract_name,e.num as contract_num,f.num as plan_num,z.* from 72crm_crm_receivables as a left join 72crm_admin_user as b on a.create_user_id = b.user_id left join 72crm_admin_user as c on a.owner_user_id = c.user_id left join 72crm_crm_customer as d on a.customer_id = d.customer_id left join 72crm_crm_contract as e on a.contract_id = e.contract_id left join 72crm_crm_receivables_plan as f on a.plan_id = f.plan_id left join fieldreceivablesview as z on a.batch_id = z.field_batch_id";
                 break;
             default:
                 create = "";
@@ -351,22 +349,23 @@ public class AdminFieldService {
         }
     }
 
-    public List<Record> queryFieldsByBatchId(String batchId, String... name) {
+    public List queryFieldsByBatchId(String batchId, String... name) {
         if (StrUtil.isEmpty(batchId)) {
             return new ArrayList<>();
         }
-        return Db.find(AdminField.dao.getSqlPara("admin.field.queryFieldsByBatchId", Kv.by("batchId", batchId).set("names", name)));
+        return crmAdminFieldDao.queryFieldsByBatchId(batchId, name);
     }
 
     public List<Record> queryByBatchId(String batchId, Integer label) {
         if (StrUtil.isEmpty(batchId)) {
             return new ArrayList<>();
         }
-        List<Record> recordList = Db.find(AdminField.dao.getSqlPara("admin.field.queryFieldsByBatchId", Kv.by("batchId", batchId).set("label", label)));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.queryFieldsByBatchId(batchId, String.valueOf(label)));
+        //List<Record> recordList = Db.find(AdminField.dao.getSqlPara("admin.field.queryFieldsByBatchId", Kv.by("batchId", batchId).set("label", label)));
         recordList.forEach(record -> {
             if (record.getInt("type") == 10) {
                 if (StrUtil.isNotEmpty(record.getStr("value"))) {
-                    List<Record> userList = Db.find("select user_id,realname from lkcrm_admin_user where user_id in (" + record.getStr("value") + ")");
+                    List<Record> userList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.sqlQuery("select user_id,realname from lkcrm_admin_user where user_id in (" + record.getStr("value") + ")"));
                     record.set("value", userList);
                 } else {
                     record.set("value", new ArrayList<>());
@@ -374,7 +373,7 @@ public class AdminFieldService {
                 record.set("default_value", new ArrayList<>(0));
             } else if (record.getInt("type") == 12) {
                 if (StrUtil.isNotEmpty(record.getStr("value"))) {
-                    List<Record> deptList = Db.find("select dept_id,name from lkcrm_admin_dept where dept_id in (" + record.getStr("value") + ")");
+                    List<Record> deptList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.sqlQuery("select dept_id,name from lkcrm_admin_dept where dept_id in (" + record.getStr("value") + ")"));
                     record.set("value", deptList);
                 } else {
                     record.set("value", new ArrayList<>());
@@ -391,7 +390,7 @@ public class AdminFieldService {
     }
 
     public R queryFields() {
-        List<Record> records = JavaBeanUtil.mapToRecords(crmAdminFieldDao.queryFields());
+        List records = crmAdminFieldDao.queryFields();
         return R.ok().put("data", records);
     }
 
@@ -562,7 +561,6 @@ public class AdminFieldService {
      * @author wyq
      * 查询客户管理列表页字段
      */
-    @Before(Tx.class)
     public List<Record> queryListHead(LkCrmAdminFieldSortEntity adminFieldSort) {
         //查看userid是否存在于顺序表，没有则插入
         Long userId = BaseUtil.getUser().getUserId();
@@ -588,9 +586,9 @@ public class AdminFieldService {
                     .add("ownerUserName", "负责人").add("createUserName", "创建人");
             fieldUtil.getAdminFieldSortList().forEach(fieldSort -> {
                 String fieldName = StrUtil.toCamelCase(fieldSort.getFieldName());
-                if (11 == adminFieldSort.getLabel()) {
+                /*if (11 == adminFieldSort.getLabel()) {
                     fieldName = fieldSort.getFieldName();
-                }
+                }*/
                 fieldSort.setFieldName(fieldName);
                 if ("customerId".equals(fieldSort.getFieldName())) {
                     fieldSort.setFieldName("customerName");
@@ -625,7 +623,6 @@ public class AdminFieldService {
      * @author wyq
      * 查询字段排序隐藏设置
      */
-    @Before(Tx.class)
     public R queryFieldConfig(AdminFieldSort adminFieldSort) {
         Long userId = BaseUtil.getUser().getUserId();
         //查出自定义字段，查看顺序表是否存在该字段，没有则插入，设为隐藏
@@ -695,17 +692,17 @@ public class AdminFieldService {
             } else {
                 if (10 == dataType) {
                     if (StrUtil.isNotEmpty(record.getStr("value"))) {
-                        record.set("value", Db.queryStr("select group_concat(realname) from `lkcrm_admin_user` where user_id in (" + record.getStr("value") + ")"));
+                        record.set("value", crmAdminFieldDao.queryForObject("select group_concat(realname) from `lkcrm_admin_user` where user_id in (" + record.getStr("value") + ")"));
                     }
                 } else if (12 == dataType) {
                     if (StrUtil.isNotEmpty(record.getStr("value"))) {
-                        record.set("value", Db.queryStr("select group_concat(name) from `lkcrm_admin_dept` where dept_id in (" + record.getStr("value") + ")"));
+                        record.set("value", crmAdminFieldDao.queryForObject("select group_concat(name) from `lkcrm_admin_dept` where dept_id in (" + record.getStr("value") + ")"));
                     }
                 }
             }
             if (dataType == 8) {
                 if (StrUtil.isNotEmpty(record.getStr("value"))) {
-                    record.set("value", Db.find("select * from `lkcrm_admin_file` where batch_id = ?", record.getStr("value")));
+                    record.set("value", crmAdminFieldDao.sqlQuery("select * from `lkcrm_admin_file` where batch_id = ?", record.getStr("value")));
                 }
             }
         });

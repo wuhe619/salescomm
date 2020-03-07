@@ -1,6 +1,5 @@
 package com.bdaim.crm.erp.admin.common;
 
-import com.bdaim.crm.erp.admin.controller.*;
 import com.jfinal.config.Routes;
 
 public class AdminRouter extends Routes {
@@ -8,17 +7,17 @@ public class AdminRouter extends Routes {
     public void config() {
         addInterceptor(new AdminInterceptor());
         //add("/", AdminLoginController.class);
-        add("/system/user", AdminUserController.class);
-        add("/system/dept", AdminDeptController.class);
-        add("/system/menu", AdminMenuController.class);
-        add("/system/role", AdminRoleController.class);
+        //add("/system/user", AdminUserController.class);
+        //add("/system/dept", AdminDeptController.class);
+        //add("/system/menu", AdminMenuController.class);
+        //add("/system/role", AdminRoleController.class);
         //add("/file", AdminFileController.class);
         //add("/field",AdminFieldController.class);
         //add("/scene",AdminSceneController.class);
-        add("/businessType", AdminBusinessTypeController.class);
+        //add("/businessType", AdminBusinessTypeController.class);
         //add("/achievement",AdminAchievementController.class);
-        add("/sysConfig",AdminSysConfigController.class);
-        add("/examine", AdminExamineController.class);
-        add("/examineRecord", AdminExamineRecordController.class);
+        //add("/sysConfig",AdminSysConfigController.class);
+        //add("/examine", AdminExamineController.class);
+        //add("/examineRecord", AdminExamineRecordController.class);
     }
 }

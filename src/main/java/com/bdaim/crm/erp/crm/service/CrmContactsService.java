@@ -82,6 +82,8 @@ public class CrmContactsService {
 
     @Resource
     private LkCrmAdminFieldDao crmAdminFieldDao;
+    @Resource
+    private LkCrmTaskDao crmTaskDao;
 
     /**
      * @return
@@ -203,7 +205,7 @@ public class CrmContactsService {
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         crmContacts.setCustId(BaseUtil.getUser().getCustId());
-        if (crmContacts.getContactsId() != null) {
+        if (entity.getContactsId() != null) {
             crmContacts.setUpdateTime(DateUtil.date().toTimestamp());
             crmRecordService.updateRecord(crmContactsDao.get(crmContacts.getContactsId()), crmContacts, CrmEnum.CONTACTS_TYPE_KEY.getTypes());
             LkCrmContactsEntity dnEntity = crmContactsDao.get(crmContacts.getContactsId());
@@ -327,6 +329,7 @@ public class CrmContactsService {
         adminRecord.setTypes("crm_contacts");
         adminRecord.setCreateTime(DateUtil.date().toTimestamp());
         adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
+        adminRecord.setCustId(BaseUtil.getUser().getCustId());
         if (1 == adminRecord.getIsEvent()) {
             LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
@@ -344,6 +347,25 @@ public class CrmContactsService {
             oaEventRelation.setCreateTime(DateUtil.date().toTimestamp());
             crmOaEventDao.saveOrUpdate(oaEventRelation);
         }
+        // 添加任务
+        if (adminRecord.getIsTask() != null && 1 == adminRecord.getIsTask()) {
+            LkCrmTaskEntity crmTaskEntity = new LkCrmTaskEntity();
+            crmTaskEntity.setCustId(BaseUtil.getUser().getCustId());
+            crmTaskEntity.setBatchId(IdUtil.simpleUUID());
+            crmTaskEntity.setName(adminRecord.getTaskName());
+            crmTaskEntity.setDescription(adminRecord.getContent());
+            crmTaskEntity.setCreateUserId(adminRecord.getCreateUserId());
+            crmTaskEntity.setMainUserId(adminRecord.getCreateUserId());
+            crmTaskEntity.setStartTime(adminRecord.getNextTime());
+            if (adminRecord.getNextTime() != null) {
+                crmTaskEntity.setStopTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
+            }
+            //完成状态 1正在进行2延期3归档 5结束
+            crmTaskEntity.setStatus(1);
+            crmTaskEntity.setCreateTime(DateUtil.date().toTimestamp());
+            int taskId = (int) crmTaskDao.saveReturnPk(crmTaskEntity);
+            adminRecord.setTaskId(taskId);
+        }
         int code = (int) crmAdminRecordDao.saveReturnPk(adminRecord);
         return R.isSuccess(code > 0);
     }
@@ -356,7 +378,7 @@ public class CrmContactsService {
     public List<Record> getRecord(BasePageRequest<CrmContacts> basePageRequest) {
         CrmContacts crmContacts = basePageRequest.getData();
         //List<Record> recordList = Db.find(Db.getSql("crm.contact.getRecord"), crmContacts.getContactsId(), crmContacts.getContactsId());
-        List<Record> recordList = JavaBeanUtil.mapToRecords(crmContactsDao.getRecord(crmContacts.getContactsId()));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmContactsDao.getRecord(crmContacts.getContactsId(), basePageRequest.getPage(), basePageRequest.getLimit()));
         recordList.forEach(record -> {
             adminFileService.queryByBatchId(record.getStr("batch_id"), record);
             String businessIds = record.getStr("business_ids");
@@ -380,6 +402,22 @@ public class CrmContactsService {
                 }
             }
             record.set("business_list", businessList).set("contacts_list", contactsList);
+        });
+        return recordList;
+    }
+
+    /**
+     * 查看代办事项记录
+     *
+     * @param basePageRequest
+     * @param taskStatus
+     * @param contactsId
+     * @return
+     */
+    public List<Record> listAgency(BasePageRequest<CrmContacts> basePageRequest, Integer taskStatus, Integer contactsId) {
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmContactsDao.getRecord(contactsId, taskStatus, basePageRequest.getPage(), basePageRequest.getLimit()));
+        recordList.forEach(record -> {
+            adminFileService.queryByBatchId(record.getStr("batch_id"), record);
         });
         return recordList;
     }
@@ -522,7 +560,7 @@ public class CrmContactsService {
         Integer errNum = 0;
         try (ExcelReader reader = ExcelUtil.getReader(file.getInputStream())) {
             List<List<Object>> read = reader.read();
-            List<Object> list = read.get(2);
+            List<Object> list = read.get(1);
             List<Record> recordList = adminFieldService.customFieldList("3");
             recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
             List<Record> fieldList = adminFieldService.queryAddField(3);
@@ -578,7 +616,7 @@ public class CrmContactsService {
                                 .fluentPut("post", contactsList.get(kv.getInt("post")))
                                 .fluentPut("address", contactsList.get(kv.getInt("address")))
                                 .fluentPut("next_time", contactsList.get(kv.getInt("next_time")))
-                                .fluentPut("remark", contactsList.get(kv.getInt("remark")))
+                                .fluentPut("remark", contactsList.get(kv.getInt("备注")))
                                 .fluentPut("owner_user_id", ownerUserId));
                     } else if (number == 1 && repeatHandling == 1) {
                         if (repeatHandling == 1) {
@@ -593,7 +631,7 @@ public class CrmContactsService {
                                     .fluentPut("post", contactsList.get(kv.getInt("post")))
                                     .fluentPut("address", contactsList.get(kv.getInt("address")))
                                     .fluentPut("next_time", contactsList.get(kv.getInt("next_time")))
-                                    .fluentPut("remark", contactsList.get(kv.getInt("remark")))
+                                    .fluentPut("remark", contactsList.get(kv.getInt("备注")))
                                     .fluentPut("owner_user_id", ownerUserId)
                                     .fluentPut("batch_id", contacts.getStr("batch_id")));
                         }

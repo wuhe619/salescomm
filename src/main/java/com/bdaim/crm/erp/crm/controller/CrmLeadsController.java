@@ -251,6 +251,14 @@ public class CrmLeadsController extends BasicAction {
             param.setUserGroupId(BaseUtil.getUser().getUserGroupId());
             param.setCustId(BaseUtil.getUser().getCustId());
             data = seaService.updateClueStatus(param, operate);
+            if (1 == operate) {
+                // 删除公海线索
+                crmLeadsService.deletePublicClue(param.getSuperIds(), param.getSeaId());
+            }
+            if (3 == operate) {
+                // 指定ID退回公海时删除私海线索
+                crmLeadsService.deleteByBatchIds(param.getSuperIds());
+            }
             responseJson.setCode(200);
         } catch (Exception e) {
             LOG.error("公海线索状态修改异常,", e);
@@ -306,7 +314,7 @@ public class CrmLeadsController extends BasicAction {
             responseJson.setCode(200);
         } catch (TouchException e) {
             responseJson.setCode(-1);
-            responseJson.setMessage(e.getErrMsg());
+            responseJson.setMessage(e.getMessage());
             LOG.error("线索分配异常,", e);
         }
         responseJson.setData(data);
@@ -339,10 +347,8 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "INSERT INTO `lkcrm_crm_business_status` (`status_id`, `type_id`, `name`, `rate`, `order_num`) VALUES ('1', '1', '验证客户', '20', '1'),('2', '1', '需求分析', '30', '2'),('3', '1', '方案/报价', '80', '3');";
+        String sql = "UPDATE lkcrm_admin_field set is_null=1 WHERE field_id = 21" ;
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
-        sql = "INSERT INTO `lkcrm_crm_business_type` (`type_id`, `name`, `dept_ids`, `create_user_id`, `create_time`, `update_time`, `status`) VALUES ('1', '默认商机组', '', '3', '2019-05-11 16:25:09', NULL, '1');";
-        data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
     }
@@ -450,7 +456,7 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(@RequestParam("") LkCrmAdminRecordDTO adminRecord) {
+    public R addRecord(LkCrmAdminRecordDTO adminRecord) {
         String sign = CrmEnum.LEADS_TYPE_KEY.getSign();
         String typesId = adminRecord.getTypesId();
         if (StringUtil.isNotEmpty(adminRecord.getSeaId())) {
@@ -536,7 +542,7 @@ public class CrmLeadsController extends BasicAction {
         jsonObject.put("search", search);
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "1");
         basePageRequest.setJsonObject(jsonObject);
-        List<Record> recordList = JavaBeanUtil.mapToRecords((List) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
+        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("excel");
         export(recordList, response, "1");
         //renderNull();
     }

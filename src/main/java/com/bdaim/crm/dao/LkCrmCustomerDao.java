@@ -17,7 +17,7 @@ import java.util.Map;
 public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, Integer> {
 
     public List queryByIds(List deptIds) {
-        return super.queryListBySql("  select * from  72crm_crm_customer\n" +
+        return super.queryListBySql("  select * from  lkcrm_crm_customer\n" +
                 "       where customer_id in  (" + SqlAppendUtil.sqlAppendWhereIn(deptIds) + ")");
     }
 
@@ -74,24 +74,24 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public int getCustomersByIds(Long userId, List ids, Timestamp createTime) {
-        String sql = " update lkcrm_crm_customer set owner_user_id = ?,followup = 0,create_time = ? where customer_id in ("+SqlAppendUtil.sqlAppendWhereIn(ids)+")";
+        String sql = " update lkcrm_crm_customer set owner_user_id = ?,followup = 0,create_time = ? where customer_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
         return executeUpdateSQL(sql, userId, createTime);
     }
 
     public List excelExport(List customer_id) {
-        String sql = " select * from customerview where customer_id in ("+SqlAppendUtil.sqlAppendWhereIn(customer_id)+") order by update_time desc";
+        String sql = " select * from customerview where customer_id in (" + SqlAppendUtil.sqlAppendWhereIn(customer_id) + ") order by update_time desc";
         return sqlQuery(sql);
     }
 
-    public List getRecord(Integer customerId) {
+    public List getRecord(Integer customerId, int pageNum, int pageSize) {
         String sql = " select a.record_id, '' as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id,a.business_ids,a.contacts_ids\n" +
                 "    from lkcrm_admin_record as a inner join t_customer_user as b LEFT JOIN lkcrm_task AS c ON a.task_id = c.task_id " +
                 "    where a.create_user_id = b.id and types = 'crm_customer' and types_id = ? AND (a.task_id IS NULL OR c.`status`=5) order by a.create_time desc";
-        return sqlQuery(sql, customerId);
+        return sqlPageQuery(sql, pageNum, pageSize, customerId).getData();
     }
 
     public List getRecord(String leadsId, int taskStatus, int pageNum, int pageSize) {
-        String sql = " select a.record_id, '' as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id,a.business_ids,a.contacts_ids\n" +
+        String sql = " select a.record_id, '' as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id,a.business_ids,a.contacts_ids, c.task_id, c.name taskName" +
                 "    from lkcrm_admin_record as a inner join t_customer_user as b LEFT JOIN lkcrm_task AS c ON a.task_id = c.task_id " +
                 "    where a.create_user_id = b.id and types = 'crm_customer' AND c.`status` = ? and types_id = ? and a.cust_id = ? order by a.create_time desc";
         return this.sqlPageQuery(sql, pageNum, pageSize, taskStatus, leadsId, BaseUtil.getUser().getCustId()).getData();
@@ -109,7 +109,7 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
                 "    where a.user_id = ?";*/
         String sql = " select a.id as id,a.realname,'默认部门' AS name  from t_customer_user as a where a.id = ? ";
         List<Map<String, Object>> maps = sqlQuery(sql, owner_user_id);
-        if(maps.size()>0){
+        if (maps.size() > 0) {
             return maps.get(0);
         }
         return null;
@@ -247,12 +247,12 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public List queryBatchIdByIds(List idsArr) {
-        String sql = " select batch_id from lkcrm_crm_customer where customer_id in ("+SqlAppendUtil.sqlAppendWhereIn(idsArr)+") ";
+        String sql = " select batch_id from lkcrm_crm_customer where customer_id in (" + SqlAppendUtil.sqlAppendWhereIn(idsArr) + ") ";
         return sqlQuery(sql);
     }
 
     public int deleteByIds(List customerId) {
-        String sql = " delete from lkcrm_crm_customer where customer_id in ("+SqlAppendUtil.sqlAppendWhereIn(customerId)+")  ";
+        String sql = " delete from lkcrm_crm_customer where customer_id in (" + SqlAppendUtil.sqlAppendWhereIn(customerId) + ")  ";
         return executeUpdateSQL(sql);
     }
 
@@ -308,8 +308,13 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public int setCustomerFollowup(List ids) {
-        String sql = "update lkcrm_crm_customer set followup = 1 where customer_id in("+SqlAppendUtil.sqlAppendWhereIn(ids)+")";
+        String sql = "update lkcrm_crm_customer set followup = 1 where customer_id in(" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
         return executeUpdateSQL(sql);
+    }
+
+    public int updateDealStatusById(String deal_status, int customer_id) {
+        String sql = "  update lkcrm_crm_customer set deal_status = ? where customer_id = ?";
+        return executeUpdateSQL(sql, deal_status, customer_id);
     }
 
 }

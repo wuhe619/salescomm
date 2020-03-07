@@ -10,6 +10,12 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmOaExamineDao;
+import com.bdaim.crm.dao.LkCrmOaExamineLogDao;
+import com.bdaim.crm.dao.LkCrmOaExamineRecordDao;
+import com.bdaim.crm.dao.LkCrmOaExamineRelationDao;
+import com.bdaim.crm.entity.LkCrmOaExamineLogEntity;
+import com.bdaim.crm.entity.LkCrmOaExamineRecordEntity;
+import com.bdaim.crm.entity.LkCrmOaExamineRelationEntity;
 import com.bdaim.crm.erp.admin.entity.AdminExamineLog;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
@@ -28,10 +34,12 @@ import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.SqlPara;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
+import java.sql.Timestamp;
 import java.util.*;
 
 @Service
@@ -49,6 +57,12 @@ public class OaExamineService {
 
     @Resource
     private LkCrmOaExamineDao crmOaExamineDao;
+    @Autowired
+    private LkCrmOaExamineRecordDao recordDao;
+    @Autowired
+    private LkCrmOaExamineLogDao logDao;
+    @Autowired
+    private LkCrmOaExamineRelationDao relationDao;
 
 
     public R myInitiate(BasePageRequest<Void> request) {
@@ -83,7 +97,12 @@ public class OaExamineService {
     public void transfer(List<Record> recordList) {
         recordList.forEach(record -> {
             setRelation(record);
-            record.set("createUser", Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?", record.getInt("create_user_id")));
+//            record.set("createUser", Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?",
+//            record.getInt("create_user_id")));
+            String sql = "select user_id,realname,img from lkcrm_admin_user where user_id = ?";
+            Record createUser = JavaBeanUtil.mapToRecord(crmOaExamineDao.queryUniqueSql(sql,
+                    record.getInt("create_user_id")));
+            record.set("createUser", createUser);
             String batchId = record.getStr("batch_id");
             adminFileService.queryByBatchId(batchId, record);
             setCountRecord(record);
@@ -114,7 +133,8 @@ public class OaExamineService {
     private void setCountRecord(Record record) {
         Integer examineId = record.getInt("examine_id");
         String categoryTitle = record.getStr("categoryTitle");
-        Record countRecord = Db.findFirst("select count(*) as count,sum(duration) as duration,sum(money) as moeny from lkcrm_oa_examine_travel where examine_id = ?", examineId);
+        String sql = "select count(*) as count,sum(duration) as duration,sum(money) as moeny from lkcrm_oa_examine_travel where examine_id = ?";
+        Record countRecord = JavaBeanUtil.mapToRecord(crmOaExamineDao.queryUniqueSql(sql, examineId));
         StringBuilder causeTitle = new StringBuilder();
         if (countRecord != null) {
             switch (categoryTitle) {
@@ -187,35 +207,43 @@ public class OaExamineService {
         } else {
             oaExamine.setUpdateTime(new Date());
             bol = oaExamine.update();
-            Db.delete("delete from lkcrm_oa_examine_travel where examine_id = ?", oaExamine.getExamineId());
-            Db.delete("delete from lkcrm_oa_examine_relation where examine_id = ?", oaExamine.getExamineId());
-            recordId = Db.queryInt("select  record_id from lkcrm_oa_examine_record where examine_id = ? limit 1", oaExamine.getExamineId());
+            String delSql1 = "delete from lkcrm_oa_examine_travel where examine_id = ?";
+            crmOaExamineDao.executeUpdateSQL(delSql1, oaExamine.getExamineId());
+            String delSql2 = "delete from lkcrm_oa_examine_relation where examine_id = ?";
+            crmOaExamineDao.executeUpdateSQL(delSql2, oaExamine.getExamineId());
+            String intSql = "select  record_id from lkcrm_oa_examine_record where examine_id = ? limit 1";
+            recordId = crmOaExamineDao.queryForInt(intSql, oaExamine.getExamineId());
         }
         oaExamine = new OaExamine().findById(oaExamine.getExamineId());
-        OaExamineRecord oaExamineRecord = new OaExamineRecord();
+        LkCrmOaExamineRecordEntity oaExamineRecord = new LkCrmOaExamineRecordEntity();
         oaExamineRecord.setExamineId(oaExamine.getExamineId());
         oaExamineRecord.setExamineStepId(oaExamineStep.getStepId());
         oaExamineRecord.setExamineStatus(0);
         //生成审批记录
         if (recordId == null) {
             oaExamineRecord.setCreateUser(user.getUserId());
-            oaExamineRecord.setCreateTime(new Date());
-            oaExamineRecord.save();
+            oaExamineRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
+//            oaExamineRecord.save();
+            recordDao.save(oaExamineRecord);
         } else {
             oaExamineRecord.setExamineStatus(0);
             oaExamineRecord.setRecordId(recordId);
-            oaExamineRecord.update();
+//            oaExamineRecord.update();
+            recordDao.save(oaExamineRecord);
             //更新审核日志状态
-            Db.update("update lkcrm_oa_examine_log set is_recheck = 1 where record_id = ?", recordId);
+            String updateSql = "update lkcrm_oa_examine_log set is_recheck = 1 where record_id = ?";
+            recordDao.executeUpdateSQL(updateSql, recordId);
         }
 
         //生成审批日志
         if (examineType == 1) {
             Integer stepType = oaExamineStep.getStepType();
             if (stepType == 1) {
-                checkUserIds = Db.queryInt("select parent_id from lkcrm_admin_user where user_id = ?", BaseUtil.getUser().getUserId()) + "";
+                String sql = "select parent_id from lkcrm_admin_user where user_id = ?";
+                checkUserIds = crmOaExamineDao.queryForInt(sql, BaseUtil.getUser().getUserId()) + "";
             } else if (stepType == 4) {
-                checkUserIds = Db.queryInt("select parent_id from lkcrm_admin_user where user_id = (select parent_id from lkcrm_admin_user where user_id = ?)", BaseUtil.getUser().getUserId()) + "";
+                String sql = "select parent_id from lkcrm_admin_user where user_id = (select parent_id from lkcrm_admin_user where user_id = ?)";
+                checkUserIds = crmOaExamineDao.queryForInt(sql, BaseUtil.getUser().getUserId()) + "";
             } else {
                 checkUserIds = oaExamineStep.getCheckUserId();
             }
@@ -226,11 +254,12 @@ public class OaExamineService {
         if (StrUtil.isEmpty(checkUserIds)) {
             //没有审核人，审批结束
             oaExamineRecord.setExamineStatus(1);
-            oaExamineRecord.update();
+//            oaExamineRecord.update();
+            recordDao.update(oaExamineRecord);
         } else {
             //添加审核日志
             for (Integer userId : TagUtil.toSet(checkUserIds)) {
-                OaExamineLog oaExamineLog = new OaExamineLog();
+                LkCrmOaExamineLogEntity oaExamineLog = new LkCrmOaExamineLogEntity();
                 oaExamineLog.setRecordId(oaExamineRecord.getRecordId());
                 oaExamineLog.setOrderId(1);
                 if (oaExamineStep.getStepId() != null) {
@@ -238,22 +267,25 @@ public class OaExamineService {
                 }
                 oaExamineLog.setExamineStatus(0);
                 oaExamineLog.setCreateUser(user.getUserId());
-                oaExamineLog.setCreateTime(new Date());
+                oaExamineLog.setCreateTime(new Timestamp(System.currentTimeMillis()));
                 oaExamineLog.setExamineUser(Long.valueOf(userId));
-                oaExamineLog.save();
+//                oaExamineLog.save();
+                logDao.save(oaExamineLog);
             }
         }
         oaActionRecordService.addRecord(oaExamine.getExamineId(), OaEnum.EXAMINE_TYPE_KEY.getTypes(), oaExamine.getUpdateTime() == null ? 1 : 2, oaActionRecordService.getJoinIds(user.getUserId().intValue(), TagUtil.fromString(checkUserIds)), "");
         if (jsonObject.get("oaExamineRelation") != null) {
-            OaExamineRelation oaExamineRelation = jsonObject.getObject("oaExamineRelation", OaExamineRelation.class);
-            oaExamineRelation.setRId(null);
+            LkCrmOaExamineRelationEntity oaExamineRelation = jsonObject.getObject("oaExamineRelation",
+                    LkCrmOaExamineRelationEntity.class);
+            oaExamineRelation.setrId(null);
             oaExamineRelation.setBusinessIds(TagUtil.fromString(oaExamineRelation.getBusinessIds()));
             oaExamineRelation.setContactsIds(TagUtil.fromString(oaExamineRelation.getContactsIds()));
             oaExamineRelation.setContractIds(TagUtil.fromString(oaExamineRelation.getContractIds()));
             oaExamineRelation.setCustomerIds(TagUtil.fromString(oaExamineRelation.getCustomerIds()));
             oaExamineRelation.setExamineId(oaExamine.getExamineId());
-            oaExamineRelation.setCreateTime(new Date());
-            oaExamineRelation.save();
+            oaExamineRelation.setCreateTime(new Timestamp(System.currentTimeMillis()));
+//            oaExamineRelation.save();
+            relationDao.save(oaExamineRelation);
         }
         if (jsonObject.get("oaExamineTravelList") != null) {
             JSONArray oaExamineRelation = jsonObject.getJSONArray("oaExamineTravelList");
@@ -283,13 +315,15 @@ public class OaExamineService {
         Integer recordId = nowadayExamineLog.getRecordId();
         Integer status = nowadayExamineLog.getExamineStatus();
         //根据审核记录id查询审核记录
-        OaExamineRecord examineRecord = OaExamineRecord.dao.findById(recordId);
+//        OaExamineRecord examineRecord = OaExamineRecord.dao.findById(recordId);
+        LkCrmOaExamineRecordEntity examineRecord = recordDao.get(recordId);
         if (status == 4) {
             if (!examineRecord.getCreateUser().equals(auditUserId) && !auditUserId.equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
                 return R.error("当前用户没有审批权限！");
             }
         } else {
-            SqlPara sqlPara = Db.getSqlPara("oa.examine.queryExamineLog", Kv.by("recordId", recordId).set("examineUser", auditUserId).set("stepId", examineRecord.get("examine_step_id")));
+            SqlPara sqlPara = Db.getSqlPara("oa.examine.queryExamineLog", Kv.by("recordId", recordId)
+                    .set("examineUser", auditUserId).set("stepId", examineRecord.getExamineStepId()));
             Record oaExamineLog = Db.findFirst(sqlPara);
             //【判断当前审批人是否有审批权限
             if (oaExamineLog == null) {
@@ -308,9 +342,19 @@ public class OaExamineService {
         Integer createUserId = examine.getCreateUserId();
         Record log;
         if (examineCategory.getExamineType() == 1) {
-            log = Db.findFirst("select log_id,order_id from lkcrm_oa_examine_log where record_id = ? and examine_step_id = ? and examine_user = ? and is_recheck = 0", examineRecord.getRecordId(), examineRecord.getExamineStepId(), auditUserId);
+//            log = Db.findFirst("select log_id,order_id from lkcrm_oa_examine_log where record_id = ? and examine_step_id " +
+//                    "= ? and examine_user = ? and is_recheck = 0", examineRecord.getRecordId(),
+//                    examineRecord.getExamineStepId(), auditUserId);
+            String sql1 = "select log_id,order_id from lkcrm_oa_examine_log where record_id = ? and examine_step_id = ?" +
+                    " and examine_user = ? and is_recheck = 0";
+            log = JavaBeanUtil.mapToRecord(crmOaExamineDao.queryUniqueSql(sql1,
+                    examineRecord.getRecordId(), examineRecord.getExamineStepId(), auditUserId));
         } else {
-            log = Db.findFirst("select log_id,order_id from lkcrm_oa_examine_log where record_id = ? and examine_status = 0 and examine_user = ? and is_recheck = 0", examineRecord.getRecordId(), auditUserId);
+//            log = Db.findFirst("select log_id,order_id from lkcrm_oa_examine_log where record_id = " +
+//                    "? and examine_status = 0 and examine_user = ? and is_recheck = 0", examineRecord.getRecordId(), auditUserId);
+            String sql2 = "select log_id,order_id from lkcrm_oa_examine_log where record_id = ? and " +
+                    "examine_status = 0 and examine_user = ? and is_recheck = 0";
+            log = JavaBeanUtil.mapToRecord(crmOaExamineDao.queryUniqueSql(sql2, examineRecord.getRecordId(), auditUserId));
         }
         nowadayExamineLog.setExamineUser(auditUserId);
         if (log != null) {
@@ -349,7 +393,9 @@ public class OaExamineService {
                 examineLog.setExamineStepId(examineStep.getStepId());
                 examineLog.setOrderId(examineStep.getStepNum());
             } else {
-                Integer orderId = Db.queryInt("select order_id from lkcrm_oa_examine_log where record_id = ? and is_recheck = 0 and examine_status !=0 order by order_id desc limit 1 ", recordId);
+//                Integer orderId = Db.queryInt("select order_id from lkcrm_oa_examine_log where record_id = ? and is_recheck = 0 and examine_status !=0 order by order_id desc limit 1 ", recordId);
+                String sql1 = "select order_id from lkcrm_oa_examine_log where record_id = ? and is_recheck = 0 and examine_status !=0 order by order_id desc limit 1";
+                Integer orderId = recordDao.queryForInt(sql1, recordId);
                 if (orderId == null) {
                     orderId = 1;
                 }
@@ -440,7 +486,9 @@ public class OaExamineService {
             }
 
         }
-        return examineRecord.update() ? R.ok() : R.error();
+//        return examineRecord.update() ? R.ok() : R.error();
+        recordDao.update(examineRecord);
+        return R.ok();
     }
 
     public R queryOaExamineInfo(String id) {
@@ -566,22 +614,40 @@ public class OaExamineService {
 
     @Before(Tx.class)
     public R deleteOaExamine(Integer oaExamineId) {
-        Integer recordId = Db.queryInt("select record_id from lkcrm_oa_examine_record where examine_id  = ? limit 1", oaExamineId);
-        Db.delete("delete from `lkcrm_admin_fieldv` where batch_id = (select `lkcrm_oa_examine`.batch_id from `lkcrm_oa_examine` where examine_id = ?)", oaExamineId);
-        Db.delete("delete from lkcrm_oa_examine where examine_id = ?", oaExamineId);
-        Db.delete("delete from lkcrm_oa_examine_relation where examine_id = ?", oaExamineId);
-        Db.delete("delete from lkcrm_oa_examine_travel where examine_id = ?", oaExamineId);
-        Db.delete("delete from lkcrm_oa_examine_record where record_id = ?", recordId);
-        Db.delete("delete from lkcrm_oa_examine_log where record_id = ?", recordId);
+//        Integer recordId = Db.queryInt("select record_id from lkcrm_oa_examine_record where examine_id  = ? limit 1", oaExamineId);
+        String selectSql = "select record_id from lkcrm_oa_examine_record where examine_id  = ? limit 1";
+        Integer recordId = recordDao.queryForInt(selectSql, oaExamineId);
+//        Db.delete("delete from `lkcrm_admin_fieldv` where batch_id = (select `lkcrm_oa_examine`.batch_id from `lkcrm_oa_examine` where examine_id = ?)", oaExamineId);
+        String delSql1 = "delete from `lkcrm_admin_fieldv` where batch_id = (select `lkcrm_oa_examine`.batch_id from `lkcrm_oa_examine` where examine_id = ?)";
+        recordDao.executeUpdateSQL(delSql1, oaExamineId);
+//        Db.delete("delete from lkcrm_oa_examine where examine_id = ?", oaExamineId);
+        String delSql2 = "delete from lkcrm_oa_examine where examine_id = ?";
+        recordDao.executeUpdateSQL(delSql2);
+//        Db.delete("delete from lkcrm_oa_examine_relation where examine_id = ?", oaExamineId);
+        String delSql3 = "delete from lkcrm_oa_examine_relation where examine_id = ?";
+        recordDao.executeUpdateSQL(delSql3, oaExamineId);
+//        Db.delete("delete from lkcrm_oa_examine_travel where examine_id = ?", oaExamineId);
+        String delSql4 = "delete from lkcrm_oa_examine_travel where examine_id = ?";
+        recordDao.executeUpdateSQL(delSql4, oaExamineId);
+//        Db.delete("delete from lkcrm_oa_examine_record where record_id = ?", recordId);
+        String delSql5 = "delete from lkcrm_oa_examine_record where record_id = ?";
+        recordDao.executeUpdateSQL(delSql5, recordId);
+//        Db.delete("delete from lkcrm_oa_examine_log where record_id = ?", recordId);
+        String delSql6 = "delete from lkcrm_oa_examine_log where record_id = ?";
+        recordDao.executeUpdateSQL(delSql6, recordId);
         oaActionRecordService.deleteRecord(OaEnum.EXAMINE_TYPE_KEY.getTypes(), oaExamineId);
         return R.ok();
     }
 
     public R queryExaminStep(String categoryId) {
-        Record record = Db.findFirst("select examine_type from lkcrm_oa_examine_category where category_id = ?", categoryId);
+//        Record record = Db.findFirst("select examine_type from lkcrm_oa_examine_category where category_id = ?", categoryId);
+        String sql = "select examine_type from lkcrm_oa_examine_category where category_id = ?";
+        Record record = JavaBeanUtil.mapToRecord(recordDao.queryUniqueSql(sql, categoryId));
         Integer examineType = record.getInt("examine_type");
         if (examineType == 1) {
-            List<Record> recordList = Db.find("select * from lkcrm_oa_examine_step where category_id = ?", categoryId);
+//            List<Record> recordList = Db.find("select * from lkcrm_oa_examine_step where category_id = ?", categoryId);
+            String sql2 = "select * from lkcrm_oa_examine_step where category_id = ?";
+            List<Record> recordList = JavaBeanUtil.mapToRecords(recordDao.queryListBySql(sql2, categoryId));
             recordList.forEach(step -> {
                 List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", step.getStr("check_user_id").split(","))));
                 step.set("userList", userList);
@@ -592,12 +658,18 @@ public class OaExamineService {
     }
 
     public R queryExamineLogList(Integer recordId) {
-        Integer examineType = Db.queryInt(Db.getSql("oa.examine.queryExamineTypeByRecordId"), recordId);
+//        Integer examineType = Db.queryInt(Db.getSql("oa.examine.queryExamineTypeByRecordId"), recordId);
+        String sql = "select examine_type from 72crm_oa_examine_category where category_id = (select " +
+                "72crm_oa_examine.category_id from 72crm_oa_examine where examine_id = (select  " +
+                "72crm_oa_examine_record.examine_id from 72crm_oa_examine_record where record_id = ?))";
+        Integer examineType = recordDao.queryForInt(sql, recordId);
         List<Record> logs = null;
         if (examineType == 1) {
-            logs = Db.find(Db.getSql("oa.examine.queryExamineLogByRecordIdByStep"), recordId);
+//            logs = Db.find(Db.getSql("oa.examine.queryExamineLogByRecordIdByStep"), recordId);
+            logs = JavaBeanUtil.mapToRecords(crmOaExamineDao.queryExamineLogByRecordIdByStep(recordId));
         } else {
-            logs = Db.find(Db.getSql("oa.examine.queryExamineLogByRecordIdByStep1"), recordId);
+//            logs = Db.find(Db.getSql("oa.examine.queryExamineLogByRecordIdByStep1"), recordId);
+            logs = JavaBeanUtil.mapToRecords(crmOaExamineDao.queryExamineLogByRecordIdByStep1(recordId));
         }
         return R.ok().put("data", logs);
     }
@@ -748,7 +820,10 @@ public class OaExamineService {
             } else {
                 jsonObject.put("isCheck", 0);
             }
-            List<Record> logs = Db.find(Db.getSqlPara("oa.examine.queryRecordByUserIdAndStatus", Kv.by("create_user", rec.getInt("create_user")).set("examineTime", rec.getDate("examineTime"))));
+//            List<Record> logs = Db.find(Db.getSqlPara("oa.examine.queryRecordByUserIdAndStatus",
+//                    Kv.by("create_user", rec.getInt("create_user")).set("examineTime", rec.getDate("examineTime"))));
+            List<Record> logs = JavaBeanUtil.mapToRecords(crmOaExamineDao.queryRecordByUserIdAndStatus(rec.getInt("create_user"),
+                    rec.getDate("examineTime")));
             rec.set("userList", logs);
             list.add(rec);
             list.addAll(steps);

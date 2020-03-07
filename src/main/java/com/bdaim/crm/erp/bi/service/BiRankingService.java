@@ -1,11 +1,13 @@
 package com.bdaim.crm.erp.bi.service;
 
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.crm.dao.LkCrmBiDao;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
 import com.bdaim.crm.utils.R;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -19,223 +21,226 @@ public class BiRankingService {
 
     @Resource
     BiTimeUtil biTimeUtil;
+    @Autowired
+    private LkCrmBiDao biDao;
 
-    public R contractRanKing(Integer deptId, String type, String startTime, String endTime){
+    public R contractRanKing(Integer deptId, String type, String startTime, String endTime) {
         Record record = new Record();
-        record.set("deptId",deptId).set("type",type).set("startTime",startTime).set("endTime",endTime);
+        record.set("deptId", deptId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         String userIds = record.getStr("userIds");
         List<Record> list = new ArrayList<>();
-        if (StrUtil.isEmpty(userIds)){
-            return R.ok().put("data",list);
+        if (StrUtil.isEmpty(userIds)) {
+            return R.ok().put("data", list);
         }
         String[] userIdsArr = userIds.split(",");
         Integer status = biTimeUtil.analyzeType(type);
-         list = Db.find(Db.getSqlPara("bi.ranking.contractRanKing",
-                Kv.by("userIds",userIdsArr).set("type",status).set("startTime",startTime).set("endTime",endTime)));
-        return R.ok().put("data",list);
+        list = biDao.contractRanKing(userIdsArr, status, startTime, endTime);
+        return R.ok().put("data", list);
     }
-    public R receivablesRanKing(Integer deptId, String type, String startTime, String endTime){
+
+    public R receivablesRanKing(Integer deptId, String type, String startTime, String endTime) {
         Record record = new Record();
-        record.set("deptId",deptId).set("type",type).set("startTime",startTime).set("endTime",endTime);
+        record.set("deptId", deptId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         String userIds = record.getStr("userIds");
         List<Record> list = new ArrayList<>();
-        if (StrUtil.isEmpty(userIds)){
-            return R.ok().put("data",list);
+        if (StrUtil.isEmpty(userIds)) {
+            return R.ok().put("data", list);
         }
         String[] userIdsArr = userIds.split(",");
         Integer status = biTimeUtil.analyzeType(type);
-        list = Db.find(Db.getSqlPara("bi.ranking.receivablesRanKing",
-                Kv.by("userIds",userIdsArr).set("type",status).set("startTime",startTime).set("endTime",endTime)));
-        return R.ok().put("data",list);
+        list = biDao.receivablesRanKing(userIdsArr, status, startTime, endTime);
+        return R.ok().put("data", list);
     }
-    public R contractCountRanKing(Integer deptId, String type, String startTime, String endTime){
+
+    public R contractCountRanKing(Integer deptId, String type, String startTime, String endTime) {
         Record record = new Record();
-        record.set("deptId",deptId).set("type",type).set("startTime",startTime).set("endTime",endTime);
+        record.set("deptId", deptId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         String userIds = record.getStr("userIds");
         List<Record> list = new ArrayList<>();
-        if (StrUtil.isEmpty(userIds)){
-            return R.ok().put("data",list);
+        if (StrUtil.isEmpty(userIds)) {
+            return R.ok().put("data", list);
         }
         String[] userIdsArr = userIds.split(",");
         Integer status = biTimeUtil.analyzeType(type);
-        list = Db.find(Db.getSqlPara("bi.ranking.contractCountRanKing",
-                Kv.by("userIds",userIdsArr).set("type",status).set("startTime",startTime).set("endTime",endTime)));
-        return R.ok().put("data",list);
+        list = biDao.contractCountRanKing(userIdsArr, status, startTime, endTime);
+        return R.ok().put("data", list);
     }
-    public R productCountRanKing(Integer deptId, String type, String startTime, String endTime){
+
+    public R productCountRanKing(Integer deptId, String type, String startTime, String endTime) {
         Record record = new Record();
-        record.set("deptId",deptId).set("type",type).set("startTime",startTime).set("endTime",endTime);
+        record.set("deptId", deptId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         String userIds = record.getStr("userIds");
         List<Record> list = new ArrayList<>();
-        if (StrUtil.isEmpty(userIds)){
-            return R.ok().put("data",list);
+        if (StrUtil.isEmpty(userIds)) {
+            return R.ok().put("data", list);
         }
         String[] userIdsArr = userIds.split(",");
         Integer status = biTimeUtil.analyzeType(type);
-       list = Db.find(Db.getSqlPara("bi.ranking.productCountRanKing",
-                Kv.by("userIds",userIdsArr).set("type",status).set("startTime",startTime).set("endTime",endTime)));
-        return R.ok().put("data",list);
+        list = biDao.productCountRanKing(userIdsArr, status, startTime, endTime);
+        return R.ok().put("data", list);
     }
-    public R customerCountRanKing(Integer deptId, String type, String startTime, String endTime){
+
+    public R customerCountRanKing(Integer deptId, String type, String startTime, String endTime) {
         Record record = new Record();
-        record.set("deptId",deptId).set("type",type).set("startTime",startTime).set("endTime",endTime);
+        record.set("deptId", deptId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         String userIds = record.getStr("userIds");
         List<Record> list = new ArrayList<>();
-        if (StrUtil.isEmpty(userIds)){
-            return R.ok().put("data",list);
+        if (StrUtil.isEmpty(userIds)) {
+            return R.ok().put("data", list);
         }
         String[] userIdsArr = userIds.split(",");
         Integer status = biTimeUtil.analyzeType(type);
-        list = Db.find(Db.getSqlPara("bi.ranking.customerCountRanKing",
-                Kv.by("userIds",userIdsArr).set("type",status).set("startTime",startTime).set("endTime",endTime)));
-        return R.ok().put("data",list);
+        list = biDao.customerCountRanKing(userIdsArr, status, startTime, endTime);
+        return R.ok().put("data", list);
     }
-    public R contactsCountRanKing(Integer deptId, String type, String startTime, String endTime){
+
+    public R contactsCountRanKing(Integer deptId, String type, String startTime, String endTime) {
         Record record = new Record();
-        record.set("deptId",deptId).set("type",type).set("startTime",startTime).set("endTime",endTime);
+        record.set("deptId", deptId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         String userIds = record.getStr("userIds");
         List<Record> list = new ArrayList<>();
-        if (StrUtil.isEmpty(userIds)){
-            return R.ok().put("data",list);
+        if (StrUtil.isEmpty(userIds)) {
+            return R.ok().put("data", list);
         }
         String[] userIdsArr = userIds.split(",");
         Integer status = biTimeUtil.analyzeType(type);
-        list = Db.find(Db.getSqlPara("bi.ranking.contactsCountRanKing",
-                Kv.by("userIds",userIdsArr).set("type",status).set("startTime",startTime).set("endTime",endTime)));
-        return R.ok().put("data",list);
+        list = biDao.contactsCountRanKing(userIdsArr, status, startTime, endTime);
+        return R.ok().put("data", list);
     }
-    public R customerGenjinCountRanKing(Integer deptId, String type, String startTime, String endTime){
+
+    public R customerGenjinCountRanKing(Integer deptId, String type, String startTime, String endTime) {
         Record record = new Record();
-        record.set("deptId",deptId).set("type",type).set("startTime",startTime).set("endTime",endTime);
+        record.set("deptId", deptId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         String userIds = record.getStr("userIds");
         List<Record> list = new ArrayList<>();
-        if (StrUtil.isEmpty(userIds)){
-            return R.ok().put("data",list);
+        if (StrUtil.isEmpty(userIds)) {
+            return R.ok().put("data", list);
         }
         String[] userIdsArr = userIds.split(",");
         Integer status = biTimeUtil.analyzeType(type);
-        list = Db.find(Db.getSqlPara("bi.ranking.customerGenjinCountRanKing",
-                Kv.by("userIds",userIdsArr).set("type",status).set("startTime",startTime).set("endTime",endTime)));
-        return R.ok().put("data",list);
+        list = biDao.customerGenjinCountRanKing(userIdsArr, status, startTime, endTime);
+        return R.ok().put("data", list);
     }
-    public R recordCountRanKing(Integer deptId, String type, String startTime, String endTime){
+
+    public R recordCountRanKing(Integer deptId, String type, String startTime, String endTime) {
         Record record = new Record();
-        record.set("deptId",deptId).set("type",type).set("startTime",startTime).set("endTime",endTime);
+        record.set("deptId", deptId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         String userIds = record.getStr("userIds");
         List<Record> list = new ArrayList<>();
-        if (StrUtil.isEmpty(userIds)){
-            return R.ok().put("data",list);
+        if (StrUtil.isEmpty(userIds)) {
+            return R.ok().put("data", list);
         }
         String[] userIdsArr = userIds.split(",");
         Integer status = biTimeUtil.analyzeType(type);
-        list = Db.find(Db.getSqlPara("bi.ranking.recordCountRanKing",
-                Kv.by("userIds",userIdsArr).set("type",status).set("startTime",startTime).set("endTime",endTime)));
-        return R.ok().put("data",list);
+        list = biDao.recordCountRanKing(userIdsArr, status, startTime, endTime);
+        return R.ok().put("data", list);
     }
-    public R contractProductRanKing(Integer deptId, Long userId, String type, String startTime, String endTime){
+
+    public R contractProductRanKing(Integer deptId, Long userId, String type, String startTime, String endTime) {
         Record record = new Record();
-        record.set("deptId",deptId).set("userId",userId).set("type",type).set("startTime",startTime).set("endTime",endTime);
+        record.set("deptId", deptId).set("userId", userId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         String userIds = record.getStr("userIds");
         List<Record> list = new ArrayList<>();
-        if (StrUtil.isEmpty(userIds)){
-            return R.ok().put("data",list);
+        if (StrUtil.isEmpty(userIds)) {
+            return R.ok().put("data", list);
         }
         String[] userIdsArr = userIds.split(",");
         Integer status = biTimeUtil.analyzeType(type);
-        list = Db.find(Db.getSqlPara("bi.ranking.contractProductRanKing",
-                Kv.by("userIds",userIdsArr).set("type",status).set("startTime",startTime).set("endTime",endTime)));
-        return R.ok().put("data",list);
+        list = biDao.contractProductRanKing(userIdsArr, status, startTime, endTime);
+        return R.ok().put("data", list);
     }
-    public R travelCountRanKing(Integer deptId, String type, String startTime, String endTime){
+
+    public R travelCountRanKing(Integer deptId, String type, String startTime, String endTime) {
         Record record = new Record();
-        record.set("deptId",deptId).set("type",type).set("startTime",startTime).set("endTime",endTime);
+        record.set("deptId", deptId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         String userIds = record.getStr("userIds");
         List<Record> list = new ArrayList<>();
-        if (StrUtil.isEmpty(userIds)){
-            return R.ok().put("data",list);
+        if (StrUtil.isEmpty(userIds)) {
+            return R.ok().put("data", list);
         }
         String[] userIdsArr = userIds.split(",");
         Integer status = biTimeUtil.analyzeType(type);
-        list = Db.find(Db.getSqlPara("bi.ranking.travelCountRanKing",
-                Kv.by("userIds",userIdsArr).set("type",status).set("startTime",startTime).set("endTime",endTime)));
-        return R.ok().put("data",list);
+        list = biDao.travelCountRanKing(userIdsArr, status, startTime, endTime);
+        return R.ok().put("data", list);
     }
-    public R productSellRanKing(Integer deptId, Long userId, String type, String startTime, String endTime){
+
+    public R productSellRanKing(Integer deptId, Long userId, String type, String startTime, String endTime) {
         Record record = new Record();
-        record.set("deptId",deptId).set("userId",userId).set("type",type).set("startTime",startTime).set("endTime",endTime);
+        record.set("deptId", deptId).set("userId", userId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         String userIds = record.getStr("userIds");
         List<Record> list = new ArrayList<>();
-        if (StrUtil.isEmpty(userIds)){
-            return R.ok().put("data",list);
+        if (StrUtil.isEmpty(userIds)) {
+            return R.ok().put("data", list);
         }
         String[] userIdsArr = userIds.split(",");
         Integer status = biTimeUtil.analyzeType(type);
-        list = Db.find(Db.getSqlPara("bi.ranking.productSellRanKing",
-                Kv.by("userIds",userIdsArr).set("type",status).set("startTime",startTime).set("endTime",endTime)));
-        return R.ok().put("data",list);
+        list = biDao.productSellRanKing(userIdsArr, status, startTime, endTime);
+        return R.ok().put("data", list);
     }
-    public R addressAnalyse(){
+
+    public R addressAnalyse() {
         String[] addResss = biTimeUtil.getAddress();
         List<Record> list = new ArrayList<>();
-        for (String addRess: addResss) {
-            list.add(Db.findFirst(Db.getSqlPara("bi.ranking.addressAnalyse", Kv.by("address",addRess))));
+        for (String addRess : addResss) {
+            Record record = biDao.addressAnalyse(addRess);
+            list.add(record);
         }
-        return R.ok().put("data",list);
+        return R.ok().put("data", list);
     }
-    public R portrait(Integer deptId, Long userId, String type, String startTime, String endTime){
+
+    public R portrait(Integer deptId, Long userId, String type, String startTime, String endTime) {
         Record record = new Record();
-        record.set("deptId",deptId).set("userId",userId).set("type",type).set("startTime",startTime).set("endTime",endTime);
+        record.set("deptId", deptId).set("userId", userId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         String userIds = record.getStr("userIds");
         List<Record> list = new ArrayList<>();
-        if (StrUtil.isEmpty(userIds)){
-            return R.ok().put("data",list);
+        if (StrUtil.isEmpty(userIds)) {
+            return R.ok().put("data", list);
         }
         String[] userIdsArr = userIds.split(",");
         Integer status = biTimeUtil.analyzeType(type);
-        list = Db.find(Db.getSqlPara("bi.ranking.portrait",
-                Kv.by("userIds",userIdsArr).set("type",status).set("startTime",startTime).set("endTime",endTime)));
-        return R.ok().put("data",list);
+        list = biDao.portrait(userIdsArr, status, startTime, endTime);
+        return R.ok().put("data", list);
     }
-    public R portraitLevel(Integer deptId, Long userId, String type, String startTime, String endTime){
+
+    public R portraitLevel(Integer deptId, Long userId, String type, String startTime, String endTime) {
         Record record = new Record();
-        record.set("deptId",deptId).set("userId",userId).set("type",type).set("startTime",startTime).set("endTime",endTime);
+        record.set("deptId", deptId).set("userId", userId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         String userIds = record.getStr("userIds");
         List<Record> list = new ArrayList<>();
-        if (StrUtil.isEmpty(userIds)){
-            return R.ok().put("data",list);
+        if (StrUtil.isEmpty(userIds)) {
+            return R.ok().put("data", list);
         }
         String[] userIdsArr = userIds.split(",");
         Integer status = biTimeUtil.analyzeType(type);
-        list = Db.find(Db.getSqlPara("bi.ranking.portraitLevel",
-                Kv.by("userIds",userIdsArr).set("type",status).set("startTime",startTime).set("endTime",endTime)));
-        return R.ok().put("data",list);
+        list = biDao.portraitLevel(userIdsArr, status, startTime, endTime);
+        return R.ok().put("data", list);
     }
-    public R portraitSource(Integer deptId, Long userId, String type, String startTime, String endTime){
+
+    public R portraitSource(Integer deptId, Long userId, String type, String startTime, String endTime) {
         Record record = new Record();
-        record.set("deptId",deptId).set("userId",userId).set("type",type).set("startTime",startTime).set("endTime",endTime);
+        record.set("deptId", deptId).set("userId", userId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         String userIds = record.getStr("userIds");
         List<Record> list = new ArrayList<>();
-        if (StrUtil.isEmpty(userIds)){
-            return R.ok().put("data",list);
+        if (StrUtil.isEmpty(userIds)) {
+            return R.ok().put("data", list);
         }
         String[] userIdsArr = userIds.split(",");
         Integer status = biTimeUtil.analyzeType(type);
-        list = Db.find(Db.getSqlPara("bi.ranking.portraitSource",
-                Kv.by("userIds",userIdsArr).set("type",status).set("startTime",startTime).set("endTime",endTime)));
-        return R.ok().put("data",list);
+        list = biDao.portraitSource(userIdsArr, status, startTime, endTime);
+        return R.ok().put("data", list);
     }
 }

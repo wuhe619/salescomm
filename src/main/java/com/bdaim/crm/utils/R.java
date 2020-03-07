@@ -61,8 +61,21 @@ public class R extends LinkedHashMap<String, Object> implements Serializable {
         if (value instanceof JSONObject) {
             JSONObject v = ((JSONObject) value);
             for (Map.Entry<String, Object> k : v.entrySet()) {
-                if (v.get(k.getKey()) instanceof Long) {
-                    v.put(k.getKey(), String.valueOf(v.get(k.getKey())));
+                if (k.getValue() instanceof Long) {
+                    k.setValue(String.valueOf(v.get(k.getKey())));
+                } else if (k.getValue() instanceof JSONArray) {
+                    JSONArray list = ((JSONArray) k.getValue() );
+                    for (int i = 0; i < list.size(); i++) {
+                        if (list.get(i) instanceof JSONObject) {
+                            JSONObject object = list.getJSONObject(i);
+                            for (Map.Entry<String, Object> m : object.entrySet()) {
+                                if (m.getValue() instanceof Long) {
+                                    m.setValue(String.valueOf(m.getValue()));
+                                }
+                            }
+                        }
+                    }
+                    return list;
                 }
             }
             return v;
@@ -72,8 +85,8 @@ public class R extends LinkedHashMap<String, Object> implements Serializable {
                 if (list.get(i) instanceof JSONObject) {
                     JSONObject v = list.getJSONObject(i);
                     for (Map.Entry<String, Object> k : v.entrySet()) {
-                        if (v.get(k.getKey()) instanceof Long) {
-                            v.put(k.getKey(), String.valueOf(v.get(k.getKey())));
+                        if (k.getValue() instanceof Long) {
+                            k.setValue(String.valueOf(k.getValue()));
                         }
                     }
                 }
@@ -85,7 +98,9 @@ public class R extends LinkedHashMap<String, Object> implements Serializable {
 
     @Override
     public R put(String key, Object value) {
-        value = JSON.parse(json.toJson(value));
+        if (!"excel".equals(key)) {
+            value = JSON.parse(json.toJson(value));
+        }
         handleLongValue(value);
         super.put(key, value);
         return this;

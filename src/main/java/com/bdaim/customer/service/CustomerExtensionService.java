@@ -5,6 +5,8 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ import java.util.Map;
 
 @Service
 public class CustomerExtensionService {
+    private static Logger logger = LoggerFactory.getLogger(CustomerExtensionService.class);
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
@@ -23,6 +27,9 @@ public class CustomerExtensionService {
 
     public String saveExtension(JSONObject info) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        if(!info.containsKey("clazz")){
+            info.put("calzz","toB");
+        }
         String sql = "insert into op_crm_clue_log(content,create_time,update_time) values (?, ?, ?)";
         jdbcTemplate.update(sql, info.toJSONString(), timestamp, timestamp);
         return "Success";
@@ -30,6 +37,9 @@ public class CustomerExtensionService {
 
     public String updateExtension(long id, JSONObject info) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        if(!info.containsKey("clazz")){
+            info.put("calzz","toB");
+        }
         String sql = "update op_crm_clue_log set content = ? ,update_time = ? where id = ? ";
         jdbcTemplate.update(sql, info.toJSONString(), timestamp, id);
         return "Success";
@@ -38,6 +48,13 @@ public class CustomerExtensionService {
     public Page query(JSONObject info, PageParam page) {
         StringBuffer sql = new StringBuffer("select id,content,create_time from op_crm_clue_log where 1=1");
         List<Object> p = new ArrayList<>();
+        if(info.containsKey("clazz")) {
+            p.add(info.getString("clazz").trim());
+            sql.append(" and content->'$.clazz' = ?");
+        }else{
+            p.add("other");
+            sql.append(" and content->'$.clazz' = ?");
+        }
         if (StringUtil.isNotEmpty(info.getString("custName"))) {
             p.add("%" + info.getString("custName") + "%");
             sql.append(" and content-> '$.custName' like ? ");
@@ -56,12 +73,15 @@ public class CustomerExtensionService {
             sql.append(" and content->'$.source' =? ");
         }
         if (StringUtil.isNotEmpty(info.getString("id"))) {
-            p.add(info.getString("id"));
-            sql.append(" and  id in (?)");
+//            p.add(info.getString("id"));
+            sql.append(" and  id in ("+info.getString("id")+")");
         }
+
         sql.append(" order by create_time desc");
 //        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (page.getPageNum() - 1) * page.getPageSize() + ", " + page.getPageSize());
+        logger.info("sql {},param{}",sql.toString(),p.toArray());
         Page list = customerDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize(), p.toArray());
+        logger.info("list::{}",list);
         List list1 = new ArrayList();
         list.getData().stream().forEach(m -> {
             Map map = (Map) m;

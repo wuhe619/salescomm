@@ -80,13 +80,28 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
         return sqlQuery(sql, batchId);
     }
 
-    public int updateFieldSortName(String name,int field_id) {
+    public int updateFieldSortName(String name, int field_id) {
         List param = new ArrayList();
         param.add(name);
         param.add(name);
         param.add(field_id);
         String sql = "update lkcrm_admin_field_sort set field_name = ?,name = ? where field_id = ? ";
         return executeUpdateSQL(sql, param.toArray());
+    }
+
+    public List<Map<String, Object>> queryFieldsByBatchId(String batchId, String... name) {
+        String sql = "SELECT a.`name` as fieldName,a.`name`,a.type,a.label,a.remark,a.input_tips,a.max_length,a.default_value,a.is_unique as isUnique,a.is_null as isNull,a.sorting,a.`options`,b.`value`,a.operating\n" +
+                "      FROM lkcrm_admin_field as a left join lkcrm_admin_fieldv as b on a.field_id = b.field_id WHERE b.batch_id = ？ ";
+        if (name.length > 0) {
+            sql += " and a.name in (" + SqlAppendUtil.sqlAppendWhereIn(name) + ")";
+        }
+        sql += " union all SELECT a.`name` AS fieldName,a.`name`,a.type,a.label,a.remark,a.input_tips,a.max_length,a.default_value,a.is_unique AS isUnique,a.is_null AS isNull,a.sorting,a.`options`,b.`value`,a.operating\n" +
+                "      FROM lkcrm_admin_field AS a left join lkcrm_admin_fieldv as b on a.field_id = b.field_id\n" +
+                "      WHERE a.label = (SELECT a.label FROM lkcrm_admin_field AS a left join lkcrm_admin_fieldv as b on a.field_id = b.field_id WHERE b.batch_id =? limit 1) and a.field_id not in (SELECT field_id FROM lkcrm_admin_fieldv WHERE batch_id =?)";
+        if (name.length > 0) {
+            sql += " and a.name in (" + SqlAppendUtil.sqlAppendWhereIn(name) + ")";
+        }
+        return sqlQuery(sql, batchId, batchId, batchId);
     }
 
 }

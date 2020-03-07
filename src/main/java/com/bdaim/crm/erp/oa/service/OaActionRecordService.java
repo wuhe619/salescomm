@@ -4,27 +4,31 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmOaActionRecordDao;
+import com.bdaim.crm.dao.LkCrmOaEventDao;
 import com.bdaim.crm.entity.LkCrmOaActionRecordEntity;
-import com.bdaim.crm.erp.admin.service.AdminUserService;
+import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaActionRecord;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
+import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.SqlPara;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -34,13 +38,15 @@ public class OaActionRecordService {
     private OaLogService oaLogService;
 
     @Resource
-    private AdminUserService adminUserService;
+    private LkAdminUserService adminUserService;
 
     @Resource
     private OaEventService oaEventService;
+    @Autowired
+    private LkCrmOaEventDao eventDao;
 
-    @Resource
-    private LkCrmOaActionRecordDao crmOaActionRecordDao;
+    @Autowired
+    private LkCrmOaActionRecordDao recordDao;
 
     /**
      * 添加日志记录
@@ -51,7 +57,7 @@ public class OaActionRecordService {
      */
     public void addRecord(Integer actionId, Integer types, Integer status, String joinUserIds, String deptIds) {
         LkCrmOaActionRecordEntity oaActionRecord = new LkCrmOaActionRecordEntity();
-        oaActionRecord.setUserId(BaseUtil.getUser().getUserId().intValue());
+        oaActionRecord.setUserId(BaseUtil.getUser().getUserId());
         oaActionRecord.setType(types);
         oaActionRecord.setActionId(actionId);
         oaActionRecord.setCreateTime(DateUtil.date().toTimestamp());
@@ -62,14 +68,14 @@ public class OaActionRecordService {
         } else if (status == 2) {
             oaActionRecord.setContent("更新了" + OaEnum.getName(types));
         }
-        crmOaActionRecordDao.save(oaActionRecord);
+        recordDao.save(oaActionRecord);
     }
 
     public String getJoinIds(Integer id, String ids) {
         StringBuilder joinIds = new StringBuilder(",").append(id);
         if (StrUtil.isNotEmpty(ids)) {
             joinIds.append(ids);
-        }else {
+        } else {
             joinIds.append(",");
         }
         return TagUtil.fromString(joinIds.toString());
@@ -81,51 +87,61 @@ public class OaActionRecordService {
         LoginUser user = BaseUtil.getUser();
         SqlPara sqlPara;
         List<Long> userIdList;
-        if(user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID)){
-            userIdList = Db.query("SELECT user_id FROM `72crm_admin_user` where user_id != ? ",user.getUserId());
-        }else {
-            userIdList = new AdminUserService().queryUserByParentUser(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
+        if (user.getRoles() != null && user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID)) {
+            String sql = "SELECT user_id FROM `lkcrm_admin_user` where user_id != ?";
+            userIdList = recordDao.queryListForLong(sql, user.getUserId());
+        } else {
+            userIdList = adminUserService.queryUserByParentUser(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
         }
         userIdList.add(user.getUserId());
+        Page page;
         if (type.equals(OaEnum.ALL_TYPE_KEY.getTypes())) {
-            sqlPara = Db.getSqlPara("oa.record.queryList", Kv.by("userId", user.getUserId()).set("deptId", user.getDeptId()).set("userIds", userIdList));
+            page = recordDao.queryList(pageRequest.getPage(),pageRequest.getLimit(),
+                    userIdList,user.getUserId(),user.getDeptId(),null);
         } else {
-            sqlPara = Db.getSqlPara("oa.record.queryList", Kv.by("userId", user.getUserId()).set("deptId", user.getDeptId()).set("type", type).set("userIds", userIdList));
+            page = recordDao.queryList(pageRequest.getPage(),pageRequest.getLimit(),
+                    userIdList,user.getUserId(),user.getDeptId(),type);
         }
-        Page<Record> pageData = Db.paginate(pageRequest.getPage(), pageRequest.getLimit(), sqlPara);
-        pageData.getList().forEach(record -> {
+        List<Map<String,Object>> maps = page.getData();
+        List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
+        recordList.forEach(record -> {
             record.set("type_name", OaEnum.getName(record.getInt("type")));
             Integer userId = record.getInt("user_id");
-            record.set("createUser", Db.findFirst("select user_id,realname,img from 72crm_admin_user where user_id = ?", userId));
+            String userSql = "select user_id,realname,img from lkcrm_admin_user where user_id = ?";
+            record.set("createUser", JavaBeanUtil.mapToRecord(recordDao.queryUniqueSql(userSql, userId)));
             Record info = new Record();
             Integer actionId = record.getInt("action_id");
             Integer recordType = record.getInt("type");
             if (recordType.equals(OaEnum.LOG_TYPE_KEY.getTypes())) {
                 info = Db.findFirst(Db.getSqlPara("oa.log.queryList", Kv.by("logId", actionId)));
-                if (info!=null){
+                if (info != null) {
                     oaLogService.queryLogDetail(info, BaseUtil.getUser().getUserId());
                 }
             } else if (recordType.equals(OaEnum.EXAMINE_TYPE_KEY.getTypes())) {
-                info = Db.findFirst("select content as title from 72crm_oa_examine where examine_id = ?", actionId);
+                String infoSql = "select content as title from lkcrm_oa_examine where examine_id = ?";
+                info = JavaBeanUtil.mapToRecord(recordDao.queryUniqueSql(infoSql, actionId));
             } else if (recordType.equals(OaEnum.TASK_TYPE_KEY.getTypes())) {
-                info = Db.findFirst("select name as title from 72crm_task where task_id = ?", actionId);
+                String infoSql = "select name as title from lkcrm_task where task_id = ?";
+                info = JavaBeanUtil.mapToRecord(recordDao.queryUniqueSql(infoSql, actionId));
             } else if (recordType.equals(OaEnum.EVENT_TYPE_KEY.getTypes())) {
-                info = Db.findFirst("select title  from 72crm_oa_event where event_id = ?", actionId);
-                if (info!=null){
-                    Record first = Db.findFirst(Db.getSql("oa.event.queryById"), actionId);
+                String infoSql = "select title  from lkcrm_oa_event where event_id = ?";
+                info = JavaBeanUtil.mapToRecord(recordDao.queryUniqueSql(infoSql, actionId));
+                if (info != null) {
+                    Record first = JavaBeanUtil.mapToRecord(eventDao.queryById(actionId));
                     first.remove("type");
                     oaEventService.queryRelateList(first);
                     info.setColumns(first);
                 }
             } else if (recordType.equals(OaEnum.ANNOUNCEMENT_TYPE_KEY.getTypes())) {
-                info = Db.findFirst("select title,content as annContent from 72crm_oa_announcement where announcement_id = ?", actionId);
+                String infoSql = "select title,content as annContent from lkcrm_oa_announcement where announcement_id = ?";
+                info = JavaBeanUtil.mapToRecord(recordDao.queryUniqueSql(infoSql, actionId));
             }
             if (info != null) {
                 Date createTime = record.getDate("create_time");
-                record.setColumns(info).set("create_time",createTime);
+                record.setColumns(info).set("create_time", createTime);
             }
         });
-        return R.ok().put("data", pageData);
+        return R.ok().put("data", BaseUtil.crmPage(page));
     }
 
     public R queryEvent(String month) {
@@ -139,17 +155,29 @@ public class OaActionRecordService {
         int nowMonth = dateTime.month();
         StringBuilder sql = new StringBuilder();
         do {
-            sql.append(" select (select '").append(dateTime.toSqlDate()).append("' )as date,if(count(*)>0,1,0) as status from 72crm_oa_event where (create_user_id = ").append(userId).append(" or owner_user_ids like concat('%',").append(userId).append(",'%')) and '").append(dateTime.toSqlDate()).append("' between date_format(start_time,'%Y-%m-%d') and date_format(end_time,'%Y-%m-%d') ").append("union all");
+            sql.append(" select (select '").append(dateTime.toSqlDate()).append("' )as date,if(count(*)>0,1,0) as status from lkcrm_oa_event where (create_user_id = ").append(userId).append(" or owner_user_ids like concat('%',").append(userId).append(",'%')) and '").append(dateTime.toSqlDate()).append("' between date_format(start_time,'%Y-%m-%d') and date_format(end_time,'%Y-%m-%d') ").append("union all");
             dateTime = DateUtil.offsetDay(dateTime, 1);
         } while (dateTime.month() == nowMonth);
         sql.delete(sql.length() - 9, sql.length());
-        List<Record> recordList = Db.find(sql.toString());
+        List<Record> recordList = JavaBeanUtil.mapToRecords(recordDao.queryListBySql(sql.toString()));
         return R.ok().put("data", recordList);
     }
 
     public R queryEventByDay(String day) {
         Long userId = BaseUtil.getUser().getUserId();
-        List<Record> recordList = Db.find("select event_id,title,date_format(start_time,'%Y-%m-%d') as start_time ,date_format(end_time,'%Y-%m-%d') as end_time ,owner_user_ids from 72crm_oa_event where  (create_user_id = ? or owner_user_ids like concat('%', ?, '%')) and  ? between date_format(start_time,'%Y-%m-%d') and date_format(end_time,'%Y-%m-%d')", userId, userId,day);
+        String sql = "SELECT " +
+                " event_id, " +
+                " title, " +
+                " date_format( start_time, '%Y-%m-%d' ) AS start_time, " +
+                " date_format( end_time, '%Y-%m-%d' ) AS end_time, " +
+                " owner_user_ids  " +
+                "FROM " +
+                " lkcrm_oa_event  " +
+                "WHERE " +
+                " ( create_user_id = ? OR owner_user_ids LIKE concat( '%', ?, '%' ) )  " +
+                " AND ? BETWEEN date_format( start_time, '%Y-%m-%d' )  " +
+                " AND date_format( end_time, '%Y-%m-%d' )";
+        List<Record> recordList = JavaBeanUtil.mapToRecords(recordDao.queryListBySql(sql, userId, userId, day));
 
         recordList.forEach(record -> {
             StringBuilder realnames = new StringBuilder();
@@ -157,7 +185,8 @@ public class OaActionRecordService {
                 String[] ownerUserIds = record.getStr("owner_user_ids").split(",");
                 for (String ownerUserId : ownerUserIds) {
                     if (StrUtil.isNotBlank(ownerUserId)) {
-                        String realname = Db.queryStr("select realname from 72crm_admin_user where user_id = ?", ownerUserId);
+                        String realNameSql = "select realname from lkcrm_admin_user where user_id = ?";
+                        String realname = recordDao.queryForObject(realNameSql, ownerUserId);
                         realnames.append(realname).append("、");
                     }
                 }
@@ -172,12 +201,23 @@ public class OaActionRecordService {
 
     public R queryTask() {
         Long userId = BaseUtil.getUser().getUserId();
-        List<Record> recordList = Db.find(Db.getSqlPara("oa.record.queryTask", Kv.by("userId", userId)));
+        String sql = "SELECT " +
+                " task_id,NAME,create_time,stop_time,priority  " +
+                "FROM " +
+                " lkcrm_task  " +
+                "WHERE " +
+                " ishidden = 0  " +
+                " AND ( main_user_id = ? OR owner_user_id LIKE concat( '%',?, '%' ) )  " +
+                " AND pid = 0  " +
+                "ORDER BY " +
+                " create_time DESC";
+        List<Record> recordList = JavaBeanUtil.mapToRecords(recordDao.queryListBySql(sql, userId, userId));
         return R.ok().put("data", recordList);
     }
 
     public void deleteRecord(Integer type, Integer id) {
-        Db.delete("delete from 72crm_oa_action_record where type = ? and action_id = ?", type, id);
+        String sql = "delete from lkcrm_oa_action_record where type = ? and action_id = ?";
+        recordDao.executeUpdateSQL(sql, type, id);
     }
 
 

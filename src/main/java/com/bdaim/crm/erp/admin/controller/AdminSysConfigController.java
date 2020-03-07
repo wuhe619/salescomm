@@ -1,7 +1,7 @@
 package com.bdaim.crm.erp.admin.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.redis.RedisManager;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
@@ -9,15 +9,16 @@ import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Clear;
-import com.jfinal.core.Controller;
 import com.jfinal.kit.Kv;
-import com.jfinal.upload.UploadFile;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.annotation.Resource;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -27,7 +28,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/sysConfig")
-public class AdminSysConfigController extends Controller {
+public class AdminSysConfigController extends BasicAction {
 
     private static final String SYS_CONFIG_KEY = "sys_config";
 
@@ -40,16 +41,28 @@ public class AdminSysConfigController extends Controller {
      * @author hmb
      */
     @Permissions("manage:system")
-    public void setSysConfig() {
+    @RequestMapping(value = "/setSysConfig", method = RequestMethod.POST)
+    public R setSysConfig() {
         String prefix = BaseUtil.getDate();
-        UploadFile file = getFile("file", prefix);
-        Kv kv = getKv();
-        if (file != null) {
-            R r = adminFileService.upload(file, null, "file", "/" + prefix);
-            kv.set("logo", r.get("url"));
+        //UploadFile file = getFile("file", prefix);
+        Map kv = getKv();
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
+                BaseUtil.getRequest().getSession().getServletContext());
+        if (multipartResolver.isMultipart(BaseUtil.getRequest())) {
+            MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) BaseUtil.getRequest();
+            Iterator<String> iter = multiRequest.getFileNames();
+            while (iter.hasNext()) {
+                R r = adminFileService.upload0(BaseUtil.getRequest(), null, "file", "/" + prefix);
+                kv.put("logo", r.get("url"));
+                break;
+            }
         }
-        RedisManager.getRedis().set(SYS_CONFIG_KEY, JSON.toJSONString(kv));
-        renderJson(R.ok());
+       /* if (BaseUtil.getRequest().getParameter("file") != null) {
+            R r = adminFileService.upload0(BaseUtil.getRequest(), null, "file", "/" + prefix);
+            kv.put("logo", r.get("url"));
+        }*/
+        RedisManager.getRedis().set(SYS_CONFIG_KEY + ":" + BaseUtil.getUser().getCustId(), JSON.toJSONString(kv));
+        return (R.ok());
     }
 
     /**
@@ -61,16 +74,12 @@ public class AdminSysConfigController extends Controller {
     @ResponseBody
     @RequestMapping(value = "/querySysConfig", method = RequestMethod.POST)
     public R querySysConfig() {
-        ResponseInfo resp = new ResponseInfo();
-        if (StringUtil.isEmpty(RedisManager.getRedis().get(SYS_CONFIG_KEY))) {
-            resp.setData(Kv.by("logo", "").set("name", ""));
+        if (StringUtil.isEmpty(RedisManager.getRedis().get(SYS_CONFIG_KEY + ":" + BaseUtil.getUser().getCustId()))) {
             //renderJson(R.ok().put("data", Kv.by("logo","").set("name","")));
-            return R.ok().put("data", Kv.by("logo","").set("name",""));
+            return R.ok().put("data", Kv.by("logo", "").set("name", ""));
         }
-        String data = RedisManager.getRedis().get(SYS_CONFIG_KEY);
+        String data = RedisManager.getRedis().get(SYS_CONFIG_KEY + ":" + BaseUtil.getUser().getCustId());
         Map map = JSON.parseObject(data, Map.class);
-        resp.setData(map);
-        // renderJson(R.ok().put("data",map));
-        return (R.ok().put("data",map));
+        return (R.ok().put("data", map));
     }
 }

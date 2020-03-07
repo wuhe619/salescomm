@@ -2,6 +2,7 @@ package com.bdaim.crm.entity;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Objects;
 
 @Entity
@@ -20,8 +21,8 @@ public class LkCrmTaskEntity {
     private String labelId;
     private String description;
     private Integer pid;
-    private Timestamp startTime;
-    private Timestamp stopTime;
+    private Date startTime;
+    private Date stopTime;
     private Integer priority;
     private Integer workId;
     private Integer isTop;
@@ -167,21 +168,21 @@ public class LkCrmTaskEntity {
 
     @Basic
     @Column(name = "start_time")
-    public Timestamp getStartTime() {
+    public Date getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(Timestamp startTime) {
+    public void setStartTime(Date startTime) {
         this.startTime = startTime;
     }
 
     @Basic
     @Column(name = "stop_time")
-    public Timestamp getStopTime() {
+    public Date getStopTime() {
         return stopTime;
     }
 
-    public void setStopTime(Timestamp stopTime) {
+    public void setStopTime(Date stopTime) {
         this.stopTime = stopTime;
     }
 

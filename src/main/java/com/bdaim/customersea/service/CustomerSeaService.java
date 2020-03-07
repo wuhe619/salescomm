@@ -45,7 +45,6 @@ import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.util.*;
-
 import com.bdaim.util.redis.RedisUtil;
 import org.hibernate.HibernateException;
 import org.hibernate.exception.SQLGrammarException;
@@ -765,6 +764,28 @@ public class CustomerSeaService {
             }
         }
         return status;
+    }
+
+    public long addSea(CustomerSeaParam param) {
+        Timestamp time = new Timestamp(System.currentTimeMillis());
+        long id = 0L;
+        // 保存公海
+        CustomerSea customerSea = new CustomerSea(param);
+        customerSea.setStatus(2);
+        customerSea.setTaskPhoneIndex(0);
+        customerSea.setTaskSmsIndex(0);
+        customerSea.setQuantity("0");
+        customerSea.setCreateTime(time);
+        id = (long) customerSeaDao.saveReturnPk(customerSea);
+        customerSea.setId(id);
+        // 创建公海数据表
+        createCustomerSeaDataTable(String.valueOf(customerSea.getId()));
+        param.setId(customerSea.getId());
+        // 保存公海属性
+        saveCustomerSeaProperty(param);
+        // 创建默认线索导入客群
+        createDefaultClueCGroup(customerSea.getId(), param.getName() + "(默认客群)", param.getCustId());
+        return id;
     }
 
     /**
@@ -4305,14 +4326,16 @@ public class CustomerSeaService {
             int dataStatus = 1;
             // 组长和员工数据状态为已分配
             if (2 == user.getUserType()) {
+                dto.setUser_id(dto.getUser_id());
                 dataStatus = 0;
             } else {
                 // 超管和项目管理员数据状态为未分配
                 dto.setUser_id(null);
             }
             // 添加至公海责任人为空
-            if (1 == seaType) {
+            if (1 == seaType && 1 == user.getUserType()) {
                 dto.setUser_id(null);
+                dataStatus = 1;
             }
             LOG.info("开始保存添加线索个人信息:" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + ",数据:" + dto.toString());
             try {

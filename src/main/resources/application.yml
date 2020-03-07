@@ -4,16 +4,20 @@ spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.jdbc.Driver
-    username: root
-    password: root
-    url: jdbc:mysql://localhost:3306/bp?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
-#    url: jdbc:mysql://192.168.32.200/label?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
+    username: chacker
+    password: chacker
+    #    url: jdbc:mysql://localhost:3306/bp?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
+    #url: jdbc:mysql://192.168.32.200/label?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
+    url: jdbc:mysql://47.104.205.217:3306/label_dev?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
     hikari:
       auto-commit: true
       minimum-idle: 5
       maximum-pool-size: 15
       connection-timeout: 3000
       connection-test-query: select 1
+      validationTimeout: 3000
+      idleTimeout: 60000
+      maxLifetime: 60000
   jpa:
     show-sql: true
     open-in-view: true
@@ -27,8 +31,14 @@ spring:
         naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
         format_sql: true
   data:
-      mongodb:
-         uri: mongodb://myTester:xyz123@localhost:27017/testmogo
+    mongodb:
+      uri: mongodb://myTester:xyz123@localhost:27017/testmogo
+  servlet:
+    multipart:
+      enabled: true #是否启用http上传处理
+      max-request-size: 100MB #最大请求文件的大小
+      max-file-size: 20MB #设置单个文件最大长度
+      file-size-threshold: 20MB #当文件达到多少时进行磁盘写入
 
   jackson:
     default-property-inclusion: non_null
@@ -39,7 +49,7 @@ spring:
     port: 6379
   elasticsearch:
     jest:
-      uris: http://192.168.32.200:9200
+      uris: http://localhost:9200
       read-timeout: 20000 #读取超时
       connection-timeout: 20000 #连接超时
   task:
@@ -48,7 +58,7 @@ spring:
         size: 10
       thread-name-prefix: task-pool-
 logging:
-  level: 
+  level:
     org.hibernate: INFO
     com.bdaim: DEBUG
     org.springframework.jdbc.core.JdbcTemplate: DEBUG
@@ -82,9 +92,19 @@ hbase_audio_url: http://ds4:1111/voice/
 
 finance.h5.host: http://financedev.datau.top/h5
 online.host: http://bp.online.datau.top
-es.rest: http://192.168.32.200:9200
+es.rest: http://localhost:9200
 ds.es.index.0: labels
 ds.es.type.0: label
 is_enable_oper_log: true
 token:
-    catch: 1
+  cache: 1
+
+  #  catch: 1
+#数据组接口
+data:
+  transfer_url: http://161.189.102.150:8765/uid/api/uidconv
+  account: huoke
+  access_key: Hk@202003
+  key_type: imei14
+  value_type: msisdn_md5
+  save_path: E:\\test\\image\\

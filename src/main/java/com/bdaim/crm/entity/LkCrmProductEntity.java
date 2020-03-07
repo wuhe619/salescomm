@@ -18,7 +18,7 @@ public class LkCrmProductEntity {
     private Integer categoryId;
     private String description;
     private Long createUserId;
-    private Integer ownerUserId;
+    private Long ownerUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
     private String batchId;
@@ -126,11 +126,11 @@ public class LkCrmProductEntity {
 
     @Basic
     @Column(name = "owner_user_id")
-    public Integer getOwnerUserId() {
+    public Long getOwnerUserId() {
         return ownerUserId;
     }
 
-    public void setOwnerUserId(Integer ownerUserId) {
+    public void setOwnerUserId(Long ownerUserId) {
         this.ownerUserId = ownerUserId;
     }
 

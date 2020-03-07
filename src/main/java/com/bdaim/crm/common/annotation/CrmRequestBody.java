@@ -9,5 +9,5 @@ import java.lang.annotation.*;
 @Target(ElementType.PARAMETER)
 @Inherited
 @Documented
-public @interface RequestBody {
+public @interface CrmRequestBody {
 }

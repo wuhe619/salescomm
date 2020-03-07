@@ -1,16 +1,18 @@
 package com.bdaim.crm.erp.admin.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.erp.admin.entity.CrmBusinessType;
+import com.bdaim.crm.entity.LkCrmBusinessTypeEntity;
 import com.bdaim.crm.erp.admin.service.AdminBusinessTypeService;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.HashSet;
@@ -19,9 +21,10 @@ import java.util.List;
 /**
  * 商机组设置
  *
- * @author hmb
  */
-public class AdminBusinessTypeController extends Controller {
+@RestController
+@RequestMapping("/businessType")
+public class AdminBusinessTypeController extends BasicAction {
 
     @Resource
     private AdminBusinessTypeService adminBusinessTypeService;
@@ -31,17 +34,16 @@ public class AdminBusinessTypeController extends Controller {
      * 设置商机组
      */
     @Permissions("manage:crm")
-    public void setBusinessType() {
-        JSONObject jsonObject = JSON.parseObject(getRawData());
-
-        CrmBusinessType crmBusinessType = jsonObject.getObject("crmBusinessType", CrmBusinessType.class);
-        if(jsonObject.getJSONArray("deptIds") != null){
+    @RequestMapping(value = "/setBusinessType", method = RequestMethod.POST)
+    public R setBusinessType(@RequestBody JSONObject jsonObject) {
+        LkCrmBusinessTypeEntity crmBusinessType = jsonObject.getObject("crmBusinessType", LkCrmBusinessTypeEntity.class);
+        if (jsonObject.getJSONArray("deptIds") != null) {
             List<Integer> deptIds = jsonObject.getJSONArray("deptIds").toJavaList(Integer.class);
             crmBusinessType.setDeptIds(TagUtil.fromSet(new HashSet<>(deptIds)));
         }
         JSONArray crmBusinessStatus = jsonObject.getJSONArray("crmBusinessStatus");
-        adminBusinessTypeService.addBusinessType(crmBusinessType,crmBusinessStatus);
-        renderJson(R.ok());
+        adminBusinessTypeService.addBusinessType(crmBusinessType, crmBusinessStatus);
+        return(R.ok());
     }
 
     /**
@@ -51,8 +53,9 @@ public class AdminBusinessTypeController extends Controller {
      */
 
     @Permissions("manage:crm")
-    public void queryBusinessTypeList(BasePageRequest<Void> basePageRequest) {
-        renderJson(R.ok().put("data", adminBusinessTypeService.queryBusinessTypeList(basePageRequest)));
+    @RequestMapping(value = "/queryBusinessTypeList", method = RequestMethod.POST)
+    public R queryBusinessTypeList(BasePageRequest<Void> basePageRequest) {
+        return(R.ok().put("data", adminBusinessTypeService.queryBusinessTypeList(basePageRequest)));
     }
 
     /**
@@ -60,9 +63,10 @@ public class AdminBusinessTypeController extends Controller {
      * 获取详细信息
      */
     @Permissions("manage:crm")
-    public void getBusinessType() {
+    @RequestMapping(value = "/getBusinessType", method = RequestMethod.POST)
+    public R getBusinessType() {
         String typeId = getPara("id");
-        renderJson(adminBusinessTypeService.getBusinessType(typeId));
+        return(adminBusinessTypeService.getBusinessType(typeId));
     }
 
     /**
@@ -70,9 +74,10 @@ public class AdminBusinessTypeController extends Controller {
      * 删除商机状态组
      */
     @Permissions("manage:crm")
-    public void deleteById() {
+    @RequestMapping(value = "/deleteById", method = RequestMethod.POST)
+    public R deleteById() {
         String typeId = getPara("id");
-        renderJson(adminBusinessTypeService.deleteById(typeId));
+        return(adminBusinessTypeService.deleteById(typeId));
     }
 
 

@@ -2,7 +2,6 @@ package com.bdaim.crm.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
-import com.bdaim.crm.entity.LkCrmReceivablesEntity;
 import com.bdaim.crm.entity.LkCrmReceivablesPlanEntity;
 import com.bdaim.util.SqlAppendUtil;
 import org.springframework.stereotype.Component;
@@ -38,9 +37,9 @@ public class LkCrmReceivablesPlanDao extends SimpleHibernateDao<LkCrmReceivables
         return super.sqlPageQuery(sql, pageNum, pageSize, contract_id);
     }
 
-    public List<LkCrmReceivablesEntity> queryReceivablesReceivablesId(List receivablesIds) {
+    public List<LkCrmReceivablesPlanEntity> queryReceivablesReceivablesId(List receivablesIds) {
         String sql = " select * from lkcrm_crm_receivables_plan where receivables_id in(" + SqlAppendUtil.sqlAppendWhereIn(receivablesIds) + ")";
-        return super.queryListBySql(sql, LkCrmReceivablesEntity.class);
+        return super.queryListBySql(sql, LkCrmReceivablesPlanEntity.class);
     }
 
     public LkCrmReceivablesPlanEntity queryByContractId(int contract_id) {

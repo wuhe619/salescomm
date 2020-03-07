@@ -19,11 +19,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 封装Hibernate原生API的DAO泛型基类.
@@ -911,7 +910,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         return rs;
     }
 
-    public Map<String, Object> queryUniqueSql(String sql, Object... params) throws Exception {
+    public Map<String, Object> queryUniqueSql(String sql, Object... params) {
         Session session = getSession();
         Query query = session.createSQLQuery(sql);
         query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
@@ -1106,13 +1105,26 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
     public List queryListBySql(String sql, Class className, final Object... values) {
         Session session = getSession();
         Query query = session.createSQLQuery(sql).addEntity(className);
-        ;
         if (values != null)
             for (int i = 0; i < values.length; i++) {
                 query.setParameter(i, values[i]);
             }
         List rs = query.list();
         return rs;
+    }
+
+    public T queryUniqueBySql(String sql, Class className, Object... values) {
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql).addEntity(className);
+        if (values != null)
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        List rs = query.list();
+        if (!CollectionUtils.isEmpty(rs)) {
+            return (T) rs.get(0);
+        }
+        return null;
     }
 
     public List<Map<String, Object>> queryListBySql(String sql) {
@@ -1134,6 +1146,63 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         if (rs.size() > 0)
             return String.valueOf(rs.get(0));
         return "";
+    }
+
+    public List<Long> queryListForLong(String sql, final Object... values) {
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql);
+        if (values != null)
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        List rs = query.list();
+        if (!CollectionUtils.isEmpty(rs)) {
+            List<Long> result = new ArrayList<>();
+            for (Object obj : rs) {
+                result.add(Long.valueOf(String.valueOf(obj)));
+            }
+            return result;
+        } else {
+            return null;
+        }
+    }
+
+    public List<Integer> queryListForInteger(String sql, final Object... values) {
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql);
+        if (values != null)
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        List rs = query.list();
+        if (!CollectionUtils.isEmpty(rs)) {
+            List<Integer> result = new ArrayList<>();
+            for (Object obj : rs) {
+                result.add(Integer.parseInt(String.valueOf(obj)));
+            }
+            return result;
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    public List<String> queryForList(String sql, final Object... values) {
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql);
+        if (values != null)
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        List rs = query.list();
+        if (!CollectionUtils.isEmpty(rs)) {
+            List<String> result = new ArrayList<>();
+            for (Object obj : rs) {
+                result.add(String.valueOf(obj));
+            }
+            return result;
+        } else {
+            return null;
+        }
     }
 
     public int queryForInt(String sql, final Object... values) {

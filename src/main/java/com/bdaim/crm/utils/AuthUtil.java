@@ -5,10 +5,12 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminMenuDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
-import com.bdaim.crm.erp.admin.service.AdminRoleService;
-import com.bdaim.crm.erp.admin.service.AdminUserService;
+import com.bdaim.crm.erp.admin.service.LkAdminRoleService;
+import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.jfinal.plugin.activerecord.Record;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -16,6 +18,7 @@ import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author wyq
@@ -24,21 +27,22 @@ import java.util.Map;
 @Transactional
 public class AuthUtil {
 
+    public static final Logger LOG = LoggerFactory.getLogger(AuthUtil.class);
 
-    private static AdminUserService adminUserService;
+    private static LkAdminUserService adminUserService;
 
     private static LkCrmAdminUserDao crmAdminUserDao;
 
-    private static AdminRoleService adminRoleService;
+    private static LkAdminRoleService adminRoleService;
 
     private static LkCrmAdminMenuDao crmAdminMenuDao;
 
-    public static AdminUserService getAdminUserService() {
+    public static LkAdminUserService getAdminUserService() {
         return adminUserService;
     }
 
     @Resource
-    public void setAdminUserService(AdminUserService adminUserService) {
+    public void setAdminUserService(LkAdminUserService adminUserService) {
         AuthUtil.adminUserService = adminUserService;
     }
 
@@ -51,12 +55,12 @@ public class AuthUtil {
         AuthUtil.crmAdminUserDao = crmAdminUserDao;
     }
 
-    public AdminRoleService getAdminRoleService() {
+    public LkAdminRoleService getAdminRoleService() {
         return adminRoleService;
     }
 
     @Resource
-    public void setAdminRoleService(AdminRoleService adminRoleService) {
+    public void setAdminRoleService(LkAdminRoleService adminRoleService) {
         AuthUtil.adminRoleService = adminRoleService;
     }
 
@@ -110,6 +114,11 @@ public class AuthUtil {
         if (tablePara == null) {
             return false;
         }
+        // 客户管理员
+        if (Objects.equals(BaseUtil.getUser().getUserType(), "1")) {
+            LOG.info("当前登录用户为客户管理员,id:{}", BaseUtil.getUserId());
+            return false;
+        }
         Long userId = BaseUtil.getUserId();
         List<Long> longs = adminUserService.queryUserByAuth(userId, null);
         StringBuilder authSql = new StringBuilder("select count(*) from ");
@@ -120,6 +129,7 @@ public class AuthUtil {
                 authSql.append(" or ro_user_id like CONCAT('%,','").append(userId).append("',',%')").append(" or rw_user_id like CONCAT('%,','").append(userId).append("',',%')");
             }
         }
+        LOG.info("authSql:{},id:{}", authSql.toString(), id);
         return crmAdminUserDao.queryForInt(authSql.toString(),id) == 0;
     }
 

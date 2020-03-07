@@ -5,6 +5,9 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.JfinalConfig;
+import com.bdaim.crm.dao.LkCrmAdminUserDao;
+import com.bdaim.crm.entity.LkCrmAdminUserEntity;
+import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import com.jfinal.log.Log;
@@ -24,6 +27,8 @@ public class BaseUtil {
 
     private static TokenCacheService<LoginUser> tokenCacheService;
 
+    private static LkCrmAdminUserDao crmAdminUserDao;
+
     public TokenCacheService<LoginUser> getTokenCacheService() {
         return tokenCacheService;
     }
@@ -31,6 +36,11 @@ public class BaseUtil {
     @Resource
     public void setTokenCacheService(TokenCacheService<LoginUser> tokenCacheService) {
         this.tokenCacheService = tokenCacheService;
+    }
+
+    @Resource
+    public void setCrmAdminUserDao(LkCrmAdminUserDao crmAdminUserDao) {
+        BaseUtil.crmAdminUserDao = crmAdminUserDao;
     }
 
     /**
@@ -145,11 +155,24 @@ public class BaseUtil {
 
 
     public static LoginUser getUser() {
-        return tokenCacheService.getToken(getToken(), LoginUser.class);
+        LoginUser user = tokenCacheService.getToken(getToken(), LoginUser.class);
+        LkCrmAdminUserEntity userEntity = crmAdminUserDao.get(user.getId());
+        if (userEntity != null) {
+            user.setDeptId(userEntity.getDeptId());
+        }
+        return user;
     }
 
     public static Long getUserId() {
         return getUser().getId();
+    }
+
+    public static String getCustId() {
+        return getUser().getCustId();
+    }
+
+    public static int getUserType() {
+        return NumberConvertUtil.parseInt(getUser().getUserType());
     }
 
     public static void removeThreadLocal() {

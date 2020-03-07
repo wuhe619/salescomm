@@ -7,21 +7,22 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_business_type", schema = "", catalog = "")
 public class LkCrmBusinessTypeEntity {
-    private int typeId;
+    private Integer typeId;
     private String name;
     private String deptIds;
-    private int createUserId;
+    private Long createUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
     private int status;
 
     @Id
     @Column(name = "type_id")
-    public int getTypeId() {
+    @GeneratedValue
+    public Integer getTypeId() {
         return typeId;
     }
 
-    public void setTypeId(int typeId) {
+    public void setTypeId(Integer typeId) {
         this.typeId = typeId;
     }
 
@@ -47,11 +48,11 @@ public class LkCrmBusinessTypeEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 

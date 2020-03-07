@@ -76,7 +76,7 @@ public class BaoguandanXmlEXP301 {
             // 使用Transformer的transform()方法将DOM树转换成XML
             tf.transform(domSource, new StreamResult(bos));
             String xmlString = bos.toString();
-            System.out.println(xmlString);
+            log.info(xmlString);
             return xmlString;
         } catch (Exception e) {
             log.error("生成EXP301.xml失败", e);

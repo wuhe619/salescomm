@@ -103,7 +103,7 @@ public class CrmReceivablesService {
         String batchId = StrUtil.isNotEmpty(crmReceivables.getBatchId()) ? crmReceivables.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
-        if (crmReceivables.getReceivablesId() == null) {
+        if (entity.getReceivablesId() == null) {
             Integer count = crmReceivablesDao.queryByNumber(crmReceivables.getNumber());
             //Integer count = Db.queryInt(Db.getSql("crm.receivables.queryByNumber"), crmReceivables.getNumber());
             if (count != null && count > 0) {
@@ -122,20 +122,22 @@ public class CrmReceivablesService {
             }
             boolean save = (int) crmReceivablesDao.saveReturnPk(crmReceivables) > 0;
             if (crmReceivables.getPlanId() != null) {
-                LkCrmReceivablesEntity crmReceivablesPlan = crmReceivablesDao.get(crmReceivables.getPlanId());
+                LkCrmReceivablesPlanEntity crmReceivablesPlan = crmReceivablesPlanDao.get(crmReceivables.getPlanId());
                 if (crmReceivablesPlan != null) {
                     crmReceivablesPlan.setReceivablesId(crmReceivables.getReceivablesId());
                     crmReceivablesPlan.setUpdateTime(DateUtil.date().toTimestamp());
-                    crmReceivablesDao.saveOrUpdate(crmReceivablesPlan);
+                    crmReceivablesPlanDao.update(crmReceivablesPlan);
                 }
             }
 
             crmRecordService.addRecord(crmReceivables.getReceivablesId(), CrmEnum.RECEIVABLES_TYPE_KEY.getTypes());
             return R.isSuccess(save);
         } else {
+            crmReceivables.setReceivablesId(entity.getReceivablesId());
             LkCrmReceivablesEntity receivables = crmReceivablesDao.get(crmReceivables.getReceivablesId());
             if (receivables.getCheckStatus() != 4 && receivables.getCheckStatus() != 3) {
-                return R.error("不能编辑，请先撤回再编辑！");
+                //return R.error("不能编辑，请先撤回再编辑！");
+                return R.error("当前审批状态不能编辑(审核未通过|已撤回可编辑)，请先撤回再编辑！");
             }
             Map<String, Integer> map = examineRecordService.saveExamineRecord(2, jsonObject.getLong("checkUserId"), receivables.getOwnerUserId(), receivables.getExamineRecordId());
             if (map.get("status") == 0) {
@@ -197,7 +199,7 @@ public class CrmReceivablesService {
     @Before(Tx.class)
     public R deleteByIds(String receivablesIds) {
         String[] idsArr = receivablesIds.split(",");
-        List<LkCrmReceivablesEntity> list = crmReceivablesPlanDao.queryReceivablesReceivablesId(Arrays.asList(idsArr));
+        List<LkCrmReceivablesPlanEntity> list = crmReceivablesPlanDao.queryReceivablesReceivablesId(Arrays.asList(idsArr));
         //List<CrmReceivables> list = CrmReceivables.dao.find(Db.getSqlPara("crm.receivablesplan.queryReceivablesReceivablesId", Kv.by("receivablesIds", idsArr)));
         if (list.size() > 0) {
             return R.error("该数据已被其他模块引用，不能被删除！");

@@ -470,7 +470,7 @@ public class CrmCustomerController extends BasicAction {
         jsonObject.fluentPut("excel", "yes").fluentPut("type", 2);
         basePageRequest.setJsonObject(jsonObject);
         //AdminSceneService adminSceneService = new AdminSceneService();
-        List<Record> recordList = JavaBeanUtil.mapToRecords((List) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
+        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("excel");
         //List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
         export(recordList, response);
         //renderNull();
@@ -494,12 +494,13 @@ public class CrmCustomerController extends BasicAction {
      */
     @Permissions("crm:pool:excelexport")
     @RequestMapping(value = "/poolAllExportExcel")
-    public void poolAllExportExcel(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
+    public void poolAllExportExcel(@RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
         //JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", 8);
         //AdminSceneService adminSceneService = new AdminSceneService();
+        BasePageRequest basePageRequest = new BasePageRequest(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
         basePageRequest.setJsonObject(jsonObject);
-        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
+        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("excel");
         export(recordList, response);
         //renderNull();
     }
@@ -514,6 +515,7 @@ public class CrmCustomerController extends BasicAction {
             List<Record> customerFields = adminFieldService.list("2");
             Kv kv = new Kv();
             customerFields.forEach(customerField -> kv.set(customerField.getStr("field_name"), customerField.getStr("name")));
+            writer.addHeaderAlias("company", "公司名称");
             writer.addHeaderAlias("customer_name", kv.getStr("customer_name"));
             writer.addHeaderAlias("telephone", kv.getStr("telephone"));
             writer.addHeaderAlias("mobile", kv.getStr("mobile"));
@@ -537,7 +539,7 @@ public class CrmCustomerController extends BasicAction {
             //HttpServletResponse response = getResponse();
             List<Map<String, Object>> list = new ArrayList<>();
             for (Record record : recordList) {
-                list.add(record.remove("batch_id", "create_user_id", "customer_id", "is_lock", "owner_user_id", "ro_user_id", "rw_user_id", "followup", "field_batch_id").getColumns());
+                list.add(record.remove("cust_id", "batch_id", "create_user_id", "customer_id", "is_lock", "owner_user_id", "ro_user_id", "rw_user_id", "followup", "field_batch_id").getColumns());
             }
             writer.write(list, true);
             writer.setRowHeight(0, 20);

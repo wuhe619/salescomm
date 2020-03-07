@@ -7,7 +7,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_admin_examine_record", schema = "", catalog = "")
 public class LkCrmAdminExamineRecordEntity {
-    private int recordId;
+    private Integer recordId;
     private Integer examineId;
     private Long examineStepId;
     private Integer examineStatus;
@@ -18,11 +18,11 @@ public class LkCrmAdminExamineRecordEntity {
     @Id
     @Column(name = "record_id")
     @GeneratedValue
-    public int getRecordId() {
+    public Integer getRecordId() {
         return recordId;
     }
 
-    public void setRecordId(int recordId) {
+    public void setRecordId(Integer recordId) {
         this.recordId = recordId;
     }
 

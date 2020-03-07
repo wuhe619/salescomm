@@ -6,7 +6,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_business_status", schema = "", catalog = "")
 public class LkCrmBusinessStatusEntity {
-    private int statusId;
+    private Integer statusId;
     private int typeId;
     private String name;
     private String rate;
@@ -14,11 +14,12 @@ public class LkCrmBusinessStatusEntity {
 
     @Id
     @Column(name = "status_id")
-    public int getStatusId() {
+    @GeneratedValue
+    public Integer getStatusId() {
         return statusId;
     }
 
-    public void setStatusId(int statusId) {
+    public void setStatusId(Integer statusId) {
         this.statusId = statusId;
     }
 

@@ -6,20 +6,32 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_admin_dept", schema = "", catalog = "")
 public class LkCrmAdminDeptEntity {
-    private int deptId;
+    private Integer deptId;
     private Integer pid;
     private String name;
     private Integer num;
     private String remark;
+    private String custId;
+
+    public LkCrmAdminDeptEntity() {
+    }
+
+    public LkCrmAdminDeptEntity(Integer pid, String name, Integer num, String remark, String custId) {
+        this.pid = pid;
+        this.name = name;
+        this.num = num;
+        this.remark = remark;
+        this.custId = custId;
+    }
 
     @Id
     @Column(name = "dept_id")
     @GeneratedValue
-    public int getDeptId() {
+    public Integer getDeptId() {
         return deptId;
     }
 
-    public void setDeptId(int deptId) {
+    public void setDeptId(Integer deptId) {
         this.deptId = deptId;
     }
 
@@ -61,6 +73,17 @@ public class LkCrmAdminDeptEntity {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Override

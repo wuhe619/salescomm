@@ -1,9 +1,8 @@
 package com.bdaim.crm.erp.oa.controller;
 
-import com.bdaim.crm.utils.R;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.erp.oa.service.OaBackLogService;
+import com.bdaim.crm.utils.R;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -14,7 +13,7 @@ import javax.annotation.Resource;
  */
 @RequestMapping(value = "/OaBackLog")
 @RestController
-public class OaBackLogController extends Controller {
+public class OaBackLogController extends BasicAction {
     @Resource
     OaBackLogService oaBackLogService;
 

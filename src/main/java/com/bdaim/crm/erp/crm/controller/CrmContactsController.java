@@ -20,7 +20,6 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.core.paragetter.Para;
 import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Record;
 import org.apache.poi.hssf.usermodel.*;
@@ -216,6 +215,24 @@ public class CrmContactsController extends BasicAction {
     }
 
     /**
+     * 代办事项列表
+     *
+     * @RequestParamm basePageRequest
+     * @RequestParamm taskStatus
+     * @RequestParamm leadsId
+     * @return
+     */
+    @RequestMapping(value = "/agency/list", method = RequestMethod.POST)
+    public R listAgency(BasePageRequest basePageRequest, Integer taskStatus, Integer contactsId) {
+        basePageRequest.setData(taskStatus);
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), contactsId);
+        if (auth) {
+            return (R.noAuth());
+        }
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmContactsService.listAgency(basePageRequest, taskStatus, contactsId))));
+    }
+
+    /**
      * @author wyq
      * 批量导出线索
      */
@@ -233,12 +250,11 @@ public class CrmContactsController extends BasicAction {
      */
     @Permissions("crm:contacts:excelexport")
     @RequestMapping(value = "/allExportExcel")
-    public void allExportExcel(@RequestBody BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
+    public void allExportExcel(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
         //JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "3");
         basePageRequest.setJsonObject(jsonObject);
-        AdminSceneService adminSceneService = new AdminSceneService();
-        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
+        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("excel");
         export(recordList, response);
         //renderNull();
     }

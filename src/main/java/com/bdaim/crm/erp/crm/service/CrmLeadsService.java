@@ -502,8 +502,14 @@ public class CrmLeadsService {
     public int distributionClue(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
         // 单一负责人分配线索|手动领取所选
         if (1 == operate) {
+            /*if (BaseUtil.getUserType() == 1) {
+                throw new TouchException("管理员不能领取线索");
+            }*/
             return singleDistributionClue(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
         } else if (2 == operate) {
+            /*if (BaseUtil.getUserType() == 1) {
+                throw new TouchException("管理员不能领取线索");
+            }*/
             // 坐席根据检索条件批量领取线索
             return batchReceiveClue(param, param.getUserIds().get(0));
         } else if (3 == operate) {
@@ -664,7 +670,7 @@ public class CrmLeadsService {
      * @param superIds
      * @return
      */
-    private int transferToPrivateSea(String seaId, String userId, List<String> superIds) {
+    public int transferToPrivateSea(String seaId, String userId, List<String> superIds) {
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
                 .append("SELECT * FROM  ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE id IN (")
@@ -674,7 +680,9 @@ public class CrmLeadsService {
         for (Map<String, Object> m : maps) {
             JSONObject superData = JSON.parseObject(String.valueOf(m.get("super_data")));
             LkCrmLeadsEntity crmLeads = BeanUtil.mapToBean(m, LkCrmLeadsEntity.class, true);
-            crmLeads.setLeadsName(superData.getString("SYS014") + (++i));
+            crmLeads.setLeadsName(superData.getString("SYS005") + (++i));
+            crmLeads.setCompany(superData.getString("SYS005"));
+            crmLeads.setIsTransform(0);
             // 查询公海线索的标记信息
             List<Map<String, Object>> fieldList = crmAdminFieldvDao.queryCustomField(String.valueOf(m.get("id")));
             JSONArray jsonArray = new JSONArray();
@@ -682,7 +690,46 @@ public class CrmLeadsService {
                 jsonArray.add(BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true));
             }
 
-            String batchId = IdUtil.simpleUUID();
+            String batchId = String.valueOf(m.get("id"));
+            crmLeads.setBatchId(batchId);
+            crmLeads.setCustId(BaseUtil.getUser().getCustId());
+            crmRecordService.updateRecord(jsonArray, batchId);
+            adminFieldService.save(jsonArray, batchId);
+            crmLeads.setCreateTime(DateUtil.date().toTimestamp());
+            crmLeads.setUpdateTime(DateUtil.date().toTimestamp());
+            crmLeads.setCreateUserId(BaseUtil.getUser().getUserId());
+            if (crmLeads.getOwnerUserId() == null) {
+                crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId());
+            }
+            crmLeads.setBatchId(batchId);
+            crmLeads.setSeaId(seaId);
+            int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
+            crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
+        }
+        return 0;
+    }
+
+    public int transferToPrivateSea(String seaId, String company, String userId, List<String> superIds) {
+        //添加到线索私海数据
+        StringBuilder sql = new StringBuilder()
+                .append("SELECT * FROM  ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE id IN (")
+                .append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(" ) ");
+        List<Map<String, Object>> maps = customerSeaDao.sqlQuery(sql.toString());
+        int i = 0;
+        for (Map<String, Object> m : maps) {
+            JSONObject superData = JSON.parseObject(String.valueOf(m.get("super_data")));
+            LkCrmLeadsEntity crmLeads = BeanUtil.mapToBean(m, LkCrmLeadsEntity.class, true);
+            crmLeads.setLeadsName(company + (++i));
+            crmLeads.setCompany(company);
+            crmLeads.setIsTransform(0);
+            // 查询公海线索的标记信息
+            List<Map<String, Object>> fieldList = crmAdminFieldvDao.queryCustomField(String.valueOf(m.get("id")));
+            JSONArray jsonArray = new JSONArray();
+            for (Map<String, Object> field : fieldList) {
+                jsonArray.add(BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true));
+            }
+
+            String batchId = String.valueOf(m.get("id"));
             crmLeads.setBatchId(batchId);
             crmLeads.setCustId(BaseUtil.getUser().getCustId());
             crmRecordService.updateRecord(jsonArray, batchId);
@@ -870,20 +917,25 @@ public class CrmLeadsService {
     @Before(Tx.class)
     public R addOrUpdate(JSONObject object) {
         CrmLeads entity = object.getObject("entity", CrmLeads.class);
-        LkCrmLeadsEntity crmLeads =new LkCrmLeadsEntity();
+        LkCrmLeadsEntity crmLeads = new LkCrmLeadsEntity();
         BeanUtils.copyProperties(entity, crmLeads);
+        if (crmLeads.getIsTransform() == null) {
+            crmLeads.setIsTransform(0);
+        }
+
         crmLeads.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmLeads.getBatchId()) ? crmLeads.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(object.getJSONArray("field"), batchId);
         adminFieldService.save(object.getJSONArray("field"), batchId);
-        if (crmLeads.getLeadsId() != null) {
+        if (entity.getLeadsId() != null) {
+            crmLeads.setLeadsId(NumberConvertUtil.parseInt(entity.getLeadsId()));
             crmLeads.setCustomerId(0);
             crmLeads.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             crmRecordService.updateRecord(crmLeadsDao.get(crmLeads.getLeadsId()), crmLeads, CrmEnum.LEADS_TYPE_KEY.getTypes());
             //return crmLeads.update() ? R.ok() : R.error();
             LkCrmLeadsEntity crmLeadsDb = crmLeadsDao.get(crmLeads.getLeadsId());
             BeanUtils.copyProperties(crmLeads, crmLeadsDb, JavaBeanUtil.getNullPropertyNames(crmLeads));
-            crmLeadsDao.saveOrUpdate(crmLeadsDb);
+            crmLeadsDao.update(crmLeadsDb);
             return R.ok();
         } else {
             crmLeads.setCreateTime(new Timestamp(System.currentTimeMillis()));
@@ -962,6 +1014,35 @@ public class CrmLeadsService {
         }
         return i > 0 ? R.ok() : R.error("线索删除失败");
         //}) ? R.ok() : R.error();
+    }
+
+    /**
+     * 根据id 删除线索
+     */
+    public R deleteByBatchIds(List idsList) {
+        if (idsList == null || idsList.size() == 0) {
+            R.error("leadsIds不能为空");
+        }
+        int i = crmLeadsDao.deleteByBatchIds(idsList);
+        if (idsList.size() > 0) {
+            crmLeadsDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN( " + SqlAppendUtil.sqlAppendWhereIn(idsList) + " )");
+        }
+        return i > 0 ? R.ok() : R.error("线索删除失败");
+    }
+
+    public R deletePublicClue(List idsList, String seaId) {
+        if (idsList == null || idsList.size() == 0) {
+            R.error("leadsIds不能为空");
+        }
+        int i = 0;
+        if (idsList.size() > 0) {
+            i = crmLeadsDao.executeUpdateSQL("delete from " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " where id IN( " + SqlAppendUtil.sqlAppendWhereIn(idsList) + " )");
+            CustomerSeaProperty csp = customerSeaDao.getProperty(seaId, "defaultClueCgId");
+            if (csp != null) {
+                i = crmLeadsDao.executeUpdateSQL("delete from " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + csp.getPropertyValue() + " where id IN( " + SqlAppendUtil.sqlAppendWhereIn(idsList) + " )");
+            }
+        }
+        return i > 0 ? R.ok() : R.error("公海线索删除失败");
     }
 
     /**

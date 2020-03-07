@@ -5,6 +5,7 @@ package com.bdaim.crm.erp.work.controller;
  */
 
 import com.bdaim.crm.common.annotation.NotNullValidate;
+import com.bdaim.crm.entity.LkCrmWorkTaskLabelEntity;
 import com.bdaim.crm.erp.work.entity.WorkTaskLabel;
 import com.bdaim.crm.erp.work.service.LabelService;
 import com.bdaim.crm.utils.R;
@@ -23,19 +24,19 @@ public class LabelController extends Controller {
     private LabelService labelService;
 
     /**
-     * @author hmb
+     * @author Chacker
      * 设置任务标签
      * @param taskLabel 任务标签对象
      */
     @RequestMapping(value = "/setLabel")
-    public R setLabel(@Para("") WorkTaskLabel taskLabel) {
+    public R setLabel(@Para("") LkCrmWorkTaskLabelEntity taskLabel) {
 //        renderJson(labelService.setLabel(taskLabel));
 //        return (R.ok().put("data", labelService.setLabel(taskLabel)));
         return labelService.setLabel(taskLabel);
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 删除任务标签
      */
     @RequestMapping(value = "/deleteLabel")
@@ -47,7 +48,7 @@ public class LabelController extends Controller {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 任务标签列表
      */
     @RequestMapping(value = "/getLabelList")
@@ -65,7 +66,7 @@ public class LabelController extends Controller {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 根据用户参与的任务查询标签
      */
     @RequestMapping(value = "/getLabelListByOwn")
@@ -76,7 +77,7 @@ public class LabelController extends Controller {
     }
 
     /**
-     * @author wyq
+     * @author Chacker
      * 标签任务列表
      */
     @RequestMapping(value = "/getTaskList")

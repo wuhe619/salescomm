@@ -17,12 +17,10 @@ import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.SqlAppendUtil;
-import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,19 +30,18 @@ import java.util.Map;
 @Transactional
 public class AdminExamineService {
 
-    @Resource
+    @Autowired
     private LkCrmAdminExamineDao crmAdminExamineDao;
 
-    @Resource
+    @Autowired
     private LkCrmAdminExamineStepDao crmAdminExamineStepDao;
 
-    @Resource
+    @Autowired
     private CustomerUserDao customerUserDao;
 
     /**
      * 添加审批流程
      */
-    @Before(Tx.class)
     public R saveExamine(JSONObject jsonObject) {
         LkCrmAdminExamineEntity adminExamine = jsonObject.toJavaObject(LkCrmAdminExamineEntity.class);
         List<Integer> deptIds = jsonObject.getJSONArray("deptIds").toJavaList(Integer.class);
@@ -55,7 +52,7 @@ public class AdminExamineService {
 
         if (adminExamine.getExamineId() == null) {
             //添加
-            LkCrmAdminExamineEntity examine = BeanUtil.mapToBean(crmAdminExamineDao.getExamineByCategoryType(adminExamine.getCategoryType()), LkCrmAdminExamineEntity.class, true);
+            LkCrmAdminExamineEntity examine = crmAdminExamineDao.getExamineByCategoryType(adminExamine.getCategoryType());
             if (examine != null) {
                 //判断有未删除的审批流程，不能添加
                 examine.setStatus(0);
@@ -79,7 +76,7 @@ public class AdminExamineService {
             adminExamine.setCreateTime(examine.getCreateTime());
             adminExamine.setUpdateUserId(BaseUtil.getUser().getUserId());
             adminExamine.setUpdateTime(DateUtil.date().toTimestamp());
-            adminExamine.setExamineId(null);
+            //adminExamine.setExamineId(null);
             adminExamine.setStatus(1);
             flag = (int) crmAdminExamineDao.saveReturnPk(adminExamine) > 0;
 
@@ -111,13 +108,16 @@ public class AdminExamineService {
         //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("admin.examine.queryExaminePage"));
         page.getData().forEach(s -> {
             Record record = JavaBeanUtil.mapToRecord((Map<String, Object>) s);
-            List data = new ArrayList();
-            data.add(BeanUtil.beanToMap(crmAdminExamineStepDao.queryExamineStepByExamineId(record.getInt("examine_id"))));
+            List<Map<String, Object>> data = new ArrayList();
+            LkCrmAdminExamineStepEntity entity = crmAdminExamineStepDao.queryExamineStepByExamineId(record.getInt("examine_id"));
+            if (entity != null) {
+                data.add(BeanUtil.beanToMap(entity));
+            }
             List<Record> stepList = JavaBeanUtil.mapToRecords(data);
             if (stepList != null) {
                 stepList.forEach(step -> {
                     if (step.getStr("check_user_id") != null && step.getStr("check_user_id").split(",").length > 0) {
-                        List<Record> userList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_use WHERE id (" + SqlAppendUtil.sqlAppendWhereIn(step.getStr("check_user_id").split(",")) + ");"));
+                        List<Record> userList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_user WHERE id IN (" + SqlAppendUtil.sqlAppendWhereIn(step.getStr("check_user_id").split(",")) + ");"));
                         //List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", step.getStr("check_user_id").split(","))));
                         step.set("userList", userList);
                     } else {
@@ -127,15 +127,15 @@ public class AdminExamineService {
                 record.set("stepList", stepList);
             }
             if (record.getStr("user_ids") != null && record.getStr("user_ids").split(",").length > 0) {
-                List<Record> userList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_use WHERE id (" + SqlAppendUtil.sqlAppendWhereIn(record.getStr("user_ids").split(",")) + ");"));
+                List<Record> userList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_user WHERE id IN (" + SqlAppendUtil.sqlAppendWhereIn(record.getStr("user_ids").split(",")) + ");"));
                 //List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", record.getStr("user_ids").split(","))));
                 record.set("userIds", userList);
             } else {
                 record.set("userIds", new ArrayList<>());
             }
             if (record.getStr("dept_ids") != null && record.getStr("dept_ids").split(",").length > 0) {
-                // TODO
-                List<Record> deptList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_use WHERE id (" + SqlAppendUtil.sqlAppendWhereIn(record.getStr("dept_ids").split(",")) + ");"));
+                // TODO 用户角色权限需要修改
+                List<Record> deptList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_user WHERE id IN (" + SqlAppendUtil.sqlAppendWhereIn(record.getStr("dept_ids").split(",")) + ");"));
                 //List<Record> deptList = Db.find(Db.getSqlPara("admin.dept.queryByIds", Kv.by("ids", record.getStr("dept_ids").split(","))));
                 record.set("deptIds", deptList);
             } else {
@@ -190,11 +190,11 @@ public class AdminExamineService {
      * 查询当前启用审核流程步骤
      */
     public R queryExaminStep(Integer categoryType) {
-        Record record = JavaBeanUtil.mapToRecord(crmAdminExamineDao.getExamineByCategoryType(categoryType));
+        Record record = JavaBeanUtil.mapToRecord(BeanUtil.beanToMap(crmAdminExamineDao.getExamineByCategoryType(categoryType)));
         if (record != null) {
             if (record.getInt("examine_type") == 1) {
                 List data = new ArrayList();
-                data.add(BeanUtil.beanToMap(crmAdminExamineStepDao.queryExamineStepByExamineId(record.getInt("examine_id"))));
+                data.add(crmAdminExamineStepDao.queryExamineStepByExamineId(record.getInt("examine_id")));
                 List<Record> list = JavaBeanUtil.mapToRecords(data);
                 list.forEach(r -> {
                     //根据审核人id查询审核问信息
