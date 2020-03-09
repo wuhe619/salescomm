@@ -231,7 +231,7 @@ public class LkAdminUserService {
 
     private void updateScene(LkCrmAdminUserEntity adminUser) {
         List<Long> ids = new ArrayList<>();
-        if (adminUser.getUserId() == 0 && adminUser.getParentId() != null ) {
+        if (adminUser.getUserId() == 0 && adminUser.getParentId() != null) {
             ids.add(adminUser.getParentId());
         } else if (adminUser.getUserId() != 0) {
 //            AdminUser oldAdminUser = AdminUser.dao.findById(adminUser.getUserId());
@@ -285,7 +285,7 @@ public class LkAdminUserService {
         return adminUser;
     }
 
-    public R queryUserList(BasePageRequest<AdminUser> request, String roleId) {
+    public R queryUserList(BasePageRequest<AdminUser> request, String roleId, String roleName) {
         List<Integer> deptIdList = new ArrayList<>();
         if (request.getData().getDeptId() != null) {
             deptIdList.add(request.getData().getDeptId());
@@ -293,12 +293,12 @@ public class LkAdminUserService {
         }
         if (request.getPageType() != null && request.getPageType() == 0) {
             List<Map<String, Object>> recordMaps = crmAdminUserDao.queryUserList(request.getData().getRealname(),
-                    deptIdList, request.getData().getStatus(), roleId);
+                    deptIdList, request.getData().getStatus(), roleId, roleName);
             List<Record> recordList = JavaBeanUtil.mapToRecords(recordMaps);
             return R.ok().put("data", recordList);
         } else {
             Page page = crmAdminUserDao.queryUserListByPage(request.getPage(), request.getLimit(),
-                    request.getData().getRealname(), deptIdList, request.getData().getStatus(), roleId);
+                    request.getData().getRealname(), deptIdList, request.getData().getStatus(), roleId, roleName);
             return R.ok().put("data", BaseUtil.crmPage(page));
         }
     }
@@ -424,7 +424,7 @@ public class LkAdminUserService {
     }
 
     public R queryAllUserList() {
-        List<Map<String, Object>> recordMap = crmAdminUserDao.queryUserList(null, null, null, null);
+        List<Map<String, Object>> recordMap = crmAdminUserDao.queryUserList(null, null, null, null,"");
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordMap);
         return R.ok().put("data", recordList);
     }

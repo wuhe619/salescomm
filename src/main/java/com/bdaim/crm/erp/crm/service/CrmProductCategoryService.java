@@ -2,6 +2,7 @@ package com.bdaim.crm.erp.crm.service;
 
 import com.bdaim.crm.dao.LkCrmProductCategoryDao;
 import com.bdaim.crm.entity.LkCrmProductCategoryEntity;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.plugin.activerecord.Record;
@@ -33,7 +34,11 @@ public class CrmProductCategoryService {
      * 添加或修改类别
      */
     public R saveAndUpdate(LkCrmProductCategoryEntity category) {
+        category.setCustId(BaseUtil.getCustId());
         if (category.getCategoryId() == null) {
+            if (category.getPid() == null) {
+                category.setPid(0);
+            }
             return (int) crmProductCategoryDao.saveReturnPk(category) > 0 ? R.ok() : R.error();
         } else {
             crmProductCategoryDao.update(category);

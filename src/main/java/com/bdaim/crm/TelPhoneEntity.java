@@ -25,6 +25,13 @@ public class TelPhoneEntity {
     public TelPhoneEntity() {
     }
 
+    public TelPhoneEntity(String tel, long time, String source, String sourceWeb) {
+        this.tel = tel;
+        this.time = time;
+        this.source = source;
+        this.sourceWeb = sourceWeb;
+    }
+
     public String getTel() {
         return tel;
     }

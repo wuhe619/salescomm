@@ -28,7 +28,7 @@ public class BasePageRequest<T> {
     /**
      * 分页类型
      */
-    private Integer pageType = 1;
+    private Integer pageType;
 
     private JSONObject jsonObject;
 
