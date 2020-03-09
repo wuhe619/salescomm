@@ -1193,7 +1193,7 @@ public class OpenService {
                             cust_group_id = userData;
                         }
                     }
-                    String super_id = "";//phoneService.savePhoneToAPI(mobile);
+                    String super_id = phoneService.savePhoneToAPI(mobile);
                     String [] arr = {cust_group_id,cust_task_id,mobile,super_id,content,msgId};
                     list.add(arr);
                 } catch (Exception e) {
