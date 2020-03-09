@@ -31,6 +31,7 @@ import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -120,6 +121,7 @@ public class LkAdminUserService {
     @Before(Tx.class)
     public R setUser(LkCrmAdminUserEntity adminUser, String roleIds) {
         boolean bol;
+        adminUser.setCustId(BaseUtil.getCustId());
         updateScene(adminUser);
         if (adminUser.getUserId() == 0) {
             String sql = "select count(*) from lkcrm_admin_user where username = ?";
@@ -163,7 +165,16 @@ public class LkAdminUserService {
                 return R.error("用户名不能修改！");
             }
 //            bol = adminUser.update();
-            crmAdminUserDao.update(adminUser);
+            LkCrmAdminUserEntity entity = crmAdminUserDao.get(adminUser.getUserId());
+            BeanUtils.copyProperties(adminUser, entity, JavaBeanUtil.getNullPropertyNames(adminUser));
+            crmAdminUserDao.update(entity);
+            // 修改用户信息
+            CustomerUser customerUser = customerUserDao.get(adminUser.getUserId());
+            if (customerUser != null) {
+                customerUser.setRealname(entity.getRealname());
+                customerUserDao.update(customerUser);
+            }
+
             String delSql1 = "delete from lkcrm_admin_user_role where user_id = ?";
             crmAdminUserDao.executeUpdateSQL(delSql1, adminUser.getUserId());
             String delSql2 = "delete from lkcrm_admin_scene where user_id = ? and is_system = 1";
@@ -313,7 +324,7 @@ public class LkAdminUserService {
     public List<Integer> queryChileDeptIds(Integer deptId, Integer deepness) {
         String sql = "select dept_id from lkcrm_admin_dept where pid = ?";
         List<Integer> list = crmAdminUserDao.queryListForInteger(sql, deptId);
-        if (list.size() != 0 && deepness > 0) {
+        if (list != null && list.size() != 0 && deepness > 0) {
             int size = list.size();
             for (int i = 0; i < size; i++) {
                 list.addAll(queryChileDeptIds(list.get(i), deepness - 1));
@@ -343,9 +354,12 @@ public class LkAdminUserService {
 
     public R resetPassword(String ids, String pwd) {
         for (String id : ids.split(",")) {
-            AdminUser adminUser = new AdminUser().dao().findById(id);
-            String password = BaseUtil.sign(adminUser.getUsername() + pwd, adminUser.getSalt());
+            //LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(NumberUtil.parseLong(id));
+            //String password = BaseUtil.sign(adminUser.getUsername() + pwd, adminUser.getSalt());
+            String password = CipherUtil.generatePassword(pwd);
             String updateSql = "update lkcrm_admin_user set password = ? where user_id = ?";
+            crmAdminUserDao.executeUpdateSQL(updateSql, password, id);
+            updateSql = "update t_customer_user set password = ? where id = ?";
             crmAdminUserDao.executeUpdateSQL(updateSql, password, id);
         }
         return R.ok();
@@ -416,9 +430,20 @@ public class LkAdminUserService {
     }
 
     public R setUserStatus(String ids, String status) {
-        for (Integer id : TagUtil.toSet(ids)) {
+        for (Long id : TagUtil.toLongSet(ids)) {
             String sql = "update lkcrm_admin_user set status = ? where user_id = ?";
             crmAdminUserDao.executeUpdateSQL(sql, status, id);
+            sql = "update t_customer_user set status = ? where id = ?";
+            int userStatus = 0;
+            if ("0".equals(status)) {
+                //禁用
+                userStatus = 1;
+            }
+            if ("1".equals(status)) {
+                //激活
+                userStatus = 0;
+            }
+            crmAdminUserDao.executeUpdateSQL(sql, userStatus, id);
         }
         return R.ok();
     }

@@ -22,10 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 封装Hibernate原生API的DAO泛型基类.
@@ -1185,7 +1182,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
             }
             return result;
         } else {
-            return null;
+            return Collections.emptyList();
         }
     }
 

@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.admin.service;
 
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ReUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -7,20 +8,23 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.config.cache.CaffeineCache;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminRoleDao;
+import com.bdaim.crm.dao.LkCrmAdminUserDao;
 import com.bdaim.crm.entity.LkCrmAdminMenuEntity;
 import com.bdaim.crm.entity.LkCrmAdminRoleEntity;
 import com.bdaim.crm.entity.LkCrmAdminRoleMenuEntity;
 import com.bdaim.crm.entity.LkCrmAdminUserRoleEntity;
-import com.bdaim.crm.erp.admin.entity.AdminRole;
 import com.bdaim.crm.erp.admin.entity.AdminUserRole;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +34,7 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -39,7 +44,13 @@ public class LkAdminRoleService {
     private AdminMenuService adminMenuService;
 
     @Autowired
-    private LkCrmAdminRoleDao crmAdminRoleDao;
+    public LkCrmAdminRoleDao crmAdminRoleDao;
+
+    @Autowired
+    public LkCrmAdminUserDao crmAdminUserDao;
+
+    @Autowired
+    public CustomerUserDao customerUserDao;
 
     /**
      * @author wyq
@@ -80,10 +91,14 @@ public class LkAdminRoleService {
      * 新建
      */
     public R save(LkCrmAdminRoleEntity adminRole) {
+        adminRole.setCustId(BaseUtil.getCustId());
         Integer number = crmAdminRoleDao.queryForInt("select count(*) from lkcrm_admin_role where role_name = ? and role_type = ?", adminRole.getRoleName(), adminRole.getRoleType());
         if (number > 0) {
             return R.error("角色名已存在");
         }
+        adminRole.setStatus(1);
+        adminRole.setDataType(5);
+        adminRole.setIsHidden(1);
         return (int) crmAdminRoleDao.saveReturnPk(adminRole) > 0 ? R.ok() : R.error();
     }
 
@@ -91,8 +106,11 @@ public class LkAdminRoleService {
      * @author wyq
      * 编辑角色
      */
-    public Integer update(AdminRole adminRole) {
-        adminRole.update();
+    public Integer update(LkCrmAdminRoleEntity adminRole) {
+        adminRole.setCustId(BaseUtil.getCustId());
+        LkCrmAdminRoleEntity entity = crmAdminRoleDao.get(adminRole.getRoleId());
+        BeanUtils.copyProperties(adminRole, entity, JavaBeanUtil.getNullPropertyNames(adminRole));
+        crmAdminRoleDao.update(entity);
         List<Integer> menuList;
         if (adminRole.getMenuIds() != null) {
             try {
@@ -237,14 +255,17 @@ public class LkAdminRoleService {
         }
         int i = 1;
         if (numberSb.length() == 0) {
-            while (numberSb.toString().contains("(" + i + ")")) {
+            while (numberSb.toString().contains("（" + i + "）")) {
                 i++;
             }
         }
-        adminRole.setRoleName(pre + "(" + i + ")");
+        adminRole.setRoleName(pre + "（" + i + "）");
         //adminRole.setRoleId(null);
-        crmAdminRoleDao.save(adminRole);
-        Integer copyRoleId = adminRole.getRoleId();
+        crmAdminRoleDao.getSession().clear();
+        LkCrmAdminRoleEntity newAdminRole = new LkCrmAdminRoleEntity(adminRole.getRoleName(), adminRole.getRoleType(), adminRole.getRemark(), adminRole.getStatus()
+                , adminRole.getDataType(), adminRole.getIsHidden(), adminRole.getLabel(), adminRole.getCustId());
+        Integer copyRoleId = (int) crmAdminRoleDao.saveReturnPk(newAdminRole);
+        //Integer copyRoleId = newAdminRole.getRoleId();
         adminMenuService.saveRoleMenu(copyRoleId, adminRole.getDataType(), menuIdsList);
     }
 
@@ -252,17 +273,17 @@ public class LkAdminRoleService {
      * @author wyq
      * 角色关联员工
      */
-    public R relatedUser(AdminUserRole adminUserRole) {
+    public R relatedUser(LkCrmAdminUserRoleEntity adminUserRole) {
         if (adminUserRole != null && adminUserRole.getUserIds() != null) {
             String[] userIdsArr = adminUserRole.getUserIds().split(",");
             String[] roleIdsArr = adminUserRole.getRoleIds().split(",");
             for (String userId : userIdsArr) {
                 for (String roleId : roleIdsArr) {
-                    crmAdminRoleDao.executeUpdateSQL("delete from lkcrm_admin_user_role where user_id = ? and role_id = ?", Integer.valueOf(userId), Integer.valueOf(roleId));
-                    AdminUserRole userRole = new AdminUserRole();
-                    userRole.setUserId(Long.valueOf(userId));
-                    userRole.setRoleId(Integer.valueOf(roleId));
-                    userRole.save();
+                    crmAdminRoleDao.executeUpdateSQL("delete from lkcrm_admin_user_role where user_id = ? and role_id = ?", userId, roleId);
+                    LkCrmAdminUserRoleEntity userRole = new LkCrmAdminUserRoleEntity();
+                    userRole.setUserId(NumberUtil.parseLong(userId));
+                    userRole.setRoleId(NumberUtil.parseInt(roleId));
+                    crmAdminRoleDao.saveOrUpdate(userRole);
                 }
             }
             return R.ok();
@@ -276,7 +297,14 @@ public class LkAdminRoleService {
      * 解除角色关联员工
      */
     public R unbindingUser(AdminUserRole adminUserRole) {
-        if (adminUserRole.getUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
+        /*if (adminUserRole.getUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
+            return R.error("超级管理员不可被更改");
+        }*/
+        CustomerUser user = customerUserDao.get(adminUserRole.getUserId());
+        if (user == null) {
+            return R.error("解除角色关联员工异常");
+        }
+        if (Objects.equals(user.getUserType(), 1)) {
             return R.error("超级管理员不可被更改");
         }
         return crmAdminRoleDao.executeUpdateSQL("delete from lkcrm_admin_user_role where user_id = ? and role_id = ?", adminUserRole.getUserId(), adminUserRole.getRoleId()) > 0 ? R.ok() : R.error();
@@ -345,16 +373,19 @@ public class LkAdminRoleService {
         String roleName = jsonObject.getString("roleName");
         String remark = jsonObject.getString("remark");
         JSONArray rules = jsonObject.getJSONArray("rules");
-        AdminRole adminRole = new AdminRole();
+        LkCrmAdminRoleEntity adminRole = new LkCrmAdminRoleEntity();
         adminRole.setRoleName(roleName);
         adminRole.setRoleType(6);
         adminRole.setRemark(remark);
         if (roleId == null) {
-            bol = adminRole.save();
+            bol = (int) crmAdminRoleDao.saveReturnPk(adminRole) > 0;
         } else {
             adminRole.setRoleId(roleId);
-            crmAdminRoleDao.executeUpdateSQL("delete from `lkcrm_admin_role_menu` where role_id = ?", roleId);
-            bol = adminRole.update();
+            //crmAdminRoleDao.executeUpdateSQL("delete from `lkcrm_admin_role_menu` where role_id = ?", roleId);
+            LkCrmAdminRoleEntity entity = crmAdminRoleDao.get(roleId);
+            BeanUtils.copyProperties(adminRole, entity, JavaBeanUtil.getNullPropertyNames(adminRole));
+            crmAdminRoleDao.update(entity);
+            bol = true;
         }
         rules.forEach(menuId -> {
             LkCrmAdminRoleMenuEntity adminRoleMenu = new LkCrmAdminRoleMenuEntity();
@@ -363,5 +394,11 @@ public class LkAdminRoleService {
             crmAdminRoleDao.saveOrUpdate(adminRoleMenu);
         });
         return bol ? R.ok() : R.error();
+    }
+
+    public int checkCustRoleExist(String roleName, int roleType, int roleId, String custId) {
+        Integer number = crmAdminRoleDao.queryForInt("select count(*) from lkcrm_admin_role where role_name = ? and role_type = ? and role_id != ? AND cust_id = ?",
+                roleName, roleType, roleId, custId);
+        return number;
     }
 }

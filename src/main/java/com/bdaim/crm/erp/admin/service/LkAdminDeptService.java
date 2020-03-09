@@ -29,6 +29,7 @@ public class LkAdminDeptService {
 
     public R setDept(LkCrmAdminDeptEntity adminDept) {
         boolean bol;
+        adminDept.setCustId(BaseUtil.getCustId());
         if (adminDept.getDeptId() == null) {
             bol = (int) crmAdminDeptDao.saveReturnPk(adminDept) > 0;
         } else {
@@ -48,7 +49,8 @@ public class LkAdminDeptService {
             crmAdminDeptDao.update(adminDept);
             bol = true;
         }
-        return R.isSuccess(bol, "设置失败");
+        //return R.isSuccess(bol, "设置失败");
+        return R.isSuccess(bol);
     }
 
     public List<Record> queryDeptTree(String type, Integer id) {
