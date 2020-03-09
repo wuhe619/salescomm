@@ -112,6 +112,7 @@ public class TaskService {
     @Before(Tx.class)
     public R setTask(LkCrmTaskEntity task, LkCrmTaskRelationEntity taskRelation) {
         LoginUser user = BaseUtil.getUser();
+        task.setCustId(BaseUtil.getCustId());
         boolean bol;
         if (task.getLabelId() != null) {
             task.setLabelId(TagUtil.fromString(task.getLabelId()));
@@ -130,6 +131,18 @@ public class TaskService {
             task.setCreateTime(DateUtil.date().toTimestamp());
             task.setUpdateTime(DateUtil.date().toTimestamp());
             task.setCreateUserId(user.getUserId());
+            if (task.getPid() == null) {
+                task.setPid(0);
+            }
+            if (task.getIshidden() == null) {
+                task.setIshidden(0);
+            }
+            if (task.getIsArchive() == null) {
+                task.setIsArchive(0);
+            }
+            if (task.getStatus() == null) {
+                task.setStatus(1);
+            }
             task.setBatchId(IdUtil.simpleUUID());
             bol = (int) taskDao.saveReturnPk(task) > 0;
             LkCrmWorkTaskLogEntity workTaskLog = new LkCrmWorkTaskLogEntity();
@@ -144,7 +157,7 @@ public class TaskService {
         }
         if (taskRelation.getBusinessIds() != null || taskRelation.getContactsIds() != null || taskRelation.getContractIds() != null || taskRelation.getCustomerIds() != null) {
 //            Db.deleteById("lkcrm_task_relation", "task_id", task.getTaskId());
-            taskRelationDao.delete(task.getTaskId());
+            taskRelationDao.executeUpdateSQL("delete from lkcrm_task_relation where task_id = ? ", task.getTaskId());
             taskRelation.setCreateTime(DateUtil.date().toTimestamp());
             taskRelation.setTaskId(task.getTaskId());
             //taskRelation.save();
