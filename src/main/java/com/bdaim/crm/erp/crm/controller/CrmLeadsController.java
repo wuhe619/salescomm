@@ -907,4 +907,24 @@ public class CrmLeadsController extends BasicAction {
     public R lock(LkCrmLeadsEntity crmCustomer, String ids) {
         return (crmLeadsService.lock(crmCustomer, ids));
     }
+
+    /**
+     * 跟进记录类型设置
+     */
+    @RequestMapping(value = "/queryRecordOptions", method = RequestMethod.POST)
+    public R queryRecordOptions() {
+        return (crmLeadsService.queryRecordOptions());
+    }
+
+    /**
+     * 设置线索跟进状态
+     */
+    @RequestMapping(value = "/setRecordOptions", method = RequestMethod.POST)
+    public R setRecordOptions(@RequestBody JSONObject jsonObject) {
+        //JSONObject jsonObject = JSONObject.parseObject(getRawData());
+        //JSONArray jsonArray = JSONArray.parseArray(jsonObject.getString("value"));
+        //List<String> list = jsonArray.toJavaList(String.class);
+        List<String> list = (List<String>) jsonObject.get("value");
+        return(crmLeadsService.setRecordOptions(list));
+    }
 }

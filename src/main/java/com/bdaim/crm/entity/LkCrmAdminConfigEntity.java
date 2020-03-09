@@ -12,6 +12,7 @@ public class LkCrmAdminConfigEntity {
     private String name;
     private String value;
     private String description;
+    private Integer isSystem;
 
     @Id
     @Column(name = "setting_id")
@@ -72,6 +73,16 @@ public class LkCrmAdminConfigEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    @Basic
+    @Column(name = "is_system")
+    public Integer getIsSystem() {
+        return isSystem;
+    }
+
+    public void setIsSystem(Integer isSystem) {
+        this.isSystem = isSystem;
     }
 
     @Override

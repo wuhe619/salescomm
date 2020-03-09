@@ -36,6 +36,7 @@ import com.jfinal.upload.UploadFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -112,6 +113,9 @@ public class CrmCustomerService {
 
     @Resource
     private LkCrmTaskDao crmTaskDao;
+
+    @Autowired
+    private LkCrmActionRecordDao crmActionRecordDao;
 
     /**
      * @return
@@ -700,8 +704,8 @@ public class CrmCustomerService {
      */
     @Before(Tx.class)
     public R updateRulesSetting(Integer dealDay, Integer followupDay, Integer type) {
-        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set value = ? where name = 'customerPoolSettingDealDays' AND cust_id = ?", dealDay,BaseUtil.getCustId());
-        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set value = ? where name = 'customerPoolSettingFollowupDays' AND cust_id = ?", followupDay,BaseUtil.getCustId());
+        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set value = ? where name = 'customerPoolSettingDealDays' AND cust_id = ?", dealDay, BaseUtil.getCustId());
+        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set value = ? where name = 'customerPoolSettingFollowupDays' AND cust_id = ?", followupDay, BaseUtil.getCustId());
         crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set status = ? where name = 'customerPoolSetting' AND cust_id = ?", type, BaseUtil.getCustId());
         return R.ok();
     }
@@ -712,11 +716,11 @@ public class CrmCustomerService {
      */
     @Before(Tx.class)
     public R getRulesSetting() {
-        String dealDay = crmAdminConfigDao.queryForObject("select value from lkcrm_admin_config where name = 'customerPoolSettingDealDays' AND cust_id = ?",BaseUtil.getCustId());
-        String followupDay = crmAdminConfigDao.queryForObject("select value from lkcrm_admin_config where name = 'customerPoolSettingFollowupDays' AND cust_id = ?",BaseUtil.getCustId());
-        Integer type = crmAdminConfigDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting' AND cust_id = ?",BaseUtil.getCustId());
-        if (dealDay == null || followupDay == null || type == null) {
-            if (dealDay == null) {
+        String dealDay = crmAdminConfigDao.queryForObject("select value from lkcrm_admin_config where name = 'customerPoolSettingDealDays' AND cust_id = ?", BaseUtil.getCustId());
+        String followupDay = crmAdminConfigDao.queryForObject("select value from lkcrm_admin_config where name = 'customerPoolSettingFollowupDays' AND cust_id = ?", BaseUtil.getCustId());
+        Integer type = crmAdminConfigDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting' AND cust_id = ?", BaseUtil.getCustId());
+        if (StringUtil.isEmpty(dealDay) || StringUtil.isEmpty(followupDay) || type == null || type == 0) {
+            if (StringUtil.isEmpty(dealDay)) {
                 LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
                 adminConfig.setCustId(BaseUtil.getCustId());
                 adminConfig.setName("customerPoolSettingDealDays");
@@ -724,7 +728,7 @@ public class CrmCustomerService {
                 crmAdminConfigDao.save(adminConfig);
                 dealDay = "3";
             }
-            if (followupDay == null) {
+            if (StringUtil.isEmpty(followupDay)) {
                 LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
                 adminConfig.setCustId(BaseUtil.getCustId());
                 adminConfig.setName("customerPoolSettingFollowupDays");
@@ -732,7 +736,7 @@ public class CrmCustomerService {
                 crmAdminConfigDao.save(adminConfig);
                 followupDay = "7";
             }
-            if (type == null) {
+            if (type == null || type == 0) {
                 LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
                 adminConfig.setCustId(BaseUtil.getCustId());
                 adminConfig.setName("customerPoolSetting");
@@ -1084,5 +1088,45 @@ public class CrmCustomerService {
             reader.close();
         }
         return R.ok();*/
+    }
+
+    /**
+     * 查询跟进记录类型
+     */
+    public R queryRecordOptions() {
+        List<String> list = crmActionRecordDao.queryListBySql("select value from lkcrm_admin_config where name = ? AND cust_id = ? ", "customerFollowRecordOption", BaseUtil.getCustId());
+        if (list.size() == 0) {
+            List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
+            // 初始化数据
+            String[] defaults = new String[]{"初访", "有意义", "报价中", "合同中", "已成交", "暂缓"};
+            for (String i : defaults) {
+                LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
+                adminConfig.setCustId(BaseUtil.getCustId());
+                adminConfig.setName("customerFollowRecordOption");
+                adminConfig.setValue(i);
+                adminConfig.setDescription("客户跟进记录选项");
+                adminConfig.setIsSystem(1);
+                adminConfigList.add(adminConfig);
+            }
+            crmActionRecordDao.batchSaveOrUpdate(adminConfigList);
+            list.addAll(Arrays.asList(defaults));
+        }
+        return R.ok().put("data", list);
+    }
+
+    public R setRecordOptions(List<String> list) {
+        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'customerFollowRecordOption' AND cust_id = ? AND is_system <> 1   ", BaseUtil.getCustId());
+        List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
+            adminConfig.setCustId(BaseUtil.getCustId());
+            adminConfig.setName("customerFollowRecordOption");
+            adminConfig.setValue(list.get(i));
+            adminConfig.setDescription("客户跟进记录选项");
+            adminConfig.setIsSystem(2);
+            adminConfigList.add(adminConfig);
+        }
+        crmActionRecordDao.batchSaveOrUpdate(adminConfigList);
+        return R.ok();
     }
 }

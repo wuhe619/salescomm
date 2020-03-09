@@ -1,6 +1,7 @@
 package com.bdaim.crm.erp.work.controller;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
@@ -20,10 +21,7 @@ import com.bdaim.crm.utils.TagUtil;
 import com.jfinal.core.paragetter.Para;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.web.bind.ServletRequestDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -273,5 +271,25 @@ public class TaskController extends BasicAction {
     @RequestMapping(value = "/archiveByTaskId", method = RequestMethod.POST)
     public R archiveByTaskId(@Para("taskId") Integer taskId) {
         return (taskService.archiveByTaskId(taskId));
+    }
+
+    /**
+     * 跟进记录类型设置
+     */
+    @RequestMapping(value = "/queryRecordOptions", method = RequestMethod.POST)
+    public R queryRecordOptions() {
+        return (taskService.queryRecordOptions());
+    }
+
+    /**
+     * 设置任务类型
+     */
+    @RequestMapping(value = "/setRecordOptions", method = RequestMethod.POST)
+    public R setRecordOptions(@RequestBody JSONObject jsonObject) {
+        //JSONObject jsonObject = JSONObject.parseObject(getRawData());
+        //JSONArray jsonArray = JSONArray.parseArray(jsonObject.getString("value"));
+        //List<String> list = jsonArray.toJavaList(String.class);
+        List<String> list = (List<String>) jsonObject.get("value");
+        return (taskService.setRecordOptions(list));
     }
 }
