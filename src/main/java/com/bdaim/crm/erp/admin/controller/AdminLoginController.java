@@ -7,10 +7,6 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.auth.service.TokenService;
 import com.bdaim.common.controller.BasicAction;
-import com.jfinal.aop.Clear;
-import com.jfinal.core.paragetter.Para;
-import com.jfinal.log.Log;
-import com.jfinal.plugin.activerecord.Db;
 import com.bdaim.crm.common.config.redis.Redis;
 import com.bdaim.crm.common.config.redis.RedisManager;
 import com.bdaim.crm.common.constant.BaseConstant;
@@ -18,10 +14,13 @@ import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.erp.admin.service.LkAdminRoleService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
-import org.springframework.stereotype.Controller;
+import com.jfinal.aop.Clear;
+import com.jfinal.core.paragetter.Para;
+import com.jfinal.log.Log;
+import com.jfinal.plugin.activerecord.Db;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.sql.Connection;
@@ -34,10 +33,9 @@ import java.util.Set;
 /**
  * 用户登录
  *
- * @author z
  */
-@Clear
-@Controller
+@RequestMapping
+@RestController
 public class AdminLoginController extends BasicAction {
 
     @Resource
@@ -113,7 +111,7 @@ public class AdminLoginController extends BasicAction {
     @GetMapping("/logout")
     public R logout() throws Exception {
         LoginUser token = BaseUtil.getUser();
-        if (token!=null) {
+        if (token != null) {
             RedisManager.getRedis().del(token.getTokenid());
             //removeCookie("Admin-Token");
             tokenService.removeToken(token.getUsername());
@@ -123,8 +121,8 @@ public class AdminLoginController extends BasicAction {
         return (R.ok());
     }
 
-    @PostMapping("/version")
-    @ResponseBody
+    //@PostMapping("/version")
+    //@ResponseBody
     public Object version() {
         return JSON.parseObject(R.ok().put("name", BaseConstant.NAME).put("version", BaseConstant.VERSION).toString());
     }
