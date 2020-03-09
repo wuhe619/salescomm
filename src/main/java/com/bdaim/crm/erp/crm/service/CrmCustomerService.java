@@ -700,9 +700,9 @@ public class CrmCustomerService {
      */
     @Before(Tx.class)
     public R updateRulesSetting(Integer dealDay, Integer followupDay, Integer type) {
-        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set value = ? where name = 'customerPoolSettingDealDays'", dealDay);
-        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set value = ? where name = 'customerPoolSettingFollowupDays'", followupDay);
-        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set status = ? where name = 'customerPoolSetting'", type);
+        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set value = ? where name = 'customerPoolSettingDealDays' AND cust_id = ?", dealDay,BaseUtil.getCustId());
+        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set value = ? where name = 'customerPoolSettingFollowupDays' AND cust_id = ?", followupDay,BaseUtil.getCustId());
+        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set status = ? where name = 'customerPoolSetting' AND cust_id = ?", type, BaseUtil.getCustId());
         return R.ok();
     }
 
@@ -712,12 +712,13 @@ public class CrmCustomerService {
      */
     @Before(Tx.class)
     public R getRulesSetting() {
-        String dealDay = crmAdminConfigDao.queryForObject("select value from lkcrm_admin_config where name = 'customerPoolSettingDealDays'");
-        String followupDay = crmAdminConfigDao.queryForObject("select value from lkcrm_admin_config where name = 'customerPoolSettingFollowupDays'");
-        Integer type = crmAdminConfigDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting'");
+        String dealDay = crmAdminConfigDao.queryForObject("select value from lkcrm_admin_config where name = 'customerPoolSettingDealDays' AND cust_id = ?",BaseUtil.getCustId());
+        String followupDay = crmAdminConfigDao.queryForObject("select value from lkcrm_admin_config where name = 'customerPoolSettingFollowupDays' AND cust_id = ?",BaseUtil.getCustId());
+        Integer type = crmAdminConfigDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting' AND cust_id = ?",BaseUtil.getCustId());
         if (dealDay == null || followupDay == null || type == null) {
             if (dealDay == null) {
                 LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
+                adminConfig.setCustId(BaseUtil.getCustId());
                 adminConfig.setName("customerPoolSettingDealDays");
                 adminConfig.setValue("3");
                 crmAdminConfigDao.save(adminConfig);
@@ -725,6 +726,7 @@ public class CrmCustomerService {
             }
             if (followupDay == null) {
                 LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
+                adminConfig.setCustId(BaseUtil.getCustId());
                 adminConfig.setName("customerPoolSettingFollowupDays");
                 adminConfig.setValue("7");
                 crmAdminConfigDao.save(adminConfig);
@@ -732,15 +734,18 @@ public class CrmCustomerService {
             }
             if (type == null) {
                 LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
+                adminConfig.setCustId(BaseUtil.getCustId());
                 adminConfig.setName("customerPoolSetting");
                 adminConfig.setStatus(0);
                 crmAdminConfigDao.save(adminConfig);
                 type = 0;
             }
         }
-        LkCrmAdminConfigEntity config = crmAdminConfigDao.findUniqueBy("name", "expiringContractDays");
+        LkCrmAdminConfigEntity config = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity WHERE custId = ? AND NAME = ? ", BaseUtil.getCustId(), "expiringContractDays");
+        //LkCrmAdminConfigEntity config = crmAdminConfigDao.findUniqueBy("name", "expiringContractDays");
         if (config == null) {
             config = new LkCrmAdminConfigEntity();
+            config.setCustId(BaseUtil.getCustId());
             config.setStatus(0);
             config.setName("expiringContractDays");
             config.setValue("3");

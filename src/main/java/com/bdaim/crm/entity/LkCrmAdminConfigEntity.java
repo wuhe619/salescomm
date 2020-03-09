@@ -8,6 +8,7 @@ import java.util.Objects;
 public class LkCrmAdminConfigEntity {
     private int settingId;
     private int status;
+    private String custId;
     private String name;
     private String value;
     private String description;
@@ -21,6 +22,16 @@ public class LkCrmAdminConfigEntity {
 
     public void setSettingId(int settingId) {
         this.settingId = settingId;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic
