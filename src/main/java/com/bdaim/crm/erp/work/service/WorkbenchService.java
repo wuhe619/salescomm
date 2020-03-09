@@ -4,7 +4,9 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.dao.LkCrmTaskDao;
+import com.bdaim.crm.dao.LkCrmTaskRelationDao;
 import com.bdaim.crm.dao.LkCrmWorkbenchDao;
+import com.bdaim.crm.entity.LkCrmTaskRelationEntity;
 import com.bdaim.crm.erp.work.entity.Task;
 import com.bdaim.crm.erp.work.entity.TaskRelation;
 import com.bdaim.crm.utils.BaseUtil;
@@ -33,7 +35,10 @@ public class WorkbenchService {
     @Resource
     private LkCrmTaskDao taskDao;
 
-    public R myTask(Integer userId) {
+    @Resource
+    private LkCrmTaskRelationDao crmTaskRelationDao;
+
+    public R myTask(Long userId) {
         List<Record> result = new ArrayList<>();
         result.add(new Record().set("title", "收件箱").set("is_top", 0).set("count", 0).set("list", new ArrayList<>()));
         result.add(new Record().set("title", "今天要做").set("is_top", 1).set("count", 0).set("list", new ArrayList<>()));
@@ -68,9 +73,9 @@ public class WorkbenchService {
             }
             Integer taskId = task.getInt("task_id");
 //            task.set("mainUser", Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?", task.getInt("main_user_id")));
-            task.set("mainUser", workbenchDao.getMainUser(task.getInt("main_user_id")));
+            task.set("mainUser", workbenchDao.getMainUser(task.getLong("main_user_id")));
 //            task.set("createUser", Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?", task.getInt("create_user_id")));
-            task.set("createUser", workbenchDao.getCreateUser(task.getInt("create_user_id")));
+            task.set("createUser", workbenchDao.getCreateUser(task.getLong("create_user_id")));
             ArrayList<Record> labelList = new ArrayList<>();
             if (StrUtil.isNotBlank(task.getStr("label_id"))) {
                 String[] lableIds = task.getStr("label_id").split(",");
@@ -83,7 +88,7 @@ public class WorkbenchService {
                 }
             }
             task.set("labelList", labelList);
-            TaskRelation taskRelation = new TaskRelation().findFirst("select * from `lkcrm_task_relation` where task_id = ?", taskId);
+            LkCrmTaskRelationEntity taskRelation =crmTaskRelationDao.findUniqueBy("taskId",taskId);
             int relationCount = 0;
             if (taskRelation != null) {
                 relationCount += TagUtil.toSet(taskRelation.getBusinessIds()).size();

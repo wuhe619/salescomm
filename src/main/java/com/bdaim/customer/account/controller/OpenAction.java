@@ -1,6 +1,7 @@
 package com.bdaim.customer.account.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.dao.BatchDetailDao;
 import com.bdaim.batch.dto.FixInfo;
@@ -699,6 +700,31 @@ public class OpenAction extends BasicAction {
         }
 
         return resp;
+    }
+
+    /**
+     * 接收上行短信信息
+     * @param body
+     * @return
+     */
+    @PostMapping("/sms/uploadinfo")
+    public String  smsUploadInfo(@RequestBody String body){
+        log.info("smsUploadInfo.param{}",body);
+        JSONObject result=new JSONObject();
+        result.put("status",0);
+        result.put("desc","ok");
+        if(StringUtil.isEmpty(body)){
+            log.error("参数不能为空");
+            return result.toJSONString();
+        }
+        try {
+            openService.saveSmsuploadinfo(body);
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("status",-1);
+            result.put("desc","error");
+        }
+        return result.toJSONString();
     }
 }
 

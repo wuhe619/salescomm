@@ -32,7 +32,7 @@ public class WorkbenchController extends BasicAction {
     public R myTask(){
 //        renderJson(workbenchService.myTask(BaseUtil.getUser().getUserId().intValue()));
 //        return (R.ok().put("data", workbenchService.myTask(BaseUtil.getUser().getUserId().intValue())));
-        return workbenchService.myTask(BaseUtil.getUser().getUserId().intValue());
+        return workbenchService.myTask(BaseUtil.getUser().getUserId());
     }
 
     /**

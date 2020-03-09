@@ -59,6 +59,8 @@ public class TaskService {
     private LkCrmWorkTaskClassDao taskClassDao;
     @Autowired
     private LkCrmTaskRelationDao taskRelationDao;
+    @Autowired
+    private LkCrmActionRecordDao crmActionRecordDao;
 
     public R setTaskClass(LkCrmWorkTaskClassEntity taskClass) {
 //        boolean bol = true;
@@ -110,6 +112,7 @@ public class TaskService {
     @Before(Tx.class)
     public R setTask(LkCrmTaskEntity task, LkCrmTaskRelationEntity taskRelation) {
         LoginUser user = BaseUtil.getUser();
+        task.setCustId(BaseUtil.getCustId());
         boolean bol;
         if (task.getLabelId() != null) {
             task.setLabelId(TagUtil.fromString(task.getLabelId()));
@@ -128,6 +131,18 @@ public class TaskService {
             task.setCreateTime(DateUtil.date().toTimestamp());
             task.setUpdateTime(DateUtil.date().toTimestamp());
             task.setCreateUserId(user.getUserId());
+            if (task.getPid() == null) {
+                task.setPid(0);
+            }
+            if (task.getIshidden() == null) {
+                task.setIshidden(0);
+            }
+            if (task.getIsArchive() == null) {
+                task.setIsArchive(0);
+            }
+            if (task.getStatus() == null) {
+                task.setStatus(1);
+            }
             task.setBatchId(IdUtil.simpleUUID());
             bol = (int) taskDao.saveReturnPk(task) > 0;
             LkCrmWorkTaskLogEntity workTaskLog = new LkCrmWorkTaskLogEntity();
@@ -142,7 +157,7 @@ public class TaskService {
         }
         if (taskRelation.getBusinessIds() != null || taskRelation.getContactsIds() != null || taskRelation.getContractIds() != null || taskRelation.getCustomerIds() != null) {
 //            Db.deleteById("lkcrm_task_relation", "task_id", task.getTaskId());
-            taskRelationDao.delete(task.getTaskId());
+            taskRelationDao.executeUpdateSQL("delete from lkcrm_task_relation where task_id = ? ", task.getTaskId());
             taskRelation.setCreateTime(DateUtil.date().toTimestamp());
             taskRelation.setTaskId(task.getTaskId());
             //taskRelation.save();
@@ -641,5 +656,46 @@ public class TaskService {
         String updateSql = "update  `lkcrm_task` set is_archive = 1,archive_time = now() where task_id = ?";
         int update = taskClassDao.executeUpdateSQL(updateSql, taskId);
         return update > 0 ? R.ok() : R.error();
+    }
+
+    /**
+     * 查询跟进记录类型
+     */
+    public R queryRecordOptions() {
+        List<String> list = crmActionRecordDao.queryListBySql("select value from lkcrm_admin_config where name = ? AND cust_id = ? ", "taskType", BaseUtil.getCustId());
+        if (list.size() == 0) {
+            List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
+            // 初始化数据
+            String[] defaults = new String[]{"电话", "短信", "上门拜访"};
+            for (String i : defaults) {
+                LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
+                adminConfig.setCustId(BaseUtil.getCustId());
+                adminConfig.setName("taskType");
+                adminConfig.setValue(i);
+                adminConfig.setDescription("任务类型选项");
+                adminConfig.setIsSystem(1);
+                adminConfigList.add(adminConfig);
+            }
+            crmActionRecordDao.batchSaveOrUpdate(adminConfigList);
+            list.addAll(Arrays.asList(defaults));
+        }
+        return R.ok().put("data", list);
+    }
+
+
+    public R setRecordOptions(List<String> list) {
+        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'taskType' AND cust_id = ? AND is_system <> 1  ", BaseUtil.getCustId());
+        List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
+            adminConfig.setCustId(BaseUtil.getCustId());
+            adminConfig.setName("taskType");
+            adminConfig.setValue(list.get(i));
+            adminConfig.setDescription("任务类型选项");
+            adminConfig.setIsSystem(2);
+            adminConfigList.add(adminConfig);
+        }
+        crmActionRecordDao.batchSaveOrUpdate(adminConfigList);
+        return R.ok();
     }
 }

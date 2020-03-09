@@ -130,7 +130,7 @@ public class AuthUtil {
             }
         }
         LOG.info("authSql:{},id:{}", authSql.toString(), id);
-        return crmAdminUserDao.queryForInt(authSql.toString(),id) == 0;
+        return crmAdminUserDao.queryForInt(authSql.toString(), id) == 0;
     }
 
     public static boolean oaAnth(Record record) {
@@ -213,7 +213,8 @@ public class AuthUtil {
 
 
     public static boolean isWorkAdmin() {
-        if (BaseUtil.getUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
+        //if (BaseUtil.getUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
+        if (BaseUtil.getUserType() == 1) {
             return true;
         } else {
             return BaseUtil.getUser().getRoles().contains(BaseConstant.WORK_ADMIN_ROLE_ID) || BaseUtil.getUser().getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID);

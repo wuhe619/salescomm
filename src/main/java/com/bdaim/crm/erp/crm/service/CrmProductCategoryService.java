@@ -70,11 +70,12 @@ public class CrmProductCategoryService {
     }
 
     public List<Record> queryListByPid(Integer pid) {
-        StringBuffer sql = new StringBuffer("select * from lkcrm_crm_product_category ");
+        StringBuffer sql = new StringBuffer("select * from lkcrm_crm_product_category WHERE cust_id = ? ");
         List param = new ArrayList();
+        param.add(BaseUtil.getCustId());
         if (pid != null) {
             param.add(pid);
-            sql.append(" where pid = ?");
+            sql.append(" AND  pid = ?");
         }
         return JavaBeanUtil.mapToRecords(crmProductCategoryDao.sqlQuery(sql.toString(), param.toArray()));
     }
