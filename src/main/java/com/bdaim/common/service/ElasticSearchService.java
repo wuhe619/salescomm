@@ -10,7 +10,6 @@ import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.RestUtil;
 import com.bdaim.util.StringUtil;
 import com.bdaim.util.http.HttpUtil;
-
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.*;
@@ -20,7 +19,6 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -638,7 +636,7 @@ public class ElasticSearchService {
 
         TransportClient client = getClient();
         BulkRequestBuilder bulkRequest = client.prepareBulk();
-        System.out.println("count =" + list.size());
+        System.out.println("index=" + index + ",count =" + list.size());
         for (JSONObject jsonObject : list) {
             bulkRequest.add(client.prepareIndex(index, type)
                     .setId(jsonObject.getString("id")).setSource(jsonObject)
@@ -649,6 +647,7 @@ public class ElasticSearchService {
         long endTime = System.currentTimeMillis();
         System.out.println("took =" + bulkResponse.getTookInMillis());
         System.out.println("cost = " + (endTime - beginTime) / 1000f);
+        System.out.println();
         if (bulkResponse.hasFailures()) {
             System.out.println("erros->"+bulkResponse.buildFailureMessage());
         } else {

@@ -7,6 +7,7 @@ import java.util.Objects;
 @Table(name = "lkcrm_crm_product_category", schema = "", catalog = "")
 public class LkCrmProductCategoryEntity {
     private Integer categoryId;
+    private String custId;
     private String name;
     private Integer pid;
 
@@ -29,6 +30,16 @@ public class LkCrmProductCategoryEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic
