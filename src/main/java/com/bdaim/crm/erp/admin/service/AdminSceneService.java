@@ -170,7 +170,7 @@ public class AdminSceneService {
                     .add("create_user_id", "创建人", "user", settingArr)
                     .add("update_time", "更新时间", "datetime", settingArr)
                     .add("create_time", "创建时间", "datetime", settingArr);
-        }  else if (8 == label) {
+        } else if (8 == label) {
             fieldUtil.add("leads_name", "线索名称", "text", settingArr)
                     .add("super_phone", "电话", "text", settingArr)
                     .add("super_telphone", "手机", "mobile", settingArr)
@@ -617,7 +617,7 @@ public class AdminSceneService {
             return R.ok().put("excel", JavaBeanUtil.mapToRecords(crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), BaseUtil.getUser().getCustId())));
         }
         if (2 == type || 8 == type) {
-            Integer configType = crmAdminSceneDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting'");
+            Integer configType = crmAdminSceneDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting' AND cust_id = ? ", BaseUtil.getCustId());
             if (1 == configType && 2 == type) {
                 String sql = " select *,(TO_DAYS(IFNULL((SELECT car.create_time FROM lkcrm_admin_record as car where car.types = 'crm_customer' and car.types_id = customerview.customer_id ORDER BY car.create_time DESC LIMIT 1),create_time))\n" +
                         "      + CAST((SELECT value FROM lkcrm_admin_config WHERE name= 'customerPoolSettingFollowupDays') as SIGNED) - TO_DAYS(NOW())\n" +

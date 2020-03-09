@@ -6,10 +6,7 @@ import com.bdaim.crm.common.annotation.CrmRequestBody;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.crm.service.CrmBackLogService;
 import com.bdaim.crm.utils.R;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -34,7 +31,7 @@ public class CrmBackLogController extends BasicAction {
      *今日需联系客户
      */
     @RequestMapping(value = "/todayCustomer", method = RequestMethod.POST)
-    public R todayCustomer(BasePageRequest basePageRequest, @CrmRequestBody JSONObject jsonObject){
+    public R todayCustomer(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject){
         basePageRequest.setJsonObject(jsonObject);
         return(crmBackLogService.todayCustomer(basePageRequest));
     }
@@ -51,7 +48,7 @@ public class CrmBackLogController extends BasicAction {
      *分配给我的线索
      */
     @RequestMapping(value = "/followLeads", method = RequestMethod.POST)
-    public R followLeads(@CrmRequestBody BasePageRequest basePageRequest, @CrmRequestBody JSONObject jsonObject){
+    public R followLeads(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject){
         basePageRequest.setJsonObject(jsonObject);
         return(crmBackLogService.followLeads(basePageRequest));
     }
@@ -76,7 +73,7 @@ public class CrmBackLogController extends BasicAction {
      *待审核合同
      */
     @RequestMapping(value = "/checkContract", method = RequestMethod.POST)
-    public R checkContract(@CrmRequestBody BasePageRequest basePageRequest, @CrmRequestBody JSONObject jsonObject){
+    public R checkContract(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject){
         basePageRequest.setJsonObject(jsonObject);
         return(crmBackLogService.checkContract(basePageRequest));
     }
@@ -85,7 +82,7 @@ public class CrmBackLogController extends BasicAction {
      *待审核回款
      */
     @RequestMapping(value = "/checkReceivables", method = RequestMethod.POST)
-    public R checkReceivables(@CrmRequestBody BasePageRequest basePageRequest, @CrmRequestBody JSONObject jsonObject){
+    public R checkReceivables(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject){
         basePageRequest.setJsonObject(jsonObject);
         return(crmBackLogService.checkReceivables(basePageRequest));
     }
@@ -94,7 +91,7 @@ public class CrmBackLogController extends BasicAction {
      *待回款提醒
      */
     @RequestMapping(value = "/remindReceivables", method = RequestMethod.POST)
-    public R remindReceivables(@CrmRequestBody BasePageRequest basePageRequest, @CrmRequestBody JSONObject jsonObject){
+    public R remindReceivables(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject){
         basePageRequest.setJsonObject(jsonObject);
         return(crmBackLogService.remindReceivables(basePageRequest));
     }
@@ -103,7 +100,7 @@ public class CrmBackLogController extends BasicAction {
      *即将到期的合同
      */
     @RequestMapping(value = "/endContract", method = RequestMethod.POST)
-    public R endContract(@CrmRequestBody BasePageRequest basePageRequest, @CrmRequestBody JSONObject jsonObject){
+    public R endContract(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject){
         basePageRequest.setJsonObject(jsonObject);
         return(crmBackLogService.endContract(basePageRequest));
     }

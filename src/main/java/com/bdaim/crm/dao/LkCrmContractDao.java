@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmContractEntity;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.SqlAppendUtil;
 import org.springframework.stereotype.Component;
 
@@ -67,7 +68,8 @@ public class LkCrmContractDao extends SimpleHibernateDao<LkCrmContractEntity, In
             sql += " ,value = ? ";
             param.add(contractDay);
         }
-        sql += " where name = 'expiringContractDays'";
+        sql += " where name = 'expiringContractDays' and cust_id = ? ";
+        param.add(BaseUtil.getCustId());
         return super.executeUpdateSQL(sql, param.toArray());
     }
 

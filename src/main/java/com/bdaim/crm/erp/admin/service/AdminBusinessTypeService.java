@@ -43,10 +43,12 @@ public class AdminBusinessTypeService {
     @Before(Tx.class)
     public void addBusinessType(LkCrmBusinessTypeEntity crmBusinessType, JSONArray crmBusinessStatusList) {
         if (crmBusinessType.getTypeId() == null) {
+            crmBusinessType.setCustId(BaseUtil.getCustId());
             crmBusinessType.setCreateTime(DateUtil.date().toTimestamp());
             crmBusinessType.setCreateUserId(BaseUtil.getUser().getUserId());
             crmBusinessTypeDao.save(crmBusinessType);
         } else {
+            crmBusinessType.setCustId(BaseUtil.getCustId());
             crmBusinessType.setUpdateTime(DateUtil.date().toTimestamp());
             LkCrmBusinessTypeEntity dbEntity = crmBusinessTypeDao.get(crmBusinessType.getTypeId());
             BeanUtils.copyProperties(crmBusinessType, dbEntity, JavaBeanUtil.getNullPropertyNames(crmBusinessType));

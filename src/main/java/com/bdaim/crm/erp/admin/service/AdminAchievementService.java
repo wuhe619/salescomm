@@ -32,7 +32,7 @@ public class AdminAchievementService {
 
     public R setAchievement(List<LkCrmAchievementEntity> achievementList) {
         achievementList.forEach(achievement -> {
-            adminAchievementDao.executeUpdateSQL("delete lkcrm_crm_achievement from 72crm_crm_achievement where obj_id = ? and type = ? and year = ? and status = ?", achievement.getObjId(), achievement.getType(), achievement.getYear(), achievement.getStatus());
+            adminAchievementDao.executeUpdateSQL("delete from lkcrm_crm_achievement where obj_id = ? and type = ? and year = ? and status = ?", achievement.getObjId(), achievement.getType(), achievement.getYear(), achievement.getStatus());
             //Db.delete(Db.getSql("admin.achievement.deleteAchievement"),achievement.getObjId(),achievement.getType(),achievement.getYear(),achievement.getStatus());
             adminAchievementDao.save(achievement);
         });

@@ -8,6 +8,7 @@ import java.util.Objects;
 @Table(name = "lkcrm_crm_business_type", schema = "", catalog = "")
 public class LkCrmBusinessTypeEntity {
     private Integer typeId;
+    private String custId;
     private String name;
     private String deptIds;
     private Long createUserId;
@@ -24,6 +25,16 @@ public class LkCrmBusinessTypeEntity {
 
     public void setTypeId(Integer typeId) {
         this.typeId = typeId;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic
