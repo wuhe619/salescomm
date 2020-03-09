@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.admin.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
@@ -24,6 +25,7 @@ import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -131,7 +133,7 @@ public class AdminFieldService {
                 arr.add(field.getFieldId());
             }
         });
-        List<LkCrmAdminFieldEntity> fieldSorts = crmAdminFieldDao.find("from LkCrmAdminFieldEntity where label = ?", label);
+        List<LkCrmAdminFieldEntity> fieldSorts = crmAdminFieldDao.find("from LkCrmAdminFieldEntity where label = ? AND cust_id = ?", label, BaseUtil.getCustId());
         List<String> nameList = fieldSorts.stream().map(LkCrmAdminFieldEntity::getName).collect(Collectors.toList());
         if (arr.size() > 0) {
            /* SqlPara sql = Db.getSqlPara("admin.field.deleteByChooseId", Kv.by("ids", arr).set("label", label).set("categoryId", categoryId));
@@ -160,7 +162,9 @@ public class AdminFieldService {
             entity.setLabel(label);
             if (entity.getFieldId() != null) {
                 ///entity.update();
-                crmAdminFieldDao.update(entity);
+                LkCrmAdminFieldEntity lkCrmAdminFieldEntity = crmAdminFieldDao.get(entity.getFieldId());
+                BeanUtils.copyProperties(entity, lkCrmAdminFieldEntity, JavaBeanUtil.getNullPropertyNames(entity));
+                crmAdminFieldDao.update(lkCrmAdminFieldEntity);
                 if (entity.getFieldType() == 0) {
                     crmAdminFieldDao.updateFieldSortName(entity.getName(), entity.getFieldId());
                     //Db.update(Db.getSqlPara("admin.field.updateFieldSortName", entity));
@@ -169,7 +173,7 @@ public class AdminFieldService {
                 }
             } else {
                 //entity.save();
-                crmAdminFieldDao.saveOrUpdate(entity);
+                crmAdminFieldDao.save(entity);
             }
             fieldList.add(entity.getName());
         }
