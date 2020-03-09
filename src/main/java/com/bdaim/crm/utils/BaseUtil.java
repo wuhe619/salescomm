@@ -5,8 +5,10 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.JfinalConfig;
+import com.bdaim.crm.dao.LkCrmAdminRoleDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
 import com.bdaim.crm.entity.LkCrmAdminUserEntity;
+import com.bdaim.crm.erp.admin.service.LkAdminRoleService;
 import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
@@ -29,6 +31,8 @@ public class BaseUtil {
 
     private static LkCrmAdminUserDao crmAdminUserDao;
 
+    private static LkAdminRoleService adminRoleService;
+
     public TokenCacheService<LoginUser> getTokenCacheService() {
         return tokenCacheService;
     }
@@ -41,6 +45,11 @@ public class BaseUtil {
     @Resource
     public void setCrmAdminUserDao(LkCrmAdminUserDao crmAdminUserDao) {
         BaseUtil.crmAdminUserDao = crmAdminUserDao;
+    }
+
+    @Resource
+    public void setAdminRoleService(LkAdminRoleService adminRoleService) {
+        BaseUtil.adminRoleService = adminRoleService;
     }
 
     /**
@@ -159,6 +168,7 @@ public class BaseUtil {
         LkCrmAdminUserEntity userEntity = crmAdminUserDao.get(user.getId());
         if (userEntity != null) {
             user.setDeptId(userEntity.getDeptId());
+            user.setRoles(adminRoleService.queryRoleIdsByUserId(user.getId()));
         }
         return user;
     }
