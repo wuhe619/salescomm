@@ -7,8 +7,10 @@ import com.bdaim.crm.entity.LkCrmAchievementEntity;
 import com.bdaim.crm.erp.admin.service.AdminAchievementService;
 import com.bdaim.crm.utils.R;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.beans.IntrospectionException;
@@ -17,9 +19,8 @@ import java.util.List;
 
 /**
  * 业绩目标设置
- *
  */
-@Controller
+@RestController
 @RequestMapping("/achievement")
 public class AdminAchievementController extends BasicAction {
 
@@ -32,7 +33,7 @@ public class AdminAchievementController extends BasicAction {
      * @author hmb
      */
     @Permissions("manage:crm")
-    @RequestMapping("/setAchievement")
+    @PostMapping("/setAchievement")
     public R setAchievement(@RequestBody(required = false) String data) {
         //String data = getRawData();
         List<LkCrmAchievementEntity> crmAchievements = JSON.parseArray(data, LkCrmAchievementEntity.class);
@@ -46,8 +47,8 @@ public class AdminAchievementController extends BasicAction {
      * @author hmb
      */
     @Permissions("manage:crm")
-    @RequestMapping("/queryAchievementList")
-    public R queryAchievementList( LkCrmAchievementEntity achievement,String userId, Integer deptId) throws IllegalAccessException, IntrospectionException, InvocationTargetException {
+    @PostMapping("/queryAchievementList")
+    public R queryAchievementList(LkCrmAchievementEntity achievement, String userId, Integer deptId) throws IllegalAccessException, IntrospectionException, InvocationTargetException {
         /*String userId = getPara("userId");
         Integer deptId = getParaToInt("deptId");*/
         return (adminAchievementService.queryAchievementList(achievement, userId, deptId));
