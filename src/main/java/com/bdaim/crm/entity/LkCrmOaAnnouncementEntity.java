@@ -2,30 +2,32 @@ package com.bdaim.crm.entity;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Objects;
 
 @Entity
 @Table(name = "lkcrm_oa_announcement", schema = "", catalog = "")
 public class LkCrmOaAnnouncementEntity {
-    private int announcementId;
+    private Integer announcementId;
     private String title;
     private String content;
-    private Integer createUserId;
+    private Long createUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
-    private Timestamp startTime;
-    private Timestamp endTime;
+    private Date startTime;
+    private Date endTime;
     private String deptIds;
     private String ownerUserIds;
     private String readUserIds;
 
     @Id
     @Column(name = "announcement_id")
-    public int getAnnouncementId() {
+    @GeneratedValue
+    public Integer getAnnouncementId() {
         return announcementId;
     }
 
-    public void setAnnouncementId(int announcementId) {
+    public void setAnnouncementId(Integer announcementId) {
         this.announcementId = announcementId;
     }
 
@@ -51,11 +53,11 @@ public class LkCrmOaAnnouncementEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public Integer getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(Integer createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 
@@ -81,21 +83,21 @@ public class LkCrmOaAnnouncementEntity {
 
     @Basic
     @Column(name = "start_time")
-    public Timestamp getStartTime() {
+    public Date getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(Timestamp startTime) {
+    public void setStartTime(Date startTime) {
         this.startTime = startTime;
     }
 
     @Basic
     @Column(name = "end_time")
-    public Timestamp getEndTime() {
+    public Date getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(Timestamp endTime) {
+    public void setEndTime(Date endTime) {
         this.endTime = endTime;
     }
 

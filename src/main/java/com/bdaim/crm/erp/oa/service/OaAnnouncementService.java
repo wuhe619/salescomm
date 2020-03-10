@@ -4,23 +4,22 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
-import com.bdaim.crm.dao.LkCrmAdminRoleDao;
-import com.bdaim.crm.entity.LkCrmAdminRoleEntity;
-import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.erp.admin.entity.AdminRole;
-import com.bdaim.crm.erp.admin.entity.AdminUser;
+import com.bdaim.crm.dao.LkCrmAdminRoleDao;
+import com.bdaim.crm.dao.LkCrmOaAnnouncementDao;
+import com.bdaim.crm.entity.LkCrmAdminRoleEntity;
+import com.bdaim.crm.entity.LkCrmOaAnnouncementEntity;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaAnnouncement;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
+import com.bdaim.util.JavaBeanUtil;
+import com.jfinal.aop.Before;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,14 +42,17 @@ public class OaAnnouncementService {
     private OaActionRecordService oaActionRecordService;
     @Autowired
     private LkCrmAdminRoleDao adminRoleDao;
+    @Autowired
+    private LkCrmOaAnnouncementDao crmOaAnnouncementDao;
 
     /**
      * 添加或修改
      */
-    public R saveAndUpdate(OaAnnouncement oaAnnouncement) {
-        AdminRole adminRole = AdminRole.dao.findFirst(Db.getSql("admin.role.queryAnnouncementByUserId"), oaAnnouncement.getCreateUserId());
+    public R saveAndUpdate(LkCrmOaAnnouncementEntity oaAnnouncement) {
+        LkCrmAdminRoleEntity adminRole = adminRoleDao.queryAnnouncementByUserId(oaAnnouncement.getCreateUserId());
+        //AdminRole adminRole = AdminRole.dao.findFirst(Db.getSql("admin.role.queryAnnouncementByUserId"), oaAnnouncement.getCreateUserId());
 
-        if (adminRole == null && !BaseUtil.getUser().getUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
+        if (adminRole == null && BaseUtil.getUserType() != 1) {
             return R.error("没有发布公告权限，不能发布公告！");
         }
         boolean flag;
@@ -68,11 +70,14 @@ public class OaAnnouncementService {
         oaAnnouncement.setDeptIds(TagUtil.fromString(oaAnnouncement.getDeptIds()));
         oaAnnouncement.setOwnerUserIds(TagUtil.fromString(oaAnnouncement.getOwnerUserIds()));
         if (oaAnnouncement.getAnnouncementId() == null) {
-            oaAnnouncement.setCreateTime(DateUtil.date());
-            flag = oaAnnouncement.save();
+            oaAnnouncement.setCreateTime(DateUtil.date().toTimestamp());
+            flag = (int) crmOaAnnouncementDao.saveReturnPk(oaAnnouncement) > 0;
         } else {
-            oaAnnouncement.setUpdateTime(DateUtil.date());
-            flag = oaAnnouncement.update();
+            oaAnnouncement.setUpdateTime(DateUtil.date().toTimestamp());
+            LkCrmOaAnnouncementEntity dbEntity = crmOaAnnouncementDao.get(oaAnnouncement.getAnnouncementId());
+            crmOaAnnouncementDao.update(dbEntity);
+            BeanUtils.copyProperties(oaAnnouncement, dbEntity, JavaBeanUtil.getNullPropertyNames(oaAnnouncement));
+            flag = true;
         }
         LoginUser user = BaseUtil.getUser();
         oaActionRecordService.addRecord(oaAnnouncement.getAnnouncementId(), OaEnum.ANNOUNCEMENT_TYPE_KEY.getTypes(), oaAnnouncement.getUpdateTime() == null ? 1 : 2, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaAnnouncement.getOwnerUserIds()), oaActionRecordService.getJoinIds(user.getDeptId(), oaAnnouncement.getDeptIds()));
@@ -112,7 +117,7 @@ public class OaAnnouncementService {
     public R queryList(BasePageRequest<OaAnnouncement> basePageRequest, Integer type) {
         LkCrmAdminRoleEntity adminRole = adminRoleDao.queryAnnouncementByUserId(BaseUtil.getUser().getUserId());
         int status = 1;
-        if (adminRole == null && !BaseUtil.getUser().getUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
+        if (adminRole == null && BaseUtil.getUserType() != 1) {
             status = 0;
         }
         String tatal = "select count(*)";
