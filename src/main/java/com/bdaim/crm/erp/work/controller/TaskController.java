@@ -189,17 +189,17 @@ public class TaskController extends BasicAction {
         Integer priority = getParaToInt("priority");
         Integer date = getParaToInt("date");
         Integer mold = getParaToInt("mold");
-        Integer userId = getParaToInt("userId");
+        Long userId = getLong("userId");
         String name = getPara("search");
-        List<Integer> userIds = new ArrayList<>();
+        List<Long> userIds = new ArrayList<>();
         if (mold == null) {
-            userIds.add(BaseUtil.getUser().getUserId().intValue());
+            userIds.add(BaseUtil.getUser().getUserId());
         } else if (mold == 1 && userId == null) {
-            userIds = adminUserService.queryUserIdsByParentId(BaseUtil.getUser().getUserId().intValue());
+            userIds = adminUserService.queryUserIdsByParentId(BaseUtil.getUser().getUserId());
         } else {
             List<Long> list = adminUserService.queryChileUserIds(BaseUtil.getUser().getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
             for (Long id : list) {
-                if (id.intValue() == userId) {
+                if (id == userId) {
                     userIds.add(userId);
                 }
             }

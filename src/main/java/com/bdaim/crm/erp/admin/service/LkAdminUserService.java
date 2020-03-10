@@ -383,12 +383,12 @@ public class LkAdminUserService {
      * @author Chacker
      * 查询系统下属用户列表
      */
-    public List<Integer> queryUserIdsByParentId(Integer userId) {
+    public List<Long> queryUserIdsByParentId(Long userId) {
         String sql = "select user_id from lkcrm_admin_user where parent_id = ? ";
-        List<Record> records = JavaBeanUtil.mapToRecords(crmAdminUserDao.queryListBySql(sql, userId));
-        List<Integer> userIds = new ArrayList<>();
+        List<Record> records = JavaBeanUtil.mapToRecords(crmAdminUserDao.sqlQuery(sql, userId));
+        List<Long> userIds = new ArrayList<>();
         for (Record record : records) {
-            userIds.add(record.getInt("user_id"));
+            userIds.add(record.getLong("user_id"));
         }
         return userIds;
     }
