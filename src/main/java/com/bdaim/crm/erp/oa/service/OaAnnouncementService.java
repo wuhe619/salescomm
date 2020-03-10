@@ -49,6 +49,7 @@ public class OaAnnouncementService {
      * 添加或修改
      */
     public R saveAndUpdate(LkCrmOaAnnouncementEntity oaAnnouncement) {
+        oaAnnouncement.setCustId(BaseUtil.getCustId());
         LkCrmAdminRoleEntity adminRole = adminRoleDao.queryAnnouncementByUserId(oaAnnouncement.getCreateUserId());
         //AdminRole adminRole = AdminRole.dao.findFirst(Db.getSql("admin.role.queryAnnouncementByUserId"), oaAnnouncement.getCreateUserId());
 
@@ -130,10 +131,10 @@ public class OaAnnouncementService {
         } else {
             sql.append(" WHERE (unix_timestamp(now()) - unix_timestamp(an.end_time)) <= 0 ");
         }
-
+        sql.append(" AND an.cust_id = ? ");
         String cc = " order by an.announcement_id desc";
         Page page = adminRoleDao.pageByFullSql(basePageRequest.getPage(), basePageRequest.getLimit(),
-                tatal + sql, queryList + sql + cc);
+                tatal + sql, queryList + sql + cc, BaseUtil.getCustId());
         for (Map<String, Object> obj : (List<Map<String, Object>>) page.getData()) {
             Record r = JavaBeanUtil.mapToRecord(obj);
             r.set("is_update", status);
@@ -155,11 +156,11 @@ public class OaAnnouncementService {
     }
 
     public void readAnnouncement(Integer announcementId) {
-        OaAnnouncement oaAnnouncement = OaAnnouncement.dao.findById(announcementId);
+        LkCrmOaAnnouncementEntity oaAnnouncement = crmOaAnnouncementDao.get(announcementId);
         HashSet<String> hashSet = new HashSet<>(StrUtil.splitTrim(oaAnnouncement.getReadUserIds(), ","));
         hashSet.add(BaseUtil.getUser().getUserId().toString());
         oaAnnouncement.setReadUserIds("," + String.join(",", hashSet) + ",");
-        oaAnnouncement.update();
+        crmOaAnnouncementDao.update(oaAnnouncement);
     }
 
 }

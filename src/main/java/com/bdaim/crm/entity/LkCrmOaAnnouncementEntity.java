@@ -9,6 +9,7 @@ import java.util.Objects;
 @Table(name = "lkcrm_oa_announcement", schema = "", catalog = "")
 public class LkCrmOaAnnouncementEntity {
     private Integer announcementId;
+    private String custId;
     private String title;
     private String content;
     private Long createUserId;
@@ -39,6 +40,16 @@ public class LkCrmOaAnnouncementEntity {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic

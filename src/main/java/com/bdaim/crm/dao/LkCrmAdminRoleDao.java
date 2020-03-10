@@ -98,7 +98,7 @@ public class LkCrmAdminRoleDao extends SimpleHibernateDao<LkCrmAdminRoleEntity, 
         return super.queryUniqueBySql(sql, LkCrmAdminRoleEntity.class, userId);
     }
 
-    public Page pageByFullSql(int page, int limit, String totalSql, String listSql) {
-        return sqlPageQuery(listSql, page, limit);
+    public Page pageByFullSql(int page, int limit, String totalSql, String listSql, String custId) {
+        return sqlPageQuery(listSql, page, limit, custId);
     }
 }
