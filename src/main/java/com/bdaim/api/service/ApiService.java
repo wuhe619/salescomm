@@ -566,6 +566,7 @@ public class ApiService {
         }
         page.setSort("api.CREATED_TIME");
         page.setDir("desc");
+        logger.info("sql:{},param:{}",sql.toString(),param.toArray());
         Page list = apiDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize(), param.toArray());
         //PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getData().stream().map(m -> {
