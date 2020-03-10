@@ -398,8 +398,8 @@ public class LkAdminUserService {
      * 查询部门属用户列表
      */
     public R queryListNameByDept(String name) {
-        String sql = "select name,dept_id from lkcrm_admin_dept ORDER BY num";
-        List<Map<String, Object>> recordMaps = crmAdminUserDao.queryListBySql(sql);
+        String sql = "select name,dept_id from lkcrm_admin_dept WHERE cust_id = ? ORDER BY num";
+        List<Map<String, Object>> recordMaps = crmAdminUserDao.sqlQuery(sql, BaseUtil.getCustId());
         List<Record> records = JavaBeanUtil.mapToRecords(recordMaps);
         for (Record record : records) {
             List<Map<String, Object>> usersMap = crmAdminUserDao.queryUsersByDeptId(
@@ -424,7 +424,7 @@ public class LkAdminUserService {
     }
 
     public R queryAllUserList() {
-        List<Map<String, Object>> recordMap = crmAdminUserDao.queryUserList(null, null, null, null,"");
+        List<Map<String, Object>> recordMap = crmAdminUserDao.queryUserList(null, null, null, null, "");
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordMap);
         return R.ok().put("data", recordList);
     }
