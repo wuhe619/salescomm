@@ -51,7 +51,7 @@ public class OaEventService {
     public List<Record> queryList(LkCrmOaEventEntity oaEvent) {
         Date startTime = oaEvent.getStartTime();
         Date endTime = oaEvent.getEndTime();
-        Integer userId = BaseUtil.getUserId().intValue();
+        Long userId = BaseUtil.getUserId();
 //        List<Record> recordList = Db.find(Db.getSql("oa.event.queryList"), endTime, startTime, userId, userId);
         List<Record> recordList = JavaBeanUtil.mapToRecords(crmOaEventDao.queryList(endTime, startTime, userId));
         if (recordList != null) {
@@ -60,7 +60,7 @@ public class OaEventService {
 //                        record.getInt("create_user_id")));
                 String sql = "select user_id,realname,img from lkcrm_admin_user where user_id = ?";
                 record.set("createUser",
-                        JavaBeanUtil.mapToRecord(crmOaEventDao.queryUniqueSql(sql, record.getInt("create_user_id"))));
+                        JavaBeanUtil.mapToRecord(crmOaEventDao.queryUniqueSql(sql, record.getLong("create_user_id"))));
                 queryRelateList(record);
             }
         }
@@ -87,15 +87,15 @@ public class OaEventService {
         oaEvent.setOwnerUserIds(TagUtil.fromString(oaEvent.getOwnerUserIds()));
         oaEventRelation.setCreateTime(new Timestamp(System.currentTimeMillis()));
         LoginUser user = BaseUtil.getUser();
-        return Db.tx(() -> {
+        //return Db.tx(() -> {
 //            oaEvent.save();
-            crmOaEventDao.save(oaEvent);
-            oaActionRecordService.addRecord(oaEvent.getEventId(), OaEnum.EVENT_TYPE_KEY.getTypes(), 1, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaEvent.getOwnerUserIds()), "");
-            oaEventRelation.setEventId(oaEvent.getEventId());
+        crmOaEventDao.save(oaEvent);
+        oaActionRecordService.addRecord(oaEvent.getEventId(), OaEnum.EVENT_TYPE_KEY.getTypes(), 1, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaEvent.getOwnerUserIds()), "");
+        oaEventRelation.setEventId(oaEvent.getEventId());
 //            oaEventRelation.save();
-            relationDao.save(oaEventRelation);
-            return true;
-        }) ? R.ok() : R.error();
+        relationDao.save(oaEventRelation);
+        return R.ok();
+        //}) ? R.ok() : R.error();
     }
 
     /**
