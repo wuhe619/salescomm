@@ -14,6 +14,7 @@ import com.bdaim.callcenter.service.impl.CallCenterService;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
+import com.bdaim.common.service.PhoneService;
 import com.bdaim.customer.account.dto.Fixentity;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -65,6 +66,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 //import io.jsonwebtoken.Claims;
 //import io.jsonwebtoken.ExpiredJwtException;
@@ -100,6 +103,10 @@ public class OpenService {
     private JdbcTemplate jdbcTemplate;
     @Resource
     private MarketTemplateDao marketTemplateDao;
+    @Autowired
+    private PhoneService phoneService;
+
+    ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     /**
      * 查询企业余额接口
@@ -1092,8 +1099,8 @@ public class OpenService {
     /* *//**
      * 获取token
      *
-     * @param username
-     * @param password
+     * @param
+     * @param
      *//*
     public Map<String, Object> getTokenInfo(String username, String password) {
         log.info("账号是：" + username + "密码是：" + password);
@@ -1142,5 +1149,68 @@ public class OpenService {
         resultMap.put("code", "00");
         return resultMap;
     }*/
+
+    public void saveSmsuploadinfo(String body) throws Exception {
+        JSONArray array = JSON.parseArray(body);
+        log.info("saveSmsuploadinfo.size:{}",array.size());
+        executorService.execute(new SmsUploadinfo(array));
+    }
+
+    class SmsUploadinfo implements Runnable{
+        private JSONArray array;
+
+        public SmsUploadinfo(JSONArray array ) {
+            this.array = array;
+        }
+
+        public  void  saveSmsuploadinfo() throws Exception {
+            List list = new ArrayList();
+            String sql = "insert into t_touch_sms_upinfo(cust_group_id,cust_task_id,mobile,super_id,content,call_time,msg_id)values(?,?,?,?,?,now(),?)";
+            for (int i = 0; i < array.size(); i++) {
+                JSONObject json = array.getJSONObject(i);
+                String mobile = null, content = null, userData = null, msgId = null;
+                if (json.containsKey("id")) {
+                    msgId = json.getString("id");
+                }
+                if (json.containsKey("mobile")) {
+                    mobile = json.getString("mobile");
+                }
+                if (json.containsKey("content")) {
+                    content = json.getString("content");
+                }
+                if (json.containsKey("userData")) {
+                    userData = json.getString("userData");
+                }
+                try {
+                    String cust_group_id = "";
+                    String cust_task_id = "";
+                    if (userData != null) {
+                        if (userData.contains("-")) {
+                            String[] s = userData.split("-");
+                            cust_group_id = s[0];
+                            cust_task_id = s[1];
+                        } else {
+                            cust_group_id = userData;
+                        }
+                    }
+                    String super_id = phoneService.savePhoneToAPI(mobile);
+                    String [] arr = {cust_group_id,cust_task_id,mobile,super_id,content,msgId};
+                    list.add(arr);
+                } catch (Exception e) {
+                    throw new Exception();
+                }
+            }
+            jdbcTemplate.batchUpdate(sql,list);
+        }
+
+        @Override
+        public void run() {
+            try {
+                saveSmsuploadinfo();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
 
