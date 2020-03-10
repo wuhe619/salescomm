@@ -4,8 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.dao.LkCrmOaEventDao;
-import com.bdaim.crm.dao.LkCrmOaEventRelationDao;
+import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.LkCrmOaEventEntity;
 import com.bdaim.crm.entity.LkCrmOaEventRelationEntity;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
@@ -30,9 +29,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Transactional
@@ -82,6 +79,7 @@ public class OaEventService {
         oaEventRelation.setContactsIds(TagUtil.fromString(oaEvent.getContactsIds()));
         oaEventRelation.setBusinessIds(TagUtil.fromString(oaEvent.getBusinessIds()));
         oaEventRelation.setContractIds(TagUtil.fromString(oaEvent.getContractIds()));
+        oaEvent.setCustId(BaseUtil.getCustId());
         oaEvent.setCreateUserId(BaseUtil.getUser().getUserId());
         oaEvent.setCreateTime(new Timestamp(System.currentTimeMillis()));
         oaEvent.setOwnerUserIds(TagUtil.fromString(oaEvent.getOwnerUserIds()));
@@ -114,10 +112,11 @@ public class OaEventService {
         oaEventRelation.setContactsIds(TagUtil.fromString(oaEvent.getContactsIds()));
         oaEventRelation.setBusinessIds(TagUtil.fromString(oaEvent.getBusinessIds()));
         oaEventRelation.setContractIds(TagUtil.fromString(oaEvent.getContractIds()));
+        oaEvent.setCustId(BaseUtil.getCustId());
         oaEvent.setUpdateTime(new Timestamp(System.currentTimeMillis()));
         oaEvent.setOwnerUserIds(TagUtil.fromString(oaEvent.getOwnerUserIds()));
         LoginUser user = BaseUtil.getUser();
-        return Db.tx(() -> {
+        //return Db.tx(() -> {
 //            oaEvent.update();
             crmOaEventDao.save(oaEvent);
             oaActionRecordService.addRecord(oaEvent.getEventId(), OaEnum.EVENT_TYPE_KEY.getTypes(), 2, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaEvent.getOwnerUserIds()), "");
@@ -129,8 +128,8 @@ public class OaEventService {
             oaEventRelation.setEventrelationId(eventRelation.getInt("eventrelation_id"));
 //            oaEventRelation.update();
             relationDao.update(oaEventRelation);
-            return true;
-        }) ? R.ok() : R.error();
+            return R.ok();
+        //}) ? R.ok() : R.error();
     }
 
     /**
@@ -164,39 +163,44 @@ public class OaEventService {
     }
 
     public void queryRelateList(Record record) {
-        if (record.getInt("create_user_id") == BaseUtil.getUser().getUserId().intValue()) {
+        if (record.getLong("create_user_id") == BaseUtil.getUser().getUserId()) {
             record.set("permission", Kv.by("is_update", 1).set("is_delete", 1));
         } else {
             record.set("permission", Kv.by("is_update", 0).set("is_delete", 0));
         }
-        List<AdminUser> adminUserList = new ArrayList<>();
+        List<Map<String, Object>> adminUserList = new ArrayList<>();
         if (StrUtil.isNotEmpty(record.getStr("owner_user_ids"))) {
             String[] ownerUserIdsArr = record.getStr("owner_user_ids").split(",");
-            adminUserList = AdminUser.dao.find(Db.getSqlPara("oa.event.queryOwnerList", Kv.by("ids", ownerUserIdsArr)));
+            adminUserList = crmOaEventDao.queryOwnerList(Arrays.asList(ownerUserIdsArr));
+            //adminUserList = AdminUser.dao.find(Db.getSqlPara("oa.event.queryOwnerList", Kv.by("ids", ownerUserIdsArr)));
         }
         record.set("ownerList", adminUserList);
-        List<CrmCustomer> customerList = new ArrayList<>();
+        List<Map<String, Object>> customerList = new ArrayList<>();
         if (StrUtil.isNotEmpty(record.getStr("customer_ids"))) {
             String[] customerIdsArr = record.getStr("customer_ids").split(",");
-            customerList = CrmCustomer.dao.find(Db.getSqlPara("oa.event.queryCustomerList", Kv.by("ids", customerIdsArr)));
+            customerList = crmOaEventDao.queryCustomerList(Arrays.asList(customerIdsArr));
+           // customerList = CrmCustomer.dao.find(Db.getSqlPara("oa.event.queryCustomerList", Kv.by("ids", customerIdsArr)));
         }
         record.set("customerList", customerList);
-        List<CrmContacts> contactsList = new ArrayList<>();
+        List<Map<String, Object>> contactsList = new ArrayList<>();
         if (StrUtil.isNotEmpty(record.getStr("contacts_ids"))) {
             String[] contactsIdsArr = record.getStr("contacts_ids").split(",");
-            contactsList = CrmContacts.dao.find(Db.getSqlPara("oa.event.queryContactsList", Kv.by("ids", contactsIdsArr)));
+            contactsList = crmOaEventDao.queryContactsList(Arrays.asList(contactsIdsArr));
+            //contactsList = CrmContacts.dao.find(Db.getSqlPara("oa.event.queryContactsList", Kv.by("ids", contactsIdsArr)));
         }
         record.set("contactsList", contactsList);
-        List<CrmBusiness> businessList = new ArrayList<>();
+        List<Map<String, Object>> businessList = new ArrayList<>();
         if (StrUtil.isNotEmpty(record.getStr("business_ids"))) {
             String[] businessIdsArr = record.getStr("business_ids").split(",");
-            businessList = CrmBusiness.dao.find(Db.getSqlPara("oa.event.queryBusinessList", Kv.by("ids", businessIdsArr)));
+            businessList = crmOaEventDao.queryBusinessList(Arrays.asList(businessIdsArr));
+            //businessList = CrmBusiness.dao.find(Db.getSqlPara("oa.event.queryBusinessList", Kv.by("ids", businessIdsArr)));
         }
         record.set("businessList", businessList);
-        List<CrmContract> contractList = new ArrayList<>();
+        List<Map<String, Object>> contractList = new ArrayList<>();
         if (StrUtil.isNotEmpty(record.getStr("contract_ids"))) {
             String[] contractIdsArr = record.getStr("contract_ids").split(",");
-            contractList = CrmContract.dao.find(Db.getSqlPara("oa.event.queryContractList", Kv.by("ids", contractIdsArr)));
+            contractList = crmOaEventDao.queryContractList(Arrays.asList(contractIdsArr));
+            //contractList = CrmContract.dao.find(Db.getSqlPara("oa.event.queryContractList", Kv.by("ids", contractIdsArr)));
         }
         record.set("contractList", contractList);
     }

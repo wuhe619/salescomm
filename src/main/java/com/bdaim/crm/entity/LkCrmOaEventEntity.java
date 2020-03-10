@@ -10,6 +10,7 @@ import java.util.Objects;
 public class LkCrmOaEventEntity {
     private Integer eventId;
     private String title;
+    private String custId;
     private String content;
     private Date startTime;
     private Date endTime;
@@ -83,6 +84,16 @@ public class LkCrmOaEventEntity {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic
