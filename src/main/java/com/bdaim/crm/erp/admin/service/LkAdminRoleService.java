@@ -71,7 +71,12 @@ public class LkAdminRoleService {
             recordList.forEach(role -> {
                 List<Integer> crm = crmAdminRoleDao.getRoleMenu(role.getInt("id"), 1, 1);
                 List<Integer> bi = crmAdminRoleDao.getRoleMenu(role.getInt("id"), 2, 2);
-                role.set("rules", new JSONObject().fluentPut("crm", crm).fluentPut("bi", bi));
+
+                List<Integer> manage = crmAdminRoleDao.getRoleMenu(role.getInt("id"), 3, 3);
+                List<Integer> find = crmAdminRoleDao.getRoleMenu(role.getInt("id"), 169, 169);
+                role.set("rules", new JSONObject().fluentPut("crm", crm).fluentPut("bi", bi)
+                        .fluentPut("find", find).fluentPut("manage", manage));
+
                 role.set("userNum", crmAdminRoleDao.queryForInt("SELECT COUNT(0) FROM lkcrm_admin_user_role a JOIN lkcrm_admin_user b on a.user_id = b.user_id WHERE a.role_id = ?", role.getInt("id")));
             });
             record.set("list", recordList);
