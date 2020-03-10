@@ -46,13 +46,17 @@ public class LkCrmAdminRoleDao extends SimpleHibernateDao<LkCrmAdminRoleEntity, 
         return maps;
     }
 
-    public List<Map<String, Object>> getRoleListByRoleType(Integer roleType, String custId) {
-        String sql = " select role_id as id ,role_name as title,role_name as remark,data_type as type,status,role_type as pid,label from lkcrm_admin_role WHERE role_type=? and is_hidden = 1";
+    public List<Map<String, Object>> getRoleListByRoleType(Integer roleType, String custId, String roleName) {
+        String sql = " select role_id as id ,role_name as title,role_name as remark,data_type as type,status,role_type as pid,label,create_time,update_time from lkcrm_admin_role WHERE role_type=? and is_hidden = 1";
         List param = new ArrayList();
         param.add(roleType);
         if (StringUtil.isNotEmpty(custId)) {
             sql += " AND cust_id = ? ";
             param.add(custId);
+        }
+        if (StringUtil.isNotEmpty(roleName)) {
+            sql += " AND role_name LIKE ? ";
+            param.add("%" + roleName + "%");
         }
         List<Map<String, Object>> maps = sqlQuery(sql, param.toArray());
         return maps;
@@ -95,6 +99,6 @@ public class LkCrmAdminRoleDao extends SimpleHibernateDao<LkCrmAdminRoleEntity, 
     }
 
     public Page pageByFullSql(int page, int limit, String totalSql, String listSql) {
-        return sqlPageQuery(listSql,page,limit);
+        return sqlPageQuery(listSql, page, limit);
     }
 }

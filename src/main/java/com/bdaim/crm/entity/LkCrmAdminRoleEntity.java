@@ -1,6 +1,7 @@
 package com.bdaim.crm.entity;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.Objects;
 
 @Entity
@@ -15,6 +16,8 @@ public class LkCrmAdminRoleEntity {
     private Integer isHidden;
     private Integer label;
     private String custId;
+    private Date createTime;
+    private Date updateTime;
 
     private String menuIds;
 
@@ -130,6 +133,25 @@ public class LkCrmAdminRoleEntity {
 
     public void setMenuIds(String menuIds) {
         this.menuIds = menuIds;
+    }
+    @Basic
+    @Column(name = "create_time")
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    @Basic
+    @Column(name = "update_time")
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
     }
 
     @Override
