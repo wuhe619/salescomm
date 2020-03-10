@@ -2,6 +2,7 @@ package com.bdaim.crm.entity;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Objects;
 
 @Entity
@@ -10,8 +11,8 @@ public class LkCrmOaEventEntity {
     private Integer eventId;
     private String title;
     private String content;
-    private Timestamp startTime;
-    private Timestamp endTime;
+    private Date startTime;
+    private Date endTime;
     private Long createUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
@@ -96,21 +97,21 @@ public class LkCrmOaEventEntity {
 
     @Basic
     @Column(name = "start_time")
-    public Timestamp getStartTime() {
+    public Date getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(Timestamp startTime) {
+    public void setStartTime(Date startTime) {
         this.startTime = startTime;
     }
 
     @Basic
     @Column(name = "end_time")
-    public Timestamp getEndTime() {
+    public Date getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(Timestamp endTime) {
+    public void setEndTime(Date endTime) {
         this.endTime = endTime;
     }
 

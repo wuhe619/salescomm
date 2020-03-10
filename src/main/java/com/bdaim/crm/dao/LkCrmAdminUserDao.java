@@ -18,7 +18,7 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
 
     public List queryUserIdByDeptId(List<String> deptIds) {
         String sql = " select DISTINCT user_id from lkcrm_admin_user where dept_id in (? )";
-        return this.queryListBySql(sql, SqlAppendUtil.sqlAppendWhereIn(deptIds));
+        return this.sqlQuery(sql, SqlAppendUtil.sqlAppendWhereIn(deptIds));
     }
 
     public List<Long> queryUserIdByDeptId(String deptIds) {
@@ -35,13 +35,13 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
                 "WHERE " +
                 " 1 = 1  " +
                 " AND au.realname LIKE concat( '%', ?, '%' )";
-        return super.queryListBySql(sql, name);
+        return super.sqlQuery(sql, name);
     }
 
     public List<Map<String, Object>> querySuperior(String realName) {
         String sql = "SELECT id,realname FROM lkcrm_admin_user " +
                 "WHERE 1 = 1 AND realname LIKE concat( '%', ?, '%' )";
-        return super.queryListBySql(sql, realName);
+        return super.sqlQuery(sql, realName);
     }
 
     public List<Map<String, Object>> queryUsersByDeptId(Integer dept_id, String name) {
@@ -54,7 +54,7 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
                 " 1 = 1  " +
                 " AND au.dept_id = ?  " +
                 " AND au.realname LIKE concat( '%', ?, '%' )";
-        return super.queryListBySql(sql, dept_id, name);
+        return super.sqlQuery(sql, dept_id, name);
     }
 
     public List<Map<String, Object>> queryUserList(String name, List<Integer> deptId, Integer status, String roleId, String roleName) {
@@ -140,5 +140,10 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
         sql += " AND h.cust_id = ? ";
         params.add(BaseUtil.getCustId());
         return super.sqlPageQuery(sql, page, limit, params.toArray());
+    }
+
+    public List<Map<String, Object>> queryByIds(List ids) {
+        String sql = "  select user_id,realname,img from lkcrm_admin_user where user_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
+        return super.sqlQuery(sql);
     }
 }

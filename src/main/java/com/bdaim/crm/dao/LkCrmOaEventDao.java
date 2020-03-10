@@ -50,14 +50,14 @@ public class LkCrmOaEventDao extends SimpleHibernateDao<LkCrmOaEventEntity, Inte
         return super.queryUniqueSql(sql, actionId);
     }
 
-    public List<Map<String, Object>> queryList(Date endTime, Date startTime, Integer userId) {
-        String sql = "select a.*,b.*,c.realname,GROUP_CONCAT(d.realname) as 'owner_user_name' " +
+    public List<Map<String, Object>> queryList(Date endTime, Date startTime, Long userId) {
+        String sql = "select a.*, b.eventrelation_id,b.customer_ids,b.contacts_ids,b.business_ids, b.contract_ids, b.status,c.realname,GROUP_CONCAT(d.realname) as 'owner_user_name' " +
                 "    from lkcrm_oa_event as a left join lkcrm_oa_event_relation as b on a.event_id = b.event_id " +
                 "    left join lkcrm_admin_user as c on a.create_user_id = c.user_id " +
                 "    left join lkcrm_admin_user as d on FIND_IN_SET(d.user_id,IFNULL(a.owner_user_ids, 0)) " +
                 "    where start_time < ? and end_time > ? and (a.create_user_id = ? or a.owner_user_ids like " +
                 "    CONCAT('%',?,'%')) group by a.event_id,b.eventrelation_id ";
-        return super.queryListBySql(sql, endTime, startTime, userId, userId);
+        return super.sqlQuery(sql, endTime, startTime, userId, userId);
 
     }
 }

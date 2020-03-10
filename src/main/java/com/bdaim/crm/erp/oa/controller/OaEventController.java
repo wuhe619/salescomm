@@ -10,15 +10,26 @@ import com.bdaim.crm.erp.oa.service.OaEventService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 import com.jfinal.core.paragetter.Para;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @RestController
 @RequestMapping("/OaEvent")
 public class OaEventController extends BasicAction {
+    @InitBinder
+    protected void init(ServletRequestDataBinder binder) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        dateFormat.setLenient(false);
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, false));
+    }
     @Resource
     private OaEventService oaEventService;
 
