@@ -553,8 +553,8 @@ public class ApiService {
             throw new Exception("企业不存在");
         }
         StringBuffer sql = new StringBuffer();
-        sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime");
-        sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
+        sql.append(" select api.API_ID as apiId,api.API_NAME as apiName ");
+        sql.append(" from am_api api ");
         sql.append(" where api.API_ID not in");
         sql.append(" (select API_ID from am_subscription where APPLICATION_ID = ? and SUBS_CREATE_STATE = 'SUBSCRIBE')");
         sql.append(" and api.status=2");
@@ -566,6 +566,7 @@ public class ApiService {
         }
         page.setSort("api.CREATED_TIME");
         page.setDir("desc");
+        logger.info("sql:{},param:{}",sql.toString(),param.toArray());
         Page list = apiDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize(), param.toArray());
         //PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getData().stream().map(m -> {

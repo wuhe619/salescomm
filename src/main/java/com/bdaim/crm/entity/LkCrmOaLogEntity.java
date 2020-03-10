@@ -9,6 +9,7 @@ import java.util.Objects;
 public class LkCrmOaLogEntity {
     private Integer logId;
     private Integer categoryId;
+    private String custId;
     private String title;
     private String content;
     private String tomorrow;
@@ -40,6 +41,16 @@ public class LkCrmOaLogEntity {
 
     public void setCategoryId(Integer categoryId) {
         this.categoryId = categoryId;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic

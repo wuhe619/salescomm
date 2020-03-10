@@ -313,13 +313,13 @@ public class TaskService {
     /**
      * 查询任务列表
      */
-    public R getTaskList(Integer type, Integer status, Integer priority, Integer date, List<Integer> userIds, BasePageRequest<Task> basePageRequest, String name) {
+    public R getTaskList(Integer type, Integer status, Integer priority, Integer date, List<Long> userIds, BasePageRequest<Task> basePageRequest, String name) {
         Page page = new Page();
         if (userIds.size() == 0) {
             page.setData(new ArrayList<>());
             return R.ok().put("data", BaseUtil.crmPage(page));
         }
-        if (basePageRequest.getPageType() == 0) {
+        if (basePageRequest.getPageType() != null && basePageRequest.getPageType() == 0) {
             LkCrmSqlParams sqlParams = taskDao.getTaskList(type, userIds, status,
                     priority, date, name);
             List<Map<String, Object>> maps = taskDao.queryListBySql(sqlParams.getSql(), sqlParams.getParams().toArray());
@@ -331,7 +331,7 @@ public class TaskService {
             page = taskDao.sqlPageQuery(sqlParams.getSql(),
                     basePageRequest.getPage(), basePageRequest.getLimit(), sqlParams.getParams().toArray());
 
-            page.setData(queryUser(page.getData()));
+            page.setData(queryUser(JavaBeanUtil.mapToRecords(page.getData())));
             return R.ok().put("data", BaseUtil.crmPage(page));
         }
 
@@ -365,7 +365,7 @@ public class TaskService {
                     }
                 }
             }
-            TaskRelation taskRelation = TaskRelation.dao.findFirst(" select * from lkcrm_task_relation where task_id = ?", task.getInt("task_id"));
+            LkCrmTaskRelationEntity taskRelation = taskDao.findUnique("from LkCrmTaskRelationEntity where taskId = ?", task.getInt("task_id"));
             Integer start = 0;
             if (taskRelation != null) {
                 start = queryCount(start, taskRelation.getBusinessIds());

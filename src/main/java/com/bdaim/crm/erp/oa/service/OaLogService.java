@@ -8,23 +8,22 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.*;
+import com.bdaim.crm.entity.LkCrmOaLogEntity;
+import com.bdaim.crm.entity.LkCrmOaLogRelationEntity;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaLog;
 import com.bdaim.crm.erp.oa.entity.OaLogRelation;
-import com.bdaim.crm.utils.AuthUtil;
-import com.bdaim.crm.utils.BaseUtil;
-import com.bdaim.crm.utils.R;
-import com.bdaim.crm.utils.TagUtil;
+import com.bdaim.crm.utils.*;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -57,6 +56,8 @@ public class OaLogService {
     private LkCrmBusinessDao crmBusinessDao;
     @Resource
     private LkCrmContactsDao crmContactsDao;
+    @Autowired
+    private LkCrmAdminUserDao crmAdminUserDao;
 
 
     /**
@@ -65,7 +66,7 @@ public class OaLogService {
      * @param basePageRequest 分页参数
      * @author Chacker
      */
-    public Page<Record> queryList(BasePageRequest<OaLog> basePageRequest) {
+    public CrmPage queryList(BasePageRequest<OaLog> basePageRequest) {
         JSONObject object = basePageRequest.getJsonObject();
         LoginUser user = BaseUtil.getUser();
         Integer by = TypeUtils.castToInt(object.getOrDefault("by", 4));
@@ -79,7 +80,7 @@ public class OaLogService {
             userIds = adminUserService.queryUserByParentUser(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
             if (object.containsKey("createUserId")) {
                 if (!userIds.contains(Long.valueOf(object.getInteger("createUserId")))) {
-                    return new Page<>();
+                    return new CrmPage();
                 }
             }
         }
@@ -102,17 +103,21 @@ public class OaLogService {
         if (object.containsKey("categoryId") && !"0".equals(object.get("categoryId"))) {
             kv.set("category_id", object.get("categoryId"));
         }
-        Page<Record> recordList = Db.paginate(basePageRequest.getPage(),
-                basePageRequest.getLimit(), Db.getSqlPara("oa.log.queryList", kv));
-        recordList.getList().forEach((record -> {
-            queryLogDetail(record, user.getUserId());
+        com.bdaim.common.dto.Page page = crmOaLogDao.queryList(basePageRequest.getPage(),
+                basePageRequest.getLimit(), kv.getLong("create_user_id"), kv.getInt("by"), kv.getInt("send_user_ids"),
+                kv.getInt("send_dept_ids"), (List<Long>) kv.get(userIds), kv.getStr("create_time"),
+                kv.getInt("category_id"), kv.getInt("log_id"), kv.getLong("userId"));
+      /*  Page<Record> recordList = Db.paginate(basePageRequest.getPage(),
+                basePageRequest.getLimit(), Db.getSqlPara("oa.log.queryList", kv));*/
+        page.getData().forEach((record -> {
+            queryLogDetail(JavaBeanUtil.mapToRecord((Map<String, Object>) record), user.getUserId());
         }));
-        return recordList;
+        return BaseUtil.crmPage(page);
     }
 
     public void queryLogDetail(Record record, Long userId) {
         adminFileService.queryByBatchId(record.get("batch_id"), record);
-        record.set("sendUserList", (StrUtil.isNotEmpty(record.getStr("send_user_ids")) && record.getStr("send_user_ids").split(",").length > 0) ? Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", record.getStr("send_user_ids").split(",")))) : new ArrayList<>());
+        record.set("sendUserList", (StrUtil.isNotEmpty(record.getStr("send_user_ids")) && record.getStr("send_user_ids").split(",").length > 0) ?  crmAdminUserDao.queryByIds(Arrays.asList(record.getStr("send_user_ids").split(","))) : new ArrayList<>());
         record.set("sendDeptList", (StrUtil.isNotEmpty(record.getStr("send_dept_ids")) && record.getStr("send_dept_ids").split(",").length > 0) ? crmAdminDeptDao.queryByIds(Arrays.asList(record.getStr("send_dept_ids").split(","))) : new ArrayList<>());
         record.set("customerList", (StrUtil.isNotEmpty(record.getStr("customer_ids")) && record.getStr("customer_ids").split(",").length > 0) ? crmCustomerDao.queryByIds(Arrays.asList(record.getStr("customer_ids").split(","))) : new ArrayList<>());
         record.set("businessList", (StrUtil.isNotEmpty(record.getStr("business_ids")) && record.getStr("business_ids").split(",").length > 0) ? crmBusinessDao.queryByIds(Arrays.asList(record.getStr("business_ids").split(","))) : new ArrayList<>());
@@ -145,10 +150,11 @@ public class OaLogService {
     @Before(Tx.class)
     public R saveAndUpdate(JSONObject object) {
         LoginUser user = BaseUtil.getUser();
-        OaLog oaLog = object.toJavaObject(OaLog.class);
-        OaLogRelation oaLogRelation = object.toJavaObject(OaLogRelation.class);
-        oaLog.setCreateUserId(user.getUserId().intValue());
-        oaLog.setCreateTime(new Date());
+        LkCrmOaLogEntity oaLog = object.toJavaObject(LkCrmOaLogEntity.class);
+        LkCrmOaLogRelationEntity oaLogRelation = object.toJavaObject(LkCrmOaLogRelationEntity.class);
+        oaLog.setCustId(BaseUtil.getCustId());
+        oaLog.setCreateUserId(user.getUserId());
+        oaLog.setCreateTime(DateUtil.date().toTimestamp());
         oaLog.setReadUserIds(",,");
         oaLog.setSendUserIds(TagUtil.fromString(oaLog.getSendUserIds()));
         oaLog.setSendDeptIds(TagUtil.fromString(oaLog.getSendDeptIds()));
@@ -157,21 +163,24 @@ public class OaLogService {
             if (oaAuth) {
                 return R.noAuth();
             }
-            oaLog.update();
+            LkCrmOaLogEntity lkCrmOaLogEntity = crmOaLogDao.get(oaLog.getLogId());
+            BeanUtils.copyProperties(oaLog, lkCrmOaLogEntity, JavaBeanUtil.getNullPropertyNames(oaLog));
+            crmOaLogDao.update(lkCrmOaLogEntity);
             oaActionRecordService.addRecord(oaLog.getLogId(), OaEnum.LOG_TYPE_KEY.getTypes(), 2, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaLog.getSendUserIds()), oaLog.getSendDeptIds());
         } else {
-            oaLog.save();
+            crmOaLogDao.save(oaLog);
             oaActionRecordService.addRecord(oaLog.getLogId(), OaEnum.LOG_TYPE_KEY.getTypes(), 1, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaLog.getSendUserIds()), oaLog.getSendDeptIds());
         }
         if (oaLogRelation != null) {
-            Db.deleteById("lkcrm_oa_log_relation", "log_id", oaLog.getLogId());
+            //Db.deleteById("lkcrm_oa_log_relation", "log_id", oaLog.getLogId());
+            crmOaLogDao.executeUpdateSQL("delete from lkcrm_oa_log_relation where log_id=? ",oaLog.getLogId());
             oaLogRelation.setLogId(oaLog.getLogId());
             oaLogRelation.setBusinessIds(TagUtil.fromString(oaLogRelation.getBusinessIds()));
             oaLogRelation.setContactsIds(TagUtil.fromString(oaLogRelation.getContactsIds()));
             oaLogRelation.setContractIds(TagUtil.fromString(oaLogRelation.getContractIds()));
             oaLogRelation.setCustomerIds(TagUtil.fromString(oaLogRelation.getCustomerIds()));
-            oaLogRelation.setCreateTime(DateUtil.date());
-            oaLogRelation.save();
+            oaLogRelation.setCreateTime(DateUtil.date().toTimestamp());
+            crmOaLogDao.saveOrUpdate(oaLogRelation);
         }
         return R.ok();
     }
@@ -206,12 +215,14 @@ public class OaLogService {
      */
     @Before(Tx.class)
     public boolean deleteById(Integer logId) {
-        OaLog oaLog = OaLog.dao.findById(logId);
+        LkCrmOaLogEntity oaLog = crmOaLogDao.get(logId);
         if (oaLog != null) {
             oaActionRecordService.deleteRecord(OaEnum.LOG_TYPE_KEY.getTypes(), logId);
-            Db.deleteById("lkcrm_oa_log_relation", "log_id", logId);
+            crmOaLogDao.executeUpdateSQL("delete from lkcrm_oa_log_relation where log_id=? ",logId);
+            //Db.deleteById("lkcrm_oa_log_relation", "log_id", logId);
             adminFileService.removeByBatchId(oaLog.getBatchId());
-            Db.deleteById("lkcrm_oa_log", "log_id", logId);
+            //Db.deleteById("lkcrm_oa_log", "log_id", logId);
+            crmOaLogDao.executeUpdateSQL("delete from lkcrm_oa_log where log_id=? ",logId);
             return true;
         }
         return false;
@@ -224,11 +235,11 @@ public class OaLogService {
      * @author Chacker
      */
     public void readLog(Integer logId) {
-        OaLog oaLog = OaLog.dao.findById(logId);
+        LkCrmOaLogEntity oaLog = crmOaLogDao.get(logId);
         HashSet<String> hashSet = new HashSet<>(StrUtil.splitTrim(oaLog.getReadUserIds(), ","));
         hashSet.add(BaseUtil.getUser().getUserId().toString());
         oaLog.setReadUserIds("," + String.join(",", hashSet) + ",");
-        oaLog.update();
+        crmOaLogDao.update(oaLog);
     }
 
     /**

@@ -383,12 +383,12 @@ public class LkAdminUserService {
      * @author Chacker
      * 查询系统下属用户列表
      */
-    public List<Integer> queryUserIdsByParentId(Integer userId) {
+    public List<Long> queryUserIdsByParentId(Long userId) {
         String sql = "select user_id from lkcrm_admin_user where parent_id = ? ";
-        List<Record> records = JavaBeanUtil.mapToRecords(crmAdminUserDao.queryListBySql(sql, userId));
-        List<Integer> userIds = new ArrayList<>();
+        List<Record> records = JavaBeanUtil.mapToRecords(crmAdminUserDao.sqlQuery(sql, userId));
+        List<Long> userIds = new ArrayList<>();
         for (Record record : records) {
-            userIds.add(record.getInt("user_id"));
+            userIds.add(record.getLong("user_id"));
         }
         return userIds;
     }
@@ -398,8 +398,8 @@ public class LkAdminUserService {
      * 查询部门属用户列表
      */
     public R queryListNameByDept(String name) {
-        String sql = "select name,dept_id from lkcrm_admin_dept ORDER BY num";
-        List<Map<String, Object>> recordMaps = crmAdminUserDao.queryListBySql(sql);
+        String sql = "select name,dept_id from lkcrm_admin_dept WHERE cust_id = ? ORDER BY num";
+        List<Map<String, Object>> recordMaps = crmAdminUserDao.sqlQuery(sql, BaseUtil.getCustId());
         List<Record> records = JavaBeanUtil.mapToRecords(recordMaps);
         for (Record record : records) {
             List<Map<String, Object>> usersMap = crmAdminUserDao.queryUsersByDeptId(
@@ -424,7 +424,7 @@ public class LkAdminUserService {
     }
 
     public R queryAllUserList() {
-        List<Map<String, Object>> recordMap = crmAdminUserDao.queryUserList(null, null, null, null,"");
+        List<Map<String, Object>> recordMap = crmAdminUserDao.queryUserList(null, null, null, null, "");
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordMap);
         return R.ok().put("data", recordList);
     }

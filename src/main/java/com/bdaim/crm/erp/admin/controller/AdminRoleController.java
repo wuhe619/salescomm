@@ -30,8 +30,8 @@ public class AdminRoleController extends BasicAction {
      */
     @Permissions("manage:permission")
     @RequestMapping(value = "/getAllRoleList", method = RequestMethod.POST)
-    public R getAllRoleList() {
-        return (R.ok().put("data", adminRoleService.getAllRoleList()));
+    public R getAllRoleList(String roleName, Integer roleType) {
+        return (R.ok().put("data", adminRoleService.getAllRoleList(roleName, roleType)));
     }
 
     /**
@@ -65,7 +65,7 @@ public class AdminRoleController extends BasicAction {
     @NotNullValidate(value = "roleName", message = "角色名称不能为空")
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     public R update(@Para("") LkCrmAdminRoleEntity adminRole) {
-        Integer number = adminRoleService.checkCustRoleExist( adminRole.getRoleName(), adminRole.getRoleType(), adminRole.getRoleId(), BaseUtil.getCustId());
+        Integer number = adminRoleService.checkCustRoleExist(adminRole.getRoleName(), adminRole.getRoleType(), adminRole.getRoleId(), BaseUtil.getCustId());
         if (number > 0) {
             return (R.error("角色名已存在"));
         } else {
