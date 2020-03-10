@@ -141,4 +141,9 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
         params.add(BaseUtil.getCustId());
         return super.sqlPageQuery(sql, page, limit, params.toArray());
     }
+
+    public List<Map<String, Object>> queryByIds(List ids) {
+        String sql = "  select user_id,realname,img from lkcrm_admin_user where user_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
+        return super.queryListBySql(sql);
+    }
 }
