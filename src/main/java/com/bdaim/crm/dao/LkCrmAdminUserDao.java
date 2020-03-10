@@ -34,14 +34,14 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
                 " LEFT JOIN lkcrm_admin_dept AS ad ON au.dept_id = ad.dept_id  " +
                 "WHERE " +
                 " 1 = 1  " +
-                " AND au.realname LIKE concat( '%', ?, '%' )";
-        return super.sqlQuery(sql, name);
+                " AND au.realname LIKE concat( '%', ?, '%' ) AND au.cust_id = ?";
+        return super.sqlQuery(sql, name, BaseUtil.getCustId());
     }
 
     public List<Map<String, Object>> querySuperior(String realName) {
         String sql = "SELECT id,realname FROM lkcrm_admin_user " +
-                "WHERE 1 = 1 AND realname LIKE concat( '%', ?, '%' )";
-        return super.sqlQuery(sql, realName);
+                "WHERE 1 = 1 AND realname LIKE concat( '%', ?, '%' ) AND cust_id = ?";
+        return super.sqlQuery(sql, realName, BaseUtil.getCustId());
     }
 
     public List<Map<String, Object>> queryUsersByDeptId(Integer dept_id, String name) {
@@ -53,8 +53,8 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
                 "WHERE " +
                 " 1 = 1  " +
                 " AND au.dept_id = ?  " +
-                " AND au.realname LIKE concat( '%', ?, '%' )";
-        return super.sqlQuery(sql, dept_id, name);
+                " AND au.realname LIKE concat( '%', ?, '%' ) AND au.cust_id = ?";
+        return super.sqlQuery(sql, dept_id, name, BaseUtil.getCustId());
     }
 
     public List<Map<String, Object>> queryUserList(String name, List<Integer> deptId, Integer status, String roleId, String roleName) {

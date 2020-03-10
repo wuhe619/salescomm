@@ -9,6 +9,7 @@ import java.util.Objects;
 public class LkCrmWorkEntity {
     private Integer workId;
     private String name;
+    private String custId;
     private Integer status;
     private Timestamp createTime;
     private Long createUserId;
@@ -39,6 +40,16 @@ public class LkCrmWorkEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic

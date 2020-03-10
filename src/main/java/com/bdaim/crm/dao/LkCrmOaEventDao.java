@@ -3,6 +3,8 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmOaEventEntity;
+import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.util.SqlAppendUtil;
 import com.bdaim.util.StringUtil;
 import org.springframework.stereotype.Component;
 
@@ -19,8 +21,9 @@ public class LkCrmOaEventDao extends SimpleHibernateDao<LkCrmOaEventEntity, Inte
                 "    from lkcrm_oa_event as a inner join lkcrm_oa_event_relation as b on a.event_id = b.event_id " +
                 "    left join t_customer_user as c on a.create_user_id = c.id " +
                 "    left join t_customer_user as d on FIND_IN_SET(d.id,IFNULL(a.owner_user_ids, 0)) " +
-                "    where 1=2 ";
+                "    where 1=2 AND a.cust_id = ? ";
         List param = new ArrayList();
+        param.add(BaseUtil.getCustId());
         if (StringUtil.isNotEmpty(businessIds)) {
             param.add(businessIds);
             sql += " or b.business_ids like concat('%,',?,',%')";
@@ -59,5 +62,31 @@ public class LkCrmOaEventDao extends SimpleHibernateDao<LkCrmOaEventEntity, Inte
                 "    CONCAT('%',?,'%')) group by a.event_id,b.eventrelation_id ";
         return super.sqlQuery(sql, endTime, startTime, userId, userId);
 
+    }
+
+    public List<Map<String, Object>> queryOwnerList(List userIds) {
+        String sql = " select user_id, username,img, create_time, realname, num, mobile, email, sex, dept_id, post from lkcrm_admin_user\n" +
+                "    where user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")";
+        return super.sqlQuery(sql);
+    }
+
+    public List<Map<String, Object>> queryCustomerList(List ids) {
+        String sql = "  select * from lkcrm_crm_customer where customer_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
+        return super.sqlQuery(sql);
+    }
+
+    public List<Map<String, Object>> queryContactsList(List userIds) {
+        String sql = " select * from lkcrm_crm_contacts where contacts_id in  (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")";
+        return super.sqlQuery(sql);
+    }
+
+    public List<Map<String, Object>> queryBusinessList(List userIds) {
+        String sql = "  select * from lkcrm_crm_business where business_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")";
+        return super.sqlQuery(sql);
+    }
+
+    public List<Map<String, Object>> queryContractList(List userIds) {
+        String sql = "  select * from lkcrm_crm_contract where contract_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")";
+        return super.sqlQuery(sql);
     }
 }

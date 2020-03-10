@@ -91,11 +91,12 @@ public class OaAnnouncementService {
     @Before(Tx.class)
     public R delete(Integer id) {
         LkCrmAdminRoleEntity adminRole = adminRoleDao.queryAnnouncementByUserId(BaseUtil.getUser().getUserId());
-        if (adminRole == null && !BaseUtil.getUser().getUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
+        if (adminRole == null && BaseUtil.getUserType() != 1) {
             return R.error("没有删除公告权限，不能删除公告！");
         }
         oaActionRecordService.deleteRecord(OaEnum.ANNOUNCEMENT_TYPE_KEY.getTypes(), id);
-        return R.ok().put("status", OaAnnouncement.dao.deleteById(id) ? 1 : 0);
+        crmOaAnnouncementDao.delete(id);
+        return R.ok().put("status", 1);
     }
 
     /**
