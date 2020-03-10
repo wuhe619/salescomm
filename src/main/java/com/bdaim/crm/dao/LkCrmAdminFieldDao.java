@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.crm.entity.LkCrmAdminFieldEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.SqlAppendUtil;
 import org.springframework.stereotype.Component;
 
@@ -14,8 +15,8 @@ import java.util.Map;
 public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity, Integer> {
 
     public List customerFieldList(String label) {
-        String sql = "select field_id,field_name,name,type,options from lkcrm_admin_field where field_type = 0 and label = ?";
-        return sqlQuery(sql, label);
+        String sql = "select field_id,field_name,name,type,options from lkcrm_admin_field where field_type = 0 and label = ? AND cust_id = ? ";
+        return sqlQuery(sql, label, BaseUtil.getCustId());
     }
 
     public int deleteByChooseId(List<Integer> field_ids, int label, Integer categoryId) {

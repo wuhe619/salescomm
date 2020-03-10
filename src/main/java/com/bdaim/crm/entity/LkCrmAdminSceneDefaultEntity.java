@@ -10,6 +10,7 @@ public class LkCrmAdminSceneDefaultEntity {
     private int type;
     private long userId;
     private int sceneId;
+    private String custId;
 
     @Id
     @Column(name = "default_id")
@@ -52,6 +53,16 @@ public class LkCrmAdminSceneDefaultEntity {
     public LkCrmAdminSceneDefaultEntity setSceneId(int sceneId) {
         this.sceneId = sceneId;
         return this;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Override

@@ -487,7 +487,9 @@ public class AdminFieldService {
             params.add(categoryId);
             sql.append(" and examine_category_id= ? ");
         }
+        sql.append(" AND cust_id = ? ");
         sql.append(" ORDER BY sorting asc");
+        params.add(BaseUtil.getCustId());
         List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery(sql.toString(), params.toArray());
         List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
 
