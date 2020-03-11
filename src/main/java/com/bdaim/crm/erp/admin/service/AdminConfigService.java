@@ -54,11 +54,6 @@ public class AdminConfigService {
             return R.error("name必填");
         }
         List<LkCrmAdminConfigEntity> list = crmAdminConfigDao.find(" FROM LkCrmAdminConfigEntity WHERE cust_id = ? AND name = ? ", BaseUtil.getCustId(), name);
-        if (list == null || list.size() == 0) {
-            return R.error("未查询到对应配置项");
-        }
-        LkCrmAdminConfigEntity entity = list.get(0);
-        entity.setIsSystem(null);
-        return R.ok().put("data", list.get(0));
+        return R.ok().put("data", list != null && list.size() > 0 ? list.get(0) : null);
     }
 }

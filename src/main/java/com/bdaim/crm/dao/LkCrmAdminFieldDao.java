@@ -50,8 +50,7 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
     public int deleteFieldSort(List<String> names, int label) {
         List param = new ArrayList();
         param.add(label);
-        String sql = " delete from lkcrm_admin_field_sort where label = ? and name in(" + SqlAppendUtil.sqlAppendWhereIn(names) + ") AND cust_id = ?";
-        param.add(BaseUtil.getCustId());
+        String sql = " delete from lkcrm_admin_field_sort where label = ? and name in(" + SqlAppendUtil.sqlAppendWhereIn(names) + ") ";
         return executeUpdateSQL(sql, param.toArray());
     }
 
