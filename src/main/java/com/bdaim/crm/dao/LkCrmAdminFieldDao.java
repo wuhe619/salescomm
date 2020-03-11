@@ -14,6 +14,11 @@ import java.util.Map;
 @Component
 public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity, Integer> {
 
+    public List<LkCrmAdminFieldEntity> queryDefaultCustomerFieldList() {
+        String sql = "from LkCrmAdminFieldEntity where custId is null ";
+        return find(sql);
+    }
+
     public List customerFieldList(String label) {
         String sql = "select field_id,field_name,name,type,options from lkcrm_admin_field where field_type = 0 and label = ? AND cust_id = ? ";
         return sqlQuery(sql, label, BaseUtil.getCustId());
