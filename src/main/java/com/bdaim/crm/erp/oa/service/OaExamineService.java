@@ -68,7 +68,7 @@ public class OaExamineService {
     public R myInitiate(BasePageRequest<Void> request) {
         JSONObject jsonObject = request.getJsonObject();
         Long userId = BaseUtil.getUser().getUserId();
-        if (request.getPageType() == 0) {
+        if (request.getPageType() != null && request.getPageType() == 0) {
             List<Record> recordList = JavaBeanUtil.mapToRecords(crmOaExamineDao.myInitiate(userId, jsonObject.getInteger("categoryId"), jsonObject.getInteger("checkStatus"), jsonObject.getDate("startTime"), jsonObject.getDate("endTime")));
             transfer(recordList);
             return R.ok().put("data", recordList);

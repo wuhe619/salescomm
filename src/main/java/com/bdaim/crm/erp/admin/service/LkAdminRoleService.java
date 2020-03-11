@@ -77,7 +77,7 @@ public class LkAdminRoleService {
                 role.set("rules", new JSONObject().fluentPut("crm", crm).fluentPut("bi", bi)
                         .fluentPut("find", find).fluentPut("manage", manage));
 
-                role.set("userNum", crmAdminRoleDao.queryForInt("SELECT COUNT(0) FROM lkcrm_admin_user_role a JOIN lkcrm_admin_user b on a.user_id = b.user_id WHERE a.role_id = ?", role.getInt("id")));
+                role.set("userNum", crmAdminRoleDao.queryForInt("SELECT COUNT(0) FROM lkcrm_admin_user_role a JOIN lkcrm_admin_user b on a.user_id = b.user_id WHERE a.role_id = ? AND b.cust_id = ? ", role.getInt("id"), BaseUtil.getCustId()));
             });
             record.set("list", recordList);
             records.add(record);
