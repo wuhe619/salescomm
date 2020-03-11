@@ -96,6 +96,7 @@ public class AdminBusinessTypeService {
         }
         List<Record> statusList = JavaBeanUtil.mapToRecords(crmBusinessTypeDao.queryBusinessStatus(typeId));
         record.set("statusList", statusList);
+        record.remove("dept_ids");
         return R.ok().put("data", record);
     }
 
