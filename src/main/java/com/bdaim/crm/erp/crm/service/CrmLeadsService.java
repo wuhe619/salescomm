@@ -1590,7 +1590,7 @@ public class CrmLeadsService {
      * 查询跟进记录类型
      */
     public R queryRecordOptions() {
-        List<String> list = crmActionRecordDao.queryListBySql("select value from lkcrm_admin_config where name = ? AND cust_id = ? ", "clueFollowRecordOption", BaseUtil.getCustId());
+        List<LkCrmAdminConfigEntity> list = crmActionRecordDao.find("from LkCrmAdminConfigEntity where name = ? AND custId = ? ", "clueFollowRecordOption", BaseUtil.getCustId());
         if (list.size() == 0) {
             List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
             // 初始化数据
@@ -1605,7 +1605,7 @@ public class CrmLeadsService {
                 adminConfigList.add(adminConfig);
             }
             crmActionRecordDao.batchSaveOrUpdate(adminConfigList);
-            list.addAll(Arrays.asList(defaults));
+            list.addAll(adminConfigList);
         }
         return R.ok().put("data", list);
     }
