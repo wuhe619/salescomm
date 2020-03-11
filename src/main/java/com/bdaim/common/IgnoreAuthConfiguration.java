@@ -37,7 +37,6 @@ public class IgnoreAuthConfiguration extends WebSecurityConfigurerAdapter {
                 "/customerSea/xzCustomerSeaGetPhone", "/upload/pic/**", "/marketResource/getVoice0/**",
                 "/custuser/bindUserOpenId", "/open/customs/terminal/check/**", "/open/phone/xzGetTaskPhone", "/open/phone/xzGetTaskPhone0",
                 "/open/unicom/callBack", "/open/unicom/recordCallBack", "/open/unicom/recordCallBack0", "/customs/pageDic",
-                "/achievement/setAchievement", "/achievement/queryAchievementList",
                 "/wechat/testAuto","/transfer/**","/open/sms/uploadinfo");
     }
 }
