@@ -38,14 +38,15 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
             sql += " and examine_category_id=？ ";
             param.add(categoryId);
         }
-        sql+=" ) ";
+        sql += " ) ";
         return executeUpdateSQL(sql, param.toArray());
     }
 
     public int deleteFieldSort(List<String> names, int label) {
         List param = new ArrayList();
         param.add(label);
-        String sql = " delete from lkcrm_admin_field_sort where label = ? and name in(" + SqlAppendUtil.sqlAppendWhereIn(names) + ")";
+        String sql = " delete from lkcrm_admin_field_sort where label = ? and name in(" + SqlAppendUtil.sqlAppendWhereIn(names) + ") AND cust_id = ?";
+        param.add(BaseUtil.getCustId());
         return executeUpdateSQL(sql, param.toArray());
     }
 
@@ -102,7 +103,8 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
         if (name.length > 0) {
             sql += " and a.name in (" + SqlAppendUtil.sqlAppendWhereIn(name) + ")";
         }
-        return sqlQuery(sql, batchId, batchId, batchId);
+        sql += " AND a.cust_id = ? ";
+        return sqlQuery(sql, batchId, batchId, batchId, BaseUtil.getCustId());
     }
 
 }

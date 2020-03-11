@@ -53,7 +53,7 @@ public class AdminFieldService {
      * 查询新增字段列表
      */
     public List<Record> queryAddField(Integer label) {
-        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery("select field_id,field_name,name,type,input_tips,options,is_unique,is_null,'' as value,field_type from lkcrm_admin_field where label = ? order by sorting", label);
+        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery("select field_id,field_name,name,type,input_tips,options,is_unique,is_null,'' as value,field_type from lkcrm_admin_field where label = ? AND cust_id = ? order by sorting", label, BaseUtil.getCustId());
         List<Record> fieldList = JavaBeanUtil.mapToRecords(maps);
         recordToFormType(fieldList);
         if (label == 2) {
@@ -81,11 +81,11 @@ public class AdminFieldService {
      * 查询编辑字段列表
      */
     public List<Record> queryUpdateField(Integer label, Record record) {
-        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery("select field_id,field_name,name,type,input_tips,options,is_unique,is_null,'' as value,field_type from lkcrm_admin_field where label = ? order by sorting", label);
+        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery("select field_id,field_name,name,type,input_tips,options,is_unique,is_null,'' as value,field_type from lkcrm_admin_field where label = ? AND cust_id = ? order by sorting", label, BaseUtil.getCustId());
         List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
         recordList.forEach(r -> {
             if (r.getInt("type") == 10 || r.getInt("type") == 12) {
-                r.set("value", crmAdminFieldDao.queryForObject("select value from lkcrm_admin_fieldv where field_id = ? and batch_id = ?", r.getInt("field_id"), record.getStr("batch_id")));
+                r.set("value", crmAdminFieldDao.queryForObject("select value from lkcrm_admin_fieldv where field_id = ? and batch_id = ? AND cust_id = ?", r.getInt("field_id"), record.getStr("batch_id"), BaseUtil.getCustId()));
             } else {
                 r.set("value", record.get(r.getStr("field_name")) != null ? record.get(r.getStr("field_name")) : "");
             }
@@ -106,7 +106,6 @@ public class AdminFieldService {
     }
 
     /**
-     * author zhangzhiwei
      * 保存自定义字段信息
      *
      * @param jsonObject 详见接口文档
@@ -133,7 +132,7 @@ public class AdminFieldService {
                 arr.add(field.getFieldId());
             }
         });
-        List<LkCrmAdminFieldEntity> fieldSorts = crmAdminFieldDao.find("from LkCrmAdminFieldEntity where label = ? AND cust_id = ?", label, BaseUtil.getCustId());
+        List<LkCrmAdminFieldEntity> fieldSorts = crmAdminFieldDao.find("from LkCrmAdminFieldEntity where label = ? AND custId = ?", label, BaseUtil.getCustId());
         List<String> nameList = fieldSorts.stream().map(LkCrmAdminFieldEntity::getName).collect(Collectors.toList());
         if (arr.size() > 0) {
            /* SqlPara sql = Db.getSqlPara("admin.field.deleteByChooseId", Kv.by("ids", arr).set("label", label).set("categoryId", categoryId));
@@ -191,9 +190,9 @@ public class AdminFieldService {
         Integer number = 0;
         if ("0".equals(kv.get("fieldType"))) {
             String sql = " SELECT COUNT(*) FROM lkcrm_admin_field as a inner join lkcrm_admin_fieldv as b on a.field_id = b.field_id " +
-                    "      WHERE a.label=? and a.name=? and b.value=?";
+                    "      WHERE a.label=? and a.name=? and b.value=? AND custId = ? ";
             //SqlPara sqlPara = Db.getSqlPara("admin.field.queryFieldIsExist",kv);
-            number = crmAdminFieldDao.queryForInt(sql, kv.get("types"), kv.get("fieldName"), kv.get("val"));
+            number = crmAdminFieldDao.queryForInt(sql, kv.get("types"), kv.get("fieldName"), kv.get("val"), BaseUtil.getCustId());
         } else {
             String type = kv.get("types").toString();
             String tableName;
@@ -279,9 +278,10 @@ public class AdminFieldService {
         crmAdminFieldvDao.deleteByBatchId(batchId);
         //Db.deleteById("lkcrm_admin_fieldv", "batch_id", batchId);
         array.forEach(fieldv -> {
-            fieldv.setId(null);
+            //fieldv.setId(null);
             fieldv.setCreateTime(new Timestamp(System.currentTimeMillis()));
             fieldv.setBatchId(batchId);
+            fieldv.setCustId(BaseUtil.getCustId());
             crmAdminFieldvDao.save(fieldv);
         });
         return true;

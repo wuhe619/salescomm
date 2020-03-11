@@ -279,9 +279,9 @@ public class AdminSceneService {
     public R queryScene(Integer type) {
         Long userId = BaseUtil.getUser().getUserId();
         //查询userId下是否有系统场景，没有则插入
-        String sql = "select count(*) from lkcrm_admin_scene where is_system = 1 and type = ? and user_id = ?";
+        String sql = "select count(*) from lkcrm_admin_scene where is_system = 1 and type = ? and user_id = ? AND cust_id = ?";
         //Integer number = Db.queryInt(Db.getSql("admin.scene.querySystemNumber"), type, userId);
-        int number = crmAdminSceneDao.queryForInt(sql, type, userId);
+        int number = crmAdminSceneDao.queryForInt(sql, type, userId, BaseUtil.getCustId());
         type = type != null ? type : -1;
         if (number == 0) {
             //AdminScene systemScene = new AdminScene();
@@ -340,9 +340,9 @@ public class AdminSceneService {
         }
         sql = "select a.scene_id,a.data,a.name,if(b.default_id is null,0,1) as is_default,a.is_system,a.bydata " +
                 "    from lkcrm_admin_scene as a left join lkcrm_admin_scene_default as b on a.scene_id = b.scene_id " +
-                "    where a.type = ? and a.user_id = ? and is_hide = 0 order by a.sort asc";
+                "    where a.type = ? and a.user_id = ? and is_hide = 0 AND a.cust_id = ?  order by a.sort asc";
         //return R.ok().put("data", Db.find(Db.getSql("admin.scene.queryScene"), type, userId));
-        return R.ok().put("data", crmAdminSceneDao.sqlQuery(sql, type, userId));
+        return R.ok().put("data", crmAdminSceneDao.sqlQuery(sql, type, userId, BaseUtil.getCustId()));
     }
 
     /**
