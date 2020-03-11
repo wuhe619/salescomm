@@ -150,6 +150,7 @@ public class AdminFieldService {
                 adminFields.getJSONObject(i).remove("defaultValue");
             }
             LkCrmAdminFieldEntity entity = TypeUtils.castToJavaBean(adminFields.get(i), LkCrmAdminFieldEntity.class);
+            entity.setCustId(BaseUtil.getCustId());
             entity.setUpdateTime(DateUtil.date().toTimestamp());
             if (entity.getFieldType() == null || entity.getFieldType() == 0) {
                 entity.setFieldName(entity.getName());
@@ -172,6 +173,9 @@ public class AdminFieldService {
                 }
             } else {
                 //entity.save();
+                if (entity.getFieldType() == null) {
+                    entity.setFieldType(0);
+                }
                 crmAdminFieldDao.save(entity);
             }
             fieldList.add(entity.getName());
