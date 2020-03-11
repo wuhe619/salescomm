@@ -292,7 +292,7 @@ public class AdminFieldService {
     }
 
     public synchronized void createView(Integer label) {
-        List<Record> fieldNameList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.sqlQuery("select name,type from lkcrm_admin_field WHERE label=? and field_type = 0 ORDER BY sorting asc", label));
+        List<Record> fieldNameList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.sqlQuery("select name,type from lkcrm_admin_field WHERE label=? and field_type = 0 AND cust_id =? ORDER BY sorting asc", label, BaseUtil.getCustId()));
         StringBuilder sql = new StringBuilder();
         StringBuilder userJoin = new StringBuilder();
         StringBuilder deptJoin = new StringBuilder();
