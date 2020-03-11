@@ -1612,7 +1612,7 @@ public class CrmLeadsService {
 
 
     public R setRecordOptions(List<String> list) {
-        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'clueFollowRecordOption' AD cust_id = ? AND is_system <> 1  ", BaseUtil.getCustId());
+        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'clueFollowRecordOption' AND cust_id = ? AND is_system <> 1  ", BaseUtil.getCustId());
         List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
