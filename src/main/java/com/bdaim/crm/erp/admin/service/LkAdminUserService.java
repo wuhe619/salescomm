@@ -265,7 +265,10 @@ public class LkAdminUserService {
             sceneFieldList.add(newScene);
         }
         crmAdminFieldDao.batchSaveOrUpdate(sceneFieldList);
-        
+        //默认产品分类
+        crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_crm_product_category` (`cust_id`, `name`, `pid`) VALUES (?, '默认分类', '0');", custId);
+        //默认默认商机租
+        crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_crm_business_type` (`cust_id`, `name`, `dept_ids`, `create_user_id`, `create_time`, `update_time`, `status`) VALUES (?, '默认商机组', '', ?, ?, NULL, '1');", custId, userId, new Date());
         return R.isSuccess(true);
     }
 
