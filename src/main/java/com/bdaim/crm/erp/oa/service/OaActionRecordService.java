@@ -9,7 +9,9 @@ import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmOaActionRecordDao;
 import com.bdaim.crm.dao.LkCrmOaEventDao;
+import com.bdaim.crm.dao.LkCrmOaLogDao;
 import com.bdaim.crm.entity.LkCrmOaActionRecordEntity;
+import com.bdaim.crm.entity.LkCrmTaskEntity;
 import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaActionRecord;
@@ -21,8 +23,10 @@ import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.SqlPara;
+import org.aspectj.lang.annotation.Around;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -44,6 +48,8 @@ public class OaActionRecordService {
     private OaEventService oaEventService;
     @Autowired
     private LkCrmOaEventDao eventDao;
+    @Autowired
+    private LkCrmOaLogDao oaLogDao;
 
     @Autowired
     private LkCrmOaActionRecordDao recordDao;
@@ -96,13 +102,13 @@ public class OaActionRecordService {
         userIdList.add(user.getUserId());
         Page page;
         if (type.equals(OaEnum.ALL_TYPE_KEY.getTypes())) {
-            page = recordDao.queryList(pageRequest.getPage(),pageRequest.getLimit(),
-                    userIdList,user.getUserId(),user.getDeptId(),null);
+            page = recordDao.queryList(pageRequest.getPage(), pageRequest.getLimit(),
+                    userIdList, user.getUserId(), user.getDeptId(), null);
         } else {
-            page = recordDao.queryList(pageRequest.getPage(),pageRequest.getLimit(),
-                    userIdList,user.getUserId(),user.getDeptId(),type);
+            page = recordDao.queryList(pageRequest.getPage(), pageRequest.getLimit(),
+                    userIdList, user.getUserId(), user.getDeptId(), type);
         }
-        List<Map<String,Object>> maps = page.getData();
+        List<Map<String, Object>> maps = page.getData();
         List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
         recordList.forEach(record -> {
             record.set("type_name", OaEnum.getName(record.getInt("type")));
@@ -113,7 +119,12 @@ public class OaActionRecordService {
             Integer actionId = record.getInt("action_id");
             Integer recordType = record.getInt("type");
             if (recordType.equals(OaEnum.LOG_TYPE_KEY.getTypes())) {
-                info = Db.findFirst(Db.getSqlPara("oa.log.queryList", Kv.by("logId", actionId)));
+//                info = Db.findFirst(Db.getSqlPara("oa.log.queryList", Kv.by("logId", actionId)));
+                List<Map<String, Object>> mapList = oaLogDao.queryList(1, 1, null, null, null,
+                        null, null, null, null, actionId, null).getData();
+                if (!CollectionUtils.isEmpty(mapList)) {
+                    info = JavaBeanUtil.mapToRecord(mapList.get(0));
+                }
                 if (info != null) {
                     oaLogService.queryLogDetail(info, BaseUtil.getUser().getUserId());
                 }
@@ -177,7 +188,7 @@ public class OaActionRecordService {
                 " ( create_user_id = ? OR owner_user_ids LIKE concat( '%', ?, '%' ) )  " +
                 " AND ? BETWEEN date_format( start_time, '%Y-%m-%d' )  " +
                 " AND date_format( end_time, '%Y-%m-%d' )";
-        List<Record> recordList = JavaBeanUtil.mapToRecords(recordDao.queryListBySql(sql, userId, userId, day));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(recordDao.queryMapsListBySql(sql, userId, userId, day));
 
         recordList.forEach(record -> {
             StringBuilder realnames = new StringBuilder();
@@ -202,7 +213,7 @@ public class OaActionRecordService {
     public R queryTask() {
         Long userId = BaseUtil.getUser().getUserId();
         String sql = "SELECT " +
-                " task_id,NAME,create_time,stop_time,priority  " +
+                " task_id,name,create_time,stop_time,priority  " +
                 "FROM " +
                 " lkcrm_task  " +
                 "WHERE " +
@@ -211,7 +222,8 @@ public class OaActionRecordService {
                 " AND pid = 0  " +
                 "ORDER BY " +
                 " create_time DESC";
-        List<Record> recordList = JavaBeanUtil.mapToRecords(recordDao.queryListBySql(sql, userId, userId));
+        List<Map<String, Object>> maps = recordDao.queryMapsListBySql(sql, userId, userId);
+        List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
         return R.ok().put("data", recordList);
     }
 
