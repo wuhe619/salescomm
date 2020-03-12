@@ -926,6 +926,7 @@ public class CrmLeadsService {
             crmLeads.setIsTransform(0);
         }
 
+        crmLeads.setCompany(object.getJSONObject("entity").getString("company"));
         crmLeads.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmLeads.getBatchId()) ? crmLeads.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(object.getJSONArray("field"), batchId);
@@ -961,16 +962,29 @@ public class CrmLeadsService {
      */
     public List<Record> information(Integer leadsId) {
         LkCrmLeadsEntity crmLeads = crmLeadsDao.get(leadsId);
+
         List<Record> fieldList = new ArrayList<>();
         FieldUtil field = new FieldUtil(fieldList);
         field.set("线索名称", crmLeads.getLeadsName()).set("电话", crmLeads.getMobile())
                 .set("手机", crmLeads.getTelephone()).set("下次联系时间", DateUtil.formatDateTime(crmLeads.getNextTime()))
-                .set("地址", crmLeads.getAddress()).set("备注", crmLeads.getRemark());
+                .set("地址", crmLeads.getAddress()).set("备注", crmLeads.getRemark())
+                .set("公司名称", crmLeads.getCompany());
         List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.queryCustomField(crmLeads.getBatchId()));
         //List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), crmLeads.getBatchId());
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
-        return fieldList;
+
+        List<Record> result = new ArrayList<>();
+        for (Record r : fieldList) {
+            if (r.getStr("name").equals("当前负责人")) {
+                Record record = new Record();
+                LkCrmAdminUserEntity createUser = crmAdminUserDao.get(crmLeads.getCreateUserId());
+                record.set("name", "创建人").set("value", createUser.getUsername());
+                result.add(record);
+            }
+            result.add(r);
+        }
+        return result;
     }
 
     /**
@@ -1194,7 +1208,6 @@ public class CrmLeadsService {
     }
 
     /**
-     * @author wyq
      * 查询编辑字段
      */
     public List<Record> queryField(Integer leadsId) {

@@ -15,6 +15,7 @@ import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
@@ -75,7 +76,10 @@ public class CrmRecordService<T> {
     private void setProperties(Map<String, List<Record>> pMap) {
         pMap.forEach((k, v) -> {
             HashMap<String, String> resultMap = new HashMap<>();
-            v.forEach(record -> resultMap.put(record.getStr("COLUMN_NAME"), record.getStr("COLUMN_COMMENT")));
+            v.forEach(record -> {
+                resultMap.put(record.getStr("COLUMN_NAME"), record.getStr("COLUMN_COMMENT"));
+                resultMap.put(StringUtil.toCamelCase(record.getStr("COLUMN_NAME")), record.getStr("COLUMN_COMMENT"));
+            });
             propertiesMap.put(k, resultMap);
         });
     }
@@ -229,7 +233,7 @@ public class CrmRecordService<T> {
     }
 
     public R queryRecordList(String actionId, String crmTypes) {
-        List<Record> recordList = JavaBeanUtil.mapToRecords(crmActionRecordDao.sqlQuery("select a.*,b.realname, '' AS img from lkcrm_crm_action_record a left join t_customer_user b on a.create_user_id = b.id where action_id = ? and types = ? order by create_time desc", actionId, crmTypes));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmActionRecordDao.sqlQuery("select a.*,b.realname, b.img from lkcrm_crm_action_record a left join lkcrm_admin_user b on a.create_user_id = b.user_id where action_id = ? and types = ? order by create_time desc", actionId, crmTypes));
         recordList.forEach(record -> {
             List<String> list = JSON.parseArray(record.getStr("content"), String.class);
             record.set("content", list);

@@ -163,6 +163,29 @@ public class StringUtil {
         }
         return true;
     }
+    public static String toCamelCase(String stringWithUnderline) {
+        if (stringWithUnderline.indexOf(95) == -1) {
+            return stringWithUnderline;
+        } else {
+            stringWithUnderline = stringWithUnderline.toLowerCase();
+            char[] fromArray = stringWithUnderline.toCharArray();
+            char[] toArray = new char[fromArray.length];
+            int j = 0;
+
+            for(int i = 0; i < fromArray.length; ++i) {
+                if (fromArray[i] == '_') {
+                    ++i;
+                    if (i < fromArray.length) {
+                        toArray[j++] = Character.toUpperCase(fromArray[i]);
+                    }
+                } else {
+                    toArray[j++] = fromArray[i];
+                }
+            }
+
+            return new String(toArray, 0, j);
+        }
+    }
 
     public static void main(String[] args) throws IOException {
         List<String> lst = new ArrayList<String>();
