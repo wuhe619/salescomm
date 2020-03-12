@@ -85,9 +85,9 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 公海内线索分页
      *
+     * @return
      * @RequestParamm seaId
      * @RequestParamm jsonObject
-     * @return
      */
     @RequestMapping(value = "/page/cluesea/{seaId}", method = RequestMethod.POST)
     public ResponseInfo pageClueById(@PathVariable(value = "seaId") Long seaId, @RequestBody JSONObject jsonObject) {
@@ -107,8 +107,8 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 添加线索
      *
-     * @RequestParamm jsonO
      * @return
+     * @RequestParamm jsonO
      */
     @RequestMapping(value = "/cluesea/addClueData", method = RequestMethod.POST)
     public ResponseCommon addClueData(@RequestBody JSONObject jsonO) {
@@ -160,8 +160,8 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 编辑线索
      *
-     * @RequestParamm jsonO
      * @return
+     * @RequestParamm jsonO
      */
     @RequestMapping(value = "/cluesea/updateClueData", method = RequestMethod.POST)
     public ResponseCommon updateClueData(@RequestBody JSONObject jsonO) {
@@ -232,8 +232,8 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 公海线索状态修改
      *
-     * @RequestParamm jsonObject
      * @return
+     * @RequestParamm jsonObject
      */
     @RequestMapping(value = "/cluesea/updateClueStatus", method = RequestMethod.POST)
     public ResponseJson updateClueStatus(@RequestBody JSONObject jsonObject) {
@@ -252,7 +252,6 @@ public class CrmLeadsController extends BasicAction {
             param.setUserGroupRole(BaseUtil.getUser().getUserGroupRole());
             param.setUserGroupId(BaseUtil.getUser().getUserGroupId());
             param.setCustId(BaseUtil.getUser().getCustId());
-            data = seaService.updateClueStatus(param, operate);
             if (1 == operate) {
                 // 删除公海线索
                 crmLeadsService.deletePublicClue(param.getSuperIds(), param.getSeaId());
@@ -260,6 +259,9 @@ public class CrmLeadsController extends BasicAction {
             if (3 == operate) {
                 // 指定ID退回公海时删除私海线索
                 crmLeadsService.deleteByBatchIds(param.getSuperIds());
+                crmLeadsService.batchClueBackToSea(param.getUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds(), param.getBackReason(), param.getBackRemark());
+            } else {
+                data = seaService.updateClueStatus(param, operate);
             }
             responseJson.setCode(200);
         } catch (Exception e) {
@@ -273,8 +275,8 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 线索分配
      *
-     * @RequestParamm jsonObject
      * @return
+     * @RequestParamm jsonObject
      */
     @RequestMapping(value = "/cluesea/distributionClue", method = RequestMethod.POST)
     public ResponseJson distributionClue(@RequestBody JSONObject jsonObject) {
@@ -326,8 +328,8 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 查询公海下坐席可领取线索量
      *
-     * @RequestParamm param
      * @return
+     * @RequestParamm param
      */
     @RequestMapping(value = "/cluesea/selectUserGetQuantity", method = RequestMethod.POST)
     public ResponseJson selectUserGetQuantity(@RequestBody CustomerSeaSearch param) {
@@ -349,7 +351,7 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "DELETE FROM lkcrm_admin_field WHERE field_id = 142" ;
+        String sql = "DELETE FROM lkcrm_admin_field WHERE field_id = 142";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
@@ -493,10 +495,10 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 代办事项列表
      *
+     * @return
      * @RequestParamm basePageRequest
      * @RequestParamm taskStatus
      * @RequestParamm leadsId
-     * @return
      */
     @RequestMapping(value = "/agency/list", method = RequestMethod.POST)
     @ClassTypeCheck(classType = BasePageRequest.class)
@@ -570,10 +572,10 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 线索私海导出
      *
+     * @throws IOException
      * @RequestParamm recordList
      * @RequestParamm response
      * @RequestParamm label
-     * @throws IOException
      */
     private void export(List<Record> recordList, HttpServletResponse response, String label) throws IOException {
         ExcelWriter writer = null;
@@ -634,10 +636,10 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 线索公海导出
      *
+     * @throws IOException
      * @RequestParamm recordList
      * @RequestParamm response
      * @RequestParamm label
-     * @throws IOException
      */
     private void exportPublicSea(List<Record> recordList, HttpServletResponse response, String label) throws IOException {
         ExcelWriter writer = null;
@@ -929,6 +931,6 @@ public class CrmLeadsController extends BasicAction {
         //JSONArray jsonArray = JSONArray.parseArray(jsonObject.getString("value"));
         //List<String> list = jsonArray.toJavaList(String.class);
         List<String> list = (List<String>) jsonObject.get("value");
-        return(crmLeadsService.setRecordOptions(list));
+        return (crmLeadsService.setRecordOptions(list));
     }
 }
