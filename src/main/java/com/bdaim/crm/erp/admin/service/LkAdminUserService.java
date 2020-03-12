@@ -21,6 +21,8 @@ import com.bdaim.customer.user.dto.UserCallConfigDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.marketproject.dto.MarketProjectDTO;
 import com.bdaim.marketproject.service.MarketProjectService;
+import com.bdaim.rbac.dao.UserDao;
+import com.bdaim.rbac.entity.User;
 import com.bdaim.util.CipherUtil;
 import com.bdaim.util.IDHelper;
 import com.bdaim.util.JavaBeanUtil;
@@ -730,21 +732,31 @@ public class LkAdminUserService {
     @Before(Tx.class)
     public R usernameEdit(Long id, String username, String password) {
         LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(id);
-        if (adminUser == null) {
+        CustomerUser originalUser = customerUserDao.get(id);
+        if (adminUser == null || originalUser == null) {
             return R.error("用户不存在！");
         }
-        if (adminUser.getUsername().equals(username)) {
+        if (adminUser.getUsername().equals(username) || originalUser.getAccount().equals(username)) {
             return R.error("账号不能和原账号相同");
         }
+
         String intSql = "select count(*) from lkcrm_admin_user where username = ?";
         Integer count = crmAdminUserDao.queryForInt(intSql, username);
-        if (count > 0) {
+        String intSql2 = "select count(*) from t_customer_user where account = ?";
+        Integer count2 = crmAdminUserDao.queryForInt(intSql2, username);
+        if (count > 0 || count2 > 0) {
             return R.error("手机号重复！");
         }
+
         adminUser.setUsername(username);
-        adminUser.setPassword(BaseUtil.sign(username + password, adminUser.getSalt()));
+        adminUser.setPassword(CipherUtil.generatePassword(password));
+//        adminUser.setPassword(BaseUtil.sign(username + password, adminUser.getSalt()));
 //        return R.isSuccess(adminUser.update());
         crmAdminUserDao.update(adminUser);
+
+        originalUser.setAccount(username);
+        originalUser.setPassword(CipherUtil.generatePassword(password));
+        customerUserDao.update(originalUser);
         return R.isSuccess(true);
     }
 

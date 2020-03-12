@@ -18,15 +18,21 @@ import java.io.StringWriter;
 import java.lang.reflect.*;
 import java.util.*;
 
+/**
+ * 分页参数拦截
+ *
+ * @author Chacker
+ * @date 2020/3/12
+ */
 @Component
 @Aspect
 public class PageRequestInterceptor {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(PageRequestInterceptor.class);
     public static final int BUFFER_SIZE = 1024 * 8;
-    public static final String executeRoutes = "execution(* com.bdaim.crm.erp..*Controller.*(..))";
+    public static final String EXECUTE_ROUTES = "execution(* com.bdaim.crm.erp..*Controller.*(..))";
 
-    @Around(executeRoutes)
+    @Around(EXECUTE_ROUTES)
     public Object doBasePageRequest(ProceedingJoinPoint joinPoint) throws Throwable {
         //是否是application/json格式的请求
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
