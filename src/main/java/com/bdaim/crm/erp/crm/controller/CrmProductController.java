@@ -56,7 +56,7 @@ public class CrmProductController extends BasicAction {
     @RequestMapping(value = "queryPageList", method = RequestMethod.POST)
     public R queryPageList(@RequestBody JSONObject jsonObject) {
         BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
-        jsonObject.fluentPut("type", 4);
+        //jsonObject.fluentPut("type", 4);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }

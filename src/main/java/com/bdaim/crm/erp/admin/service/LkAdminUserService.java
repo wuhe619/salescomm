@@ -267,7 +267,10 @@ public class LkAdminUserService {
             sceneFieldList.add(newScene);
         }
         crmAdminFieldDao.batchSaveOrUpdate(sceneFieldList);
-
+        //默认产品分类
+        crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_crm_product_category` (`cust_id`, `name`, `pid`) VALUES (?, '默认分类', '0');", custId);
+        //默认默认商机租
+        crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_crm_business_type` (`cust_id`, `name`, `dept_ids`, `create_user_id`, `create_time`, `update_time`, `status`) VALUES (?, '默认商机组', '', ?, ?, NULL, '1');", custId, userId, new Date());
         return R.isSuccess(true);
     }
 
@@ -729,31 +732,21 @@ public class LkAdminUserService {
     @Before(Tx.class)
     public R usernameEdit(Long id, String username, String password) {
         LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(id);
-        CustomerUser originalUser = customerUserDao.get(id);
-        if (adminUser == null || originalUser == null) {
+        if (adminUser == null) {
             return R.error("用户不存在！");
         }
-        if (adminUser.getUsername().equals(username) || originalUser.getAccount().equals(username)) {
+        if (adminUser.getUsername().equals(username)) {
             return R.error("账号不能和原账号相同");
         }
-
         String intSql = "select count(*) from lkcrm_admin_user where username = ?";
         Integer count = crmAdminUserDao.queryForInt(intSql, username);
-        String intSql2 = "select count(*) from t_customer_user where account = ?";
-        Integer count2 = crmAdminUserDao.queryForInt(intSql2, username);
-        if (count > 0 || count2 > 0) {
+        if (count > 0) {
             return R.error("手机号重复！");
         }
-
         adminUser.setUsername(username);
-        adminUser.setPassword(CipherUtil.generatePassword(password));
-//        adminUser.setPassword(BaseUtil.sign(username + password, adminUser.getSalt()));
+        adminUser.setPassword(BaseUtil.sign(username + password, adminUser.getSalt()));
 //        return R.isSuccess(adminUser.update());
         crmAdminUserDao.update(adminUser);
-
-        originalUser.setAccount(username);
-        originalUser.setPassword(CipherUtil.generatePassword(password));
-        customerUserDao.update(originalUser);
         return R.isSuccess(true);
     }
 

@@ -331,6 +331,9 @@ public class AdminSceneService {
                 crmAdminSceneDao.getSession().clear();
                 crmAdminSceneDao.save(systemScene);
             } else if (4 == type) {
+                systemScene.setName("全部产品");
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setName("上架的产品").setData(new JSONObject().fluentPut("是否上下架", new JSONObject().fluentPut("name", "是否上下架").fluentPut("condition", "is").fluentPut("value", "上架")).toString());
                 crmAdminSceneDao.getSession().clear();
                 crmAdminSceneDao.save(systemScene);
