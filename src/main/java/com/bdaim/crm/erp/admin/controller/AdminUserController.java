@@ -143,6 +143,8 @@ public class AdminUserController extends BasicAction {
         LkCrmAdminUserEntity lkCrmAdminUserEntity = adminUserService.resetUser();
         Map map = BeanUtil.beanToMap(lkCrmAdminUserEntity);
         map.put("userId", String.valueOf(map.get("userId")));
+        map.remove("salt");
+        map.remove("num");
         return (R.ok().put("data", map));
         //renderJson(R.ok().put("data",adminUserService.resetUser()));
     }

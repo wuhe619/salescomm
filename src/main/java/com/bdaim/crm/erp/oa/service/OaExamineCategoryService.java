@@ -1,25 +1,19 @@
 package com.bdaim.crm.erp.oa.service;
 
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.dao.LkCrmAdminFieldDao;
-import com.bdaim.crm.dao.LkCrmOaExamineCategoryDao;
-import com.bdaim.crm.dao.LkCrmOaExamineStepDao;
+import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.LkCrmAdminFieldEntity;
 import com.bdaim.crm.entity.LkCrmOaExamineCategoryEntity;
 import com.bdaim.crm.entity.LkCrmOaExamineStepEntity;
-import com.bdaim.crm.erp.admin.entity.AdminField;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
-import com.bdaim.crm.erp.oa.entity.OaExamineCategory;
-import com.bdaim.crm.erp.oa.entity.OaExamineStep;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +22,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Transactional
@@ -49,6 +40,10 @@ public class OaExamineCategoryService {
     private LkCrmAdminFieldDao fieldDao;
     @Autowired
     private LkCrmOaExamineStepDao stepDao;
+    @Autowired
+    private LkCrmAdminUserDao crmAdminUserDao;
+    @Autowired
+    private LkCrmAdminDeptDao crmAdminDeptDao;
 
     @Before(Tx.class)
     public R setExamineCategory(LkCrmOaExamineCategoryEntity oaExamineCategory, List<LkCrmOaExamineStepEntity> examineStepList) {
@@ -101,14 +96,17 @@ public class OaExamineCategoryService {
     }
 
     public R queryExamineCategoryList(BasePageRequest basePageRequest) {
-        Page<Record> paginate = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select * ", "from lkcrm_oa_examine_category where is_deleted = 0");
-        paginate.getList().forEach(record -> {
+        //Page<Record> paginate = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select * ", "from lkcrm_oa_examine_category where is_deleted = 0 AND cust_id = ? ");
+        Page paginate = categoryDao.sqlPageQuery("select * from lkcrm_oa_examine_category where is_deleted = 0 AND cust_id = ? ", basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getCustId());
+        paginate.getData().forEach(m -> {
+                    Record record = JavaBeanUtil.mapToRecord((Map<String, Object>) m);
                     String stepListSql = "select * from lkcrm_oa_examine_step where category_id = ?";
                     List<Record> stepList = JavaBeanUtil.mapToRecords(categoryDao.queryListBySql(stepListSql,
                             record.getStr("category_id")));
                     stepList.forEach(step -> {
                         if (step.getStr("check_user_id") != null && step.getStr("check_user_id").split(",").length > 0) {
-                            List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", step.getStr("check_user_id").split(","))));
+                            List userList = crmAdminUserDao.queryByIds(Arrays.asList(step.getStr("check_user_id").split(",")));
+                            //List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", step.getStr("check_user_id").split(","))));
                             step.set("userList", userList);
                         } else {
                             step.set("userList", new ArrayList<>());
@@ -116,13 +114,15 @@ public class OaExamineCategoryService {
                     });
                     record.set("stepList", stepList);
                     if (record.getStr("user_ids") != null && record.getStr("user_ids").split(",").length > 0) {
-                        List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", record.getStr("user_ids").split(","))));
+                        //List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", record.getStr("user_ids").split(","))));
+                        List userList = crmAdminUserDao.queryByIds(Arrays.asList(record.getStr("user_ids").split(",")));
                         record.set("userIds", userList);
                     } else {
                         record.set("userIds", new ArrayList<>());
                     }
                     if (record.getStr("dept_ids") != null && record.getStr("dept_ids").split(",").length > 0) {
-                        List<Record> deptList = Db.find(Db.getSqlPara("admin.dept.queryByIds", Kv.by("ids", record.getStr("dept_ids").split(","))));
+                        //List<Record> deptList = Db.find(Db.getSqlPara("admin.dept.queryByIds", Kv.by("ids", record.getStr("dept_ids").split(","))));
+                        List deptList = crmAdminDeptDao.queryByIds(Arrays.asList(record.getStr("dept_ids").split(",")));
                         record.set("deptIds", deptList);
                     } else {
                         record.set("deptIds", new ArrayList<>());
@@ -163,7 +163,8 @@ public class OaExamineCategoryService {
 
     public R queryAllExamineCategoryList() {
         LoginUser user = BaseUtil.getUser();
-        List<Record> recordList = Db.find(Db.getSqlPara("oa.examine.queryAllExamineCategoryList", Kv.by("userId", user.getUserId()).set("deptId", user.getDeptId())));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(categoryDao.queryAllExamineCategoryList(user.getUserId(), user.getDeptId()));
+        //List<Record> recordList = Db.find(Db.getSqlPara("oa.examine.queryAllExamineCategoryList", Kv.by("userId", user.getUserId()).set("deptId", user.getDeptId())));
         return R.ok().put("data", recordList);
     }
 

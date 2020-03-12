@@ -44,6 +44,8 @@ public class LkCrmOaLogDao extends SimpleHibernateDao<LkCrmOaLogEntity, Integer>
             param.add(customerIds);
             sql += " or d.customer_ids like concat('%,',?,',%')";
         }
+        sql += " AND a.cust_id = ? ";
+        param.add(BaseUtil.getCustId());
         return super.sqlQuery(sql, param.toArray());
     }
 
@@ -76,6 +78,8 @@ public class LkCrmOaLogDao extends SimpleHibernateDao<LkCrmOaLogEntity, Integer>
             param.add(customerIds);
             sql += " or d.customer_ids like concat('%,',?,',%')";
         }
+        sql += " AND a.cust_id = ? ";
+        param.add(BaseUtil.getCustId());
         return super.sqlPageQuery(sql, pageNum, pageSize, param.toArray());
     }
 

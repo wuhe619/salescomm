@@ -6,7 +6,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_admin_config", schema = "", catalog = "")
 public class LkCrmAdminConfigEntity {
-    private int settingId;
+    private Integer settingId;
     private int status;
     private String custId;
     private String name;
@@ -17,11 +17,11 @@ public class LkCrmAdminConfigEntity {
     @Id
     @Column(name = "setting_id")
     @GeneratedValue
-    public int getSettingId() {
+    public Integer getSettingId() {
         return settingId;
     }
 
-    public void setSettingId(int settingId) {
+    public void setSettingId(Integer settingId) {
         this.settingId = settingId;
     }
 

@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.crm.entity.LkCrmAdminFieldEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.SqlAppendUtil;
 import org.springframework.stereotype.Component;
 
@@ -13,9 +14,14 @@ import java.util.Map;
 @Component
 public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity, Integer> {
 
+    public List<LkCrmAdminFieldEntity> queryDefaultCustomerFieldList() {
+        String sql = "from LkCrmAdminFieldEntity where custId is null ";
+        return find(sql);
+    }
+
     public List customerFieldList(String label) {
-        String sql = "select field_id,field_name,name,type,options from lkcrm_admin_field where field_type = 0 and label = ?";
-        return sqlQuery(sql, label);
+        String sql = "select field_id,field_name,name,type,options from lkcrm_admin_field where field_type = 0 and label = ? AND cust_id = ? ";
+        return sqlQuery(sql, label, BaseUtil.getCustId());
     }
 
     public int deleteByChooseId(List<Integer> field_ids, int label, Integer categoryId) {
@@ -37,14 +43,14 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
             sql += " and examine_category_id=？ ";
             param.add(categoryId);
         }
-        sql+=" ) ";
+        sql += " ) ";
         return executeUpdateSQL(sql, param.toArray());
     }
 
     public int deleteFieldSort(List<String> names, int label) {
         List param = new ArrayList();
         param.add(label);
-        String sql = " delete from lkcrm_admin_field_sort where label = ? and name in(" + SqlAppendUtil.sqlAppendWhereIn(names) + ")";
+        String sql = " delete from lkcrm_admin_field_sort where label = ? and name in(" + SqlAppendUtil.sqlAppendWhereIn(names) + ") ";
         return executeUpdateSQL(sql, param.toArray());
     }
 
@@ -101,7 +107,8 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
         if (name.length > 0) {
             sql += " and a.name in (" + SqlAppendUtil.sqlAppendWhereIn(name) + ")";
         }
-        return sqlQuery(sql, batchId, batchId, batchId);
+        sql += " AND a.cust_id = ? ";
+        return sqlQuery(sql, batchId, batchId, batchId, BaseUtil.getCustId());
     }
 
 }

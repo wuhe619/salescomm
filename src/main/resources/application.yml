@@ -4,6 +4,13 @@ spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.jdbc.Driver
+    max-idle: 10
+    max-wait: 1000000
+    min-idle: 5
+    initial-size: 5
+    test-on-borrow: false
+    test-while-idle: true
+    time-between-eviction-runs-millis: 1000000
     username: chacker
     password: chacker
     #    url: jdbc:mysql://localhost:3306/bp?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
@@ -12,7 +19,7 @@ spring:
     hikari:
       auto-commit: true
       minimum-idle: 5
-      maximum-pool-size: 15
+      maximum-pool-size: 100
       connection-timeout: 3000
       connection-test-query: select 1
       validationTimeout: 3000
@@ -59,11 +66,12 @@ spring:
       thread-name-prefix: task-pool-
 logging:
   level:
-    org.hibernate: INFO
-    com.bdaim: DEBUG
-    org.springframework.jdbc.core.JdbcTemplate: DEBUG
-    io.searchbox.client: DEBUG
-    org:.apache.http: DEBUG
+    #root: Debug
+    org.hibernate: Debug
+    com.bdaim: WARN
+    org.springframework.jdbc.core.JdbcTemplate: Debug
+    io.searchbox.client: WARN
+    org:.apache.http: WARN
   file: bp.log
 file:
   file_path: E:\\test\\image\\

@@ -8,8 +8,10 @@ import com.bdaim.common.helper.SQLHelper;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminDeptDao;
+import com.bdaim.crm.dao.LkCrmAdminFieldDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
 import com.bdaim.crm.entity.LkCrmAdminDeptEntity;
+import com.bdaim.crm.entity.LkCrmAdminFieldEntity;
 import com.bdaim.crm.entity.LkCrmAdminUserEntity;
 import com.bdaim.crm.entity.LkCrmAdminUserRoleEntity;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
@@ -57,6 +59,8 @@ public class LkAdminUserService {
     private CustomerSeaService customerSeaService;
     @Autowired
     private MarketProjectService marketProjectService;
+    @Autowired
+    private LkCrmAdminFieldDao crmAdminFieldDao;
 
     private void saveBpUser(long id, String userName, String realName, String password, String custId, int userType,
                             String callType, String callChannel, UserCallConfigDTO userDTO) {
@@ -226,6 +230,18 @@ public class LkAdminUserService {
         dto.setName("默认公海项目");
         dto.setType("2");
         marketProjectService.saveMarketProjectAndSeaReturnId(dto, custId, userId);
+        // 初始化自定义字段
+        List<LkCrmAdminFieldEntity> defaultFieldList = crmAdminFieldDao.queryDefaultCustomerFieldList();
+        crmAdminFieldDao.getSession().clear();
+        List<LkCrmAdminFieldEntity> customerFieldList = new ArrayList<>();
+        LkCrmAdminFieldEntity newEntity;
+        for (LkCrmAdminFieldEntity db : defaultFieldList) {
+            newEntity = new LkCrmAdminFieldEntity();
+            BeanUtils.copyProperties(db, newEntity, "fieldId");
+            newEntity.setCustId(custId);
+            customerFieldList.add(newEntity);
+        }
+        crmAdminFieldDao.batchSaveOrUpdate(customerFieldList);
         return R.isSuccess(true);
     }
 

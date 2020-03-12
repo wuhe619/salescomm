@@ -217,6 +217,7 @@ public class AdminSceneService {
      */
     public R addScene(LkCrmAdminSceneEntity adminScene) {
         Long userId = BaseUtil.getUser().getUserId();
+        adminScene.setCustId(BaseUtil.getCustId());
         adminScene.setIsHide(0).setSort(99999).setIsSystem(0).setCreateTime(DateUtil.date().toTimestamp()).setUserId(userId);
         crmAdminSceneDao.save(adminScene);
         if (1 == adminScene.getIsDefault()) {
@@ -233,6 +234,7 @@ public class AdminSceneService {
      */
     public R updateScene(LkCrmAdminSceneEntity adminScene) {
         Long userId = BaseUtil.getUser().getUserId();
+        adminScene.setCustId(BaseUtil.getCustId());
         LkCrmAdminSceneEntity oldAdminScene = crmAdminSceneDao.get(adminScene.getSceneId());
         if (1 == adminScene.getIsDefault()) {
             crmAdminSceneDao.executeUpdateSQL("update lkcrm_admin_scene_default set scene_id = ? where user_id = ? and type = ?", adminScene.getSceneId(), userId, oldAdminScene.getType());
@@ -253,6 +255,7 @@ public class AdminSceneService {
         crmAdminSceneDao.executeUpdateSQL("delete from lkcrm_admin_scene_default where user_id = ? and type = ?", userId, oldAdminScene.getType());
         LkCrmAdminSceneDefaultEntity adminSceneDefault = new LkCrmAdminSceneDefaultEntity();
         adminSceneDefault.setSceneId(sceneId).setType(oldAdminScene.getType()).setUserId(userId);
+        adminSceneDefault.setCustId(BaseUtil.getCustId());
         crmAdminSceneDao.saveOrUpdate(adminSceneDefault);
         return R.ok();
     }
@@ -276,13 +279,14 @@ public class AdminSceneService {
     public R queryScene(Integer type) {
         Long userId = BaseUtil.getUser().getUserId();
         //查询userId下是否有系统场景，没有则插入
-        String sql = "select count(*) from lkcrm_admin_scene where is_system = 1 and type = ? and user_id = ?";
+        String sql = "select count(*) from lkcrm_admin_scene where is_system = 1 and type = ? and user_id = ? AND cust_id = ?";
         //Integer number = Db.queryInt(Db.getSql("admin.scene.querySystemNumber"), type, userId);
-        int number = crmAdminSceneDao.queryForInt(sql, type, userId);
+        int number = crmAdminSceneDao.queryForInt(sql, type, userId, BaseUtil.getCustId());
         type = type != null ? type : -1;
         if (number == 0) {
             //AdminScene systemScene = new AdminScene();
             LkCrmAdminSceneEntity systemScene = new LkCrmAdminSceneEntity();
+            systemScene.setCustId(BaseUtil.getCustId());
             systemScene.setUserId(userId).setSort(0).setData("").setIsHide(0).setIsSystem(1).setCreateTime(new Timestamp(System.currentTimeMillis())).setType(type);
             JSONObject ownerObject = new JSONObject();
             ownerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "is").fluentPut("value", userId));
@@ -336,9 +340,9 @@ public class AdminSceneService {
         }
         sql = "select a.scene_id,a.data,a.name,if(b.default_id is null,0,1) as is_default,a.is_system,a.bydata " +
                 "    from lkcrm_admin_scene as a left join lkcrm_admin_scene_default as b on a.scene_id = b.scene_id " +
-                "    where a.type = ? and a.user_id = ? and is_hide = 0 order by a.sort asc";
+                "    where a.type = ? and a.user_id = ? and is_hide = 0 AND a.cust_id = ?  order by a.sort asc";
         //return R.ok().put("data", Db.find(Db.getSql("admin.scene.queryScene"), type, userId));
-        return R.ok().put("data", crmAdminSceneDao.sqlQuery(sql, type, userId));
+        return R.ok().put("data", crmAdminSceneDao.sqlQuery(sql, type, userId, BaseUtil.getCustId()));
     }
 
     /**

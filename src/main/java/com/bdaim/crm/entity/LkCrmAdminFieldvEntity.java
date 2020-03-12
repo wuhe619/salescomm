@@ -13,6 +13,7 @@ public class LkCrmAdminFieldvEntity {
     private String value;
     private Timestamp createTime;
     private String batchId;
+    private String custId;
 
     @Id
     @Column(name = "id")
@@ -73,6 +74,16 @@ public class LkCrmAdminFieldvEntity {
 
     public void setBatchId(String batchId) {
         this.batchId = batchId;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Override
