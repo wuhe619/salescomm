@@ -926,6 +926,7 @@ public class CrmLeadsService {
             crmLeads.setIsTransform(0);
         }
 
+        crmLeads.setCompany(object.getJSONObject("entity").getString("company"));
         crmLeads.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmLeads.getBatchId()) ? crmLeads.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(object.getJSONArray("field"), batchId);

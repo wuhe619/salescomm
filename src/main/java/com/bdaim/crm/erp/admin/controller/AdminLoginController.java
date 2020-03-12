@@ -105,7 +105,6 @@ public class AdminLoginController extends BasicAction {
     }
 
     /**
-     * @author zhangzhiwei
      * 退出登录
      */
     @GetMapping("/logout")

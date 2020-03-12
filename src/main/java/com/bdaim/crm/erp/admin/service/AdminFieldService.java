@@ -240,7 +240,7 @@ public class AdminFieldService {
             if (!ParamsUtil.isValid(kv.get("fieldName").toString())) {
                 return R.error("参数包含非法字段");
             }
-            number = crmAdminFieldDao.queryForInt("select count(*) from lkcrm_crm_" + tableName + " where " + kv.get("fieldName").toString() + " = ? and " + primaryKey + " != ?", kv.get("val").toString(), StringUtil.isNotEmpty(String.valueOf(kv.get("id"))) ? Integer.valueOf(kv.get("id").toString()) : 0);
+            number = crmAdminFieldDao.queryForInt("select count(*) from lkcrm_crm_" + tableName + " where cust_id = ? AND " + kv.get("fieldName").toString() + " = ? and " + primaryKey + " != ? ", BaseUtil.getCustId(), kv.get("val").toString(), StringUtil.isNotEmpty(String.valueOf(kv.get("id"))) ? Integer.valueOf(kv.get("id").toString()) : 0);
         }
         return number > 0 ? R.error("参数校验错误").put("error", kv.get("fieldName").toString() + "：参数唯一") : R.ok();
     }
@@ -313,6 +313,76 @@ public class AdminFieldService {
                 sql.append(String.format("max(if(a.name = '%s',value, null)) AS `%s`,", name, name));
             }
         });
+        String createName;
+        String create;
+        String filedCreate;
+        String filedCreateName;
+        switch (label) {
+            case 1:
+                createName = "leadsview";
+                filedCreateName = "fieldleadsview";
+                filedCreate = String.format(" select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = " select a.*,b.realname as create_user_name,c.realname as owner_user_name,z.* from lkcrm_crm_leads as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join fieldleadsview as z on a.batch_id = z.field_batch_id";
+                break;
+            case 2:
+                filedCreate = String.format("create or replace view fieldcustomerview  as select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view customerview  as select a.*,b.realname as create_user_name,c.realname as owner_user_name,z.* from lkcrm_crm_customer as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join fieldcustomerview as z on a.batch_id = z.field_batch_id";
+                break;
+            case 3:
+                filedCreate = String.format("create or replace view fieldcontactsview as select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view contactsview as select a.*,a.name as contacts_name ,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,z.* from lkcrm_crm_contacts as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join lkcrm_crm_customer as d on a.customer_id = d.customer_id left join fieldcontactsview as z on a.batch_id = z.field_batch_id";
+                break;
+            case 4:
+                filedCreate = String.format("create or replace view fieldproductview as select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view productview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.name as category_name,z.* from lkcrm_crm_product as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join lkcrm_crm_product_category as d on a.category_id = d.category_id left join fieldproductview as z on a.batch_id = z.field_batch_id";
+                break;
+            case 5:
+                filedCreate = String.format("create or replace view fieldbusinessview as select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != ''and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view businessview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,e.name as type_name,f.name as status_name,z.* from lkcrm_crm_business as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join lkcrm_crm_customer as d on a.customer_id = d.customer_id left join lkcrm_crm_business_type as e on a.type_id = e.type_id left join lkcrm_crm_business_status as f on a.status_id = f.status_id left join fieldbusinessview as z on a.batch_id = z.field_batch_id";
+                break;
+            case 6:
+                filedCreate = String.format("create or replace view fieldcontractview as select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view contractview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,e.business_name,f.name as contacts_name,g.realname as company_user_name,z.* from lkcrm_crm_contract as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join lkcrm_crm_customer as d on a.customer_id = d.customer_id left join lkcrm_crm_business as e on a.business_id = e.business_id left join lkcrm_crm_contacts as f on a.contacts_id = f.contacts_id left join lkcrm_admin_user as g on a.company_user_id = g.user_id left join fieldcontractview as z on a.batch_id = z.field_batch_id";
+                break;
+            case 7:
+                filedCreate = String.format("create or replace view fieldreceivablesview as select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view receivablesview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,e.name as contract_name,e.num as contract_num,f.num as plan_num,z.* from lkcrm_crm_receivables as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join lkcrm_crm_customer as d on a.customer_id = d.customer_id left join lkcrm_crm_contract as e on a.contract_id = e.contract_id left join lkcrm_crm_receivables_plan as f on a.plan_id = f.plan_id left join fieldreceivablesview as z on a.batch_id = z.field_batch_id";
+                break;
+            default:
+                create = "";
+                filedCreate = "";
+                break;
+        }
+        if (StrUtil.isNotBlank(filedCreate)) {
+            crmAdminFieldDao.executeUpdateSQL(filedCreate);
+        }
+        if (StrUtil.isNotBlank(create)) {
+            crmAdminFieldDao.executeUpdateSQL(create);
+        }
+    }
+
+    public synchronized void createView0(Integer label) {
+        List<Record> fieldNameList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.sqlQuery("select name,type from lkcrm_admin_field WHERE label=? and field_type = 0 AND cust_id =? ORDER BY sorting asc", label, BaseUtil.getCustId()));
+        StringBuilder sql = new StringBuilder();
+        StringBuilder userJoin = new StringBuilder();
+        StringBuilder deptJoin = new StringBuilder();
+        fieldNameList.forEach(record -> {
+            String name = record.getStr("name");
+            Integer type = record.getInt("type");
+            if (type == 10) {
+                sql.append(String.format("GROUP_CONCAT(if(a.name = '%s',b.realname,null)) AS `%s`,", name, name));
+                if (userJoin.length() == 0) {
+                    userJoin.append(" left join lkcrm_admin_user b on find_in_set(user_id,ifnull(value,0))");
+                }
+            } else if (type == 12) {
+                sql.append(String.format("GROUP_CONCAT(if(a.name = '%s',c.name,null)) AS `%s`,", name, name));
+                if (deptJoin.length() == 0) {
+                    deptJoin.append(" left join lkcrm_admin_dept c on find_in_set(c.dept_id,ifnull(value,0))");
+                }
+            } else {
+                sql.append(String.format("max(if(a.name = '%s',value, null)) AS `%s`,", name, name));
+            }
+        });
         String create;
         String filedCreate;
         switch (label) {
@@ -325,24 +395,24 @@ public class AdminFieldService {
                 create = "create or replace view customerview  as select a.*,b.realname as create_user_name,c.realname as owner_user_name,z.* from lkcrm_crm_customer as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join fieldcustomerview as z on a.batch_id = z.field_batch_id";
                 break;
             case 3:
-                filedCreate = String.format("create or replace view fieldcontactsview as select %s batch_id as field_batch_id from 72crm_admin_fieldv as a inner join 72crm_admin_field d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
-                create = "create or replace view contactsview as select a.*,a.name as contacts_name ,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,z.* from 72crm_crm_contacts as a left join 72crm_admin_user as b on a.create_user_id = b.user_id left join 72crm_admin_user as c on a.owner_user_id = c.user_id left join 72crm_crm_customer as d on a.customer_id = d.customer_id left join fieldcontactsview as z on a.batch_id = z.field_batch_id";
+                filedCreate = String.format("create or replace view fieldcontactsview as select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view contactsview as select a.*,a.name as contacts_name ,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,z.* from lkcrm_crm_contacts as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join lkcrm_crm_customer as d on a.customer_id = d.customer_id left join fieldcontactsview as z on a.batch_id = z.field_batch_id";
                 break;
             case 4:
-                filedCreate = String.format("create or replace view fieldproductview as select %s batch_id as field_batch_id from 72crm_admin_fieldv as a inner join 72crm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
-                create = "create or replace view productview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.name as category_name,z.* from 72crm_crm_product as a left join 72crm_admin_user as b on a.create_user_id = b.user_id left join 72crm_admin_user as c on a.owner_user_id = c.user_id left join 72crm_crm_product_category as d on a.category_id = d.category_id left join fieldproductview as z on a.batch_id = z.field_batch_id";
+                filedCreate = String.format("create or replace view fieldproductview as select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view productview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.name as category_name,z.* from lkcrm_crm_product as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join lkcrm_crm_product_category as d on a.category_id = d.category_id left join fieldproductview as z on a.batch_id = z.field_batch_id";
                 break;
             case 5:
-                filedCreate = String.format("create or replace view fieldbusinessview as select %s batch_id as field_batch_id from 72crm_admin_fieldv as a inner join 72crm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != ''and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
-                create = "create or replace view businessview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,e.name as type_name,f.name as status_name,z.* from 72crm_crm_business as a left join 72crm_admin_user as b on a.create_user_id = b.user_id left join 72crm_admin_user as c on a.owner_user_id = c.user_id left join 72crm_crm_customer as d on a.customer_id = d.customer_id left join 72crm_crm_business_type as e on a.type_id = e.type_id left join 72crm_crm_business_status as f on a.status_id = f.status_id left join fieldbusinessview as z on a.batch_id = z.field_batch_id";
+                filedCreate = String.format("create or replace view fieldbusinessview as select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != ''and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view businessview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,e.name as type_name,f.name as status_name,z.* from lkcrm_crm_business as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join lkcrm_crm_customer as d on a.customer_id = d.customer_id left join lkcrm_crm_business_type as e on a.type_id = e.type_id left join lkcrm_crm_business_status as f on a.status_id = f.status_id left join fieldbusinessview as z on a.batch_id = z.field_batch_id";
                 break;
             case 6:
-                filedCreate = String.format("create or replace view fieldcontractview as select %s batch_id as field_batch_id from 72crm_admin_fieldv as a inner join 72crm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
-                create = "create or replace view contractview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,e.business_name,f.name as contacts_name,g.realname as company_user_name,z.* from 72crm_crm_contract as a left join 72crm_admin_user as b on a.create_user_id = b.user_id left join 72crm_admin_user as c on a.owner_user_id = c.user_id left join 72crm_crm_customer as d on a.customer_id = d.customer_id left join 72crm_crm_business as e on a.business_id = e.business_id left join 72crm_crm_contacts as f on a.contacts_id = f.contacts_id left join 72crm_admin_user as g on a.company_user_id = g.user_id left join fieldcontractview as z on a.batch_id = z.field_batch_id";
+                filedCreate = String.format("create or replace view fieldcontractview as select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view contractview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,e.business_name,f.name as contacts_name,g.realname as company_user_name,z.* from lkcrm_crm_contract as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join lkcrm_crm_customer as d on a.customer_id = d.customer_id left join lkcrm_crm_business as e on a.business_id = e.business_id left join lkcrm_crm_contacts as f on a.contacts_id = f.contacts_id left join lkcrm_admin_user as g on a.company_user_id = g.user_id left join fieldcontractview as z on a.batch_id = z.field_batch_id";
                 break;
             case 7:
-                filedCreate = String.format("create or replace view fieldreceivablesview as select %s batch_id as field_batch_id from 72crm_admin_fieldv as a inner join 72crm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
-                create = "create or replace view receivablesview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,e.name as contract_name,e.num as contract_num,f.num as plan_num,z.* from 72crm_crm_receivables as a left join 72crm_admin_user as b on a.create_user_id = b.user_id left join 72crm_admin_user as c on a.owner_user_id = c.user_id left join 72crm_crm_customer as d on a.customer_id = d.customer_id left join 72crm_crm_contract as e on a.contract_id = e.contract_id left join 72crm_crm_receivables_plan as f on a.plan_id = f.plan_id left join fieldreceivablesview as z on a.batch_id = z.field_batch_id";
+                filedCreate = String.format("create or replace view fieldreceivablesview as select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view receivablesview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,d.customer_name,e.name as contract_name,e.num as contract_num,f.num as plan_num,z.* from lkcrm_crm_receivables as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join lkcrm_crm_customer as d on a.customer_id = d.customer_id left join lkcrm_crm_contract as e on a.contract_id = e.contract_id left join lkcrm_crm_receivables_plan as f on a.plan_id = f.plan_id left join fieldreceivablesview as z on a.batch_id = z.field_batch_id";
                 break;
             default:
                 create = "";

@@ -145,6 +145,7 @@ public class CrmCustomerService {
         CrmCustomer entity = jsonObject.getObject("entity", CrmCustomer.class);
         LkCrmCustomerEntity crmCustomer = new LkCrmCustomerEntity();
         BeanUtils.copyProperties(entity, crmCustomer);
+        crmCustomer.setCompany(jsonObject.getJSONObject("entity").getString("company"));
         String batchId = StrUtil.isNotEmpty(crmCustomer.getBatchId()) ? crmCustomer.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
