@@ -45,11 +45,22 @@ public class LkCrmOaEventDao extends SimpleHibernateDao<LkCrmOaEventEntity, Inte
     }
 
     public Map<String, Object> queryById(Integer actionId) {
-        String sql = "    select a.*,b.*,c.realname,GROUP_CONCAT(d.realname) as 'owner_user_name' " +
-                "    from lkcrm_oa_event as a left join lkcrm_oa_event_relation as b on a.event_id = b.event_id " +
-                "    left join lkcrm_admin_user as c on a.create_user_id = c.user_id " +
-                "    left join lkcrm_admin_user as d on FIND_IN_SET(d.user_id,IFNULL(a.owner_user_ids, 0)) " +
-                "    where a.event_id = ?";
+//        String sql = "    select a.*,b.*,c.realname,GROUP_CONCAT(d.realname) as 'owner_user_name' " +
+//                "    from lkcrm_oa_event as a left join lkcrm_oa_event_relation as b on a.event_id = b.event_id " +
+//                "    left join lkcrm_admin_user as c on a.create_user_id = c.user_id " +
+//                "    left join lkcrm_admin_user as d on FIND_IN_SET(d.user_id,IFNULL(a.owner_user_ids, 0)) " +
+//                "    where a.event_id = ?";
+        String sql = "SELECT " +
+                " a.event_id,a.cust_id,a.title,a.content,a.start_time,a.end_time,a.create_user_id, " +
+                " a.create_time,a.update_time,a.type,a.owner_user_ids,a.address,a.remark,a.color, " +
+                " a.remind_type,b.eventrelation_id,b.customer_ids,b.contacts_ids,b.business_ids, " +
+                " b.contract_ids,b.status,c.realname,GROUP_CONCAT( d.realname ) AS 'owner_user_name'  " +
+                "FROM " +
+                " lkcrm_oa_event AS a " +
+                " LEFT JOIN lkcrm_oa_event_relation AS b ON a.event_id = b.event_id " +
+                " LEFT JOIN lkcrm_admin_user AS c ON a.create_user_id = c.user_id " +
+                " LEFT JOIN lkcrm_admin_user AS d ON FIND_IN_SET( d.user_id, IFNULL( a.owner_user_ids, 0 ) ) "+
+                " WHERE a.event_id = ?";
         return super.queryUniqueSql(sql, actionId);
     }
 
@@ -65,7 +76,7 @@ public class LkCrmOaEventDao extends SimpleHibernateDao<LkCrmOaEventEntity, Inte
     }
 
     public List<Map<String, Object>> queryOwnerList(List userIds) {
-        String sql = " select user_id, username,img, create_time, realname, num, mobile, email, sex, dept_id, post from lkcrm_admin_user\n" +
+        String sql = " select user_id, username,img, create_time, realname, num, mobile, email, sex, dept_id, post from lkcrm_admin_user " +
                 "    where user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")";
         return super.sqlQuery(sql);
     }
