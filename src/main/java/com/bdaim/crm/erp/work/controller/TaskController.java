@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.entity.LkCrmTaskEntity;
 import com.bdaim.crm.entity.LkCrmTaskRelationEntity;
 import com.bdaim.crm.entity.LkCrmWorkTaskClassEntity;
@@ -184,6 +185,7 @@ public class TaskController extends BasicAction {
     /**
      * 查询任务列表 oa
      */
+    @ClassTypeCheck(classType = Task.class)
     @RequestMapping(value = "/queryTaskList", method = RequestMethod.POST)
     public R queryTaskList(BasePageRequest<Task> basePageRequest) {
         Integer type = getParaToInt("type");

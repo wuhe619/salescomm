@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.oa.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaLog;
 import com.bdaim.crm.erp.oa.entity.OaLogRelation;
@@ -37,6 +38,7 @@ public class OaLogController extends BasicAction {
      * @author zhangzhiwei
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = OaLog.class)
     public R queryList(BasePageRequest<OaLog> basePageRequest){
         Page<Record> recordList=oaLogService.queryList(basePageRequest);
         return(R.ok().put("data",recordList));
