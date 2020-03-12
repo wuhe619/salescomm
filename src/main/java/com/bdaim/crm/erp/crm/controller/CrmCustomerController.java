@@ -9,6 +9,7 @@ import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.dto.LkCrmAdminRecordDTO;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.entity.LkCrmCustomerEntity;
@@ -210,6 +211,7 @@ public class CrmCustomerController extends BasicAction {
      * 条件查询客户公海
      */
     @RequestMapping(value = "/queryPageGH", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = BasePageRequest.class)
     public R queryPageGH(BasePageRequest basePageRequest) {
         return (R.ok().put("data", crmCustomerService.queryPageGH(basePageRequest)));
     }
@@ -432,12 +434,13 @@ public class CrmCustomerController extends BasicAction {
     /**
      * 代办事项列表
      *
+     * @return
      * @RequestParamm basePageRequest
      * @RequestParamm taskStatus
      * @RequestParamm leadsId
-     * @return
      */
     @RequestMapping(value = "/agency/list", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = BasePageRequest.class)
     public R listAgency(BasePageRequest basePageRequest, Integer taskStatus, Integer customerId) {
         basePageRequest.setData(taskStatus);
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), customerId);
@@ -465,8 +468,9 @@ public class CrmCustomerController extends BasicAction {
      */
     @Permissions("crm:customer:excelexport")
     @RequestMapping(value = "/allExportExcel")
-    public void allExportExcel(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
-        //JSONObject jsonObject = basePageRequest.getJsonObject();
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public void allExportExcel(BasePageRequest basePageRequest, HttpServletResponse response) throws IOException {
+        JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", 2);
         basePageRequest.setJsonObject(jsonObject);
         //AdminSceneService adminSceneService = new AdminSceneService();
@@ -704,7 +708,6 @@ public class CrmCustomerController extends BasicAction {
             return true;
         });
     }*/
-
     @Permissions("crm:customer:excelimport")
     @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
     @RequestMapping(value = "/uploadExcel", method = RequestMethod.POST)
@@ -747,6 +750,6 @@ public class CrmCustomerController extends BasicAction {
         //JSONArray jsonArray = JSONArray.parseArray(jsonObject.getString("value"));
         //List<String> list = jsonArray.toJavaList(String.class);
         List<String> list = (List<String>) jsonObject.get("value");
-        return(crmCustomerService.setRecordOptions(list));
+        return (crmCustomerService.setRecordOptions(list));
     }
 }

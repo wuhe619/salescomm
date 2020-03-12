@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.bi.controller;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.jfinal.aop.Inject;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
@@ -131,6 +132,7 @@ public class BiWorkController extends Controller {
      * @author Chacker
      */
     @RequestMapping(value = "/examineInfo")
+    @ClassTypeCheck(classType = BasePageRequest.class)
     public R examineInfo(BasePageRequest basePageRequest) {
 //        renderJson(R.ok().put("data",biWorkService.examineInfo(basePageRequest)));
         return R.ok().put("data", biWorkService.examineInfo(basePageRequest));

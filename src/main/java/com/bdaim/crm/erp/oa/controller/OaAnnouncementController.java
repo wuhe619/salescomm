@@ -1,6 +1,7 @@
 package com.bdaim.crm.erp.oa.controller;
 
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.entity.LkCrmOaAnnouncementEntity;
 import com.jfinal.aop.Inject;
 import com.jfinal.core.Controller;
@@ -71,8 +72,8 @@ public class OaAnnouncementController extends BasicAction {
      * 倒叙查询公告集合
      */
     @RequestMapping(value = "/queryList")
-    public R queryList(BasePageRequest<OaAnnouncement> basePageRequest, @Para("type") Integer type,OaAnnouncement oaAnnouncement) {
-        basePageRequest.setData(oaAnnouncement);
+    @ClassTypeCheck(classType = OaAnnouncement.class)
+    public R queryList(BasePageRequest<OaAnnouncement> basePageRequest, @Para("type") Integer type) {
 //        renderJson(announcementService.queryList(basePageRequest,type));
         return announcementService.queryList(basePageRequest, type);
     }
