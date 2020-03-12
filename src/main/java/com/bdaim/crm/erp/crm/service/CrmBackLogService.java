@@ -52,7 +52,7 @@ public class CrmBackLogService {
         Integer config = crmCustomerDao.queryForInt("select status from lkcrm_admin_config where name = 'expiringContractDays' AND cust_id = ? ", BaseUtil.getCustId());
         Integer checkReceivables = crmCustomerDao.checkReceivablesNum(userId);
         Integer remindReceivablesPlan = crmCustomerDao.remindReceivablesPlanNum(userId);
-        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUniqueBy("name", "expiringContractDays");
+        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity where name = ? and cust_id = ?", "expiringContractDays", BaseUtil.getCustId());
         Integer endContract = 0;
         if (1 == adminConfig.getStatus()) {
             endContract = crmCustomerDao.endContractNum(adminConfig.getValue(), userId);

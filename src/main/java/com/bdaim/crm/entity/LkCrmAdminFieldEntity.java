@@ -27,6 +27,9 @@ public class LkCrmAdminFieldEntity {
     private Integer fieldType;
     private Integer relevant;
 
+    private Integer addSort;
+    private Integer addHidden;
+
     @Id
     @Column(name = "field_id")
     @GeneratedValue
@@ -216,6 +219,26 @@ public class LkCrmAdminFieldEntity {
 
     public void setRelevant(Integer relevant) {
         this.relevant = relevant;
+    }
+
+    @Basic
+    @Column(name = "add_sort")
+    public Integer getAddSort() {
+        return addSort;
+    }
+
+    public void setAddSort(Integer addSort) {
+        this.addSort = addSort;
+    }
+
+    @Basic
+    @Column(name = "add_hidden")
+    public Integer getAddHidden() {
+        return addHidden;
+    }
+
+    public void setAddHidden(Integer addHidden) {
+        this.addHidden = addHidden;
     }
 
     @Override
