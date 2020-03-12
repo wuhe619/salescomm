@@ -148,6 +148,7 @@ public class TaskController extends BasicAction {
      * 查询任务列表
      */
     @RequestMapping(value = "/getTaskList", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = BasePageRequest.class)
     public R getTaskList(BasePageRequest basePageRequest) {
         String labelId = getPara("labelId");
         String ishidden = getPara("ishidden");

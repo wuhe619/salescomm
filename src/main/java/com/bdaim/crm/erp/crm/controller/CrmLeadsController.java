@@ -17,6 +17,7 @@ import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.dao.LkCrmAdminFieldDao;
 import com.bdaim.crm.dto.LkCrmAdminRecordDTO;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
@@ -222,6 +223,7 @@ public class CrmLeadsController extends BasicAction {
      * 查看跟进记录
      */
     @RequestMapping(value = "/cluesea/getRecord", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = BasePageRequest.class)
     public R clueGetRecord(BasePageRequest basePageRequest, CrmLeads crmLeads, Long seaId) {
         basePageRequest.setData(crmLeads);
         return (R.ok().put("data", crmLeadsService.getRecord(basePageRequest)));
@@ -478,6 +480,7 @@ public class CrmLeadsController extends BasicAction {
      * 查看跟进记录
      */
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = BasePageRequest.class)
     public R getRecord(BasePageRequest basePageRequest, CrmLeads crmLeads) {
         basePageRequest.setData(crmLeads);
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), NumberUtil.parseInt(crmLeads.getLeadsId()));
@@ -496,6 +499,7 @@ public class CrmLeadsController extends BasicAction {
      * @return
      */
     @RequestMapping(value = "/agency/list", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = BasePageRequest.class)
     public R listAgency(BasePageRequest basePageRequest, Integer taskStatus, Integer leadsId) {
         basePageRequest.setData(taskStatus);
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), leadsId);

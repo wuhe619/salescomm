@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaExamine;
 import com.bdaim.crm.erp.oa.entity.OaExamineLog;
@@ -36,6 +37,7 @@ public class OaExamineController extends BasicAction {
      * 我发起的审批
      */
     @RequestMapping(value = "/myInitiate", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = Void.class)
     public R myInitiate(BasePageRequest<Void> basePageRequest) {
         return(oaExamineService.myInitiate(basePageRequest));
     }
@@ -46,6 +48,7 @@ public class OaExamineController extends BasicAction {
      * 我审批的
      */
     @RequestMapping(value = "/myOaExamine", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = OaExamine.class)
     public R myOaExamine(BasePageRequest<OaExamine> basePageRequest) {
         return(oaExamineService.myOaExamine(basePageRequest));
     }

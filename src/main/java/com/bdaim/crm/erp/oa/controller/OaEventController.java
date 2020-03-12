@@ -2,8 +2,10 @@ package com.bdaim.crm.erp.oa.controller;
 
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.entity.LkCrmOaEventEntity;
 import com.bdaim.crm.erp.oa.common.OaEnum;
+import com.bdaim.crm.erp.oa.entity.OaAnnouncement;
 import com.bdaim.crm.erp.oa.entity.OaEvent;
 import com.bdaim.crm.erp.oa.entity.OaEventRelation;
 import com.bdaim.crm.erp.oa.service.OaEventService;
@@ -93,8 +95,8 @@ public class OaEventController extends BasicAction {
      * crm查询日程
      */
     @RequestMapping(value = "/queryEventRelation", method = RequestMethod.POST)
-    public R queryEventRelation(BasePageRequest<OaEventRelation> basePageRequest,OaEventRelation oaEventRelation){
-        basePageRequest.setData(oaEventRelation);
+    @ClassTypeCheck(classType = OaEventRelation.class)
+    public R queryEventRelation(BasePageRequest<OaEventRelation> basePageRequest){
         return(oaEventService.queryEventRelation(basePageRequest));
     }
 }

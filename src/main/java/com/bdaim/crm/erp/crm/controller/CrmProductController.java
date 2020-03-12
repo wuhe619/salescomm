@@ -8,6 +8,7 @@ import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.entity.CrmProduct;
@@ -66,6 +67,7 @@ public class CrmProductController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "queryList", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = CrmProduct.class)
     public R queryList(BasePageRequest<CrmProduct> basePageRequest) {
         return (R.ok().put("data", crmProductService.queryPage(basePageRequest)));
     }
@@ -289,6 +291,7 @@ public class CrmProductController extends BasicAction {
      * 获取上架商品
      */
     @RequestMapping(value = "queryByStatus", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = CrmProduct.class)
     public R queryByStatus(BasePageRequest<CrmProduct> basePageRequest) {
         return (crmProductService.queryByStatus(basePageRequest));
     }
