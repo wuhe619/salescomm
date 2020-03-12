@@ -206,6 +206,8 @@ public class LkCrmLeadsEntity {
         this.isLock = isLock;
     }
 
+    @Basic
+    @Column(name = "sea_id")
     public String getSeaId() {
         return seaId;
     }
