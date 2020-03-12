@@ -347,7 +347,7 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "UPDATE lkcrm_admin_field set is_null=1 WHERE field_id = 21" ;
+        String sql = "DELETE FROM lkcrm_admin_field WHERE field_id = 142" ;
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
@@ -906,5 +906,25 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/lock", method = RequestMethod.POST)
     public R lock(LkCrmLeadsEntity crmCustomer, String ids) {
         return (crmLeadsService.lock(crmCustomer, ids));
+    }
+
+    /**
+     * 跟进记录类型设置
+     */
+    @RequestMapping(value = "/queryRecordOptions", method = RequestMethod.POST)
+    public R queryRecordOptions() {
+        return (crmLeadsService.queryRecordOptions());
+    }
+
+    /**
+     * 设置线索跟进状态
+     */
+    @RequestMapping(value = "/setRecordOptions", method = RequestMethod.POST)
+    public R setRecordOptions(@RequestBody JSONObject jsonObject) {
+        //JSONObject jsonObject = JSONObject.parseObject(getRawData());
+        //JSONArray jsonArray = JSONArray.parseArray(jsonObject.getString("value"));
+        //List<String> list = jsonArray.toJavaList(String.class);
+        List<String> list = (List<String>) jsonObject.get("value");
+        return(crmLeadsService.setRecordOptions(list));
     }
 }

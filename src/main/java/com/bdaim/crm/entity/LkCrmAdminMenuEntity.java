@@ -1,6 +1,7 @@
 package com.bdaim.crm.entity;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -15,7 +16,7 @@ public class LkCrmAdminMenuEntity {
     private Integer sort;
     private Integer status;
     private String remarks;
-    private List childMenu;
+    private List childMenu = new ArrayList();
 
     @Id
     @Column(name = "menu_id")

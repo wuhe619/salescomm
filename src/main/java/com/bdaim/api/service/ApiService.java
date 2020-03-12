@@ -1,5 +1,6 @@
 package com.bdaim.api.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.api.Dto.ApiData;
@@ -245,6 +246,7 @@ public class ApiService {
             Map dataMap = (Map) m;
             dataMap.put("monthCallNum",0);
             dataMap.put("monthFee",0);
+            dataMap.put("rsIds","");
             String apiId = dataMap.get("apiId").toString();
             String countSql = "select count(*) from am_subscription where API_ID=? and SUBS_CREATE_STATE='SUBSCRIBE'";
             List param = new ArrayList();
@@ -265,6 +267,21 @@ public class ApiService {
                 if(monthCharge!=null) {
                     String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 2);
                     dataMap.put("monthFee",monChargeStr);
+                }
+            }
+            String sql2 = " select  property_value from am_api_property  where api_id = ? and property_name='rsIds'";
+            String  propertyList = jdbcTemplate.queryForObject(sql2,param.toArray(),String.class);
+            if(propertyList!=null) {
+                JSONArray ar = JSON.parseArray(propertyList);
+                String rsids = "";
+                for (int i = 0; i < ar.size(); i++) {
+                    JSONObject obj = ar.getJSONObject(i);
+                    if (obj.containsKey("rsId")) {
+                        rsids += "," + obj.getString("rsId");
+                    }
+                }
+                if (StringUtil.isNotEmpty(rsids)) {
+                    dataMap.put("rsIds", rsids.substring(1));
                 }
             }
             return dataMap;
@@ -553,8 +570,8 @@ public class ApiService {
             throw new Exception("企业不存在");
         }
         StringBuffer sql = new StringBuffer();
-        sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime");
-        sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
+        sql.append(" select api.API_ID as apiId,api.API_NAME as apiName ");
+        sql.append(" from am_api api ");
         sql.append(" where api.API_ID not in");
         sql.append(" (select API_ID from am_subscription where APPLICATION_ID = ? and SUBS_CREATE_STATE = 'SUBSCRIBE')");
         sql.append(" and api.status=2");
@@ -566,6 +583,7 @@ public class ApiService {
         }
         page.setSort("api.CREATED_TIME");
         page.setDir("desc");
+        logger.info("sql:{},param:{}",sql.toString(),param.toArray());
         Page list = apiDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize(), param.toArray());
         //PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getData().stream().map(m -> {

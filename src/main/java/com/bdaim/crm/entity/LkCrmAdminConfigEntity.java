@@ -6,21 +6,33 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_admin_config", schema = "", catalog = "")
 public class LkCrmAdminConfigEntity {
-    private int settingId;
+    private Integer settingId;
     private int status;
+    private String custId;
     private String name;
     private String value;
     private String description;
+    private Integer isSystem;
 
     @Id
     @Column(name = "setting_id")
     @GeneratedValue
-    public int getSettingId() {
+    public Integer getSettingId() {
         return settingId;
     }
 
-    public void setSettingId(int settingId) {
+    public void setSettingId(Integer settingId) {
         this.settingId = settingId;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic
@@ -61,6 +73,16 @@ public class LkCrmAdminConfigEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    @Basic
+    @Column(name = "is_system")
+    public Integer getIsSystem() {
+        return isSystem;
+    }
+
+    public void setIsSystem(Integer isSystem) {
+        this.isSystem = isSystem;
     }
 
     @Override

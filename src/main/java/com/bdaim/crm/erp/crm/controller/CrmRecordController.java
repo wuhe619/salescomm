@@ -3,15 +3,11 @@ package com.bdaim.crm.erp.crm.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.crm.common.annotation.CrmRequestBody;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.service.CrmRecordService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -66,10 +62,11 @@ public class CrmRecordController extends BasicAction {
      * 设置跟进记录类型
      */
     @RequestMapping(value = "/setRecordOptions", method = RequestMethod.POST)
-    public R setRecordOptions(@CrmRequestBody JSONObject jsonObject) {
+    public R setRecordOptions(@RequestBody JSONObject jsonObject) {
         //JSONObject jsonObject = JSONObject.parseObject(getRawData());
-        JSONArray jsonArray = JSONArray.parseArray(jsonObject.getString("value"));
-        List<String> list = jsonArray.toJavaList(String.class);
+        //JSONArray jsonArray = JSONArray.parseArray(jsonObject.getString("value"));
+        //List<String> list = jsonArray.toJavaList(String.class);
+        List<String> list = (List<String>) jsonObject.get("value");
         return(crmRecordService.setRecordOptions(list));
     }
 }

@@ -48,6 +48,7 @@ import org.hibernate.HibernateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -120,6 +121,8 @@ public class CrmLeadsService {
     private CustomerSeaService customerSeaService;
     @Resource
     private LkCrmTaskDao crmTaskDao;
+    @Autowired
+    private LkCrmActionRecordDao crmActionRecordDao;
 
     /**
      * 默认需要转为super_data的字段名称
@@ -1581,5 +1584,46 @@ public class CrmLeadsService {
         String[] idArr = ids.split(",");
         crmRecordService.addIsLockRecord(idArr, CrmEnum.CUSTOMER_TYPE_KEY.getTypes(), crmLeads.getIsLock());
         return crmLeadsDao.lock(crmLeads.getIsLock(), Arrays.asList(ids)) > 0 ? R.ok() : R.error();
+    }
+
+    /**
+     * 查询跟进记录类型
+     */
+    public R queryRecordOptions() {
+        List<LkCrmAdminConfigEntity> list = crmActionRecordDao.find("from LkCrmAdminConfigEntity where name = ? AND custId = ? ", "clueFollowRecordOption", BaseUtil.getCustId());
+        if (list.size() == 0) {
+            List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
+            // 初始化数据
+            String[] defaults = new String[]{"未跟进", "跟进中", "有意向", "无意向"};
+            for (String i : defaults) {
+                LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
+                adminConfig.setCustId(BaseUtil.getCustId());
+                adminConfig.setName("clueFollowRecordOption");
+                adminConfig.setValue(i);
+                adminConfig.setDescription("线索跟进记录选项");
+                adminConfig.setIsSystem(1);
+                adminConfigList.add(adminConfig);
+            }
+            crmActionRecordDao.batchSaveOrUpdate(adminConfigList);
+            list.addAll(adminConfigList);
+        }
+        return R.ok().put("data", list);
+    }
+
+
+    public R setRecordOptions(List<String> list) {
+        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'clueFollowRecordOption' AND cust_id = ? AND is_system <> 1  ", BaseUtil.getCustId());
+        List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
+            adminConfig.setCustId(BaseUtil.getCustId());
+            adminConfig.setName("clueFollowRecordOption");
+            adminConfig.setValue(list.get(i));
+            adminConfig.setDescription("线索跟进记录选项");
+            adminConfig.setIsSystem(2);
+            adminConfigList.add(adminConfig);
+        }
+        crmActionRecordDao.batchSaveOrUpdate(adminConfigList);
+        return R.ok();
     }
 }

@@ -7,7 +7,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_achievement", schema = "", catalog = "")
 public class LkCrmAchievementEntity {
-    private int achievementId;
+    private Integer achievementId;
     private Integer objId;
     private Integer type;
     private String year;
@@ -28,11 +28,12 @@ public class LkCrmAchievementEntity {
 
     @Id
     @Column(name = "achievement_id")
-    public int getAchievementId() {
+    @GeneratedValue
+    public Integer getAchievementId() {
         return achievementId;
     }
 
-    public void setAchievementId(int achievementId) {
+    public void setAchievementId(Integer achievementId) {
         this.achievementId = achievementId;
     }
 

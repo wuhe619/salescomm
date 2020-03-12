@@ -43,13 +43,15 @@ public class AdminBusinessTypeService {
     @Before(Tx.class)
     public void addBusinessType(LkCrmBusinessTypeEntity crmBusinessType, JSONArray crmBusinessStatusList) {
         if (crmBusinessType.getTypeId() == null) {
+            crmBusinessType.setCustId(BaseUtil.getCustId());
             crmBusinessType.setCreateTime(DateUtil.date().toTimestamp());
             crmBusinessType.setCreateUserId(BaseUtil.getUser().getUserId());
             crmBusinessTypeDao.save(crmBusinessType);
         } else {
+            crmBusinessType.setCustId(BaseUtil.getCustId());
             crmBusinessType.setUpdateTime(DateUtil.date().toTimestamp());
             LkCrmBusinessTypeEntity dbEntity = crmBusinessTypeDao.get(crmBusinessType.getTypeId());
-            BeanUtils.copyProperties(crmBusinessType, dbEntity, JavaBeanUtil.getNullPropertyNames(dbEntity));
+            BeanUtils.copyProperties(crmBusinessType, dbEntity, JavaBeanUtil.getNullPropertyNames(crmBusinessType));
             crmBusinessTypeDao.update(dbEntity);
             crmBusinessTypeDao.deleteBusinessStatus(crmBusinessType.getTypeId());
             //Db.delete(Db.getSql("admin.businessType.deleteBusinessStatus"), crmBusinessType.getTypeId());
@@ -67,30 +69,34 @@ public class AdminBusinessTypeService {
     public CrmPage queryBusinessTypeList(BasePageRequest request) {
         com.bdaim.common.dto.Page paginate = crmBusinessTypeDao.queryBusinessTypeList(request.getPage(), request.getLimit());
         //Page<Record> paginate = Db.paginate(request.getPage(), request.getLimit(), Db.getSqlPara("admin.businessType.queryBusinessTypeList"));
+        List<Record> list = new ArrayList<>();
         paginate.getData().forEach(s -> {
             Record record = JavaBeanUtil.mapToRecord((Map<String, Object>) s);
-            System.out.println(record.getStr("dept_ids"));
             if (record.getStr("dept_ids") != null && record.getStr("dept_ids").split(",").length > 0) {
-                List<Record> deptList = Db.find(Db.getSqlPara("admin.dept.queryByIds", Kv.by("ids", record.getStr("dept_ids").split(","))));
+                List deptList = crmAdminDeptDao.queryByIds(Arrays.asList(record.getStr("dept_ids").split(",")));
+                //List<Record> deptList = Db.find(Db.getSqlPara("admin.dept.queryByIds", Kv.by("ids", record.getStr("dept_ids").split(","))));
                 record.set("deptIds", deptList);
             } else {
                 record.set("deptIds", new ArrayList<>());
             }
+            list.add(record);
         });
+        paginate.setData(list);
         return BaseUtil.crmPage(paginate);
     }
 
     public R getBusinessType(String typeId) {
         Record record = JavaBeanUtil.mapToRecord(crmBusinessTypeDao.getBusinessType(typeId));
-        if(record.getStr("dept_ids") != null && record.getStr("dept_ids").split(",").length > 0) {
+        if (record.getStr("dept_ids") != null && record.getStr("dept_ids").split(",").length > 0) {
             List<Record> deptList = JavaBeanUtil.mapToRecords(crmAdminDeptDao.queryByIds(Arrays.asList(record.getStr("dept_ids").split(","))));
             //List<Record> deptList = Db.find(Db.getSqlPara("admin.dept.queryByIds", Kv.by("ids", record.getStr("dept_ids").split(","))));
             record.set("deptIds", deptList);
-        }else{
+        } else {
             record.set("deptIds", new ArrayList<>());
         }
         List<Record> statusList = JavaBeanUtil.mapToRecords(crmBusinessTypeDao.queryBusinessStatus(typeId));
         record.set("statusList", statusList);
+        record.remove("dept_ids");
         return R.ok().put("data", record);
     }
 

@@ -1,5 +1,6 @@
 package com.bdaim.crm.ent.service;
 
+import cn.hutool.core.date.DateException;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
@@ -385,7 +386,13 @@ public class EntDataService {
             if (list.size() > 0) {
                 List<JSONObject> data = new ArrayList<>();
                 for (Map<String, Object> m : list) {
-                    JSONObject jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
+                    JSONObject jsonObject = null;
+                    try {
+                        jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
+                    } catch (Exception e) {
+                        LOG.error("解析content异常,content:{}", m.get("content"), e);
+                        continue;
+                    }
                     jsonObject.put("createTime", m.get("create_time"));
                     jsonObject.put("updateTime", m.get("update_time"));
                     jsonObject.put("industry", m.get("industry"));
@@ -425,9 +432,16 @@ public class EntDataService {
                                     k.setValue(String.valueOf(k.getValue()).split("至")[1].replaceAll(" ", ""));
                                 }
                             }
-                            DateTime parse = DateUtil.parse(String.valueOf(k.getValue()).replaceAll("至", "")
-                                    .replaceAll("年", "-").replaceAll("月", "-")
-                                    .replaceAll("日", "-"), "yyyy-MM-dd");
+                            DateTime parse = null;
+                            try {
+                                parse = DateUtil.parse(String.valueOf(k.getValue()).replaceAll("至", "")
+                                        .replaceAll("年", "-").replaceAll("月", "-")
+                                        .replaceAll("日", "-"), "yyyy-MM-dd");
+                            } catch (DateException e) {
+                                LOG.error("企业名称:{},[{}]转换异常,数据:{}", jsonObject.getString("entName"), k.getKey(), jsonObject);
+                                k.setValue(null);
+                                continue;
+                            }
                             k.setValue(parse.getTime());
                         }
                     }
@@ -460,7 +474,13 @@ public class EntDataService {
             if (list.size() > 0) {
                 List<JSONObject> data = new ArrayList<>();
                 for (Map<String, Object> m : list) {
-                    JSONObject jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
+                    JSONObject jsonObject = null;
+                    try {
+                        jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
+                    } catch (Exception e) {
+                        LOG.error("解析content异常,content:{}", m.get("content"), e);
+                        continue;
+                    }
                     jsonObject.put("createTime", m.get("create_time"));
                     jsonObject.put("updateTime", m.get("update_time"));
                     jsonObject.put("industry", m.get("industry"));
@@ -501,9 +521,16 @@ public class EntDataService {
                                     k.setValue(String.valueOf(k.getValue()).split("至")[1].replaceAll(" ", ""));
                                 }
                             }
-                            DateTime parse = DateUtil.parse(String.valueOf(k.getValue()).replaceAll("至", "")
-                                    .replaceAll("年", "-").replaceAll("月", "-")
-                                    .replaceAll("日", "-"), "yyyy-MM-dd");
+                            DateTime parse = null;
+                            try {
+                                parse = DateUtil.parse(String.valueOf(k.getValue()).replaceAll("至", "")
+                                        .replaceAll("年", "-").replaceAll("月", "-")
+                                        .replaceAll("日", "-"), "yyyy-MM-dd");
+                            } catch (DateException e) {
+                                LOG.error("企业名称:{},[{}]转换异常,数据:{}", jsonObject.getString("entName"), k.getKey(), jsonObject);
+                                k.setValue(null);
+                                continue;
+                            }
                             k.setValue(parse.getTime());
                         }
                     }
@@ -536,7 +563,13 @@ public class EntDataService {
             if (list.size() > 0) {
                 List<JSONObject> data = new ArrayList<>();
                 for (Map<String, Object> m : list) {
-                    JSONObject jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
+                    JSONObject jsonObject = null;
+                    try {
+                        jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
+                    } catch (Exception e) {
+                        LOG.error("解析content异常,content:{}", m.get("content"), e);
+                        continue;
+                    }
                     jsonObject.put("createTime", m.get("create_time"));
                     jsonObject.put("updateTime", m.get("update_time"));
                     jsonObject.put("province", m.get("province"));
@@ -574,9 +607,16 @@ public class EntDataService {
                                     k.setValue(String.valueOf(k.getValue()).split("至")[1].replaceAll(" ", ""));
                                 }
                             }
-                            DateTime parse = DateUtil.parse(String.valueOf(k.getValue()).replaceAll("至", "")
-                                    .replaceAll("年", "-").replaceAll("月", "-")
-                                    .replaceAll("日", "-"), "yyyy-MM-dd");
+                            DateTime parse = null;
+                            try {
+                                parse = DateUtil.parse(String.valueOf(k.getValue()).replaceAll("至", "")
+                                        .replaceAll("年", "-").replaceAll("月", "-")
+                                        .replaceAll("日", "-"), "yyyy-MM-dd");
+                            } catch (DateException e) {
+                                LOG.error("企业名称:{},[{}]转换异常,数据:{}", jsonObject.getString("entName"), k.getKey(), jsonObject);
+                                k.setValue(null);
+                                continue;
+                            }
                             k.setValue(parse.getTime());
                         }
                     }

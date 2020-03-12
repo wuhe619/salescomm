@@ -11,6 +11,6 @@ import java.util.List;
 public class LkCrmAdminDeptDao extends SimpleHibernateDao<LkCrmAdminDeptEntity, Integer> {
 
     public List queryByIds(List deptIds) {
-        return super.queryListBySql(" select dept_id as id,name from lkcrm_admin_dept where dept_id in (" + SqlAppendUtil.sqlAppendWhereIn(deptIds) + ")");
+        return super.sqlQuery(" select dept_id as id,name from lkcrm_admin_dept where dept_id in (" + SqlAppendUtil.sqlAppendWhereIn(deptIds) + ")");
     }
 }

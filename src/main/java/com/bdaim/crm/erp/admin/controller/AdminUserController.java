@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.admin.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.NotNullValidate;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.Map;
 
 /**
  * @author Chacker
@@ -64,11 +66,11 @@ public class AdminUserController extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/queryUserList", method = RequestMethod.POST)
-    public R queryUserList(BasePageRequest basePageRequest, AdminUser adminUser, String roleId) {
+    public R queryUserList(BasePageRequest basePageRequest, AdminUser adminUser, String roleId, String roleName) {
         //String roleId = getPara("roleId");
         basePageRequest.setData(adminUser);
 //        renderJson(adminUserService.queryUserList(basePageRequest, roleId));
-        return adminUserService.queryUserList(basePageRequest, roleId);
+        return adminUserService.queryUserList(basePageRequest, roleId, roleName);
     }
 
     /**
@@ -138,7 +140,12 @@ public class AdminUserController extends BasicAction {
     public R queryLoginUser() {
         ResponseInfo resp = new ResponseInfo();
         resp.setData(adminUserService.resetUser());
-        return (R.ok().put("data", adminUserService.resetUser()));
+        LkCrmAdminUserEntity lkCrmAdminUserEntity = adminUserService.resetUser();
+        Map map = BeanUtil.beanToMap(lkCrmAdminUserEntity);
+        map.put("userId", String.valueOf(map.get("userId")));
+        map.remove("salt");
+        map.remove("num");
+        return (R.ok().put("data", map));
         //renderJson(R.ok().put("data",adminUserService.resetUser()));
     }
 

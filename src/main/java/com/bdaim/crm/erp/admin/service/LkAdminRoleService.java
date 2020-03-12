@@ -31,10 +31,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @Transactional
@@ -56,9 +53,13 @@ public class LkAdminRoleService {
      * @author wyq
      * 获取全部角色列表
      */
-    public List<Record> getAllRoleList() {
+    public List<Record> getAllRoleList(String roleName, Integer rType) {
         List<Record> records = new ArrayList<>();
-        for (Integer roleType : BaseConstant.ROLE_TYPES) {
+        Integer[] types = BaseConstant.ROLE_TYPES;
+        if (rType != null) {
+            types = new Integer[]{rType};
+        }
+        for (Integer roleType : types) {
             Record record = new Record();
             record.set("name", roleTypeCaseName(roleType));
             record.set("pid", roleType);
@@ -66,11 +67,17 @@ public class LkAdminRoleService {
             if (1 == roleType) {
                 custId = "";
             }
-            List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminRoleDao.getRoleListByRoleType(roleType, custId));
+            List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminRoleDao.getRoleListByRoleType(roleType, custId, roleName));
             recordList.forEach(role -> {
                 List<Integer> crm = crmAdminRoleDao.getRoleMenu(role.getInt("id"), 1, 1);
                 List<Integer> bi = crmAdminRoleDao.getRoleMenu(role.getInt("id"), 2, 2);
-                role.set("rules", new JSONObject().fluentPut("crm", crm).fluentPut("bi", bi));
+
+                List<Integer> manage = crmAdminRoleDao.getRoleMenu(role.getInt("id"), 3, 3);
+                List<Integer> find = crmAdminRoleDao.getRoleMenu(role.getInt("id"), 169, 169);
+                role.set("rules", new JSONObject().fluentPut("crm", crm).fluentPut("bi", bi)
+                        .fluentPut("find", find).fluentPut("manage", manage));
+
+                role.set("userNum", crmAdminRoleDao.queryForInt("SELECT COUNT(0) FROM lkcrm_admin_user_role a JOIN lkcrm_admin_user b on a.user_id = b.user_id WHERE a.role_id = ? AND b.cust_id = ? ", role.getInt("id"), BaseUtil.getCustId()));
             });
             record.set("list", recordList);
             records.add(record);
@@ -96,6 +103,7 @@ public class LkAdminRoleService {
         if (number > 0) {
             return R.error("角色名已存在");
         }
+        adminRole.setCreateTime(new Date());
         adminRole.setStatus(1);
         adminRole.setDataType(5);
         adminRole.setIsHidden(1);
@@ -108,6 +116,7 @@ public class LkAdminRoleService {
      */
     public Integer update(LkCrmAdminRoleEntity adminRole) {
         adminRole.setCustId(BaseUtil.getCustId());
+        adminRole.setUpdateTime(new Date());
         LkCrmAdminRoleEntity entity = crmAdminRoleDao.get(adminRole.getRoleId());
         BeanUtils.copyProperties(adminRole, entity, JavaBeanUtil.getNullPropertyNames(adminRole));
         crmAdminRoleDao.update(entity);
@@ -264,6 +273,7 @@ public class LkAdminRoleService {
         crmAdminRoleDao.getSession().clear();
         LkCrmAdminRoleEntity newAdminRole = new LkCrmAdminRoleEntity(adminRole.getRoleName(), adminRole.getRoleType(), adminRole.getRemark(), adminRole.getStatus()
                 , adminRole.getDataType(), adminRole.getIsHidden(), adminRole.getLabel(), adminRole.getCustId());
+        newAdminRole.setCreateTime(new Date());
         Integer copyRoleId = (int) crmAdminRoleDao.saveReturnPk(newAdminRole);
         //Integer copyRoleId = newAdminRole.getRoleId();
         adminMenuService.saveRoleMenu(copyRoleId, adminRole.getDataType(), menuIdsList);
@@ -378,12 +388,14 @@ public class LkAdminRoleService {
         adminRole.setRoleType(6);
         adminRole.setRemark(remark);
         if (roleId == null) {
+            adminRole.setCreateTime(new Date());
             bol = (int) crmAdminRoleDao.saveReturnPk(adminRole) > 0;
         } else {
             adminRole.setRoleId(roleId);
             //crmAdminRoleDao.executeUpdateSQL("delete from `lkcrm_admin_role_menu` where role_id = ?", roleId);
             LkCrmAdminRoleEntity entity = crmAdminRoleDao.get(roleId);
             BeanUtils.copyProperties(adminRole, entity, JavaBeanUtil.getNullPropertyNames(adminRole));
+            entity.setUpdateTime(new Date());
             crmAdminRoleDao.update(entity);
             bol = true;
         }

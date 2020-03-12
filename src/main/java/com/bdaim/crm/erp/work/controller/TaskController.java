@@ -1,6 +1,7 @@
 package com.bdaim.crm.erp.work.controller;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
@@ -21,10 +22,7 @@ import com.bdaim.crm.utils.TagUtil;
 import com.jfinal.core.paragetter.Para;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.web.bind.ServletRequestDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -193,17 +191,17 @@ public class TaskController extends BasicAction {
         Integer priority = getParaToInt("priority");
         Integer date = getParaToInt("date");
         Integer mold = getParaToInt("mold");
-        Integer userId = getParaToInt("userId");
+        Long userId = getLong("userId");
         String name = getPara("search");
-        List<Integer> userIds = new ArrayList<>();
+        List<Long> userIds = new ArrayList<>();
         if (mold == null) {
-            userIds.add(BaseUtil.getUser().getUserId().intValue());
+            userIds.add(BaseUtil.getUser().getUserId());
         } else if (mold == 1 && userId == null) {
-            userIds = adminUserService.queryUserIdsByParentId(BaseUtil.getUser().getUserId().intValue());
+            userIds = adminUserService.queryUserIdsByParentId(BaseUtil.getUser().getUserId());
         } else {
             List<Long> list = adminUserService.queryChileUserIds(BaseUtil.getUser().getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
             for (Long id : list) {
-                if (id.intValue() == userId) {
+                if (id == userId) {
                     userIds.add(userId);
                 }
             }
@@ -275,5 +273,25 @@ public class TaskController extends BasicAction {
     @RequestMapping(value = "/archiveByTaskId", method = RequestMethod.POST)
     public R archiveByTaskId(@Para("taskId") Integer taskId) {
         return (taskService.archiveByTaskId(taskId));
+    }
+
+    /**
+     * 跟进记录类型设置
+     */
+    @RequestMapping(value = "/queryRecordOptions", method = RequestMethod.POST)
+    public R queryRecordOptions() {
+        return (taskService.queryRecordOptions());
+    }
+
+    /**
+     * 设置任务类型
+     */
+    @RequestMapping(value = "/setRecordOptions", method = RequestMethod.POST)
+    public R setRecordOptions(@RequestBody JSONObject jsonObject) {
+        //JSONObject jsonObject = JSONObject.parseObject(getRawData());
+        //JSONArray jsonArray = JSONArray.parseArray(jsonObject.getString("value"));
+        //List<String> list = jsonArray.toJavaList(String.class);
+        List<String> list = (List<String>) jsonObject.get("value");
+        return (taskService.setRecordOptions(list));
     }
 }

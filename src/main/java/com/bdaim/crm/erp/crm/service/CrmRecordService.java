@@ -371,7 +371,7 @@ public class CrmRecordService<T> {
      * 查询跟进记录类型
      */
     public R queryRecordOptions() {
-        List<String> list = crmActionRecordDao.queryListBySql("select value from lkcrm_admin_config where name = ? ", "followRecordOption");
+        List<String> list = crmActionRecordDao.queryListBySql("select value from lkcrm_admin_config where name = ? AND cust_id = ? ", "followRecordOption", BaseUtil.getCustId());
         return R.ok().put("data", list);
     }
 
@@ -381,10 +381,11 @@ public class CrmRecordService<T> {
      */
     @Before(Tx.class)
     public R setRecordOptions(List<String> list) {
-        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'followRecordOption'");
+        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'followRecordOption' AND cust_id = ? ", BaseUtil.getCustId());
         List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
+            adminConfig.setCustId(BaseUtil.getCustId());
             adminConfig.setName("followRecordOption");
             adminConfig.setValue(list.get(i));
             adminConfig.setDescription("跟进记录选项");

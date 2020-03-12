@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmBusinessTypeEntity;
+import com.bdaim.crm.utils.BaseUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,8 +17,8 @@ public class LkCrmBusinessTypeDao extends SimpleHibernateDao<LkCrmBusinessTypeEn
     }
 
     public Page queryBusinessTypeList(int page, int limit) {
-        String sql = "select a.type_id,a.name,a.create_time,a.dept_ids,a.create_user_id,(select c.username from t_customer_user c where c.id = a.create_user_id) as createName from lkcrm_crm_business_type a";
-        return sqlPageQuery(sql, page, limit);
+        String sql = "select a.type_id,a.name,a.create_time,a.dept_ids,a.create_user_id,(select c.username from lkcrm_admin_user c where c.user_id = a.create_user_id) as createName from lkcrm_crm_business_type a WHERE a.cust_id = ? ";
+        return sqlPageQuery(sql, page, limit, BaseUtil.getCustId());
     }
 
     public Map getBusinessType(String type_id) {

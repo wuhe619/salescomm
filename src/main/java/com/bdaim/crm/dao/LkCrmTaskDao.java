@@ -4,6 +4,7 @@ import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmSqlParams;
 import com.bdaim.crm.entity.LkCrmTaskEntity;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.SqlAppendUtil;
 import com.bdaim.util.StringUtil;
 import org.springframework.stereotype.Component;
@@ -60,7 +61,7 @@ public class LkCrmTaskDao extends SimpleHibernateDao<LkCrmTaskEntity, Integer> {
         return super.queryListBySql(sql, userId, userId, startTime, endTime);
     }
 
-    public LkCrmSqlParams getTaskList(Integer type, List<Integer> userIds, Integer status,
+    public LkCrmSqlParams getTaskList(Integer type, List<Long> userIds, Integer status,
                                       Integer priority, Integer date, String name) {
         StringBuffer sqlBuffer = new StringBuffer();
         List<Object> params = new ArrayList<>();
@@ -69,7 +70,8 @@ public class LkCrmTaskDao extends SimpleHibernateDao<LkCrmTaskEntity, Integer> {
                 .append("(select count(*) from lkcrm_task where pid = a.task_id and status = 5) as childWCCount,")
                 .append("(select count(*) from lkcrm_task where pid = a.task_id) as childAllCount,")
                 .append("(select count(*) from lkcrm_admin_file where batch_id = a.batch_id) as fileCount")
-                .append(" from lkcrm_task a where a.pid = 0 and a.ishidden = 0 ");
+                .append(" from lkcrm_task a where a.pid = 0 and a.ishidden = 0 AND a.cust_id = ? ");
+        params.add(BaseUtil.getCustId());
         if (type == null || type == 0) {
             sqlBuffer.append(" and ( a.main_user_id in ( ")
                     .append(SqlAppendUtil.sqlAppendWhereIn(userIds))

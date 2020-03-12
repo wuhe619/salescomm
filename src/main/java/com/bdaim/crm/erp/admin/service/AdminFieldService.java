@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.admin.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
@@ -24,6 +25,7 @@ import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -51,7 +53,7 @@ public class AdminFieldService {
      * 查询新增字段列表
      */
     public List<Record> queryAddField(Integer label) {
-        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery("select field_id,field_name,name,type,input_tips,options,is_unique,is_null,'' as value,field_type from lkcrm_admin_field where label = ? order by sorting", label);
+        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery("select field_id,field_name,name,type,input_tips,options,is_unique,is_null,'' as value,field_type from lkcrm_admin_field where label = ? AND cust_id = ? order by sorting", label, BaseUtil.getCustId());
         List<Record> fieldList = JavaBeanUtil.mapToRecords(maps);
         recordToFormType(fieldList);
         if (label == 2) {
@@ -79,11 +81,11 @@ public class AdminFieldService {
      * 查询编辑字段列表
      */
     public List<Record> queryUpdateField(Integer label, Record record) {
-        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery("select field_id,field_name,name,type,input_tips,options,is_unique,is_null,'' as value,field_type from lkcrm_admin_field where label = ? order by sorting", label);
+        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery("select field_id,field_name,name,type,input_tips,options,is_unique,is_null,'' as value,field_type from lkcrm_admin_field where label = ? AND cust_id = ? order by sorting", label, BaseUtil.getCustId());
         List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
         recordList.forEach(r -> {
             if (r.getInt("type") == 10 || r.getInt("type") == 12) {
-                r.set("value", crmAdminFieldDao.queryForObject("select value from lkcrm_admin_fieldv where field_id = ? and batch_id = ?", r.getInt("field_id"), record.getStr("batch_id")));
+                r.set("value", crmAdminFieldDao.queryForObject("select value from lkcrm_admin_fieldv where field_id = ? and batch_id = ? AND cust_id = ?", r.getInt("field_id"), record.getStr("batch_id"), BaseUtil.getCustId()));
             } else {
                 r.set("value", record.get(r.getStr("field_name")) != null ? record.get(r.getStr("field_name")) : "");
             }
@@ -104,7 +106,6 @@ public class AdminFieldService {
     }
 
     /**
-     * author zhangzhiwei
      * 保存自定义字段信息
      *
      * @param jsonObject 详见接口文档
@@ -131,7 +132,7 @@ public class AdminFieldService {
                 arr.add(field.getFieldId());
             }
         });
-        List<LkCrmAdminFieldEntity> fieldSorts = crmAdminFieldDao.find("from LkCrmAdminFieldEntity where label = ?", label);
+        List<LkCrmAdminFieldEntity> fieldSorts = crmAdminFieldDao.find("from LkCrmAdminFieldEntity where label = ? AND custId = ?", label, BaseUtil.getCustId());
         List<String> nameList = fieldSorts.stream().map(LkCrmAdminFieldEntity::getName).collect(Collectors.toList());
         if (arr.size() > 0) {
            /* SqlPara sql = Db.getSqlPara("admin.field.deleteByChooseId", Kv.by("ids", arr).set("label", label).set("categoryId", categoryId));
@@ -149,6 +150,7 @@ public class AdminFieldService {
                 adminFields.getJSONObject(i).remove("defaultValue");
             }
             LkCrmAdminFieldEntity entity = TypeUtils.castToJavaBean(adminFields.get(i), LkCrmAdminFieldEntity.class);
+            entity.setCustId(BaseUtil.getCustId());
             entity.setUpdateTime(DateUtil.date().toTimestamp());
             if (entity.getFieldType() == null || entity.getFieldType() == 0) {
                 entity.setFieldName(entity.getName());
@@ -160,7 +162,9 @@ public class AdminFieldService {
             entity.setLabel(label);
             if (entity.getFieldId() != null) {
                 ///entity.update();
-                crmAdminFieldDao.update(entity);
+                LkCrmAdminFieldEntity lkCrmAdminFieldEntity = crmAdminFieldDao.get(entity.getFieldId());
+                BeanUtils.copyProperties(entity, lkCrmAdminFieldEntity, JavaBeanUtil.getNullPropertyNames(entity));
+                crmAdminFieldDao.update(lkCrmAdminFieldEntity);
                 if (entity.getFieldType() == 0) {
                     crmAdminFieldDao.updateFieldSortName(entity.getName(), entity.getFieldId());
                     //Db.update(Db.getSqlPara("admin.field.updateFieldSortName", entity));
@@ -169,7 +173,10 @@ public class AdminFieldService {
                 }
             } else {
                 //entity.save();
-                crmAdminFieldDao.saveOrUpdate(entity);
+                if (entity.getFieldType() == null) {
+                    entity.setFieldType(0);
+                }
+                crmAdminFieldDao.save(entity);
             }
             fieldList.add(entity.getName());
         }
@@ -187,9 +194,9 @@ public class AdminFieldService {
         Integer number = 0;
         if ("0".equals(kv.get("fieldType"))) {
             String sql = " SELECT COUNT(*) FROM lkcrm_admin_field as a inner join lkcrm_admin_fieldv as b on a.field_id = b.field_id " +
-                    "      WHERE a.label=? and a.name=? and b.value=?";
+                    "      WHERE a.label=? and a.name=? and b.value=? AND custId = ? ";
             //SqlPara sqlPara = Db.getSqlPara("admin.field.queryFieldIsExist",kv);
-            number = crmAdminFieldDao.queryForInt(sql, kv.get("types"), kv.get("fieldName"), kv.get("val"));
+            number = crmAdminFieldDao.queryForInt(sql, kv.get("types"), kv.get("fieldName"), kv.get("val"), BaseUtil.getCustId());
         } else {
             String type = kv.get("types").toString();
             String tableName;
@@ -275,16 +282,17 @@ public class AdminFieldService {
         crmAdminFieldvDao.deleteByBatchId(batchId);
         //Db.deleteById("lkcrm_admin_fieldv", "batch_id", batchId);
         array.forEach(fieldv -> {
-            fieldv.setId(null);
+            //fieldv.setId(null);
             fieldv.setCreateTime(new Timestamp(System.currentTimeMillis()));
             fieldv.setBatchId(batchId);
+            fieldv.setCustId(BaseUtil.getCustId());
             crmAdminFieldvDao.save(fieldv);
         });
         return true;
     }
 
     public synchronized void createView(Integer label) {
-        List<Record> fieldNameList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.sqlQuery("select name,type from lkcrm_admin_field WHERE label=? and field_type = 0 ORDER BY sorting asc", label));
+        List<Record> fieldNameList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.sqlQuery("select name,type from lkcrm_admin_field WHERE label=? and field_type = 0 AND cust_id =? ORDER BY sorting asc", label, BaseUtil.getCustId()));
         StringBuilder sql = new StringBuilder();
         StringBuilder userJoin = new StringBuilder();
         StringBuilder deptJoin = new StringBuilder();
@@ -483,7 +491,9 @@ public class AdminFieldService {
             params.add(categoryId);
             sql.append(" and examine_category_id= ? ");
         }
+        sql.append(" AND cust_id = ? ");
         sql.append(" ORDER BY sorting asc");
+        params.add(BaseUtil.getCustId());
         List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery(sql.toString(), params.toArray());
         List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
 

@@ -44,9 +44,9 @@ public class AdminExamineService {
      */
     public R saveExamine(JSONObject jsonObject) {
         LkCrmAdminExamineEntity adminExamine = jsonObject.toJavaObject(LkCrmAdminExamineEntity.class);
-        List<Integer> deptIds = jsonObject.getJSONArray("deptIds").toJavaList(Integer.class);
+        List<Long> deptIds = jsonObject.getJSONArray("deptIds").toJavaList(Long.class);
         adminExamine.setDeptIds(getIds(deptIds));
-        List<Integer> userIds = jsonObject.getJSONArray("userIds").toJavaList(Integer.class);
+        List<Long> userIds = jsonObject.getJSONArray("userIds").toJavaList(Long.class);
         adminExamine.setUserIds(getIds(userIds));
         Boolean flag;
 
@@ -91,7 +91,7 @@ public class AdminExamineService {
                 examineStep.setExamineId(adminExamine.getExamineId());
                 examineStep.setCreateTime(DateUtil.date().toTimestamp());
                 examineStep.setStepNum(i++);
-                List<Integer> list = e.getJSONArray("checkUserId").toJavaList(Integer.class);
+                List<Long> list = e.getJSONArray("checkUserId").toJavaList(Long.class);
                 examineStep.setCheckUserId(getIds(list));
                 crmAdminExamineStepDao.save(examineStep);
             }
@@ -170,12 +170,12 @@ public class AdminExamineService {
         return R.ok();
     }
 
-    private String getIds(List<Integer> ids) {
+    private String getIds(List<Long> ids) {
         if (ids == null || ids.size() == 0) {
             return null;
         } else {
             StringBuffer idss = new StringBuffer();
-            for (Integer id : ids) {
+            for (Long id : ids) {
                 if (idss.length() == 0) {
                     idss.append(",").append(id).append(",");
                 } else {

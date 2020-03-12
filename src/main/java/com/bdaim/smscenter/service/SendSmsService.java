@@ -649,7 +649,7 @@ public class SendSmsService{
             case 11:
                 templateId = "2774";
                 values.add(vCode);
-                values.add("11");
+                values.add("30");
                 break;
             default:
                 throw new RuntimeException("type match value！");

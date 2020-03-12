@@ -11,7 +11,7 @@ import java.util.Map;
 @Component
 public class LkCrmWorkbenchDao extends SimpleHibernateDao<LkCrmTaskEntity, Integer> {
 
-    public List myTask(Integer userId, Integer isTop) {
+    public List myTask(Long userId, Integer isTop) {
         String sql = "SELECT " +
                 " a.*,b.NAME AS workName, " +
                 " ( SELECT count( * ) FROM lkcrm_task_comment WHERE type_id = a.task_id AND type = 1 ) AS commentCount, " +
@@ -28,17 +28,25 @@ public class LkCrmWorkbenchDao extends SimpleHibernateDao<LkCrmTaskEntity, Integ
                 " AND a.is_top = ?  " +
                 " AND ( a.STATUS = 1 OR a.STATUS = 2 )  " +
                 " AND a.is_archive = 0";
-        return super.queryListBySql(sql, userId, userId, isTop);
+        return super.sqlQuery(sql, userId, userId, isTop);
     }
 
-    public Map<String, Object> getMainUser(Integer mainUserId) {
+    public Map<String, Object> getMainUser(Long mainUserId) {
         String sql = "select user_id,realname,img from lkcrm_admin_user where user_id = ?";
-        return (Map<String, Object>) super.queryListBySql(sql, mainUserId).get(0);
+        List<Map<String, Object>> list = sqlQuery(sql, mainUserId);
+        if (list.size() > 0) {
+            return list.get(0);
+        }
+        return null;
     }
 
-    public Map<String, Object> getCreateUser(Integer create_user_id) {
+    public Map<String, Object> getCreateUser(Long create_user_id) {
         String sql = "select user_id,realname,img from lkcrm_admin_user where user_id = ?";
-        return (Map<String, Object>) super.queryListBySql(sql, create_user_id);
+        List<Map<String, Object>> list = sqlQuery(sql, create_user_id);
+        if (list.size() > 0) {
+            return list.get(0);
+        }
+        return null;
     }
 
     public void updateFromToTop(String updateSql, Integer fromTopId, int i, Object o) {
@@ -47,7 +55,7 @@ public class LkCrmWorkbenchDao extends SimpleHibernateDao<LkCrmTaskEntity, Integ
 
     public Map<String, Object> getLableById(String lableId) {
         String sql = "select label_id,name as labelName,color from lkcrm_work_task_label where label_id = ?";
-        List<Map<String, Object>> list = super.queryListBySql(sql, lableId);
+        List<Map<String, Object>> list = super.sqlQuery(sql, lableId);
         if (!CollectionUtils.isEmpty(list)) {
             return list.get(0);
         } else {

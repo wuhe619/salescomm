@@ -30,8 +30,8 @@ public class AdminRoleController extends BasicAction {
      */
     @Permissions("manage:permission")
     @RequestMapping(value = "/getAllRoleList", method = RequestMethod.POST)
-    public R getAllRoleList() {
-        return (R.ok().put("data", adminRoleService.getAllRoleList()));
+    public R getAllRoleList(String roleName, Integer roleType) {
+        return (R.ok().put("data", adminRoleService.getAllRoleList(roleName, roleType)));
     }
 
     /**
@@ -65,7 +65,7 @@ public class AdminRoleController extends BasicAction {
     @NotNullValidate(value = "roleName", message = "角色名称不能为空")
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     public R update(@Para("") LkCrmAdminRoleEntity adminRole) {
-        Integer number = adminRoleService.checkCustRoleExist( adminRole.getRoleName(), adminRole.getRoleType(), adminRole.getRoleId(), BaseUtil.getCustId());
+        Integer number = adminRoleService.checkCustRoleExist(adminRole.getRoleName(), adminRole.getRoleType(), adminRole.getRoleId(), BaseUtil.getCustId());
         if (number > 0) {
             return (R.error("角色名已存在"));
         } else {
@@ -90,9 +90,13 @@ public class AdminRoleController extends BasicAction {
      *
      * @author zhangzhiwei
      */
-    @ResponseBody
-    @RequestMapping(value = "/auth", method = RequestMethod.POST)
+    @RequestMapping(value = "/auth0", method = RequestMethod.POST)
     public R auth() {
+        return (R.ok().put("data", adminRoleService.auth(BaseUtil.getUser().getUserId())));
+    }
+
+    @RequestMapping(value = "/auth", method = RequestMethod.POST)
+    public R auth0() {
         JSONObject jsonObject = JSON.parseObject("{\"work\":{\"task\":{\"save\":true},\"work\":{\"update\":true},\"taskClass\":{\"save\":true,\"update\":true,\"delete\":true}},\"bi\":{\"product\":{\"read\":true},\"oa\":{\"read\":true},\"performance\":{\"read\":true},\"business\":{\"read\":true},\"funnel\":{\"read\":true},\"achievement\":{\"read\":true},\"employe\":{\"read\":true},\"receivables\":{\"read\":true},\"ranking\":{\"read\":true},\"portrait\":{\"read\":true},\"customer\":{\"read\":true}},\"crm\":{\"product\":{\"read\":true,\"excelexport\":false,\"save\":true,\"update\":true,\"index\":true,\"excelimport\":false,\"status\":true},\"business\":{\"read\":true,\"transfer\":true,\"teamsave\":true,\"save\":true,\"update\":true,\"index\":true,\"delete\":true},\"leads\":{\"transform\":true,\"read\":true,\"transfer\":true,\"excelexport\":true,\"save\":true,\"update\":true,\"index\":true,\"excelimport\":true,\"delete\":true,\"lock\":true},\"publicsea\":{\"distribute\":true,\"fastdistribute\":true,\"getselect\":true,\"fastget\":true,\"read\":true,\"excelexport\":true,\"save\":true,\"update\":true,\"index\":true,\"excelimport\":true,\"delete\":true,\"lock\":true},\"contract\":{\"read\":true,\"transfer\":true,\"teamsave\":true,\"save\":true,\"update\":true,\"index\":true,\"delete\":true},\"pool\":{\"receive\":true,\"excelexport\":true,\"index\":true,\"distribute\":true},\"receivables\":{\"read\":true,\"save\":true,\"update\":true,\"index\":true,\"delete\":true},\"contacts\":{\"read\":true,\"transfer\":true,\"excelexport\":true,\"save\":true,\"update\":true,\"index\":true,\"excelimport\":true,\"delete\":true},\"customer\":{\"receive\":true,\"read\":true,\"teamsave\":true,\"save\":true,\"pool\":true,\"update\":true,\"index\":true,\"excelimport\":true,\"putinpool\":true,\"delete\":true,\"transfer\":true,\"excelexport\":true,\"lock\":true,\"distribute\":true}},\"manage\":{\"oa\":true,\"system\":true,\"examineFlow\":true,\"permission\":true,\"user\":true,\"crm\":true}}");
         // 管理员
         JSONObject crm = jsonObject.getJSONObject("crm");
@@ -111,7 +115,6 @@ public class AdminRoleController extends BasicAction {
             crm.getJSONObject("publicsea").put("fastdistribute", false);
         }
         jsonObject.put("crm", crm);
-        //return(R.ok().put("data",adminRoleService.auth(BaseUtil.getUser().getUserId())));
         return (R.ok().put("data", jsonObject));
     }
 

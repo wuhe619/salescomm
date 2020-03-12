@@ -8,8 +8,10 @@ import com.bdaim.common.helper.SQLHelper;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminDeptDao;
+import com.bdaim.crm.dao.LkCrmAdminFieldDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
 import com.bdaim.crm.entity.LkCrmAdminDeptEntity;
+import com.bdaim.crm.entity.LkCrmAdminFieldEntity;
 import com.bdaim.crm.entity.LkCrmAdminUserEntity;
 import com.bdaim.crm.entity.LkCrmAdminUserRoleEntity;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
@@ -57,6 +59,8 @@ public class LkAdminUserService {
     private CustomerSeaService customerSeaService;
     @Autowired
     private MarketProjectService marketProjectService;
+    @Autowired
+    private LkCrmAdminFieldDao crmAdminFieldDao;
 
     private void saveBpUser(long id, String userName, String realName, String password, String custId, int userType,
                             String callType, String callChannel, UserCallConfigDTO userDTO) {
@@ -226,12 +230,24 @@ public class LkAdminUserService {
         dto.setName("默认公海项目");
         dto.setType("2");
         marketProjectService.saveMarketProjectAndSeaReturnId(dto, custId, userId);
+        // 初始化自定义字段
+        List<LkCrmAdminFieldEntity> defaultFieldList = crmAdminFieldDao.queryDefaultCustomerFieldList();
+        crmAdminFieldDao.getSession().clear();
+        List<LkCrmAdminFieldEntity> customerFieldList = new ArrayList<>();
+        LkCrmAdminFieldEntity newEntity;
+        for (LkCrmAdminFieldEntity db : defaultFieldList) {
+            newEntity = new LkCrmAdminFieldEntity();
+            BeanUtils.copyProperties(db, newEntity, "fieldId");
+            newEntity.setCustId(custId);
+            customerFieldList.add(newEntity);
+        }
+        crmAdminFieldDao.batchSaveOrUpdate(customerFieldList);
         return R.isSuccess(true);
     }
 
     private void updateScene(LkCrmAdminUserEntity adminUser) {
         List<Long> ids = new ArrayList<>();
-        if (adminUser.getUserId() == 0 && adminUser.getParentId() != null ) {
+        if (adminUser.getUserId() == 0 && adminUser.getParentId() != null) {
             ids.add(adminUser.getParentId());
         } else if (adminUser.getUserId() != 0) {
 //            AdminUser oldAdminUser = AdminUser.dao.findById(adminUser.getUserId());
@@ -285,7 +301,7 @@ public class LkAdminUserService {
         return adminUser;
     }
 
-    public R queryUserList(BasePageRequest<AdminUser> request, String roleId) {
+    public R queryUserList(BasePageRequest<AdminUser> request, String roleId, String roleName) {
         List<Integer> deptIdList = new ArrayList<>();
         if (request.getData().getDeptId() != null) {
             deptIdList.add(request.getData().getDeptId());
@@ -293,12 +309,12 @@ public class LkAdminUserService {
         }
         if (request.getPageType() != null && request.getPageType() == 0) {
             List<Map<String, Object>> recordMaps = crmAdminUserDao.queryUserList(request.getData().getRealname(),
-                    deptIdList, request.getData().getStatus(), roleId);
+                    deptIdList, request.getData().getStatus(), roleId, roleName);
             List<Record> recordList = JavaBeanUtil.mapToRecords(recordMaps);
             return R.ok().put("data", recordList);
         } else {
             Page page = crmAdminUserDao.queryUserListByPage(request.getPage(), request.getLimit(),
-                    request.getData().getRealname(), deptIdList, request.getData().getStatus(), roleId);
+                    request.getData().getRealname(), deptIdList, request.getData().getStatus(), roleId, roleName);
             return R.ok().put("data", BaseUtil.crmPage(page));
         }
     }
@@ -383,12 +399,12 @@ public class LkAdminUserService {
      * @author Chacker
      * 查询系统下属用户列表
      */
-    public List<Integer> queryUserIdsByParentId(Integer userId) {
+    public List<Long> queryUserIdsByParentId(Long userId) {
         String sql = "select user_id from lkcrm_admin_user where parent_id = ? ";
-        List<Record> records = JavaBeanUtil.mapToRecords(crmAdminUserDao.queryListBySql(sql, userId));
-        List<Integer> userIds = new ArrayList<>();
+        List<Record> records = JavaBeanUtil.mapToRecords(crmAdminUserDao.sqlQuery(sql, userId));
+        List<Long> userIds = new ArrayList<>();
         for (Record record : records) {
-            userIds.add(record.getInt("user_id"));
+            userIds.add(record.getLong("user_id"));
         }
         return userIds;
     }
@@ -398,8 +414,8 @@ public class LkAdminUserService {
      * 查询部门属用户列表
      */
     public R queryListNameByDept(String name) {
-        String sql = "select name,dept_id from lkcrm_admin_dept ORDER BY num";
-        List<Map<String, Object>> recordMaps = crmAdminUserDao.queryListBySql(sql);
+        String sql = "select name,dept_id from lkcrm_admin_dept WHERE cust_id = ? ORDER BY num";
+        List<Map<String, Object>> recordMaps = crmAdminUserDao.sqlQuery(sql, BaseUtil.getCustId());
         List<Record> records = JavaBeanUtil.mapToRecords(recordMaps);
         for (Record record : records) {
             List<Map<String, Object>> usersMap = crmAdminUserDao.queryUsersByDeptId(
@@ -424,7 +440,7 @@ public class LkAdminUserService {
     }
 
     public R queryAllUserList() {
-        List<Map<String, Object>> recordMap = crmAdminUserDao.queryUserList(null, null, null, null);
+        List<Map<String, Object>> recordMap = crmAdminUserDao.queryUserList(null, null, null, null, "");
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordMap);
         return R.ok().put("data", recordList);
     }
