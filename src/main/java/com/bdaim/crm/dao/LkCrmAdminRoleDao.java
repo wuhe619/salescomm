@@ -47,7 +47,7 @@ public class LkCrmAdminRoleDao extends SimpleHibernateDao<LkCrmAdminRoleEntity, 
     }
 
     public List<Map<String, Object>> getRoleListByRoleType(Integer roleType, String custId, String roleName) {
-        String sql = " select role_id as id ,role_name as title,role_name as remark,data_type as type,status,role_type as pid,label,create_time,update_time from lkcrm_admin_role WHERE role_type=? and is_hidden = 1";
+        String sql = " select role_type , role_name,role_id as id ,role_name as title, role_name as remark,data_type as type,status,role_type as pid,label,create_time,update_time from lkcrm_admin_role WHERE role_type=? and is_hidden = 1";
         List param = new ArrayList();
         param.add(roleType);
         if (StringUtil.isNotEmpty(custId)) {
