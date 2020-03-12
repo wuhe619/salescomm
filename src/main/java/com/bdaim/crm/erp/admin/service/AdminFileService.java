@@ -7,6 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import com.bdaim.AppConfig;
 import com.bdaim.common.service.UploadFileService;
 import com.bdaim.crm.dao.LkCrmAdminFileDao;
+import com.bdaim.crm.dto.LkCrmAdminFileDTO;
 import com.bdaim.crm.entity.LkCrmAdminFileEntity;
 import com.bdaim.crm.erp.admin.entity.AdminFile;
 import com.bdaim.crm.utils.BaseUtil;
@@ -125,8 +126,8 @@ public class AdminFileService {
             return;
         }
         //List<AdminFile> adminFiles=AdminFile.dao.find(Db.getSql("admin.file.queryByBatchId"), batchId);
-        List<LkCrmAdminFileEntity> adminFiles = crmAdminFileDao.queryByBatchId(batchId);
-        Map<String, List<LkCrmAdminFileEntity>> collect = adminFiles.stream().collect(Collectors.groupingBy(LkCrmAdminFileEntity::getFileType));
+        List<LkCrmAdminFileDTO> adminFiles = crmAdminFileDao.queryByBatchId(batchId);
+        Map<String, List<LkCrmAdminFileDTO>> collect = adminFiles.stream().collect(Collectors.groupingBy(LkCrmAdminFileDTO::getFileType));
         collect.forEach(record::set);
         if (!record.getColumns().containsKey("img") || record.get("img") == null) {
             record.set("img", new ArrayList<>());
@@ -137,7 +138,7 @@ public class AdminFileService {
 
     }
 
-    public List<LkCrmAdminFileEntity> queryByBatchId(String batchId) {
+    public List<LkCrmAdminFileDTO> queryByBatchId(String batchId) {
         if (batchId == null) {
             return new ArrayList<>();
         }
