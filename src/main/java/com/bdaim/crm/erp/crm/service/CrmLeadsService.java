@@ -962,11 +962,13 @@ public class CrmLeadsService {
      */
     public List<Record> information(Integer leadsId) {
         LkCrmLeadsEntity crmLeads = crmLeadsDao.get(leadsId);
+        LkCrmAdminUserEntity createUser = crmAdminUserDao.get(crmLeads.getCreateUserId());
         List<Record> fieldList = new ArrayList<>();
         FieldUtil field = new FieldUtil(fieldList);
         field.set("线索名称", crmLeads.getLeadsName()).set("电话", crmLeads.getMobile())
                 .set("手机", crmLeads.getTelephone()).set("下次联系时间", DateUtil.formatDateTime(crmLeads.getNextTime()))
-                .set("地址", crmLeads.getAddress()).set("备注", crmLeads.getRemark());
+                .set("地址", crmLeads.getAddress()).set("备注", crmLeads.getRemark())
+                .set("公司名称", crmLeads.getCompany()).set("创建人", createUser.getUsername());
         List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.queryCustomField(crmLeads.getBatchId()));
         //List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), crmLeads.getBatchId());
         fieldUtil.handleType(recordList);
