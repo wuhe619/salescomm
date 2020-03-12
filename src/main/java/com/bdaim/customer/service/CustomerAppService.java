@@ -277,6 +277,7 @@ public class CustomerAppService {
             if (StringUtil.isEmpty(map.get("custId").toString())) {
                 return map;
             }
+            map.put("token","");
             String cust_id = map.get("custId").toString();
             CustomerProperty mobile = customerDao.getProperty(cust_id, "mobile");
             if (mobile != null) {
@@ -303,6 +304,11 @@ public class CustomerAppService {
                 logger.info("settlement_method:{" + settlement_method + "}");
                 map.put("settlement_method", settlement_method.getPropertyValue());
             }
+            AmApplicationEntity applicationEntity = amApplicationDao.getByCustId(cust_id);
+            if(applicationEntity!=null){
+                map.put("token",applicationEntity.getAccessToken());
+            }
+
             return map;
         }).collect(Collectors.toList());
         Map<String, Object> map = new HashMap<>();
