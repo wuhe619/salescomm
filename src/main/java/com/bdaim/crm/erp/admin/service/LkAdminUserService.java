@@ -7,13 +7,11 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.helper.SQLHelper;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
+import com.bdaim.crm.dao.LkCrmAdminConfigDao;
 import com.bdaim.crm.dao.LkCrmAdminDeptDao;
 import com.bdaim.crm.dao.LkCrmAdminFieldDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
-import com.bdaim.crm.entity.LkCrmAdminDeptEntity;
-import com.bdaim.crm.entity.LkCrmAdminFieldEntity;
-import com.bdaim.crm.entity.LkCrmAdminUserEntity;
-import com.bdaim.crm.entity.LkCrmAdminUserRoleEntity;
+import com.bdaim.crm.entity.*;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
@@ -61,6 +59,8 @@ public class LkAdminUserService {
     private MarketProjectService marketProjectService;
     @Autowired
     private LkCrmAdminFieldDao crmAdminFieldDao;
+    @Autowired
+    private LkCrmAdminConfigDao crmAdminConfigDao;
 
     private void saveBpUser(long id, String userName, String realName, String password, String custId, int userType,
                             String callType, String callChannel, UserCallConfigDTO userDTO) {
@@ -242,6 +242,19 @@ public class LkAdminUserService {
             customerFieldList.add(newEntity);
         }
         crmAdminFieldDao.batchSaveOrUpdate(customerFieldList);
+        // 初始化跟进记录类型
+        String[] names = new String[]{"打电话", "发短信", "上门拜访"};
+        for (String n : names) {
+            LkCrmAdminConfigEntity entity = new LkCrmAdminConfigEntity();
+            entity.setCustId(custId);
+            entity.setIsSystem(1);
+            entity.setStatus(1);
+            entity.setName("followRecordOption");
+            entity.setValue(n);
+            entity.setDescription("跟进记录选项");
+            crmAdminConfigDao.saveOrUpdate(entity);
+        }
+
         return R.isSuccess(true);
     }
 
