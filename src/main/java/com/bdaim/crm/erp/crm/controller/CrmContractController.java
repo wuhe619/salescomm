@@ -5,6 +5,7 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.dto.LkCrmAdminRecordDTO;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.entity.LkCrmContractEntity;
@@ -59,8 +60,8 @@ public class CrmContractController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "/queryPage", method = RequestMethod.POST)
-    public R queryPage(BasePageRequest<CrmContract> basePageRequest, CrmContract crmContract) {
-        basePageRequest.setData(crmContract);
+    @ClassTypeCheck(classType = CrmContract.class)
+    public R queryPage(BasePageRequest<CrmContract> basePageRequest) {
         return (R.ok().put("data", crmContractService.queryPage(basePageRequest)));
     }
 
@@ -233,8 +234,8 @@ public class CrmContractController extends BasicAction {
      * 查看跟进记录
      */
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
-    public R getRecord(BasePageRequest<CrmContract> basePageRequest, CrmContract crmContract) {
-        basePageRequest.setData(crmContract);
+    @ClassTypeCheck(classType = CrmContract.class)
+    public R getRecord(BasePageRequest<CrmContract> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), basePageRequest.getData().getContractId());
         if (auth) {
             return (R.noAuth());
@@ -249,8 +250,8 @@ public class CrmContractController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "/qureyReceivablesListByContractId", method = RequestMethod.POST)
-    public R qureyReceivablesListByContractId(BasePageRequest<CrmReceivables> basePageRequest, CrmReceivables crmReceivables) {
-        basePageRequest.setData(crmReceivables);
+    @ClassTypeCheck(classType = CrmReceivables.class)
+    public R qureyReceivablesListByContractId(BasePageRequest<CrmReceivables> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), basePageRequest.getData().getContractId());
         if (auth) {
             return (R.noAuth());
@@ -265,8 +266,8 @@ public class CrmContractController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "/qureyProductListByContractId", method = RequestMethod.POST)
-    public R qureyProductListByContractId(BasePageRequest<CrmContractProduct> basePageRequest, CrmContractProduct crmContractProduct) {
-        basePageRequest.setData(crmContractProduct);
+    @ClassTypeCheck(classType = CrmContractProduct.class)
+    public R qureyProductListByContractId(BasePageRequest<CrmContractProduct> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), basePageRequest.getData().getContractId());
         if (auth) {
             return (R.noAuth());
@@ -281,8 +282,8 @@ public class CrmContractController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "/qureyReceivablesPlanListByContractId", method = RequestMethod.POST)
-    public R qureyReceivablesPlanListByContractId(BasePageRequest<CrmReceivables> basePageRequest, CrmReceivables crmReceivables) {
-        basePageRequest.setData(crmReceivables);
+    @ClassTypeCheck(classType = CrmReceivables.class)
+    public R qureyReceivablesPlanListByContractId(BasePageRequest<CrmReceivables> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), basePageRequest.getData().getContractId());
         if (auth) {
             return (R.noAuth());

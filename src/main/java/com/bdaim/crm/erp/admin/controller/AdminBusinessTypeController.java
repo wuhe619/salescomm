@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.entity.LkCrmBusinessTypeEntity;
 import com.bdaim.crm.erp.admin.service.AdminBusinessTypeService;
 import com.bdaim.crm.utils.R;
@@ -54,6 +55,7 @@ public class AdminBusinessTypeController extends BasicAction {
 
     @Permissions("manage:crm")
     @RequestMapping(value = "/queryBusinessTypeList", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = Void.class)
     public R queryBusinessTypeList(BasePageRequest<Void> basePageRequest) {
         return(R.ok().put("data", adminBusinessTypeService.queryBusinessTypeList(basePageRequest)));
     }

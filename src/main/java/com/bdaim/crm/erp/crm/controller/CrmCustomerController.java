@@ -107,8 +107,8 @@ public class CrmCustomerController extends BasicAction {
      * 全局搜索查询客户
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
-    public R queryList(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer) {
-        basePageRequest.setData(crmCustomer);
+    @ClassTypeCheck(classType = CrmCustomer.class)
+    public R queryList(BasePageRequest<CrmCustomer> basePageRequest) {
         return (R.ok().put("data", crmCustomerService.getCustomerPageList(basePageRequest)));
     }
 
@@ -149,8 +149,8 @@ public class CrmCustomerController extends BasicAction {
      * 根据客户id查询联系人
      */
     @RequestMapping(value = "/queryContacts", method = RequestMethod.POST)
-    public R queryContacts(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer, String search) {
-        basePageRequest.setData(crmCustomer);
+    @ClassTypeCheck(classType = CrmCustomer.class)
+    public R queryContacts(BasePageRequest<CrmCustomer> basePageRequest, String search) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("search", search);
         basePageRequest.setJsonObject(jsonObject);
@@ -178,8 +178,8 @@ public class CrmCustomerController extends BasicAction {
      * 根据客户id查找商机
      */
     @RequestMapping(value = "/queryBusiness", method = RequestMethod.POST)
-    public R queryBusiness(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer, Integer customerId, String search) {
-        basePageRequest.setData(crmCustomer);
+    @ClassTypeCheck(classType = CrmCustomer.class)
+    public R queryBusiness(BasePageRequest<CrmCustomer> basePageRequest, Integer customerId, String search) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("search", search);
         basePageRequest.setJsonObject(jsonObject);
@@ -196,8 +196,8 @@ public class CrmCustomerController extends BasicAction {
      * 根据客户id查询合同
      */
     @RequestMapping(value = "/queryContract", method = RequestMethod.POST)
-    public R queryContract(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer, String search) {
-        basePageRequest.setData(crmCustomer);
+    @ClassTypeCheck(classType = CrmCustomer.class)
+    public R queryContract(BasePageRequest<CrmCustomer> basePageRequest, String search) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), basePageRequest.getData().getCustomerId());
         if (auth) {
             return (R.noAuth());
@@ -221,8 +221,8 @@ public class CrmCustomerController extends BasicAction {
      * 根据客户id查询回款计划
      */
     @RequestMapping(value = "/queryReceivablesPlan", method = RequestMethod.POST)
-    public R queryReceivablesPlan(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer) {
-        basePageRequest.setData(crmCustomer);
+    @ClassTypeCheck(classType = CrmCustomer.class)
+    public R queryReceivablesPlan(BasePageRequest<CrmCustomer> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), basePageRequest.getData().getCustomerId());
         if (auth) {
             return (R.noAuth());
@@ -236,8 +236,8 @@ public class CrmCustomerController extends BasicAction {
      * 根据客户id查询回款
      */
     @RequestMapping(value = "/queryReceivables", method = RequestMethod.POST)
-    public R queryReceivables(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer) {
-        basePageRequest.setData(crmCustomer);
+    @ClassTypeCheck(classType = CrmCustomer.class)
+    public R queryReceivables(BasePageRequest<CrmCustomer> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), basePageRequest.getData().getCustomerId());
         if (auth) {
             return (R.noAuth());
@@ -420,14 +420,13 @@ public class CrmCustomerController extends BasicAction {
      * 查看跟进记录
      */
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
-    public R getRecord(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer) {
-        basePageRequest.setData(crmCustomer);
+    @ClassTypeCheck(classType = CrmCustomer.class)
+    public R getRecord(BasePageRequest<CrmCustomer> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), basePageRequest.getData().getCustomerId());
         if (auth) {
             return (R.noAuth());
             //return;
         }
-        basePageRequest.setData(crmCustomer);
         return (R.ok().put("data", crmCustomerService.getRecord(basePageRequest)));
     }
 

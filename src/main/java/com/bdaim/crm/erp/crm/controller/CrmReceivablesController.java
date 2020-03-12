@@ -5,6 +5,7 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.entity.CrmReceivables;
 import com.bdaim.crm.erp.crm.service.CrmReceivablesService;
@@ -44,6 +45,7 @@ public class CrmReceivablesController extends BasicAction {
      * 分页查询回款
      */
     @RequestMapping(value = "queryPage", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = CrmReceivables.class)
     public R queryPage(BasePageRequest<CrmReceivables> basePageRequest) {
         return (R.ok().put("data", crmReceivablesService.queryPage(basePageRequest)));
     }
