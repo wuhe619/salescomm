@@ -7,10 +7,7 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.helper.SQLHelper;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.dao.LkCrmAdminConfigDao;
-import com.bdaim.crm.dao.LkCrmAdminDeptDao;
-import com.bdaim.crm.dao.LkCrmAdminFieldDao;
-import com.bdaim.crm.dao.LkCrmAdminUserDao;
+import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.utils.BaseUtil;
@@ -61,6 +58,8 @@ public class LkAdminUserService {
     private LkCrmAdminFieldDao crmAdminFieldDao;
     @Autowired
     private LkCrmAdminConfigDao crmAdminConfigDao;
+    @Autowired
+    private LkCrmAdminSceneDao crmAdminSceneDao;
 
     private void saveBpUser(long id, String userName, String realName, String password, String custId, int userType,
                             String callType, String callChannel, UserCallConfigDTO userDTO) {
@@ -254,7 +253,19 @@ public class LkAdminUserService {
             entity.setDescription("跟进记录选项");
             crmAdminConfigDao.saveOrUpdate(entity);
         }
-
+        // 初始化场景数据
+        List<LkCrmAdminSceneEntity> defaultSceneList = crmAdminSceneDao.queryDefaultSceneList();
+        crmAdminFieldDao.getSession().clear();
+        List<LkCrmAdminSceneEntity> sceneFieldList = new ArrayList<>();
+        LkCrmAdminSceneEntity newScene;
+        for (LkCrmAdminSceneEntity db : defaultSceneList) {
+            newScene = new LkCrmAdminSceneEntity();
+            BeanUtils.copyProperties(db, newScene, "sceneId");
+            newScene.setCustId(custId);
+            sceneFieldList.add(newScene);
+        }
+        crmAdminFieldDao.batchSaveOrUpdate(sceneFieldList);
+        
         return R.isSuccess(true);
     }
 

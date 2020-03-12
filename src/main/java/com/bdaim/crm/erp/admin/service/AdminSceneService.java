@@ -294,49 +294,93 @@ public class AdminSceneService {
             subOwnerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "in").fluentPut("value", getSubUserId(userId.intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1)));
             if (1 == type) {
                 systemScene.setName("全部线索").setData(new JSONObject().fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", 0)).toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 ownerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "is").fluentPut("value", userId)).fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", 0));
                 systemScene.setSceneId(null).setName("我负责的线索").setData(ownerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 subOwnerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "in").fluentPut("value", getSubUserId(userId.intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1))).fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", 0));
                 systemScene.setSceneId(null).setName("下属负责的线索").setData(subOwnerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", "1"));
                 systemScene.setSceneId(null).setName("已转化的线索").setData(jsonObject.toString()).setBydata("transform");
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
             } else if (2 == type) {
                 systemScene.setName("全部客户");
                 systemScene.setSceneId(null).setName("我负责的客户").setData(ownerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("下属负责的客户").setData(subOwnerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.fluentPut("ro_user_id", new JSONObject().fluentPut("name", "ro_user_id").fluentPut("condition", "takePart").fluentPut("value", userId));
                 systemScene.setSceneId(null).setName("我参与的客户").setData(jsonObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
             } else if (3 == type) {
                 systemScene.setName("全部联系人");
                 systemScene.setSceneId(null).setName("我负责的联系人").setData(ownerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("下属负责的联系人").setData(subOwnerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
             } else if (4 == type) {
                 systemScene.setName("上架的产品").setData(new JSONObject().fluentPut("是否上下架", new JSONObject().fluentPut("name", "是否上下架").fluentPut("condition", "is").fluentPut("value", "上架")).toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.fluentPut("是否上下架", new JSONObject().fluentPut("name", "是否上下架").fluentPut("condition", "is").fluentPut("value", "下架"));
                 systemScene.setSceneId(null).setName("下架的产品").setData(jsonObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
             } else if (5 == type) {
                 systemScene.setName("全部商机");
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("我负责的商机").setData(ownerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("下属负责的商机").setData(subOwnerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.fluentPut("ro_user_id", new JSONObject().fluentPut("name", "ro_user_id").fluentPut("condition", "takePart").fluentPut("value", userId));
                 systemScene.setSceneId(null).setName("我参与的商机").setData(jsonObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
             } else if (6 == type) {
                 systemScene.setName("全部合同");
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("我负责的合同").setData(ownerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("下属负责的合同").setData(subOwnerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.fluentPut("ro_user_id", new JSONObject().fluentPut("name", "ro_user_id").fluentPut("condition", "takePart").fluentPut("value", userId));
                 systemScene.setSceneId(null).setName("我参与的合同").setData(jsonObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
             } else if (7 == type) {
                 systemScene.setName("全部回款");
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("我负责的回款").setData(ownerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("下属负责的回款").setData(subOwnerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
             }
-            crmAdminSceneDao.save(systemScene);
+            //crmAdminSceneDao.save(systemScene);
         }
         sql = "select a.scene_id,a.data,a.name,if(b.default_id is null,0,1) as is_default,a.is_system,a.bydata " +
                 "    from lkcrm_admin_scene as a left join lkcrm_admin_scene_default as b on a.scene_id = b.scene_id " +
