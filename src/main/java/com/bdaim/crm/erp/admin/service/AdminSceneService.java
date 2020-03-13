@@ -556,9 +556,9 @@ public class AdminSceneService {
             if (!ParamsUtil.isValid(name)) {
                 return R.error("参数包含非法字段");
             }
-            if (StrUtil.isNotEmpty(value) && !ParamsUtil.isValid(value)) {
-                return R.error("参数包含非法字段");
-            }
+//            if (StrUtil.isNotEmpty(value) && !ParamsUtil.isValid(value)) {
+//                return R.error("参数包含非法字段");
+//            }
             if (StrUtil.isNotEmpty(jsonObject.getString("start")) && !ParamsUtil.isValid(jsonObject.getString("start"))) {
                 return R.error("参数包含非法字段");
             }
