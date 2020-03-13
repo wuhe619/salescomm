@@ -6,6 +6,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.poi.excel.ExcelReader;
 import cn.hutool.poi.excel.ExcelUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
@@ -185,14 +186,22 @@ public class CrmProductService {
         sqlfield.append(batchIds.toString());
         sqlfield.append(" )");
         int f = crmProductDao.executeUpdateSQL(sqlfield.toString());
-        String[] idsArray = batchIds.toString().split(",");
-        for (String batchId : idsArray) {
+//        String[] idsArray = batchIds.toString().split(",");
+        for (Record record : recordList) {
             //旧的产品
             String jsonStr = "[{\"formType\":\"select\",\"fieldName\":\"是否上下架\",\"isNull\":1,\"name\":\"是否上下架\",\"options\":\"上架,下架\",\"isUnique\":0,\"type\":3,\"value\":\"" +
                     a + "\",\"fieldType\":0,\"fieldId\":1276,\"setting\":[\"上架\",\"下架\"]}]";
-            crmRecordService.updateRecord(JSONArray.parseArray(jsonStr), batchId);
+            crmRecordService.updateRecord(JSONArray.parseArray(jsonStr), record.getStr("batch_id"));
+            adminFieldService.save(JSONArray.parseArray(jsonStr), record.getStr("batch_id"));
         }
         return R.isSuccess(f > 0);
+    }
+
+    public static void main(String[] args) {
+        String jsonStr = "[{\"formType\":\"select\",\"fieldName\":\"是否上下架\",\"isNull\":1,\"name\":\"是否上下架\",\"options\":\"上架,下架\",\"isUnique\":0,\"type\":3,\"value\":\"" +
+                "下架" + "\",\"fieldType\":0,\"fieldId\":1276,\"setting\":[\"上架\",\"下架\"]}]";
+JSONArray result = JSONArray.parseArray(jsonStr);
+        System.out.println(result.size());
     }
 
     /**
