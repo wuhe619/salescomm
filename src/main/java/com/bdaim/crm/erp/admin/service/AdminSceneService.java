@@ -311,6 +311,8 @@ public class AdminSceneService {
                 crmAdminSceneDao.save(systemScene);
             } else if (2 == type) {
                 systemScene.setName("全部客户");
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("我负责的客户").setData(ownerObject.toString());
                 crmAdminSceneDao.getSession().clear();
                 crmAdminSceneDao.save(systemScene);
@@ -324,6 +326,8 @@ public class AdminSceneService {
                 crmAdminSceneDao.save(systemScene);
             } else if (3 == type) {
                 systemScene.setName("全部联系人");
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("我负责的联系人").setData(ownerObject.toString());
                 crmAdminSceneDao.getSession().clear();
                 crmAdminSceneDao.save(systemScene);
