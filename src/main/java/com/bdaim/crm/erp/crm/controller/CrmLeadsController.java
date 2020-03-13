@@ -326,6 +326,11 @@ public class CrmLeadsController extends BasicAction {
             userIds.add(String.valueOf(BaseUtil.getUser().getId()));
             param.setUserIds(userIds);
         }
+        if (1 == BaseUtil.getUserType() && (param.getUserIds() == null || param.getUserIds().size() == 0)) {
+            List<String> userIds = new ArrayList<>();
+            userIds.add(String.valueOf(BaseUtil.getUser().getId()));
+            param.setUserIds(userIds);
+        }
         // 快速分配时用户和数量数组
         JSONArray assignedList = jsonObject.getJSONArray("assignedlist");
         int data = 0;
@@ -529,7 +534,7 @@ public class CrmLeadsController extends BasicAction {
         }
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
-        if(StringUtil.isNotEmpty(adminRecord.getNextTime())){
+        if (StringUtil.isNotEmpty(adminRecord.getNextTime())) {
             lkCrmAdminRecordEntity.setNextTime(dateFormat.parse(adminRecord.getNextTime()));
         }
         return (crmLeadsService.addRecord(lkCrmAdminRecordEntity));
