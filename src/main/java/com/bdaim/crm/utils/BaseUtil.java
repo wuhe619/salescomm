@@ -70,6 +70,15 @@ public class BaseUtil {
         return "( " + viewSql + " ) temp1 ";
     }
 
+    public static String getViewSqlNotASName(String name) {
+        String viewSql = crmSqlViewDao.getViewSql(BaseUtil.getCustId(), name);
+        if (StringUtil.isNotEmpty(name) && !name.startsWith("field")) {
+            String fieldViewSql = crmSqlViewDao.getViewSql(BaseUtil.getCustId(), "field" + name);
+            viewSql = viewSql.replace("?", fieldViewSql);
+        }
+        return "( " + viewSql + " ) temp1 ";
+    }
+
     /**
      * 获取当前系统是开发开始正式
      *

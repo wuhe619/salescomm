@@ -503,30 +503,37 @@ public class AdminSceneService {
                 break;
             case 2:
                 viewName = "customerview";
+                viewName = BaseUtil.getViewSql("customerview");
                 realm = "customer";
                 break;
             case 3:
                 viewName = "contactsview";
+                viewName = BaseUtil.getViewSql("contactsview");
                 realm = "contacts";
                 break;
             case 4:
                 viewName = "productview";
+                viewName = BaseUtil.getViewSql("productview");
                 realm = "product";
                 break;
             case 5:
                 viewName = "businessview";
+                viewName = BaseUtil.getViewSql("businessview");
                 realm = "business";
                 break;
             case 6:
                 viewName = "contractview";
+                viewName = BaseUtil.getViewSql("contractview");
                 realm = "contract";
                 break;
             case 7:
                 viewName = "receivablesview";
+                viewName = BaseUtil.getViewSql("receivablesview");
                 realm = "receivables";
                 break;
             case 8:
                 viewName = "customerview";
+                viewName = BaseUtil.getViewSql("customerview");
                 realm = "customer";
                 break;
             default:
@@ -672,10 +679,11 @@ public class AdminSceneService {
         if (2 == type || 8 == type) {
             Integer configType = crmAdminSceneDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting' AND cust_id = ? ", BaseUtil.getCustId());
             if (1 == configType && 2 == type) {
-                String sql = " select *,(TO_DAYS(IFNULL((SELECT car.create_time FROM lkcrm_admin_record as car where car.types = 'crm_customer' and car.types_id = customerview.customer_id ORDER BY car.create_time DESC LIMIT 1),create_time))\n" +
+                String customerview = BaseUtil.getViewSql("customerview");
+                String sql = " select *,(TO_DAYS(IFNULL((SELECT car.create_time FROM lkcrm_admin_record as car where car.types = 'crm_customer' and car.types_id = " + customerview + ".customer_id ORDER BY car.create_time DESC LIMIT 1),create_time))\n" +
                         "      + CAST((SELECT value FROM lkcrm_admin_config WHERE name= 'customerPoolSettingFollowupDays') as SIGNED) - TO_DAYS(NOW())\n" +
                         "    ) as pool_day," +
-                        "    (select count(*) from lkcrm_crm_business as a where a.customer_id = customerview.customer_id) as business_count";
+                        "    (select count(*) from lkcrm_crm_business as a where a.customer_id = " + customerview + ".customer_id) as business_count";
 
                 return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQuery(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
             } else {
