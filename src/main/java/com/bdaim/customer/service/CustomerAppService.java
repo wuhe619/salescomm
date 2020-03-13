@@ -426,10 +426,10 @@ public class CustomerAppService {
     public int saveDeposit(Deposit deposit, String id, String userId) {
 //        BigDecimal b = new BigDecimal(10000);
 //        BigDecimal pre_money;
-////        int money = Integer.valueOf((Double.valueOf(deposit.getMoney())* 10000) + "".trim()).intValue();
-//        BigDecimal bigDecimal = BigDecimal.valueOf(Double.valueOf(deposit.getMoney()));
-//        BigDecimal money = bigDecimal.multiply(b);
-        int money = Integer.valueOf(String.valueOf(Float.valueOf(deposit.getMoney()) * 10000));
+//        int money = Integer.valueOf((Double.valueOf(deposit.getMoney())* 10000) + "".trim()).intValue();
+        BigDecimal bigDecimal = BigDecimal.valueOf(Float.valueOf(deposit.getMoney()));
+        int money = bigDecimal.multiply(new BigDecimal(10000)).intValue();
+//        int money = Integer.valueOf(String.valueOf(Float.valueOf(deposit.getMoney()) * 10000));
         int pre_money = 0;
         CustomerProperty customerProperty = customerDao.getProperty(id, "remain_amount");
         if (customerProperty == null) {
