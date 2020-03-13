@@ -53,6 +53,10 @@ public class AdminFieldService {
     @Autowired
     private LkCrmSqlViewDao crmSqlViewDao;
 
+    private static String[] SHOW_PRI_SEA_FIELD = new String[]{"线索名称", "公司名称", "客户级别", "跟进状态", "当前负责人", "添加时间", "最新跟进时间", "下次联系时间", "手机", "电话", "微信", "备注", "线索来源"};
+    private static String[] SHOW_PUB_SEA_FIELD = new String[]{"线索名称", "公司名称", "部门名称", "职位", "客户级别", "前负责人", "进入公海时间", "退回原因", "手机", "电话", "微信", "备注", "线索来源"
+    };
+
     /**
      * @author wyq
      * 查询新增字段列表
@@ -786,9 +790,17 @@ public class AdminFieldService {
                 }
             });
             sortList = fieldUtil.getAdminFieldSortList();
+            int label = adminFieldSort.getLabel();
+            HashSet<String> showPri = new HashSet<>(Arrays.asList(SHOW_PRI_SEA_FIELD));
+            HashSet<String> showPublic = new HashSet<>(Arrays.asList(SHOW_PUB_SEA_FIELD));
             for (int i = 0; i < sortList.size(); i++) {
                 LkCrmAdminFieldSortEntity newUserFieldSort = sortList.get(i);
                 newUserFieldSort.setSort(i);
+                if (label == 1 && !showPri.contains(sortList.get(i).getName())) {
+                    newUserFieldSort.setIsHide(1);
+                } else if (label == 11 && !showPublic.contains(sortList.get(i).getName())) {
+                    newUserFieldSort.setIsHide(1);
+                }
                 crmAdminFieldDao.saveOrUpdate(newUserFieldSort);
             }
         }
