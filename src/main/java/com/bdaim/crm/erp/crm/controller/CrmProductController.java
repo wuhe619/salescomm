@@ -54,9 +54,11 @@ public class CrmProductController extends BasicAction {
      */
     @Permissions({"crm:product:index"})
     @RequestMapping(value = "queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody JSONObject jsonObject) {
-        BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryPageList(BasePageRequest basePageRequest) {
+//        BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
         //jsonObject.fluentPut("type", 4);
+        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 4);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
@@ -131,7 +133,7 @@ public class CrmProductController extends BasicAction {
     @RequestMapping(value = "batchExportExcel", method = RequestMethod.POST)
     public void batchExportExcel(@RequestParam("ids") String productIds, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmProductService.exportProduct(productIds);
-        export(recordList,response);
+        export(recordList, response);
         //renderNull();
     }
 
