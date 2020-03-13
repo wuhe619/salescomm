@@ -29,12 +29,14 @@ public class LkCrmBusinessDao extends SimpleHibernateDao<LkCrmBusinessEntity, In
     }
 
     public List<Map<String, Object>> queryById(int business_id) {
-        String sql = "select * from businessview where business_id = ?";
+        String businessview = BaseUtil.getViewSql("businessview");
+        String sql = "select * from " + businessview + " where business_id = ?";
         return sqlQuery(sql, business_id);
     }
 
     public List<Map<String, Object>> queryByName(String business_name) {
-        String sql = " select * from businessview where business_name = ?";
+        String businessview = BaseUtil.getViewSql("businessview");
+        String sql = " select * from " + businessview + " where business_name = ?";
         return sqlQuery(sql, business_name);
     }
 

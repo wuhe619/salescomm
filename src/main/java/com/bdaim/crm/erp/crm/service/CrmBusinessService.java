@@ -81,7 +81,8 @@ public class CrmBusinessService {
      * 分页条件查询商机
      */
     public CrmPage getBusinessPageList(BasePageRequest basePageRequest) {
-        Page page = crmBusinessDao.sqlPageQuery("select * from businessview", basePageRequest.getPage(), basePageRequest.getLimit());
+        String businessview = BaseUtil.getViewSql("businessview");
+        Page page = crmBusinessDao.sqlPageQuery("select * from " + businessview, basePageRequest.getPage(), basePageRequest.getLimit());
         return BaseUtil.crmPage(page);
         //return Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), new SqlPara().setSql("select * from businessview"));
     }
@@ -477,7 +478,8 @@ public class CrmBusinessService {
      * 查询编辑字段
      */
     public List<Record> queryField(Integer businessId) {
-        Record business = JavaBeanUtil.mapToRecord(crmBusinessDao.sqlQuery("select * from businessview where business_id = ?", businessId).get(0));
+        String businessview = BaseUtil.getViewSql("businessview");
+        Record business = JavaBeanUtil.mapToRecord(crmBusinessDao.sqlQuery("select * from " + businessview + " where business_id = ?", businessId).get(0));
         //Record business = Db.findFirst("select * from businessview where business_id = ?",businessId);
         List<Record> customerList = new ArrayList<>();
         Record customer = new Record();
