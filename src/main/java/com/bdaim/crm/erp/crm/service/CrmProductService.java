@@ -185,10 +185,13 @@ public class CrmProductService {
         sqlfield.append(batchIds.toString());
         sqlfield.append(" )");
         int f = crmProductDao.executeUpdateSQL(sqlfield.toString());
-        String[] idsArr = ids.split(",");
-        for (int i = 0; i < idsArr.length; i++) {
-            crmRecordService.addRecord(idsArr[i], CrmEnum.PRODUCT_TYPE_KEY.getTypes(),
-                    status == 0 ? "下架了" : "上架了");
+        String[] idsArray = ids.split(",");
+        for (String productId : idsArray) {
+            //旧的产品
+            LkCrmProductEntity crmProduct = crmProductDao.get(Integer.parseInt(productId));
+            LkCrmProductEntity newProduct = crmProduct;
+            newProduct.setStatus(status);
+            crmRecordService.updateRecord(crmProduct, newProduct, CrmEnum.PRODUCT_TYPE_KEY.getTypes());
         }
         return R.isSuccess(f > 0);
     }
