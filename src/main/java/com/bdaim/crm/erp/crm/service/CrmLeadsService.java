@@ -25,16 +25,19 @@ import com.bdaim.crm.erp.crm.entity.CrmLeads;
 import com.bdaim.crm.utils.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.entity.CustomerUserGroup;
 import com.bdaim.customer.service.CustomerLabelService;
 import com.bdaim.customersea.dao.CustomerSeaDao;
-import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
-import com.bdaim.customersea.dto.CustomerSeaESDTO;
-import com.bdaim.customersea.dto.CustomerSeaSearch;
+import com.bdaim.customersea.dto.*;
 import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.customersea.entity.CustomerSeaProperty;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customgroup.dao.CustomGroupDao;
+import com.bdaim.marketproject.entity.MarketProject;
+import com.bdaim.marketproject.entity.MarketProjectProperty;
+import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.util.*;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
@@ -55,6 +58,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
+import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -539,6 +543,12 @@ public class CrmLeadsService {
         return 0;
     }
 
+    public com.bdaim.common.dto.Page listPublicSea(CustomerSeaParam param, int pageNum, int pageSize) {
+        List values = new ArrayList();
+        values.add(BaseUtil.getCustId());
+        com.bdaim.common.dto.Page page = customerSeaDao.page("from CustomerSea m where custId = ? ", values, pageNum, pageSize);
+        return page;
+    }
 
     /**
      * 线索领取方式 1-手动 2-系统自动
@@ -1046,7 +1056,7 @@ public class CrmLeadsService {
         List<Record> result = new ArrayList<>();
         for (Record r : fieldList) {
             if (r.getStr("name").equals("公司名称")) {
-               continue;
+                continue;
             }
             if (r.getStr("name").equals("当前负责人")) {
                 Record record = new Record();

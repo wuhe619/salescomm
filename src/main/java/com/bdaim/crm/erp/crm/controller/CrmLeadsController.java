@@ -11,6 +11,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
@@ -31,6 +32,7 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
+import com.bdaim.customersea.dto.CustomerSeaParam;
 import com.bdaim.customersea.dto.CustomerSeaSearch;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.util.IDHelper;
@@ -48,6 +50,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.http.MediaType;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -57,6 +61,7 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -341,6 +346,27 @@ public class CrmLeadsController extends BasicAction {
             LOG.error("线索分配异常,", e);
         }
         responseJson.setData(data);
+        return responseJson;
+    }
+
+    /**
+     * 公海基础信息分页查询
+     *
+     * @return
+     */
+    @RequestMapping(value = "/cluesea/page/query", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseJson page(@RequestBody @Valid CustomerSeaParam param, BindingResult error) {
+        ResponseJson responseJson = new ResponseJson();
+        if (error.hasFieldErrors()) {
+            responseJson.setData(getErrors(error));
+            return responseJson;
+        }
+        param.setCustId(opUser().getCustId());
+        param.setUserId(opUser().getId());
+        param.setUserType(opUser().getUserType());
+        Page page = crmLeadsService.listPublicSea(param, param.getPageNum(), param.getPageSize());
+        responseJson.setData(getPageData(page));
+        responseJson.setCode(200);
         return responseJson;
     }
 
