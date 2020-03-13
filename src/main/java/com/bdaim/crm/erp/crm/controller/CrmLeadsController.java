@@ -47,6 +47,8 @@ import org.apache.poi.ss.util.CellRangeAddressList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -56,6 +58,8 @@ import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -81,6 +85,14 @@ public class CrmLeadsController extends BasicAction {
 
     @Resource
     private LkCrmAdminFieldDao crmAdminFieldDao;
+
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    @InitBinder
+    protected void init(ServletRequestDataBinder binder) {
+        dateFormat.setLenient(false);
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, false));
+    }
 
     /**
      * 公海内线索分页
@@ -475,7 +487,7 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(LkCrmAdminRecordDTO adminRecord) {
+    public R addRecord(LkCrmAdminRecordDTO adminRecord) throws ParseException {
         String sign = CrmEnum.LEADS_TYPE_KEY.getSign();
         String typesId = adminRecord.getTypesId();
         if (StringUtil.isNotEmpty(adminRecord.getSeaId())) {
@@ -489,6 +501,9 @@ public class CrmLeadsController extends BasicAction {
         }
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
+        if(StringUtil.isNotEmpty(adminRecord.getNextTime())){
+            lkCrmAdminRecordEntity.setNextTime(dateFormat.parse(adminRecord.getNextTime()));
+        }
         return (crmLeadsService.addRecord(lkCrmAdminRecordEntity));
     }
 

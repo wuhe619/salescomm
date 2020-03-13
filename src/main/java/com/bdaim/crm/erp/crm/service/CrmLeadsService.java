@@ -459,6 +459,8 @@ public class CrmLeadsService {
     public Map queryClueById(long seaId, String id) {
         List<Map<String, Object>> publicSeaClue = crmLeadsDao.getPublicSeaClue(seaId, id);
         if (publicSeaClue.size() > 0) {
+            JSONObject superData = JSON.parseObject(String.valueOf(publicSeaClue.get(0).get("super_data")));
+            publicSeaClue.get(0).put("company", superData.getString("SYS005"));
             return publicSeaClue.get(0);
         }
         return null;
@@ -1011,6 +1013,8 @@ public class CrmLeadsService {
                 .set("手机", crmLeads.getTelephone()).set("下次联系时间", DateUtil.formatDateTime(crmLeads.getNextTime()))
                 .set("地址", crmLeads.getAddress()).set("备注", crmLeads.getRemark())
                 .set("公司名称", crmLeads.getCompany());
+
+        List<Record> allData = new ArrayList<>();
         List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.queryCustomField(crmLeads.getBatchId()));
         //List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), crmLeads.getBatchId());
         fieldUtil.handleType(recordList);
