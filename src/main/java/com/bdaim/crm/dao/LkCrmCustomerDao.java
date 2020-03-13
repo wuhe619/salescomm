@@ -258,7 +258,8 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public List queryContacts(Integer customerId, String search) {
-        String sql = " select contacts_id,name,mobile,post,telephone,是否关键决策人 from contactsview where customer_id = ?  ";
+        String contactsview = BaseUtil.getViewSql("contactsview");
+        String sql = " select contacts_id,name,mobile,post,telephone,是否关键决策人 from " + contactsview + " where customer_id = ?  ";
         List param = new ArrayList();
         param.add(customerId);
         if (StringUtil.isNotEmpty(search)) {
@@ -269,7 +270,8 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public Page pageQueryContacts(int pageNum, int pageSize, Integer customerId, String search) {
-        String sql = "select contacts_id,name,mobile,post,telephone,是否关键决策人 from contactsview where customer_id = ? ";
+        String contactsview = BaseUtil.getViewSql("contactsview");
+        String sql = "select contacts_id,name,mobile,post,telephone,是否关键决策人 from " + contactsview + " where customer_id = ? ";
         List param = new ArrayList();
         param.add(customerId);
         if (StringUtil.isNotEmpty(search)) {

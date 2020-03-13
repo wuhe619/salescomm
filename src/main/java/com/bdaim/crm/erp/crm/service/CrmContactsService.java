@@ -121,7 +121,8 @@ public class CrmContactsService {
      * 基本信息
      */
     public List<Record> information(Integer contactsId) {
-        Record record = JavaBeanUtil.mapToRecord(crmContactsDao.sqlQuery("select * from contactsview where contacts_id = ?", contactsId).get(0));
+        String contactsview = BaseUtil.getViewSql("contactsview");
+        Record record = JavaBeanUtil.mapToRecord(crmContactsDao.sqlQuery("select * from " + contactsview + " where contacts_id = ?", contactsId).get(0));
         if (null == record) {
             return null;
         }
@@ -311,7 +312,8 @@ public class CrmContactsService {
      * 查询编辑字段
      */
     public List<Record> queryField(Integer contactsId) {
-        Record contacts = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from contactsview where contacts_id = ?", contactsId).get(0));
+        String contactsview = BaseUtil.getViewSql("contactsview");
+        Record contacts = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from " + contactsview + " where contacts_id = ?", contactsId).get(0));
         //Record contacts = Db.findFirst("select * from contactsview where contacts_id = ?",contactsId);
         List<Record> customerList = new ArrayList<>();
         Record customer = new Record();
