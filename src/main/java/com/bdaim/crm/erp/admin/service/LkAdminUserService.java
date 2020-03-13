@@ -65,6 +65,8 @@ public class LkAdminUserService {
     private LkCrmAdminSceneDao crmAdminSceneDao;
     @Autowired
     private AdminFieldService adminFieldService;
+    @Autowired
+    private LkCrmBusinessTypeDao crmBusinessTypeDao;
 
     private void saveBpUser(long id, String userName, String realName, String password, String custId, int userType,
                             String callType, String callChannel, UserCallConfigDTO userDTO) {
@@ -235,7 +237,7 @@ public class LkAdminUserService {
         dto.setName("默认公海项目");
         dto.setType("2");
         long seaId = marketProjectService.saveMarketProjectAndSeaReturnId(dto, custId, userId);
-        CustomerSeaProperty cp = new CustomerSeaProperty(seaId, "clueGetMode","1",new Timestamp(System.currentTimeMillis()));
+        CustomerSeaProperty cp = new CustomerSeaProperty(seaId, "clueGetMode", "1", new Timestamp(System.currentTimeMillis()));
         crmAdminFieldDao.saveOrUpdate(cp);
         // 初始化自定义字段
         List<LkCrmAdminFieldEntity> defaultFieldList = crmAdminFieldDao.queryDefaultCustomerFieldList();
@@ -276,10 +278,24 @@ public class LkAdminUserService {
         //默认产品分类
         crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_crm_product_category` (`cust_id`, `name`, `pid`) VALUES (?, '默认分类', '0');", custId);
         //默认默认商机租
-        crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_crm_business_type` (`cust_id`, `name`, `dept_ids`, `create_user_id`, `create_time`, `update_time`, `status`) VALUES (?, '默认商机组', '', ?, ?, NULL, '1');", custId, userId, new Date());
+        LkCrmBusinessTypeEntity lkCrmBusiness = new LkCrmBusinessTypeEntity();
+        lkCrmBusiness.setCustId(custId);
+        lkCrmBusiness.setName("默认商机组");
+        lkCrmBusiness.setDeptIds("");
+        lkCrmBusiness.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        lkCrmBusiness.setCreateUserId(userId);
+        lkCrmBusiness.setStatus(1);
+        int typeId = (int) crmBusinessTypeDao.saveReturnPk(lkCrmBusiness);
+        String typeSql = "INSERT INTO `lkcrm_crm_business_status` (`type_id`, `name`, `rate`, `order_num`) VALUES ( ?, ?, ?, ?);";
+        String[] types = new String[]{"准备汇款", "报价", "还价"};
+        int i = 0;
+        for (String type : types) {
+            crmBusinessTypeDao.executeUpdateSQL(typeSql, typeId, type, 30, ++i);
+        }
+
         //创建默认视图
         for (int label = 1; label < 8; label++) {
-            adminFieldService.createView(label,custId);
+            adminFieldService.createView(label, custId);
         }
         return R.isSuccess(true);
     }
