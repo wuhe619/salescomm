@@ -18,6 +18,7 @@ import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.user.dto.UserCallConfigDTO;
+import com.bdaim.customersea.entity.CustomerSeaProperty;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.marketproject.dto.MarketProjectDTO;
 import com.bdaim.marketproject.service.MarketProjectService;
@@ -233,7 +234,9 @@ public class LkAdminUserService {
         dto.setIndustryId(-1);
         dto.setName("默认公海项目");
         dto.setType("2");
-        marketProjectService.saveMarketProjectAndSeaReturnId(dto, custId, userId);
+        long seaId = marketProjectService.saveMarketProjectAndSeaReturnId(dto, custId, userId);
+        CustomerSeaProperty cp = new CustomerSeaProperty(seaId, "clueGetMode","1",new Timestamp(System.currentTimeMillis()));
+        crmAdminFieldDao.saveOrUpdate(cp);
         // 初始化自定义字段
         List<LkCrmAdminFieldEntity> defaultFieldList = crmAdminFieldDao.queryDefaultCustomerFieldList();
         crmAdminFieldDao.getSession().clear();
