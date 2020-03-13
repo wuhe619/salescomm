@@ -491,6 +491,18 @@ public class CrmLeadsService {
         List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.queryCustomField(id));
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
+
+
+        Set names = new HashSet();
+        for (Record r : recordList) {
+            names.add(r.getStr("name"));
+        }
+        List<Record> dbList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.sqlQuery("SELECT * FROM lkcrm_admin_field WHERE label = ? AND cust_id =?", 11, BaseUtil.getCustId()));
+        for (Record r : dbList) {
+            if (!names.contains(r.getStr("name")) && !"公司名称".equals(r.getStr("name"))) {
+                fieldList.add(r);
+            }
+        }
         return fieldList;
     }
 
@@ -1014,14 +1026,28 @@ public class CrmLeadsService {
                 .set("地址", crmLeads.getAddress()).set("备注", crmLeads.getRemark())
                 .set("公司名称", crmLeads.getCompany());
 
-        List<Record> allData = new ArrayList<>();
+
         List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.queryCustomField(crmLeads.getBatchId()));
         //List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), crmLeads.getBatchId());
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
 
+        Set names = new HashSet();
+        for (Record r : recordList) {
+            names.add(r.getStr("name"));
+        }
+        List<Record> dbList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.sqlQuery("SELECT * FROM lkcrm_admin_field WHERE label = ? AND cust_id =?", 1, BaseUtil.getCustId()));
+        for (Record r : dbList) {
+            if (!names.contains(r.getStr("name"))) {
+                fieldList.add(r);
+            }
+        }
+
         List<Record> result = new ArrayList<>();
         for (Record r : fieldList) {
+            if (r.getStr("name").equals("公司名称")) {
+               continue;
+            }
             if (r.getStr("name").equals("当前负责人")) {
                 Record record = new Record();
                 LkCrmAdminUserEntity createUser = crmAdminUserDao.get(crmLeads.getCreateUserId());
