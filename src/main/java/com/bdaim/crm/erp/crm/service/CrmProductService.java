@@ -188,7 +188,7 @@ public class CrmProductService {
         String[] idsArr = ids.split(",");
         for (int i = 0; i < idsArr.length; i++) {
             crmRecordService.addRecord(idsArr[i], CrmEnum.PRODUCT_TYPE_KEY.getTypes(),
-                    status == 0 ? "上架了" : "下架了");
+                    status == 0 ? "下架了" : "上架了");
         }
         return R.isSuccess(f > 0);
     }
