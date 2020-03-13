@@ -564,7 +564,6 @@ public class CrmCustomerService {
 
 
     /**
-     * @author wyq
      * 添加跟进记录
      */
     @Before(Tx.class)
@@ -591,26 +590,30 @@ public class CrmCustomerService {
         }
         if (adminRecord.getNextTime() != null) {
             Date nextTime = adminRecord.getNextTime();
-            LkCrmCustomerEntity crmCustomer = new LkCrmCustomerEntity();
-            crmCustomer.setCustomerId(NumberUtil.parseInt(adminRecord.getTypesId()));
+            LkCrmCustomerEntity crmCustomer = crmCustomerDao.get(NumberUtil.parseInt(adminRecord.getTypesId()));
+            //crmCustomer.setCustomerId(NumberUtil.parseInt(adminRecord.getTypesId()));
             crmCustomer.setNextTime(new Timestamp(nextTime.getTime()));
-            crmCustomerDao.save(crmCustomer);
+            crmCustomerDao.update(crmCustomer);
             if (adminRecord.getContactsIds() != null) {
                 String[] idsArr = adminRecord.getContactsIds().split(",");
                 for (String id : idsArr) {
-                    LkCrmContactsEntity crmContacts = new LkCrmContactsEntity();
-                    crmContacts.setContactsId(Integer.valueOf(id));
-                    crmContacts.setNextTime(new Timestamp(nextTime.getTime()));
-                    crmContactsDao.saveOrUpdate(crmContacts);
+                    if(StringUtil.isNotEmpty(id)){
+                        LkCrmContactsEntity crmContacts = new LkCrmContactsEntity();
+                        crmContacts.setContactsId(Integer.valueOf(id));
+                        crmContacts.setNextTime(new Timestamp(nextTime.getTime()));
+                        crmContactsDao.saveOrUpdate(crmContacts);
+                    }
                 }
             }
             if (adminRecord.getBusinessIds() != null) {
                 String[] idsArr = adminRecord.getBusinessIds().split(",");
                 for (String id : idsArr) {
-                    LkCrmBusinessEntity crmBusiness = new LkCrmBusinessEntity();
-                    crmBusiness.setBusinessId(Integer.valueOf(id));
-                    crmBusiness.setNextTime(new Timestamp(nextTime.getTime()));
-                    crmBusinessDao.saveOrUpdate(crmBusiness);
+                    if(StringUtil.isNotEmpty(id)){
+                        LkCrmBusinessEntity crmBusiness = new LkCrmBusinessEntity();
+                        crmBusiness.setBusinessId(Integer.valueOf(id));
+                        crmBusiness.setNextTime(new Timestamp(nextTime.getTime()));
+                        crmBusinessDao.saveOrUpdate(crmBusiness);
+                    }
                 }
             }
         }

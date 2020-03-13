@@ -127,9 +127,9 @@ public class LkCrmBusinessDao extends SimpleHibernateDao<LkCrmBusinessEntity, In
     }
 
     public List getRecord(Integer businessId) {
-        String sql = " select a.record_id, '' as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id,a.contacts_ids,a.business_ids\n" +
-                "    from lkcrm_admin_record as a inner join t_customer_user as b\n" +
-                "    where a.create_user_id = b.id and ((types = 'crm_business' and types_id = ?) or " +
+        String sql = " select a.record_id, b.img as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id,a.contacts_ids,a.business_ids\n" +
+                "    from lkcrm_admin_record as a inner join lkcrm_admin_user as b\n" +
+                "    where a.create_user_id = b.user_id and ((types = 'crm_business' and types_id = ?) or " +
                 "    (types = 'crm_customer' and FIND_IN_SET(?,IFNULL(a.business_ids, 0)))) order by a.create_time desc";
         List param = new ArrayList();
         param.add(businessId);

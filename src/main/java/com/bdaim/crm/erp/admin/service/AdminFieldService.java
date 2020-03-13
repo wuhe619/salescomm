@@ -20,6 +20,8 @@ import com.bdaim.crm.utils.*;
 import com.bdaim.customer.dao.CustomerLabelDao;
 import com.bdaim.customer.dto.CustomerLabelDTO;
 import com.bdaim.customer.entity.CustomerLabel;
+import com.bdaim.customersea.entity.CustomerSea;
+import com.bdaim.util.ConstantsUtil;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
@@ -52,6 +54,10 @@ public class AdminFieldService {
 
     @Autowired
     private LkCrmSqlViewDao crmSqlViewDao;
+
+    private static String[] SHOW_PRI_SEA_FIELD = new String[]{"线索名称", "公司名称", "客户级别", "跟进状态", "当前负责人", "添加时间", "最新跟进时间", "下次联系时间", "手机", "电话", "微信", "备注", "线索来源"};
+    private static String[] SHOW_PUB_SEA_FIELD = new String[]{"线索名称", "公司名称", "部门名称", "职位", "客户级别", "前负责人", "进入公海时间", "退回原因", "手机", "电话", "微信", "备注", "线索来源"
+    };
 
     /**
      * @author wyq
@@ -199,7 +205,7 @@ public class AdminFieldService {
         Integer number = 0;
         if ("0".equals(kv.get("fieldType"))) {
             String sql = " SELECT COUNT(*) FROM lkcrm_admin_field as a inner join lkcrm_admin_fieldv as b on a.field_id = b.field_id " +
-                    "      WHERE a.label=? and a.name=? and b.value=? AND a.custId = ? ";
+                    "      WHERE a.label=? and a.name=? and b.value=? AND a.cust_id = ? ";
             //SqlPara sqlPara = Db.getSqlPara("admin.field.queryFieldIsExist",kv);
             number = crmAdminFieldDao.queryForInt(sql, kv.get("types"), kv.get("fieldName"), kv.get("val"), BaseUtil.getCustId());
         } else {
@@ -239,6 +245,14 @@ public class AdminFieldService {
                     tableName = "receivables_plan";
                     primaryKey = "plan_id";
                     break;
+                case "11":
+                    // 查询客户默认公海
+                    List<CustomerSea> publicSeaList = crmAdminFieldDao.find(" FROM CustomerSea WHERE custId = ? ", BaseUtil.getCustId());
+                    if (publicSeaList.size() > 0) {
+                        int val = crmAdminFieldDao.queryForInt(" SELECT count(*) from " + ConstantsUtil.SEA_TABLE_PREFIX + publicSeaList.get(0).getId() + " WHERE super_telphone = ? ", kv.get("val").toString());
+                        return val > 0 ? R.error("参数校验错误").put("error", kv.get("fieldName").toString() + "：参数唯一") : R.ok();
+                    }
+                    return R.ok();
                 default:
                     return R.error("type不符合要求");
             }
@@ -786,9 +800,17 @@ public class AdminFieldService {
                 }
             });
             sortList = fieldUtil.getAdminFieldSortList();
+            int label = adminFieldSort.getLabel();
+            HashSet<String> showPri = new HashSet<>(Arrays.asList(SHOW_PRI_SEA_FIELD));
+            HashSet<String> showPublic = new HashSet<>(Arrays.asList(SHOW_PUB_SEA_FIELD));
             for (int i = 0; i < sortList.size(); i++) {
                 LkCrmAdminFieldSortEntity newUserFieldSort = sortList.get(i);
                 newUserFieldSort.setSort(i);
+                if (label == 1 && !showPri.contains(sortList.get(i).getName())) {
+                    newUserFieldSort.setIsHide(1);
+                } else if (label == 11 && !showPublic.contains(sortList.get(i).getName())) {
+                    newUserFieldSort.setIsHide(1);
+                }
                 crmAdminFieldDao.saveOrUpdate(newUserFieldSort);
             }
         }
