@@ -6,6 +6,7 @@ import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.entity.LkCrmAchievementEntity;
 import com.bdaim.crm.erp.admin.service.AdminAchievementService;
 import com.bdaim.crm.utils.R;
+import com.jfinal.kit.HttpKit;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,8 +35,9 @@ public class AdminAchievementController extends BasicAction {
      */
     @Permissions("manage:crm")
     @PostMapping("/setAchievement")
-    public R setAchievement(@RequestBody(required = false) String data) {
-        //String data = getRawData();
+    public R setAchievement() {
+//        String data = getRawData();
+        String data = HttpKit.readData(this.request);
         List<LkCrmAchievementEntity> crmAchievements = JSON.parseArray(data, LkCrmAchievementEntity.class);
         return (adminAchievementService.setAchievement(crmAchievements));
     }
