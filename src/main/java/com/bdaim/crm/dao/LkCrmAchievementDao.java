@@ -37,7 +37,7 @@ public class LkCrmAchievementDao extends SimpleHibernateDao<LkCrmAchievementEnti
     }
 
     public Map<String, Object> queryUserInfo(String year, int type, String userId, int status) {
-        String sql = " select a.* from lkcrm_crm_achievement a right join lkcrm_admin_user b on a.user_id = b.user_id  where a.year = ? and a.type = ? and b.user_id = ? and a.status = ?";
+        String sql = " select a.* from lkcrm_crm_achievement a right join lkcrm_admin_user b on a.obj_id = b.user_id  where a.year = ? and a.type = ? and b.user_id = ? and a.status = ?";
         List<Map<String, Object>> list = this.sqlQuery(sql, year, type, userId, status);
         if (list == null || list.size() == 0) {
             return null;
