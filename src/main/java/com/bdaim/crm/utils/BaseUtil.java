@@ -97,7 +97,7 @@ public class BaseUtil {
             }
             viewSql = getViewSqlNotASName(name);
         }
-        return "( " + viewSql + " ) temp1 ";
+        return "( " + viewSql + " ) ";
     }
 
     /**

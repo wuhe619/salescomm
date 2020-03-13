@@ -31,9 +31,11 @@ public class LkCrmContractDao extends SimpleHibernateDao<LkCrmContractEntity, In
 
     public Map<String, Object> queryByContractId(Integer id) {
         String contractview = BaseUtil.getViewSqlNotASName("contractview");
-        String sql = "select *,  ( select IFNULL(sum(money),0) from lkcrm_crm_receivables where contract_id =  crt.contract_id and check_status = 2) as receivablesMoney from " + contractview + " as crt where crt.contract_id = ?";
+        String sql = "select * from " + contractview + " as crt where crt.contract_id = ?";
         List<Map<String, Object>> maps = super.sqlQuery(sql, id);
         if (maps.size() > 0) {
+            Map<String, Object> receivablesMoney = queryUniqueSql("select IFNULL(sum(money),0) receivablesMoney from lkcrm_crm_receivables where contract_id =  ? and check_status = 2", maps.get(0).get("contract_id"));
+            maps.get(0).put("receivablesMoney", receivablesMoney != null ? receivablesMoney.get("receivablesMoney") : 0);
             return maps.get(0);
         }
         return null;
@@ -58,9 +60,9 @@ public class LkCrmContractDao extends SimpleHibernateDao<LkCrmContractEntity, In
 
 
     public List<Map<String, Object>> getRecord(int contract_id) {
-        return super.sqlQuery("select a.record_id, b.img AS img as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id\n" +
+        return super.sqlQuery("select a.record_id, b.img as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id\n" +
                 "    from lkcrm_admin_record as a inner join lkcrm_admin_user as b\n" +
-                "    where a.create_user_id = b.ser_id and types = 'crm_contract' and types_id = ? order by a.create_time desc", contract_id);
+                "    where a.create_user_id = b.user_id and types = 'crm_contract' and types_id = ? order by a.create_time desc", contract_id);
     }
 
     public int setContractConfig(Integer status, Integer contractDay) {
