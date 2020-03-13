@@ -687,7 +687,14 @@ public class AdminSceneService {
 
                 return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQuery(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
             } else {
-                return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQuery("select *,(select count(*) from lkcrm_crm_business as a where a.customer_id = " + viewName + ".customer_id) as business_count " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
+                Page page = crmAdminSceneDao.sqlPageQuery("select * " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
+                Map map = null;
+                for (int i = 0; i < page.getData().size(); i++) {
+                    map = (Map) page.getData().get(i);
+                    Map<String, Object> count = crmAdminSceneDao.queryUniqueSql("select count(*) count from lkcrm_crm_business as a where a.customer_id =? AND a.cust_id = ?  ", map.get("customer_id"), BaseUtil.getCustId());
+                    map.put("business_count", count != null ? count.get("count") : 0);
+                }
+                return R.ok().put("data", BaseUtil.crmPage(page));
             }
 
         } else if (6 == type) {
