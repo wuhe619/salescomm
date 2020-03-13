@@ -11,9 +11,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.dao.LkCrmActionRecordDao;
 import com.bdaim.crm.dao.LkCrmAdminFieldDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
 import com.bdaim.crm.dao.LkCrmProductDao;
+import com.bdaim.crm.entity.LkCrmActionRecordEntity;
 import com.bdaim.crm.entity.LkCrmProductEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
@@ -31,10 +33,13 @@ import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.annotation.AccessType;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -68,6 +73,8 @@ public class CrmProductService {
 
     @Resource
     private LkCrmAdminFieldDao crmAdminFieldDao;
+    @Autowired
+    private LkCrmActionRecordDao crmActionRecordDao;
 
     /**
      * 分页条件查询产品
@@ -167,7 +174,7 @@ public class CrmProductService {
      * 上架或者下架
      */
     public R updateStatus(String ids, Integer status) {
-        List<Record> recordList = JavaBeanUtil.mapToRecords(crmProductDao.sqlQuery("select batch_id from lkcrm_crm_product where  product_id in (" + ids + ")"));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmProductDao.sqlQuery("select batch_id,product_id from lkcrm_crm_product where  product_id in (" + ids + ")"));
         StringBuilder batchIds = new StringBuilder();
         for (Record record : recordList) {
             if (batchIds.length() == 0) {
@@ -188,11 +195,20 @@ public class CrmProductService {
         int f = crmProductDao.executeUpdateSQL(sqlfield.toString());
 //        String[] idsArray = batchIds.toString().split(",");
         for (Record record : recordList) {
-            //旧的产品
-            String jsonStr = "[{\"formType\":\"select\",\"fieldName\":\"是否上下架\",\"isNull\":1,\"name\":\"是否上下架\",\"options\":\"上架,下架\",\"isUnique\":0,\"type\":3,\"value\":\"" +
-                    a + "\",\"fieldType\":0,\"fieldId\":1276,\"setting\":[\"上架\",\"下架\"]}]";
-            crmRecordService.updateRecord(JSONArray.parseArray(jsonStr), record.getStr("batch_id"));
-            adminFieldService.save(JSONArray.parseArray(jsonStr), record.getStr("batch_id"));
+            LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
+            crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmActionRecord.setCustId(BaseUtil.getUser().getCustId());
+            crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            crmActionRecord.setTypes(CrmEnum.PRODUCT_TYPE_KEY.getTypes());
+            crmActionRecord.setActionId(record.getStr("product_id"));
+            ArrayList<String> strings = new ArrayList<>();
+            if (status == 0) {
+                strings.add("将是否上下架 由上架修改为下架。");
+            } else {
+                strings.add("将是否上下架 由下架修改为上架。");
+            }
+            crmActionRecord.setContent(JSON.toJSONString(strings));
+            crmActionRecordDao.save(crmActionRecord);
         }
         return R.isSuccess(f > 0);
     }
@@ -200,7 +216,7 @@ public class CrmProductService {
     public static void main(String[] args) {
         String jsonStr = "[{\"formType\":\"select\",\"fieldName\":\"是否上下架\",\"isNull\":1,\"name\":\"是否上下架\",\"options\":\"上架,下架\",\"isUnique\":0,\"type\":3,\"value\":\"" +
                 "下架" + "\",\"fieldType\":0,\"fieldId\":1276,\"setting\":[\"上架\",\"下架\"]}]";
-JSONArray result = JSONArray.parseArray(jsonStr);
+        JSONArray result = JSONArray.parseArray(jsonStr);
         System.out.println(result.size());
     }
 
