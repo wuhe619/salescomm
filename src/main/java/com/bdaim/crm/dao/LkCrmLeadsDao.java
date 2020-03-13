@@ -20,16 +20,16 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
     public static final Logger LOG = LoggerFactory.getLogger(LkCrmLeadsDao.class);
 
     public List getRecord(String leadsId, int pageNum, int pageSize) {
-        String sql = "select a.record_id, '' as user_img, b.realname, a.create_time,a.content,a.category,a.next_time,a.batch_id " +
-                "     from lkcrm_admin_record as a inner join t_customer_user as b LEFT JOIN lkcrm_task AS c ON a.task_id = c.task_id " +
-                "     where a.create_user_id = b.id and types = 'crm_leads' and types_id = ? and a.cust_id = ? AND (a.task_id IS NULL OR c.`status`=5) order by a.create_time desc";
+        String sql = "select a.record_id, b.img as user_img, b.realname, a.create_time,a.content,a.category,a.next_time,a.batch_id " +
+                "     from lkcrm_admin_record as a inner join lkcrm_admin_user as b LEFT JOIN lkcrm_task AS c ON a.task_id = c.task_id " +
+                "     where a.create_user_id = b.user_id and types = 'crm_leads' and types_id = ? and a.cust_id = ? AND (a.task_id IS NULL OR c.`status`=5) order by a.create_time desc";
         return this.sqlPageQuery(sql, pageNum, pageSize, leadsId, BaseUtil.getUser().getCustId()).getData();
     }
 
     public List getRecord(String leadsId, int taskStatus, int pageNum, int pageSize) {
-        String sql = "select a.record_id, '' as user_img, b.realname, a.create_time,a.content,a.category,a.next_time,a.batch_id, c.task_id, c.name taskName " +
-                "    from lkcrm_admin_record as a inner join t_customer_user as b INNER JOIN lkcrm_task AS c " +
-                "    where a.create_user_id = b.id and types = 'crm_leads' AND c.task_id = a.task_id AND c.`status` = ? and types_id = ? and a.cust_id = ? order by a.create_time desc";
+        String sql = "select a.record_id, b.img as user_img, b.realname, a.create_time,a.content,a.category,a.next_time,a.batch_id, c.task_id, c.name taskName " +
+                "    from lkcrm_admin_record as a inner join lkcrm_admin_user as b INNER JOIN lkcrm_task AS c " +
+                "    where a.create_user_id = b.user_id and types = 'crm_leads' AND c.task_id = a.task_id AND c.`status` = ? and types_id = ? and a.cust_id = ? order by a.create_time desc";
         return this.sqlPageQuery(sql, pageNum, pageSize, taskStatus, leadsId, BaseUtil.getUser().getCustId()).getData();
     }
 

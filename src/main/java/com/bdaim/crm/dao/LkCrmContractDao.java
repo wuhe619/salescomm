@@ -58,9 +58,9 @@ public class LkCrmContractDao extends SimpleHibernateDao<LkCrmContractEntity, In
 
 
     public List<Map<String, Object>> getRecord(int contract_id) {
-        return super.sqlQuery("select a.record_id, '' AS img as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id\n" +
-                "    from lkcrm_admin_record as a inner join t_customer_user as b\n" +
-                "    where a.create_user_id = b.id and types = 'crm_contract' and types_id = ? order by a.create_time desc", contract_id);
+        return super.sqlQuery("select a.record_id, b.img AS img as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id\n" +
+                "    from lkcrm_admin_record as a inner join lkcrm_admin_user as b\n" +
+                "    where a.create_user_id = b.ser_id and types = 'crm_contract' and types_id = ? order by a.create_time desc", contract_id);
     }
 
     public int setContractConfig(Integer status, Integer contractDay) {

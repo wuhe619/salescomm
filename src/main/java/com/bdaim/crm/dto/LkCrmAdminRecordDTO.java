@@ -1,12 +1,14 @@
 package com.bdaim.crm.dto;
 
+import java.util.Date;
+
 public class LkCrmAdminRecordDTO {
     private Integer recordId;
     private String types;
     private String typesId;
     private String content;
     private String category;
-    private String nextTime;
+    private Date nextTime;
     private String businessIds;
     private String contactsIds;
     private int createUserId;
@@ -56,11 +58,11 @@ public class LkCrmAdminRecordDTO {
         this.category = category;
     }
 
-    public String getNextTime() {
+    public Date getNextTime() {
         return nextTime;
     }
 
-    public void setNextTime(String nextTime) {
+    public void setNextTime(Date nextTime) {
         this.nextTime = nextTime;
     }
 
