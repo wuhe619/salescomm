@@ -431,8 +431,9 @@ public class CustomerAppService {
 //        BigDecimal money1 = bigDecimal.multiply(new BigDecimal(10000);
 //        int money = money1.intValue();
         BigDecimal money1 = BigDecimalUtil.mul(deposit.getMoney(),"10000");
+        logger.info(money1.toPlainString());
         int money = money1.intValue();
-
+        logger.info("money:{}",money);
         //        int money = Integer.valueOf(String.valueOf(Float.valueOf(deposit.getMoney()) * 10000));
         int pre_money = 0;
         CustomerProperty customerProperty = customerDao.getProperty(id, "remain_amount");
@@ -587,5 +588,13 @@ public class CustomerAppService {
         arr.add(params.get("type"));
         arr.add(params.get("statTime"));
         customerDao.executeUpdateSQL(updateSql,arr.toArray());
+    }
+
+    public static void main(String[] args) {
+        BigDecimal s=new BigDecimal("1.55");
+        System.out.println(s.toPlainString());
+        BigDecimal b=s.multiply(new BigDecimal("10000"));
+        System.out.println(b.toPlainString());
+        System.out.println(b.intValue());
     }
 }
