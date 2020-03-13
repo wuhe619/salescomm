@@ -18,17 +18,20 @@ public class LkCrmContractDao extends SimpleHibernateDao<LkCrmContractEntity, In
         return super.queryListBySql("  select * from  lkcrm_crm_contract\n" +
                 "       where contract_id in  (" + SqlAppendUtil.sqlAppendWhereIn(deptIds) + ")");
     }
-    
+
     public List getProductPageList() {
-        return super.sqlQuery(" select * from contractview");
+        String contractview = BaseUtil.getViewSql("contractview");
+        return super.sqlQuery(" select * from " + contractview);
     }
 
     public Page pageProductPageList(int pageNum, int pageSize) {
-        return super.sqlPageQuery(" select * from contractview", pageNum, pageSize);
+        String contractview = BaseUtil.getViewSql("contractview");
+        return super.sqlPageQuery(" select * from " + contractview, pageNum, pageSize);
     }
 
     public Map<String, Object> queryByContractId(Integer id) {
-        String sql = "select *,  ( select IFNULL(sum(money),0) from lkcrm_crm_receivables where contract_id =  crt.contract_id and check_status = 2) as receivablesMoney from contractview as crt where crt.contract_id = ?";
+        String contractview = BaseUtil.getViewSqlNotASName("contractview");
+        String sql = "select *,  ( select IFNULL(sum(money),0) from lkcrm_crm_receivables where contract_id =  crt.contract_id and check_status = 2) as receivablesMoney from " + contractview + " as crt where crt.contract_id = ?";
         List<Map<String, Object>> maps = super.sqlQuery(sql, id);
         if (maps.size() > 0) {
             return maps.get(0);

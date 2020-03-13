@@ -122,7 +122,8 @@ public class CrmProductService {
      * 根据id查询产品
      */
     public R queryById(Integer id) {
-        Map<String, Object> record = crmProductDao.sqlQuery("select * from productview where product_id = ?", id).get(0);
+        String productview = BaseUtil.getViewSql("productview");
+        Map<String, Object> record = crmProductDao.sqlQuery("select * from " + productview + " where product_id = ?", id).get(0);
         return R.ok().put("data", record);
     }
 
@@ -130,7 +131,8 @@ public class CrmProductService {
      * 根据id查询产品基本信息
      */
     public List<Record> information(Integer id) {
-        Record record = JavaBeanUtil.mapToRecord(crmProductDao.sqlQuery("select * from productview where product_id = ?", id).get(0));
+        String productview = BaseUtil.getViewSql("productview");
+        Record record = JavaBeanUtil.mapToRecord(crmProductDao.sqlQuery("select * from " + productview + " where product_id = ?", id).get(0));
         if (record == null) {
             return null;
         }
@@ -192,7 +194,8 @@ public class CrmProductService {
      */
     public List<Record> queryField(Integer productId) {
         //Record product = Db.findFirst("select * from productview where product_id = ?",productId);
-        Record product = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from productview where product_id = ?", productId).get(0));
+        String productview = BaseUtil.getViewSql("productview");
+        Record product = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from " + productview + " where product_id = ?", productId).get(0));
         List<Integer> list = crmProductCategoryService.queryId(null, product.getInt("category_id"));
         Integer[] categoryIds = new Integer[list.size()];
         categoryIds = list.toArray(categoryIds);

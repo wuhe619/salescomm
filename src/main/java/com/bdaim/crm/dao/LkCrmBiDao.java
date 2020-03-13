@@ -1,6 +1,7 @@
 package com.bdaim.crm.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.SqlAppendUtil;
 import com.bdaim.util.StringUtil;
@@ -127,7 +128,8 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
     }
 
     public List<Map<String, Object>> queryByUserIdOrYear(String year, String month, Integer userId, Integer deptId) {
-        String sql = "      select co.* from contractview as co LEFT JOIN lkcrm_admin_user as sau on co.owner_user_id = sau.user_id " +
+        String contractview = BaseUtil.getViewSqlNotASName("contractview");
+        String sql = "      select co.* from "+contractview+" as co LEFT JOIN lkcrm_admin_user as sau on co.owner_user_id = sau.user_id " +
                 "      where 1 = 1 ";
         List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(year)) {

@@ -347,7 +347,8 @@ public class CrmCustomerService {
      * 条件查询客户公海
      */
     public CrmPage queryPageGH(BasePageRequest basePageRequest) {
-        Page page = crmCustomerDao.sqlPageQuery("select *  from customerview where owner_user_id = 0", basePageRequest.getPage(), basePageRequest.getLimit());
+        String customerview = BaseUtil.getViewSql("customerview");
+        Page page = crmCustomerDao.sqlPageQuery("select *  from " + customerview + " where owner_user_id = 0", basePageRequest.getPage(), basePageRequest.getLimit());
         return BaseUtil.crmPage(page);
         //return Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), new SqlPara().setSql("select *  from customerview where owner_user_id = 0"));
     }
@@ -545,7 +546,8 @@ public class CrmCustomerService {
      * 查询编辑字段
      */
     public List<Record> queryField(Integer customerId) {
-        Record customer = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from customerview where customer_id = ?", customerId).get(0));
+        String customerview = BaseUtil.getViewSql("customerview");
+        Record customer = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from " + customerview + " where customer_id = ?", customerId).get(0));
         //Record customer = Db.findFirst("select * from customerview where customer_id = ?",customerId);
         List<Record> fieldList = adminFieldService.queryUpdateField(2, customer);
         fieldList.add(new Record().set("fieldName", "map_address")

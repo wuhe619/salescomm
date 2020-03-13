@@ -1129,7 +1129,7 @@ public class CrmLeadsService {
         int status = customerSeaDao.executeUpdateSQL(sql.toString(), param.toArray());
         for (String id : superIds) {
             List<Map<String, Object>> list = customerSeaDao.sqlQuery("select * from " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " WHERE id = ? ", id);
-            if(list.size()==0){
+            if (list.size() == 0) {
                 transferToPublicSea(seaId, userId.toString(), id);
             }
         }
@@ -1157,8 +1157,9 @@ public class CrmLeadsService {
     @Before(Tx.class)
     public R translate(String leadsIds) {
         String[] leadsIdsArr = leadsIds.split(",");
+        String leadsview = BaseUtil.getViewSql("leadsview");
         for (String leadsId : leadsIdsArr) {
-            List<Map<String, Object>> maps = crmLeadsDao.sqlQuery("select * from leadsview where leads_id = ?", Integer.valueOf(leadsId));
+            List<Map<String, Object>> maps = crmLeadsDao.sqlQuery("select * from " + leadsview + " where leads_id = ?", Integer.valueOf(leadsId));
             Record crmLeads = JavaBeanUtil.mapToRecord(maps.get(0));
             if (1 == crmLeads.getInt("is_transform")) {
                 return R.error("已转化线索不能再次转化");
@@ -1285,7 +1286,8 @@ public class CrmLeadsService {
      * 查询编辑字段
      */
     public List<Record> queryField(Integer leadsId) {
-        Record leads = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from leadsview where leads_id = ?", leadsId).get(0));
+        String leadsview = BaseUtil.getViewSql("leadsview");
+        Record leads = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from " + leadsview + " where leads_id = ?", leadsId).get(0));
         return adminFieldService.queryUpdateField(1, leads);
     }
 

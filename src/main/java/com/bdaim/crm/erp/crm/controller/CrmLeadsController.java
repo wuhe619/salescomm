@@ -359,7 +359,6 @@ public class CrmLeadsController extends BasicAction {
 
 
     /**
-     * @author wyq
      * 查看列表页
      */
     @Permissions({"crm:leads:index"})

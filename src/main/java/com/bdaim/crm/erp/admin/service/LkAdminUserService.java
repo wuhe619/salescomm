@@ -62,6 +62,8 @@ public class LkAdminUserService {
     private LkCrmAdminConfigDao crmAdminConfigDao;
     @Autowired
     private LkCrmAdminSceneDao crmAdminSceneDao;
+    @Autowired
+    private AdminFieldService adminFieldService;
 
     private void saveBpUser(long id, String userName, String realName, String password, String custId, int userType,
                             String callType, String callChannel, UserCallConfigDTO userDTO) {
@@ -272,6 +274,10 @@ public class LkAdminUserService {
         crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_crm_product_category` (`cust_id`, `name`, `pid`) VALUES (?, '默认分类', '0');", custId);
         //默认默认商机租
         crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_crm_business_type` (`cust_id`, `name`, `dept_ids`, `create_user_id`, `create_time`, `update_time`, `status`) VALUES (?, '默认商机组', '', ?, ?, NULL, '1');", custId, userId, new Date());
+        //创建默认视图
+        for (int label = 1; label < 8; label++) {
+            adminFieldService.createView(label,custId);
+        }
         return R.isSuccess(true);
     }
 

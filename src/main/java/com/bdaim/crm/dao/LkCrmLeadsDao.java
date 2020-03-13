@@ -34,7 +34,8 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
     }
 
     public Map queryById(int leadsId) {
-        String sql = "select *,leads_name as name from leadsview where leads_id = ? ";
+        String leadsview = BaseUtil.getViewSql("leadsview");
+        String sql = "select *,leads_name as name from " + leadsview + " where leads_id = ? ";
         List<Map<String, Object>> maps = this.sqlQuery(sql, leadsId);
         if (maps.size() > 0) {
             LkCrmLeadsEntity entity = get(leadsId);
@@ -86,10 +87,10 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         conditions.append(" z.* FROM t_customer_sea_list_" + seaId + " AS custG LEFT JOIN fieldleadsview AS z ON custG.id = z.field_batch_id WHERE custG.status = 1 ");
         List param = new ArrayList();
         if (StringUtil.isNotEmpty(search)) {
-            param.add("%"+search+"%");
-            param.add("%"+search+"%");
-            param.add("%"+search+"%");
-            param.add("%"+search+"%");
+            param.add("%" + search + "%");
+            param.add("%" + search + "%");
+            param.add("%" + search + "%");
+            param.add("%" + search + "%");
             conditions.append(" and (super_name like ? or super_telphone like ? or super_phone like ? or super_data like ?)");
         }
         //conditions.append(" GROUP By custType ORDER BY custG.create_time DESC ");
@@ -126,7 +127,8 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
     }
 
     public Page pageLeadsList(int pageNum, int pageSize, String leadsName, String telephone, String mobile) {
-        StringBuffer conditions = new StringBuffer("select leads_id,leads_name,owner_user_name from leadsview where 1=1 ");
+        String leadsview = BaseUtil.getViewSql("leadsview");
+        StringBuffer conditions = new StringBuffer("select leads_id,leads_name,owner_user_name from " + leadsview + " where 1=1 ");
         List param = new ArrayList();
         if (StringUtil.isNotEmpty(leadsName)) {
             param.add(leadsName);
@@ -144,7 +146,8 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
     }
 
     public Map<String, Object> queryByName(String leads_name) {
-        StringBuffer conditions = new StringBuffer("select * from leadsview where leads_name = ?");
+        String leadsview = BaseUtil.getViewSql("leadsview");
+        StringBuffer conditions = new StringBuffer("select * from " + leadsview + " where leads_name = ?");
         List param = new ArrayList();
         param.add(leads_name);
         List<Map<String, Object>> maps = this.sqlQuery(conditions.toString(), param.toArray());
@@ -155,7 +158,8 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
     }
 
     public List<Map<String, Object>> excelExport(List leadsIds) {
-        StringBuffer conditions = new StringBuffer("select leads_name,线索来源,客户行业,客户级别,next_time,telephone,mobile,address,remark,create_user_name,owner_user_name,create_time,update_time from leadsview where leads_id in (" + SqlAppendUtil.sqlAppendWhereIn(leadsIds) + ") order by update_time desc");
+        String leadsview = BaseUtil.getViewSql("leadsview");
+        StringBuffer conditions = new StringBuffer("select leads_name,线索来源,客户行业,客户级别,next_time,telephone,mobile,address,remark,create_user_name,owner_user_name,create_time,update_time from " + leadsview + " where leads_id in (" + SqlAppendUtil.sqlAppendWhereIn(leadsIds) + ") order by update_time desc");
         return sqlQuery(conditions.toString());
     }
 

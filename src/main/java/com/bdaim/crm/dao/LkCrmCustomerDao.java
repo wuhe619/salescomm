@@ -79,7 +79,8 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public List excelExport(List customer_id) {
-        String sql = " select * from customerview where customer_id in (" + SqlAppendUtil.sqlAppendWhereIn(customer_id) + ") order by update_time desc";
+        String customerview = BaseUtil.getViewSql("customerview");
+        String sql = " select * from " + customerview + " where customer_id in (" + SqlAppendUtil.sqlAppendWhereIn(customer_id) + ") order by update_time desc";
         return sqlQuery(sql);
     }
 
@@ -257,7 +258,8 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public List queryContacts(Integer customerId, String search) {
-        String sql = " select contacts_id,name,mobile,post,telephone,是否关键决策人 from contactsview where customer_id = ?  ";
+        String contactsview = BaseUtil.getViewSql("contactsview");
+        String sql = " select contacts_id,name,mobile,post,telephone,是否关键决策人 from " + contactsview + " where customer_id = ?  ";
         List param = new ArrayList();
         param.add(customerId);
         if (StringUtil.isNotEmpty(search)) {
@@ -268,7 +270,8 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public Page pageQueryContacts(int pageNum, int pageSize, Integer customerId, String search) {
-        String sql = "select contacts_id,name,mobile,post,telephone,是否关键决策人 from contactsview where customer_id = ? ";
+        String contactsview = BaseUtil.getViewSql("contactsview");
+        String sql = "select contacts_id,name,mobile,post,telephone,是否关键决策人 from " + contactsview + " where customer_id = ? ";
         List param = new ArrayList();
         param.add(customerId);
         if (StringUtil.isNotEmpty(search)) {
@@ -279,18 +282,21 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public Map<String, Object> queryByName(String customer_name) {
-        String sql = "select * from customerview where customer_name = ? ";
+        String customerview = BaseUtil.getViewSql("customerview");
+        String sql = "select * from " + customerview + " where customer_name = ? ";
         List<Map<String, Object>> maps = sqlQuery(sql, customer_name);
         return maps.size() > 0 ? maps.get(0) : null;
     }
 
     public List<Map<String, Object>> queryById(Integer customer_id) {
-        String sql = " select *,(IF(owner_user_id is null,1,0)) as is_pool from customerview  where customer_id = ? ";
+        String customerview = BaseUtil.getViewSql("customerview");
+        String sql = " select *,(IF(owner_user_id is null,1,0)) as is_pool from " + customerview + "  where customer_id = ? ";
         return sqlQuery(sql, customer_id);
     }
 
     public Page getCustomerPageList(int pageNum, int pageSize, String customerName, String mobile, String telephone) {
-        String sql = " select customer_id,customer_name,owner_user_name from customerview where 1=1";
+        String customerview = BaseUtil.getViewSql("customerview");
+        String sql = " select customer_id,customer_name,owner_user_name from " + customerview + " where 1=1";
         List param = new ArrayList();
         if (StringUtil.isNotEmpty(customerName)) {
             sql += "   and customer_name like CONCAT('%',?,'%') ";
