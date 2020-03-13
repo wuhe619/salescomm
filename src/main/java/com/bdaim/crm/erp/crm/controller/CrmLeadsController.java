@@ -138,6 +138,13 @@ public class CrmLeadsController extends BasicAction {
                     seaId, superData, jsonO.getString("qq"), jsonO.getString("email"), jsonO.getString("profession"), jsonO.getString("weChat"),
                     jsonO.getString("followStatus"), jsonO.getString("invalidReason"), jsonO.getString("company"));
             // 保存标记信息
+            for (int i = 0; i < jsonO.getJSONArray("field").size(); i++) {
+                // 处理线索名称
+                if ("leads_name".equals(jsonO.getJSONArray("field").getJSONObject(i).getString("fieldName"))) {
+                    dto.setSuper_name(jsonO.getJSONArray("field").getJSONObject(i).getString("value"));
+                    break;
+                }
+            }
             int status = crmLeadsService.addClueData0(dto, jsonO);
             if (status == 1) {
                 responseJson.setCode(200);
