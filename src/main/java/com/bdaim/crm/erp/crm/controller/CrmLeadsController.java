@@ -381,6 +381,8 @@ public class CrmLeadsController extends BasicAction {
         data = crmAdminFieldDao.executeUpdateSQL(sql);
         sql = "DELETE FROM lkcrm_admin_field_sort ";
         data = crmAdminFieldDao.executeUpdateSQL(sql);
+        sql = "DELETE FROM lkcrm_admin_field WHERE  field_id IN(117,176) ";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
     }
