@@ -461,7 +461,7 @@ public class CustomerAppService {
                     map.put("bank_account", m.get("property_value"));
                     break;
                 case "remain_amount":
-                    map.put("remain_amount", Integer.valueOf(m.get("property_value").toString()).intValue() / 10000);
+                    map.put("remain_amount", BigDecimalUtil.strDiv(m.get("property_value").toString(),"10000",2));
                     break;
             }
         });
@@ -478,7 +478,7 @@ public class CustomerAppService {
                 deposit.setCustId(depositMap.get("SUBSCRIBER_ID").toString());
             }
             if (depositMap.get("MONEY") != null) {
-                deposit.setMoney(Integer.valueOf(depositMap.get("MONEY").toString()).intValue() / 10000 + "");
+                deposit.setMoney(BigDecimalUtil.strDiv(depositMap.get("MONEY").toString(),"10000",2));
             }
             if (depositMap.get("PAY_TIME") != null) {
                 deposit.setPayTime(depositMap.get("PAY_TIME").toString());
@@ -490,7 +490,7 @@ public class CustomerAppService {
                 deposit.setPicId(depositMap.get("pay_certificate").toString());
             }
             if (depositMap.get("pre_money") != null) {
-                deposit.setPreMoney(Integer.valueOf(depositMap.get("pre_money").toString()).intValue() / 10000 + "");
+                deposit.setPreMoney(BigDecimalUtil.strDiv(depositMap.get("pre_money").toString(),"10000",2 ));
             }
             if (depositMap.get("user_id") != null) {
                 deposit.setUserId(depositMap.get("user_id").toString());
