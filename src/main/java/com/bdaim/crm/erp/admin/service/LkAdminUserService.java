@@ -74,7 +74,7 @@ public class LkAdminUserService {
         }
         //password = CipherUtil.generatePassword(password);
         cu.setPassword(password);
-        cu.setStatus(0);
+        cu.setStatus(1);
         cu.setCust_id(custId);
         cu.setUserType(userType); //2:添加普通员工 3:项目管理员
         cu.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
