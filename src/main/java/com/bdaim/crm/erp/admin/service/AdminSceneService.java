@@ -477,7 +477,7 @@ public class AdminSceneService {
             data = new JSONObject().fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", "0"));
         }
         if (sceneId == null && jsonObject.getInteger("type") == 4) {
-            data = new JSONObject().fluentPut("是否上下架", new JSONObject().fluentPut("name", "是否上下架").fluentPut("condition", "is").fluentPut("value", "上架"));
+            data = new JSONObject().fluentPut("是否上下架", new JSONObject().fluentPut("name", "是否上下架").fluentPut("condition", "in").fluentPut("value", "'上架','下架'"));
         }
         if (jsonObject.getJSONObject("data") != null) {
             if (data != null) {
@@ -556,9 +556,9 @@ public class AdminSceneService {
             if (!ParamsUtil.isValid(name)) {
                 return R.error("参数包含非法字段");
             }
-            if (StrUtil.isNotEmpty(value) && !ParamsUtil.isValid(value)) {
-                return R.error("参数包含非法字段");
-            }
+//            if (StrUtil.isNotEmpty(value) && !ParamsUtil.isValid(value)) {
+//                return R.error("参数包含非法字段");
+//            }
             if (StrUtil.isNotEmpty(jsonObject.getString("start")) && !ParamsUtil.isValid(jsonObject.getString("start"))) {
                 return R.error("参数包含非法字段");
             }
