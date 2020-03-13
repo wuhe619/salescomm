@@ -52,7 +52,7 @@ public class CrmBackLogService {
         Integer config = crmCustomerDao.queryForInt("select status from lkcrm_admin_config where name = 'expiringContractDays' AND cust_id = ? ", BaseUtil.getCustId());
         Integer checkReceivables = crmCustomerDao.checkReceivablesNum(userId);
         Integer remindReceivablesPlan = crmCustomerDao.remindReceivablesPlanNum(userId);
-        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUniqueBy("name", "expiringContractDays");
+        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity where name = ? and cust_id = ?", "expiringContractDays", BaseUtil.getCustId());
         Integer endContract = 0;
         if (1 == adminConfig.getStatus()) {
             endContract = crmCustomerDao.endContractNum(adminConfig.getValue(), userId);
@@ -122,7 +122,8 @@ public class CrmBackLogService {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         Integer type = jsonObject.getInteger("type");
         Integer isSub = jsonObject.getInteger("isSub");
-        StringBuffer stringBuffer = new StringBuffer("from leadsview as a where");
+        String leadsview = BaseUtil.getViewSql("leadsview");
+        StringBuffer stringBuffer = new StringBuffer("from " + leadsview + " as a where");
         if (type == 1) {
             stringBuffer.append(" a.followup = 0 and a.is_transform = 0");
         } else if (type == 2) {
@@ -227,7 +228,8 @@ public class CrmBackLogService {
         if (contractIdList.size() > 0) {
             String contractIds = CollUtil.join(contractIdList, ",");
             JSONObject data = jsonObject.getJSONObject("data");
-            com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * from contractview as a where a.contract_id in (" + contractIds + ")" + getConditionSql(data), basePageRequest.getPage(), basePageRequest.getLimit());
+            String contractview = BaseUtil.getViewSqlNotASName("contractview");
+            com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * from " + contractview + " as a where a.contract_id in (" + contractIds + ")" + getConditionSql(data), basePageRequest.getPage(), basePageRequest.getLimit());
             //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", "from contractview as a where a.contract_id in (" + contractIds + ")" + getConditionSql(data));
             return R.ok().put("data", BaseUtil.crmPage(page));
         } else {
@@ -267,7 +269,8 @@ public class CrmBackLogService {
         if (receivablesIdList.size() > 0) {
             String contractIds = CollUtil.join(receivablesIdList, ",");
             JSONObject data = jsonObject.getJSONObject("data");
-            com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * from receivablesview as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data), basePageRequest.getPage(), basePageRequest.getLimit());
+            String receivablesview = BaseUtil.getViewSql("receivablesview");
+            com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * from "+receivablesview+" as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data), basePageRequest.getPage(), basePageRequest.getLimit());
             //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", "from receivablesview as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data));
             return R.ok().put("data", BaseUtil.crmPage(page));
         } else {
@@ -322,7 +325,8 @@ public class CrmBackLogService {
         Integer type = jsonObject.getInteger("type");
         Integer isSub = jsonObject.getInteger("isSub");
         LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUniqueBy("name", "expiringContractDays");
-        StringBuffer stringBuffer = new StringBuffer("from contractview as a where");
+        String contractview = BaseUtil.getViewSqlNotASName("contractview");
+        StringBuffer stringBuffer = new StringBuffer("from " + contractview + " as a where");
         if (type == 1) {
             if (adminConfig.getStatus() == 0 || ObjectUtil.isNull(adminConfig)) {
                 return R.ok().put("data", new Page<>());

@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmContactsEntity;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.SqlAppendUtil;
 import com.bdaim.util.StringUtil;
 import org.springframework.stereotype.Component;
@@ -20,7 +21,8 @@ public class LkCrmContactsDao extends SimpleHibernateDao<LkCrmContactsEntity, In
     }
 
     public List getContactsPageList(String contactsName, String telephone, String mobile, String customerName) {
-        String sql = "select contacts_id,name,customer_name,owner_user_name from contactsview where 1=1";
+        String contactsview = BaseUtil.getViewSql("contactsview");
+        String sql = "select contacts_id,name,customer_name,owner_user_name from " + contactsview + " where 1=1";
         List param = new ArrayList();
         if (StringUtil.isNotEmpty(contactsName)) {
             param.add(contactsName);
@@ -42,7 +44,8 @@ public class LkCrmContactsDao extends SimpleHibernateDao<LkCrmContactsEntity, In
     }
 
     public Page pageContactsPageList(int pageNum, int pageSize, String contactsName, String telephone, String mobile, String customerName) {
-        String sql = "select contacts_id,name,customer_name,owner_user_name from contactsview where 1=1";
+        String contactsview = BaseUtil.getViewSql("contactsview");
+        String sql = "select contacts_id,name,customer_name,owner_user_name from " + contactsview + " where 1=1";
         List param = new ArrayList();
         if (StringUtil.isNotEmpty(contactsName)) {
             param.add(contactsName);
@@ -64,7 +67,8 @@ public class LkCrmContactsDao extends SimpleHibernateDao<LkCrmContactsEntity, In
     }
 
     public List<Map<String, Object>> queryById(int contacts_id) {
-        String sql = "select * from contactsview where contacts_id = ?";
+        String contactsview = BaseUtil.getViewSql("contactsview");
+        String sql = "select * from " + contactsview + " where contacts_id = ?";
         List param = new ArrayList();
         param.add(contacts_id);
         List<Map<String, Object>> maps = sqlQuery(sql, param.toArray());
@@ -72,7 +76,8 @@ public class LkCrmContactsDao extends SimpleHibernateDao<LkCrmContactsEntity, In
     }
 
     public List<Map<String, Object>> queryByName(String name) {
-        String sql = " select * from contactsview where name = ?";
+        String contactsview = BaseUtil.getViewSql("contactsview");
+        String sql = " select * from " + contactsview + " where name = ?";
         List param = new ArrayList();
         param.add(name);
         List<Map<String, Object>> maps = sqlQuery(sql, param.toArray());
@@ -158,9 +163,9 @@ public class LkCrmContactsDao extends SimpleHibernateDao<LkCrmContactsEntity, In
     }
 
 
-
     public List<Map<String, Object>> excelExport(List ids) {
-        String sql = " select * from contactsview where contacts_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ") order by update_time desc";
+        String contactsview = BaseUtil.getViewSql("contactsview");
+        String sql = " select * from " + contactsview + " where contacts_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ") order by update_time desc";
         List param = new ArrayList();
         List<Map<String, Object>> maps = sqlQuery(sql);
         return maps;

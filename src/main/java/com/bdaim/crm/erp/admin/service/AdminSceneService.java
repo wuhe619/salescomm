@@ -217,6 +217,7 @@ public class AdminSceneService {
      */
     public R addScene(LkCrmAdminSceneEntity adminScene) {
         Long userId = BaseUtil.getUser().getUserId();
+        adminScene.setCustId(BaseUtil.getCustId());
         adminScene.setIsHide(0).setSort(99999).setIsSystem(0).setCreateTime(DateUtil.date().toTimestamp()).setUserId(userId);
         crmAdminSceneDao.save(adminScene);
         if (1 == adminScene.getIsDefault()) {
@@ -233,6 +234,7 @@ public class AdminSceneService {
      */
     public R updateScene(LkCrmAdminSceneEntity adminScene) {
         Long userId = BaseUtil.getUser().getUserId();
+        adminScene.setCustId(BaseUtil.getCustId());
         LkCrmAdminSceneEntity oldAdminScene = crmAdminSceneDao.get(adminScene.getSceneId());
         if (1 == adminScene.getIsDefault()) {
             crmAdminSceneDao.executeUpdateSQL("update lkcrm_admin_scene_default set scene_id = ? where user_id = ? and type = ?", adminScene.getSceneId(), userId, oldAdminScene.getType());
@@ -253,6 +255,7 @@ public class AdminSceneService {
         crmAdminSceneDao.executeUpdateSQL("delete from lkcrm_admin_scene_default where user_id = ? and type = ?", userId, oldAdminScene.getType());
         LkCrmAdminSceneDefaultEntity adminSceneDefault = new LkCrmAdminSceneDefaultEntity();
         adminSceneDefault.setSceneId(sceneId).setType(oldAdminScene.getType()).setUserId(userId);
+        adminSceneDefault.setCustId(BaseUtil.getCustId());
         crmAdminSceneDao.saveOrUpdate(adminSceneDefault);
         return R.ok();
     }
@@ -276,13 +279,14 @@ public class AdminSceneService {
     public R queryScene(Integer type) {
         Long userId = BaseUtil.getUser().getUserId();
         //查询userId下是否有系统场景，没有则插入
-        String sql = "select count(*) from lkcrm_admin_scene where is_system = 1 and type = ? and user_id = ?";
+        String sql = "select count(*) from lkcrm_admin_scene where is_system = 1 and type = ? and user_id = ? AND cust_id = ?";
         //Integer number = Db.queryInt(Db.getSql("admin.scene.querySystemNumber"), type, userId);
-        int number = crmAdminSceneDao.queryForInt(sql, type, userId);
+        int number = crmAdminSceneDao.queryForInt(sql, type, userId, BaseUtil.getCustId());
         type = type != null ? type : -1;
         if (number == 0) {
             //AdminScene systemScene = new AdminScene();
             LkCrmAdminSceneEntity systemScene = new LkCrmAdminSceneEntity();
+            systemScene.setCustId(BaseUtil.getCustId());
             systemScene.setUserId(userId).setSort(0).setData("").setIsHide(0).setIsSystem(1).setCreateTime(new Timestamp(System.currentTimeMillis())).setType(type);
             JSONObject ownerObject = new JSONObject();
             ownerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "is").fluentPut("value", userId));
@@ -290,55 +294,102 @@ public class AdminSceneService {
             subOwnerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "in").fluentPut("value", getSubUserId(userId.intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1)));
             if (1 == type) {
                 systemScene.setName("全部线索").setData(new JSONObject().fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", 0)).toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 ownerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "is").fluentPut("value", userId)).fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", 0));
                 systemScene.setSceneId(null).setName("我负责的线索").setData(ownerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 subOwnerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "in").fluentPut("value", getSubUserId(userId.intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1))).fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", 0));
                 systemScene.setSceneId(null).setName("下属负责的线索").setData(subOwnerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", "1"));
                 systemScene.setSceneId(null).setName("已转化的线索").setData(jsonObject.toString()).setBydata("transform");
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
             } else if (2 == type) {
                 systemScene.setName("全部客户");
                 systemScene.setSceneId(null).setName("我负责的客户").setData(ownerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("下属负责的客户").setData(subOwnerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.fluentPut("ro_user_id", new JSONObject().fluentPut("name", "ro_user_id").fluentPut("condition", "takePart").fluentPut("value", userId));
                 systemScene.setSceneId(null).setName("我参与的客户").setData(jsonObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
             } else if (3 == type) {
                 systemScene.setName("全部联系人");
                 systemScene.setSceneId(null).setName("我负责的联系人").setData(ownerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("下属负责的联系人").setData(subOwnerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
             } else if (4 == type) {
+                systemScene.setName("全部产品");
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setName("上架的产品").setData(new JSONObject().fluentPut("是否上下架", new JSONObject().fluentPut("name", "是否上下架").fluentPut("condition", "is").fluentPut("value", "上架")).toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.fluentPut("是否上下架", new JSONObject().fluentPut("name", "是否上下架").fluentPut("condition", "is").fluentPut("value", "下架"));
                 systemScene.setSceneId(null).setName("下架的产品").setData(jsonObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
             } else if (5 == type) {
                 systemScene.setName("全部商机");
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("我负责的商机").setData(ownerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("下属负责的商机").setData(subOwnerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.fluentPut("ro_user_id", new JSONObject().fluentPut("name", "ro_user_id").fluentPut("condition", "takePart").fluentPut("value", userId));
                 systemScene.setSceneId(null).setName("我参与的商机").setData(jsonObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
             } else if (6 == type) {
                 systemScene.setName("全部合同");
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("我负责的合同").setData(ownerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("下属负责的合同").setData(subOwnerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.fluentPut("ro_user_id", new JSONObject().fluentPut("name", "ro_user_id").fluentPut("condition", "takePart").fluentPut("value", userId));
                 systemScene.setSceneId(null).setName("我参与的合同").setData(jsonObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
             } else if (7 == type) {
                 systemScene.setName("全部回款");
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("我负责的回款").setData(ownerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("下属负责的回款").setData(subOwnerObject.toString());
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
             }
-            crmAdminSceneDao.save(systemScene);
+            //crmAdminSceneDao.save(systemScene);
         }
         sql = "select a.scene_id,a.data,a.name,if(b.default_id is null,0,1) as is_default,a.is_system,a.bydata " +
                 "    from lkcrm_admin_scene as a left join lkcrm_admin_scene_default as b on a.scene_id = b.scene_id " +
-                "    where a.type = ? and a.user_id = ? and is_hide = 0 order by a.sort asc";
+                "    where a.type = ? and a.user_id = ? and is_hide = 0 AND a.cust_id = ?  order by a.sort asc";
         //return R.ok().put("data", Db.find(Db.getSql("admin.scene.queryScene"), type, userId));
-        return R.ok().put("data", crmAdminSceneDao.sqlQuery(sql, type, userId));
+        return R.ok().put("data", crmAdminSceneDao.sqlQuery(sql, type, userId, BaseUtil.getCustId()));
     }
 
     /**
@@ -447,34 +498,42 @@ public class AdminSceneService {
         switch (type) {
             case 1:
                 viewName = "leadsview";
+                viewName = BaseUtil.getViewSql("leadsview");
                 realm = "leads";
                 break;
             case 2:
                 viewName = "customerview";
+                viewName = BaseUtil.getViewSql("customerview");
                 realm = "customer";
                 break;
             case 3:
                 viewName = "contactsview";
+                viewName = BaseUtil.getViewSql("contactsview");
                 realm = "contacts";
                 break;
             case 4:
                 viewName = "productview";
+                viewName = BaseUtil.getViewSql("productview");
                 realm = "product";
                 break;
             case 5:
                 viewName = "businessview";
+                viewName = BaseUtil.getViewSql("businessview");
                 realm = "business";
                 break;
             case 6:
                 viewName = "contractview";
+                viewName = BaseUtil.getViewSql("contractview");
                 realm = "contract";
                 break;
             case 7:
                 viewName = "receivablesview";
+                viewName = BaseUtil.getViewSql("receivablesview");
                 realm = "receivables";
                 break;
             case 8:
                 viewName = "customerview";
+                viewName = BaseUtil.getViewSql("customerview");
                 realm = "customer";
                 break;
             default:
@@ -612,17 +671,19 @@ public class AdminSceneService {
             }
         }
         conditions.insert(0, " from " + viewName);
-        conditions.append(" order by ").append(viewName).append(".").append(sortField).append(" ").append(orderNum);
+        //conditions.append(" order by ").append(viewName).append(".").append(sortField).append(" ").append(orderNum);
+        conditions.append(" order by ").append(sortField).append(" ").append(orderNum);
         if (StrUtil.isNotEmpty(basePageRequest.getJsonObject().getString("excel"))) {
             return R.ok().put("excel", JavaBeanUtil.mapToRecords(crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), BaseUtil.getUser().getCustId())));
         }
         if (2 == type || 8 == type) {
             Integer configType = crmAdminSceneDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting' AND cust_id = ? ", BaseUtil.getCustId());
             if (1 == configType && 2 == type) {
-                String sql = " select *,(TO_DAYS(IFNULL((SELECT car.create_time FROM lkcrm_admin_record as car where car.types = 'crm_customer' and car.types_id = customerview.customer_id ORDER BY car.create_time DESC LIMIT 1),create_time))\n" +
+                String customerview = BaseUtil.getViewSql("customerview");
+                String sql = " select *,(TO_DAYS(IFNULL((SELECT car.create_time FROM lkcrm_admin_record as car where car.types = 'crm_customer' and car.types_id = " + customerview + ".customer_id ORDER BY car.create_time DESC LIMIT 1),create_time))\n" +
                         "      + CAST((SELECT value FROM lkcrm_admin_config WHERE name= 'customerPoolSettingFollowupDays') as SIGNED) - TO_DAYS(NOW())\n" +
                         "    ) as pool_day," +
-                        "    (select count(*) from lkcrm_crm_business as a where a.customer_id = customerview.customer_id) as business_count";
+                        "    (select count(*) from lkcrm_crm_business as a where a.customer_id = " + customerview + ".customer_id) as business_count";
 
                 return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQuery(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
             } else {
@@ -631,7 +692,8 @@ public class AdminSceneService {
 
         } else if (6 == type) {
             Record totalMoney = JavaBeanUtil.mapToRecord(crmAdminSceneDao.sqlQuery("select SUM(money) as contractMoney,GROUP_CONCAT(contract_id) as contractIds " + conditions.toString(), BaseUtil.getUser().getCustId()).get(0));
-            Page page = crmAdminSceneDao.sqlPageQuery("select *,IFNULL((select SUM(a.money) from lkcrm_crm_receivables as a where a.contract_id = contractview.contract_id),0) as receivedMoney" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
+            String contractview = BaseUtil.getViewSql("contractview");
+            Page page = crmAdminSceneDao.sqlPageQuery("select *,IFNULL((select SUM(a.money) from lkcrm_crm_receivables as a where a.contract_id = " + contractview + ".contract_id),0) as receivedMoney" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
 
             String receivedMoney = crmAdminSceneDao.queryForObject("select SUM(money) from lkcrm_crm_receivables where receivables_id in (" + totalMoney.getStr("contractIds") + ")");
             JSONObject jsonObject = JSONObject.parseObject(JSON.toJSONString(BaseUtil.crmPage(page)), JSONObject.class);

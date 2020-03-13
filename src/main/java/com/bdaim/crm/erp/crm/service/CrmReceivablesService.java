@@ -97,7 +97,7 @@ public class CrmReceivablesService {
     public R saveOrUpdate(JSONObject jsonObject) {
         CrmReceivables entity = jsonObject.getObject("entity", CrmReceivables.class);
         LkCrmReceivablesEntity crmReceivables = new LkCrmReceivablesEntity();
-        BeanUtils.copyProperties(entity,crmReceivables);
+        BeanUtils.copyProperties(entity, crmReceivables);
         crmReceivables.setCreateUserId(BaseUtil.getUser().getUserId());
         crmReceivables.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmReceivables.getBatchId()) ? crmReceivables.getBatchId() : IdUtil.simpleUUID();
@@ -222,7 +222,8 @@ public class CrmReceivablesService {
      * 查询编辑字段
      */
     public List<Record> queryField(Integer receivablesId) {
-        Record receivables = JavaBeanUtil.mapToRecord(crmReceivablesDao.sqlQuery("select * from receivablesview where receivables_id = ?", receivablesId).get(0));
+        String receivablesview = BaseUtil.getViewSql("receivablesview");
+        Record receivables = JavaBeanUtil.mapToRecord(crmReceivablesDao.sqlQuery("select * from " + receivablesview + " where receivables_id = ?", receivablesId).get(0));
         //Record receivables = Db.findFirst("select * from receivablesview where receivables_id = ?",receivablesId);
         List<Record> list = new ArrayList<>();
         list.add(new Record().set("customer_id", receivables.getInt("customer_id")).set("customer_name", receivables.getStr("customer_name")));

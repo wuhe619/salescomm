@@ -1,103 +1,93 @@
 package com.bdaim.crm.common.interceptor;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.util.TypeUtils;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.util.StringUtil;
-import org.aspectj.lang.JoinPoint;
+import com.jfinal.json.Json;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.io.BufferedReader;
+import java.io.StringWriter;
+import java.lang.reflect.*;
+import java.util.*;
 
+/**
+ * 分页参数拦截
+ *
+ * @author Chacker
+ * @date 2020/3/12
+ */
 @Component
 @Aspect
 public class PageRequestInterceptor {
-    private static final Logger logger = LoggerFactory.getLogger(PageRequestInterceptor.class);
-    private final String executeRoutes = "execution(* com.bdaim.crm.erp..*Controller.*(..))";
 
-    @Before(executeRoutes)
-    public void doBasePageRequest(JoinPoint joinPoint){
-        boolean isJSON = false;
+    public static final Logger LOGGER = LoggerFactory.getLogger(PageRequestInterceptor.class);
+    public static final int BUFFER_SIZE = 1024 * 8;
+    public static final String EXECUTE_ROUTES = "execution(* com.bdaim.crm.erp..*Controller.*(..))";
+
+    @Around(EXECUTE_ROUTES)
+    public Object doBasePageRequest(ProceedingJoinPoint joinPoint) throws Throwable {
+        //是否是application/json格式的请求
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        logger.error("进来了吗？");
-        Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
-        String methodName = method.getName();
-        if("init".equals(methodName)){
-            return;
-        }
-        String contentType=request.getHeader("Content-Type");
-        if(StringUtil.isNotEmpty(contentType)){
-            if("application/json".equals(request.getHeader("Content-Type").toLowerCase())){
-                isJSON = true;
+        boolean isJson = request.getHeader("Content-Type") != null &&
+                request.getHeader("Content-Type").toLowerCase().contains("application/json");
+        //从切点上获取目标方法
+        MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
+        LOGGER.debug("methodSignature :" + methodSignature);
+        Method method = methodSignature.getMethod();
+        //如果设置了泛型注解 @ClassTypeCheck
+        if (method.isAnnotationPresent(ClassTypeCheck.class)) {
+            //获取注解对象
+            ClassTypeCheck classTypeCheck = method.getAnnotation(ClassTypeCheck.class);
+            //获取注解参数值
+            Class clazz = classTypeCheck.classType();
+            //把controller类的初始化方法排除
+            if ("init".equals(method.getName())) {
+                return joinPoint.proceed();
             }
-        }
-        logger.error(" is JSON {}",isJSON);
-        LocalVariableTableParameterNameDiscoverer paramNames = new LocalVariableTableParameterNameDiscoverer();
-        Object[] args = joinPoint.getArgs();
-        String[] params = paramNames.getParameterNames(method);
-        List<Object> filteredArgs = Arrays.stream(args)
-                .filter(arg -> (!(arg instanceof HttpServletRequest) && !(arg instanceof HttpServletResponse)))
-                .collect(Collectors.toList());
-
-//        boolean isJson=controller.getHeader("Content-Type")!=null&&controller.getHeader("Content-Type").toLowerCase().contains("application/json");
-        JSONObject rqsJson = new JSONObject();
-        rqsJson.put("rqsMethod", methodName);
-        if (CollectionUtils.isEmpty(filteredArgs)) {
-            rqsJson.put("rqsParams", null);
-        } else {
-            //拼接请求参数
-//            Map<String, Object> rqsParams = IntStream.range(0, filteredArgs.size())
-//                    .boxed()
-//                    .collect(Collectors.toMap(j -> params[j], j -> filteredArgs.get(j)));
-//            rqsJson.put("rqsParams", rqsParams);
-            for(int i=0;i<filteredArgs.size();i++){
-                Object object = filteredArgs.get(i);
-                if(object instanceof BasePageRequest){
-                    Class clazz=null;
-                    Parameter[] parameters=  method.getParameters();
-                    for (Parameter parameter:parameters){
-                        if(BasePageRequest.class.isAssignableFrom(parameter.getType())){
-                            Type parameterizedType=parameter.getParameterizedType();
-                            if (parameterizedType instanceof ParameterizedType) {
-                                Type[] paramsType = ((ParameterizedType) parameterizedType).getActualTypeArguments();
-                                clazz= TypeUtils.getClass(paramsType[0]);
-                            }
-                            break;
-                        }
-                    }
-                    logger.error(JSON.toJSONString((BasePageRequest)object));
-//                    return isJson?new BasePageRequest(controller.getRawData(),clazz):new BasePageRequest(controller.getKv(),clazz);
-//                    object = isJSON?new BasePageRequest(request.getReader(),clazz)
-//                            :new BasePageRequest(controller.getKv(),clazz);
-
+            if (!isJson) {
+                Object[] args = joinPoint.getArgs();
+                //请求数据类型为 request params
+                Enumeration<String> parameters = request.getParameterNames();
+                Map<String, Object> parameterMap = new HashMap<>();
+                while (parameters.hasMoreElements()) {
+                    String parameter = parameters.nextElement();
+                    LOGGER.info(parameter);
+                    parameterMap.put(parameter, request.getParameter(parameter));
                 }
+                args[0] = new BasePageRequest(Json.getJson().toJson(parameterMap), clazz);
+                Object result = joinPoint.proceed(args);
+                return result;
+            } else {
+                //请求数据类型为 application/json   读取 raw 参数
+                Object[] args = joinPoint.getArgs();
+                BufferedReader bufferedReader = request.getReader();
+                StringWriter writer = new StringWriter();
+                try {
+                    int read;
+                    char[] buf = new char[BUFFER_SIZE];
+                    while ((read = bufferedReader.read(buf)) != -1) {
+                        writer.write(buf, 0, read);
+                    }
+                } finally {
+                    writer.close();
+                }
+                String bodyStr = writer.getBuffer().toString();
+                args[0] = new BasePageRequest(bodyStr, clazz);
+                return joinPoint.proceed(args);
             }
+        } else {
+            return joinPoint.proceed();
         }
-        logger.info(methodName + "请求信息为：" + rqsJson.toJSONString());
-
     }
 
-
 }
+
+

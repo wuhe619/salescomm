@@ -277,6 +277,7 @@ public class CustomerAppService {
             if (StringUtil.isEmpty(map.get("custId").toString())) {
                 return map;
             }
+            map.put("token","");
             String cust_id = map.get("custId").toString();
             CustomerProperty mobile = customerDao.getProperty(cust_id, "mobile");
             if (mobile != null) {
@@ -303,6 +304,11 @@ public class CustomerAppService {
                 logger.info("settlement_method:{" + settlement_method + "}");
                 map.put("settlement_method", settlement_method.getPropertyValue());
             }
+            AmApplicationEntity applicationEntity = amApplicationDao.getByCustId(cust_id);
+            if(applicationEntity!=null){
+                map.put("token",applicationEntity.getAccessToken());
+            }
+
             return map;
         }).collect(Collectors.toList());
         Map<String, Object> map = new HashMap<>();
@@ -420,10 +426,15 @@ public class CustomerAppService {
     public int saveDeposit(Deposit deposit, String id, String userId) {
 //        BigDecimal b = new BigDecimal(10000);
 //        BigDecimal pre_money;
-////        int money = Integer.valueOf((Double.valueOf(deposit.getMoney())* 10000) + "".trim()).intValue();
-//        BigDecimal bigDecimal = BigDecimal.valueOf(Double.valueOf(deposit.getMoney()));
-//        BigDecimal money = bigDecimal.multiply(b);
-        int money = Integer.valueOf(deposit.getMoney()) * 10000;
+//        int money = Integer.valueOf((Double.valueOf(deposit.getMoney())* 10000) + "".trim()).intValue();
+//        BigDecimal bigDecimal = BigDecimal.valueOf(Float.valueOf(deposit.getMoney()));
+//        BigDecimal money1 = bigDecimal.multiply(new BigDecimal(10000);
+//        int money = money1.intValue();
+        BigDecimal money1 = BigDecimalUtil.mul(deposit.getMoney(),"10000");
+        logger.info(money1.toPlainString());
+        int money = money1.intValue();
+        logger.info("money:{}",money);
+        //        int money = Integer.valueOf(String.valueOf(Float.valueOf(deposit.getMoney()) * 10000));
         int pre_money = 0;
         CustomerProperty customerProperty = customerDao.getProperty(id, "remain_amount");
         if (customerProperty == null) {
@@ -450,7 +461,7 @@ public class CustomerAppService {
                     map.put("bank_account", m.get("property_value"));
                     break;
                 case "remain_amount":
-                    map.put("remain_amount", Integer.valueOf(m.get("property_value").toString()).intValue() / 10000);
+                    map.put("remain_amount", BigDecimalUtil.strDiv(m.get("property_value").toString(),"10000",2));
                     break;
             }
         });
@@ -467,7 +478,7 @@ public class CustomerAppService {
                 deposit.setCustId(depositMap.get("SUBSCRIBER_ID").toString());
             }
             if (depositMap.get("MONEY") != null) {
-                deposit.setMoney(Integer.valueOf(depositMap.get("MONEY").toString()).intValue() / 10000 + "");
+                deposit.setMoney(BigDecimalUtil.strDiv(depositMap.get("MONEY").toString(),"10000",2));
             }
             if (depositMap.get("PAY_TIME") != null) {
                 deposit.setPayTime(depositMap.get("PAY_TIME").toString());
@@ -479,7 +490,7 @@ public class CustomerAppService {
                 deposit.setPicId(depositMap.get("pay_certificate").toString());
             }
             if (depositMap.get("pre_money") != null) {
-                deposit.setPreMoney(Integer.valueOf(depositMap.get("pre_money").toString()).intValue() / 10000 + "");
+                deposit.setPreMoney(BigDecimalUtil.strDiv(depositMap.get("pre_money").toString(),"10000",2 ));
             }
             if (depositMap.get("user_id") != null) {
                 deposit.setUserId(depositMap.get("user_id").toString());
@@ -577,5 +588,13 @@ public class CustomerAppService {
         arr.add(params.get("type"));
         arr.add(params.get("statTime"));
         customerDao.executeUpdateSQL(updateSql,arr.toArray());
+    }
+
+    public static void main(String[] args) {
+        BigDecimal s=new BigDecimal("1.55");
+        System.out.println(s.toPlainString());
+        BigDecimal b=s.multiply(new BigDecimal("10000"));
+        System.out.println(b.toPlainString());
+        System.out.println(b.intValue());
     }
 }

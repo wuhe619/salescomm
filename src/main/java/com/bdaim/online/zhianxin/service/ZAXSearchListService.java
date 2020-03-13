@@ -110,11 +110,14 @@ public class ZAXSearchListService {
         headers.put("Authorization", TOKEN);
         LOG.info("企业列表查询参数:{}", params);
         String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers, 300000);
-        if(StringUtil.isEmpty(result)){
+        if (StringUtil.isEmpty(result)) {
             result = "{}";
         }
         LOG.info("企业列表查询接口返回:{}", result);
         BaseResult baseResult = JSON.parseObject(result, BaseResult.class);
+        if (!baseResult.getCode().equals("0")) {
+            LOG.warn("查询企业数据接口返回错误信息:{}", baseResult.toString());
+        }
         // 处理企业领取标志
         if (baseResult != null && baseResult.getData() != null && !params.containsKey("fieldType")) {
             JSONObject data = (JSONObject) baseResult.getData();

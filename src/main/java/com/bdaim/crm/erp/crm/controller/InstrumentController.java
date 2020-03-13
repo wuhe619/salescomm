@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.crm.controller;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.erp.crm.service.InstrumentService;
 import com.bdaim.crm.utils.BaseUtil;
@@ -60,7 +61,12 @@ public class InstrumentController extends BasicAction {
      * 销售简报的数据查看详情
      */
     @RequestMapping(value = "/queryBulletinInfo", method = RequestMethod.POST)
-    public R queryBulletinInfo(BasePageRequest basePageRequest, @RequestParam("deptId") String deptIds, @RequestParam("userIds") String userIds, @RequestParam("type") String type, @RequestParam("label") Integer label) {
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryBulletinInfo(BasePageRequest basePageRequest,
+                               @RequestParam("deptId") String deptIds,
+                               @RequestParam("userIds") String userIds,
+                               @RequestParam("type") String type,
+                               @RequestParam("label") Integer label) {
         if (userIds == null) {
             userIds = BaseUtil.getUser().getUserId().intValue() + "";
         } else if (deptIds != null && StrUtil.isNotEmpty(deptIds)) {
@@ -116,7 +122,7 @@ public class InstrumentController extends BasicAction {
             allUsetIds = record.getStr("arrUserIds");
         }
         if (StrUtil.isEmpty(userIds)) {
-            return(R.ok());
+            return (R.ok());
             //return;
         }
         return (instrumentService.queryPerformance(startTime, endTime, userIds, deptIds, status, type, allUsetIds));

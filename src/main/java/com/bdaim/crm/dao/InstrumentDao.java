@@ -2,6 +2,7 @@ package com.bdaim.crm.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.SqlAppendUtil;
 import org.springframework.stereotype.Component;
 
@@ -209,6 +210,7 @@ public class InstrumentDao extends SimpleHibernateDao {
         List param = new ArrayList();
         param.add(beginDate);
         param.add(endDate);
+        viewName = BaseUtil.getViewSqlNotASName(viewName);
         String sql = " select * from " + viewName + " as a where 1=1 and (a.create_time between ? and ?) and create_user_id in ( " + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ";
         if (tn) {
             param.add(beginDate);

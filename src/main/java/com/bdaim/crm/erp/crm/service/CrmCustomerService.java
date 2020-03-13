@@ -145,6 +145,7 @@ public class CrmCustomerService {
         CrmCustomer entity = jsonObject.getObject("entity", CrmCustomer.class);
         LkCrmCustomerEntity crmCustomer = new LkCrmCustomerEntity();
         BeanUtils.copyProperties(entity, crmCustomer);
+        crmCustomer.setCompany(jsonObject.getJSONObject("entity").getString("company"));
         String batchId = StrUtil.isNotEmpty(crmCustomer.getBatchId()) ? crmCustomer.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
@@ -346,7 +347,8 @@ public class CrmCustomerService {
      * 条件查询客户公海
      */
     public CrmPage queryPageGH(BasePageRequest basePageRequest) {
-        Page page = crmCustomerDao.sqlPageQuery("select *  from customerview where owner_user_id = 0", basePageRequest.getPage(), basePageRequest.getLimit());
+        String customerview = BaseUtil.getViewSql("customerview");
+        Page page = crmCustomerDao.sqlPageQuery("select *  from " + customerview + " where owner_user_id = 0", basePageRequest.getPage(), basePageRequest.getLimit());
         return BaseUtil.crmPage(page);
         //return Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), new SqlPara().setSql("select *  from customerview where owner_user_id = 0"));
     }
@@ -544,7 +546,8 @@ public class CrmCustomerService {
      * 查询编辑字段
      */
     public List<Record> queryField(Integer customerId) {
-        Record customer = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from customerview where customer_id = ?", customerId).get(0));
+        String customerview = BaseUtil.getViewSql("customerview");
+        Record customer = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from " + customerview + " where customer_id = ?", customerId).get(0));
         //Record customer = Db.findFirst("select * from customerview where customer_id = ?",customerId);
         List<Record> fieldList = adminFieldService.queryUpdateField(2, customer);
         fieldList.add(new Record().set("fieldName", "map_address")
@@ -1094,7 +1097,7 @@ public class CrmCustomerService {
      * 查询跟进记录类型
      */
     public R queryRecordOptions() {
-        List<String> list = crmActionRecordDao.queryListBySql("select value from lkcrm_admin_config where name = ? AND cust_id = ? ", "customerFollowRecordOption", BaseUtil.getCustId());
+        List<LkCrmAdminConfigEntity> list = crmActionRecordDao.find("from LkCrmAdminConfigEntity where name = ? AND custId = ? ", "customerFollowRecordOption", BaseUtil.getCustId());
         if (list.size() == 0) {
             List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
             // 初始化数据
@@ -1109,7 +1112,7 @@ public class CrmCustomerService {
                 adminConfigList.add(adminConfig);
             }
             crmActionRecordDao.batchSaveOrUpdate(adminConfigList);
-            list.addAll(Arrays.asList(defaults));
+            list.addAll(adminConfigList);
         }
         return R.ok().put("data", list);
     }

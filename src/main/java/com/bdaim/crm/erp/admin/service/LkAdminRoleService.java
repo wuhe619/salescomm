@@ -77,7 +77,7 @@ public class LkAdminRoleService {
                 role.set("rules", new JSONObject().fluentPut("crm", crm).fluentPut("bi", bi)
                         .fluentPut("find", find).fluentPut("manage", manage));
 
-                role.set("userNum", crmAdminRoleDao.queryForInt("SELECT COUNT(0) FROM lkcrm_admin_user_role a JOIN lkcrm_admin_user b on a.user_id = b.user_id WHERE a.role_id = ?", role.getInt("id")));
+                role.set("userNum", crmAdminRoleDao.queryForInt("SELECT COUNT(0) FROM lkcrm_admin_user_role a JOIN lkcrm_admin_user b on a.user_id = b.user_id WHERE a.role_id = ? AND b.cust_id = ? ", role.getInt("id"), BaseUtil.getCustId()));
             });
             record.set("list", recordList);
             records.add(record);
@@ -99,7 +99,7 @@ public class LkAdminRoleService {
      */
     public R save(LkCrmAdminRoleEntity adminRole) {
         adminRole.setCustId(BaseUtil.getCustId());
-        Integer number = crmAdminRoleDao.queryForInt("select count(*) from lkcrm_admin_role where role_name = ? and role_type = ?", adminRole.getRoleName(), adminRole.getRoleType());
+        Integer number = crmAdminRoleDao.queryForInt("select count(*) from lkcrm_admin_role where role_name = ? and role_type = ? AND cust_id =?", adminRole.getRoleName(), adminRole.getRoleType(), BaseUtil.getCustId());
         if (number > 0) {
             return R.error("角色名已存在");
         }
@@ -177,6 +177,8 @@ public class LkAdminRoleService {
                     object.put("oa", true);
                     object.put("crm", true);
                     object.put("permission", true);
+                    object.put("find", true);
+                    object.put("publicSea", true);
                 }
                 if (roleIds.contains(3) || roleIds.contains(BaseConstant.SUPER_ADMIN_ROLE_ID)) {
                     object.put("user", true);

@@ -5,6 +5,7 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.dto.LkCrmAdminRecordDTO;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.entity.LkCrmBusinessEntity;
@@ -92,8 +93,8 @@ public class CrmBusinessController extends BasicAction {
      * 根据商机id查询产品
      */
     @RequestMapping(value = "/queryProduct", method = RequestMethod.POST)
-    public R queryProduct(BasePageRequest<CrmBusiness> basePageRequest, CrmBusiness crmBusiness) {
-        basePageRequest.setData(crmBusiness);
+    @ClassTypeCheck(classType = CrmBusiness.class)
+    public R queryProduct(BasePageRequest<CrmBusiness> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), basePageRequest.getData().getBusinessId());
         if (auth) {
             return (R.noAuth()); //return;
@@ -107,8 +108,8 @@ public class CrmBusinessController extends BasicAction {
      * 根据商机id查询合同
      */
     @RequestMapping(value = "/queryContract", method = RequestMethod.POST)
-    public R queryContract(BasePageRequest<CrmBusiness> basePageRequest, CrmBusiness crmBusiness) {
-        basePageRequest.setData(crmBusiness);
+    @ClassTypeCheck(classType = CrmBusiness.class)
+    public R queryContract(BasePageRequest<CrmBusiness> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), basePageRequest.getData().getBusinessId());
         if (auth) {
             return (R.noAuth());
@@ -122,8 +123,9 @@ public class CrmBusinessController extends BasicAction {
      * 根据商机id查询联系人
      */
     @RequestMapping(value = "/queryContacts", method = RequestMethod.POST)
-    public R queryContacts(BasePageRequest<CrmBusiness> basePageRequest, CrmBusiness crmBusiness) {
-        basePageRequest.setData(crmBusiness);
+    @ClassTypeCheck(classType = CrmBusiness.class)
+    public R queryContacts(BasePageRequest<CrmBusiness> basePageRequest) {
+//        basePageRequest.setData(crmBusiness);
         return (crmBusinessService.queryContacts(basePageRequest));
     }
 

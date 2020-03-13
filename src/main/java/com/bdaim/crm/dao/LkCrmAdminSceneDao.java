@@ -1,6 +1,7 @@
 package com.bdaim.crm.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.crm.entity.LkCrmAdminFieldEntity;
 import com.bdaim.crm.entity.LkCrmAdminSceneEntity;
 import org.springframework.stereotype.Component;
 
@@ -9,6 +10,11 @@ import java.util.Map;
 
 @Component
 public class LkCrmAdminSceneDao extends SimpleHibernateDao<LkCrmAdminSceneEntity, Integer> {
+
+    public List<LkCrmAdminSceneEntity> queryDefaultSceneList() {
+        String sql = "from LkCrmAdminSceneEntity where custId is null ";
+        return find(sql);
+    }
 
     public List queryScene(int type, long userId) {
         String sql = "select a.scene_id,a.data,a.name,if(b.default_id is null,0,1) as is_default,a.is_system,a.bydata\n" +

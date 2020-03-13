@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaLog;
 import com.bdaim.crm.erp.oa.entity.OaLogRelation;
@@ -101,8 +102,8 @@ public class OaLogController extends BasicAction {
      * 查询crm关联日志
      */
     @RequestMapping(value = "/queryLogRelation", method = RequestMethod.POST)
-    public R queryLogRelation(BasePageRequest<OaLogRelation> basePageRequest, OaLogRelation oaLogRelation) {
-        basePageRequest.setData(oaLogRelation);
+    @ClassTypeCheck(classType = OaLogRelation.class)
+    public R queryLogRelation(BasePageRequest<OaLogRelation> basePageRequest) {
         return (oaLogService.queryLogRelation(basePageRequest));
     }
 }

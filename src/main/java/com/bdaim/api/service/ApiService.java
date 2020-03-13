@@ -1,5 +1,6 @@
 package com.bdaim.api.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.api.Dto.ApiData;
@@ -245,6 +246,7 @@ public class ApiService {
             Map dataMap = (Map) m;
             dataMap.put("monthCallNum",0);
             dataMap.put("monthFee",0);
+            dataMap.put("rsIds","");
             String apiId = dataMap.get("apiId").toString();
             String countSql = "select count(*) from am_subscription where API_ID=? and SUBS_CREATE_STATE='SUBSCRIBE'";
             List param = new ArrayList();
@@ -265,6 +267,21 @@ public class ApiService {
                 if(monthCharge!=null) {
                     String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 2);
                     dataMap.put("monthFee",monChargeStr);
+                }
+            }
+            String sql2 = " select  property_value from am_api_property  where api_id = ? and property_name='rsIds'";
+            String  propertyList = jdbcTemplate.queryForObject(sql2,param.toArray(),String.class);
+            if(propertyList!=null) {
+                JSONArray ar = JSON.parseArray(propertyList);
+                String rsids = "";
+                for (int i = 0; i < ar.size(); i++) {
+                    JSONObject obj = ar.getJSONObject(i);
+                    if (obj.containsKey("rsId")) {
+                        rsids += "," + obj.getString("rsId");
+                    }
+                }
+                if (StringUtil.isNotEmpty(rsids)) {
+                    dataMap.put("rsIds", rsids.substring(1));
                 }
             }
             return dataMap;

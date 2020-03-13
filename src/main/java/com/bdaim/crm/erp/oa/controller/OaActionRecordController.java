@@ -2,6 +2,7 @@ package com.bdaim.crm.erp.oa.controller;
 
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.erp.oa.entity.OaActionRecord;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.R;
@@ -29,6 +30,7 @@ public class OaActionRecordController extends BasicAction {
      * @author hmb
      */
     @RequestMapping(value = "/getOaRecordPageList")
+    @ClassTypeCheck(classType = OaActionRecord.class)
     public R getOaRecordPageList(BasePageRequest<OaActionRecord> pageRequest,OaActionRecord oaActionRecord) {
         pageRequest.setData(oaActionRecord);
 //        renderJson(oaActionRecordService.getOaRecordPageList(pageRequest));

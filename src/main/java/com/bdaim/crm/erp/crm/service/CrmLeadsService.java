@@ -666,6 +666,42 @@ public class CrmLeadsService {
     }
 
     /**
+     * 转移私海线索到公海线索
+     *
+     * @param seaId
+     * @param userId
+     * @param superId
+     * @return
+     */
+    public int transferToPublicSea(String seaId, String userId, String superId) {
+        //添加到线索私海数据
+        StringBuilder sql = new StringBuilder()
+                .append("SELECT * FROM lkcrm_crm_leads  WHERE leads_id =? ");
+        List<Map<String, Object>> maps = customerSeaDao.sqlQuery(sql.toString(), superId);
+        int i = 0;
+        String insertSql = "INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " (`id`, `user_id`, `update_time`, `status`, " +
+                "super_name,super_telphone,super_phone,super_data,create_time,batch_id) VALUES(?,?,?,?,?,?,?,?,?,?)";
+        for (Map<String, Object> m : maps) {
+            JSONObject superData = new JSONObject();
+            superData.put("SYS005", m.get("company"));
+            //查询默认客群
+            CustomerSeaProperty csp = customerSeaDao.getProperty(String.valueOf(seaId), "defaultClueCgId");
+            customerSeaDao.executeUpdateSQL(insertSql, m.get("leads_id"), null, new Date(), 1, m.get("leads_name")
+                    , m.get("mobile"), m.get("telephone"), superData.toJSONString(), m.get("create_time"), csp.getPropertyValue());
+            // 退回到公海线索
+            List<Map<String, Object>> fieldList = crmAdminFieldvDao.queryCustomField(String.valueOf(m.get("leads_id")));
+            JSONArray jsonArray = new JSONArray();
+            for (Map<String, Object> field : fieldList) {
+                jsonArray.add(BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true));
+            }
+            String batchId = String.valueOf(m.get("leads_id"));
+            crmRecordService.updateRecord(jsonArray, batchId);
+            adminFieldService.save(jsonArray, batchId);
+        }
+        return 0;
+    }
+
+    /**
      * 领取到线索私海
      *
      * @param seaId
@@ -926,7 +962,14 @@ public class CrmLeadsService {
             crmLeads.setIsTransform(0);
         }
 
+        crmLeads.setCompany(object.getJSONObject("entity").getString("company"));
         crmLeads.setCustId(BaseUtil.getUser().getCustId());
+        // 查询客户默认公海
+        List<CustomerSea> publicSeaList = crmLeadsDao.find(" FROM CustomerSea WHERE custId = ? ", BaseUtil.getCustId());
+        if (publicSeaList.size() > 0) {
+            crmLeads.setSeaId(publicSeaList.get(0).getId().toString());
+        }
+
         String batchId = StrUtil.isNotEmpty(crmLeads.getBatchId()) ? crmLeads.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(object.getJSONArray("field"), batchId);
         adminFieldService.save(object.getJSONArray("field"), batchId);
@@ -961,16 +1004,29 @@ public class CrmLeadsService {
      */
     public List<Record> information(Integer leadsId) {
         LkCrmLeadsEntity crmLeads = crmLeadsDao.get(leadsId);
+
         List<Record> fieldList = new ArrayList<>();
         FieldUtil field = new FieldUtil(fieldList);
         field.set("线索名称", crmLeads.getLeadsName()).set("电话", crmLeads.getMobile())
                 .set("手机", crmLeads.getTelephone()).set("下次联系时间", DateUtil.formatDateTime(crmLeads.getNextTime()))
-                .set("地址", crmLeads.getAddress()).set("备注", crmLeads.getRemark());
+                .set("地址", crmLeads.getAddress()).set("备注", crmLeads.getRemark())
+                .set("公司名称", crmLeads.getCompany());
         List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.queryCustomField(crmLeads.getBatchId()));
         //List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), crmLeads.getBatchId());
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
-        return fieldList;
+
+        List<Record> result = new ArrayList<>();
+        for (Record r : fieldList) {
+            if (r.getStr("name").equals("当前负责人")) {
+                Record record = new Record();
+                LkCrmAdminUserEntity createUser = crmAdminUserDao.get(crmLeads.getCreateUserId());
+                record.set("name", "创建人").set("value", createUser.getUsername());
+                result.add(record);
+            }
+            result.add(r);
+        }
+        return result;
     }
 
     /**
@@ -1048,6 +1104,38 @@ public class CrmLeadsService {
         return i > 0 ? R.ok() : R.error("公海线索删除失败");
     }
 
+    public int batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
+        // 指定ID退回公海
+        StringBuilder sql = new StringBuilder()
+                .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
+                //.append(" SET status = 1, pre_user_id = user_id, user_id = NULL, super_data = '{\"SYS007\":\"未跟进\"}' WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
+                .append(" SET status = 1, pre_user_id = user_id, user_id = NULL, super_data = JSON_SET(super_data, '$.SYS007', '未跟进') WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
+        StringBuilder logSql = new StringBuilder()
+                .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, object_code, `create_time`,reason,remark ) ")
+                .append(" SELECT ").append(userId).append(" ,id,").append(seaId).append(",batch_id,").append(7).append(", user_id ,'").append(new Timestamp(System.currentTimeMillis())).append("'").append(" ,? ,? ")
+                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
+        //员工只能处理负责人为自己的数据
+        List<Object> p = new ArrayList<>();
+        p.add(reason);
+        p.add(remark);
+        List<Object> param = new ArrayList<>();
+        if ("2".equals(userType)) {
+            p.add(userId);
+            param.add(userId);
+            sql.append(" AND user_id = ? ");
+            logSql.append(" AND user_id = ? ");
+        }
+        customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
+        int status = customerSeaDao.executeUpdateSQL(sql.toString(), param.toArray());
+        for (String id : superIds) {
+            List<Map<String, Object>> list = customerSeaDao.sqlQuery("select * from " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " WHERE id = ? ", id);
+            if (list.size() == 0) {
+                transferToPublicSea(seaId, userId.toString(), id);
+            }
+        }
+        return status;
+    }
+
     /**
      * @author wyq
      * 变更负责人
@@ -1069,8 +1157,9 @@ public class CrmLeadsService {
     @Before(Tx.class)
     public R translate(String leadsIds) {
         String[] leadsIdsArr = leadsIds.split(",");
+        String leadsview = BaseUtil.getViewSql("leadsview");
         for (String leadsId : leadsIdsArr) {
-            List<Map<String, Object>> maps = crmLeadsDao.sqlQuery("select * from leadsview where leads_id = ?", Integer.valueOf(leadsId));
+            List<Map<String, Object>> maps = crmLeadsDao.sqlQuery("select * from " + leadsview + " where leads_id = ?", Integer.valueOf(leadsId));
             Record crmLeads = JavaBeanUtil.mapToRecord(maps.get(0));
             if (1 == crmLeads.getInt("is_transform")) {
                 return R.error("已转化线索不能再次转化");
@@ -1194,11 +1283,11 @@ public class CrmLeadsService {
     }
 
     /**
-     * @author wyq
      * 查询编辑字段
      */
     public List<Record> queryField(Integer leadsId) {
-        Record leads = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from leadsview where leads_id = ?", leadsId).get(0));
+        String leadsview = BaseUtil.getViewSql("leadsview");
+        Record leads = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from " + leadsview + " where leads_id = ?", leadsId).get(0));
         return adminFieldService.queryUpdateField(1, leads);
     }
 
@@ -1590,7 +1679,7 @@ public class CrmLeadsService {
      * 查询跟进记录类型
      */
     public R queryRecordOptions() {
-        List<String> list = crmActionRecordDao.queryListBySql("select value from lkcrm_admin_config where name = ? AND cust_id = ? ", "clueFollowRecordOption", BaseUtil.getCustId());
+        List<LkCrmAdminConfigEntity> list = crmActionRecordDao.find("from LkCrmAdminConfigEntity where name = ? AND custId = ? ", "clueFollowRecordOption", BaseUtil.getCustId());
         if (list.size() == 0) {
             List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
             // 初始化数据
@@ -1605,14 +1694,14 @@ public class CrmLeadsService {
                 adminConfigList.add(adminConfig);
             }
             crmActionRecordDao.batchSaveOrUpdate(adminConfigList);
-            list.addAll(Arrays.asList(defaults));
+            list.addAll(adminConfigList);
         }
         return R.ok().put("data", list);
     }
 
 
     public R setRecordOptions(List<String> list) {
-        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'clueFollowRecordOption' AD cust_id = ? AND is_system <> 1  ", BaseUtil.getCustId());
+        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'clueFollowRecordOption' AND cust_id = ? AND is_system <> 1  ", BaseUtil.getCustId());
         List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();

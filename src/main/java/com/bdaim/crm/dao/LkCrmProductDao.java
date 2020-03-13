@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmProductEntity;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.SqlAppendUtil;
 import org.springframework.stereotype.Component;
 
@@ -21,17 +22,20 @@ public class LkCrmProductDao extends SimpleHibernateDao<LkCrmProductEntity, Inte
     }
 
     public Page getProductPageList(int pageNum, int pageSize, String custId) {
-        String sql = "select * from productview WHERE cust_id = ? ";
+        String productview = BaseUtil.getViewSql("productview");
+        String sql = "select * from " + productview + " WHERE cust_id = ? ";
         return sqlPageQuery(sql, pageNum, pageSize, custId);
     }
 
     public int getByNum(String num) {
-        String sql = "select COUNT(*) from productview where num = ? ";
+        String productview = BaseUtil.getViewSql("productview");
+        String sql = "select COUNT(*) from " + productview + " where num = ? ";
         return queryForInt(sql, num);
     }
 
     public List<Map<String, Object>> excelExport(List productIds) {
-        String sql = " select * from productview where product_id in (" + SqlAppendUtil.sqlAppendWhereIn(productIds) + ")";
+        String productview = BaseUtil.getViewSql("productview");
+        String sql = " select * from " + productview + " where product_id in (" + SqlAppendUtil.sqlAppendWhereIn(productIds) + ")";
         return sqlQuery(sql);
     }
 }

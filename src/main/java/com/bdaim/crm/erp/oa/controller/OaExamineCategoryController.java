@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.entity.LkCrmOaExamineCategoryEntity;
 import com.bdaim.crm.entity.LkCrmOaExamineStepEntity;
 import com.bdaim.crm.erp.oa.service.OaExamineCategoryService;
@@ -80,6 +81,7 @@ public class OaExamineCategoryController extends BasicAction {
      * @author hmb
      */
     @RequestMapping(value = "/queryExamineCategoryList")
+    @ClassTypeCheck(classType = Void.class)
     public R queryExamineCategoryList(BasePageRequest<Void> basePageRequest) {
 //        renderJson(oaExamineCategoryService.queryExamineCategoryList(basePageRequest));
         return oaExamineCategoryService.queryExamineCategoryList(basePageRequest);

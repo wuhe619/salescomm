@@ -10,6 +10,7 @@ public class LkCrmAdminSceneEntity {
     private Integer sceneId;
     private Integer type;
     private String name;
+    private String custId;
     private long userId;
     private int sort;
     private String data;
@@ -71,6 +72,16 @@ public class LkCrmAdminSceneEntity {
     public LkCrmAdminSceneEntity setType(Integer type) {
         this.type = type;
         return this;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic

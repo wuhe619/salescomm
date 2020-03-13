@@ -9,6 +9,7 @@ import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.interceptor.ClassTypeCheck;
 import com.bdaim.crm.dto.LkCrmAdminRecordDTO;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
@@ -76,8 +77,8 @@ public class CrmContactsController extends BasicAction {
      * 分页条件查询联系人
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
-    public R queryList(BasePageRequest<CrmContacts> basePageRequest, CrmContacts crmContacts) {
-        basePageRequest.setData(crmContacts);
+    @ClassTypeCheck(classType = CrmContacts.class)
+    public R queryList(BasePageRequest<CrmContacts> basePageRequest) {
         return (R.ok().put("data", crmContactsService.queryList(basePageRequest)));
     }
 
@@ -105,8 +106,8 @@ public class CrmContactsController extends BasicAction {
      * 根据联系人id查询商机
      */
     @RequestMapping(value = "/queryBusiness", method = RequestMethod.POST)
-    public R queryBusiness(BasePageRequest<CrmContacts> basePageRequest,CrmContacts crmContacts) {
-        basePageRequest.setData(crmContacts);
+    @ClassTypeCheck(classType = CrmContacts.class)
+    public R queryBusiness(BasePageRequest<CrmContacts> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTACTS_TYPE_KEY.getSign()), basePageRequest.getData().getContactsId());
         if (auth) {
             return (R.noAuth());
@@ -204,8 +205,8 @@ public class CrmContactsController extends BasicAction {
      * 查看跟进记录
      */
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
-    public R getRecord(BasePageRequest<CrmContacts> basePageRequest, CrmContacts crmContacts) {
-        basePageRequest.setData(crmContacts);
+    @ClassTypeCheck(classType = CrmContacts.class)
+    public R getRecord(BasePageRequest<CrmContacts> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTACTS_TYPE_KEY.getSign()), basePageRequest.getData().getContactsId());
         if (auth) {
             return (R.noAuth());

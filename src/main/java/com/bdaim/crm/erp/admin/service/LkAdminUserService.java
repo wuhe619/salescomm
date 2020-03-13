@@ -7,11 +7,8 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.helper.SQLHelper;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.dao.LkCrmAdminDeptDao;
-import com.bdaim.crm.dao.LkCrmAdminUserDao;
-import com.bdaim.crm.entity.LkCrmAdminDeptEntity;
-import com.bdaim.crm.entity.LkCrmAdminUserEntity;
-import com.bdaim.crm.entity.LkCrmAdminUserRoleEntity;
+import com.bdaim.crm.dao.*;
+import com.bdaim.crm.entity.*;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
@@ -24,6 +21,8 @@ import com.bdaim.customer.user.dto.UserCallConfigDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.marketproject.dto.MarketProjectDTO;
 import com.bdaim.marketproject.service.MarketProjectService;
+import com.bdaim.rbac.dao.UserDao;
+import com.bdaim.rbac.entity.User;
 import com.bdaim.util.CipherUtil;
 import com.bdaim.util.IDHelper;
 import com.bdaim.util.JavaBeanUtil;
@@ -57,6 +56,14 @@ public class LkAdminUserService {
     private CustomerSeaService customerSeaService;
     @Autowired
     private MarketProjectService marketProjectService;
+    @Autowired
+    private LkCrmAdminFieldDao crmAdminFieldDao;
+    @Autowired
+    private LkCrmAdminConfigDao crmAdminConfigDao;
+    @Autowired
+    private LkCrmAdminSceneDao crmAdminSceneDao;
+    @Autowired
+    private AdminFieldService adminFieldService;
 
     private void saveBpUser(long id, String userName, String realName, String password, String custId, int userType,
                             String callType, String callChannel, UserCallConfigDTO userDTO) {
@@ -135,6 +142,7 @@ public class LkAdminUserService {
             adminUser.setCustId(BaseUtil.getCustId());
             adminUser.setNum(RandomUtil.randomNumbers(15));
             adminUser.setSalt(salt);
+            adminUser.setStatus(1);
             //adminUser.setPassword(BaseUtil.sign((adminUser.getUsername().trim() + adminUser.getPassword().trim()), salt));
             adminUser.setPassword(CipherUtil.generatePassword(adminUser.getPassword()));
             adminUser.setCreateTime(new Timestamp(System.currentTimeMillis()));
@@ -226,6 +234,50 @@ public class LkAdminUserService {
         dto.setName("默认公海项目");
         dto.setType("2");
         marketProjectService.saveMarketProjectAndSeaReturnId(dto, custId, userId);
+        // 初始化自定义字段
+        List<LkCrmAdminFieldEntity> defaultFieldList = crmAdminFieldDao.queryDefaultCustomerFieldList();
+        crmAdminFieldDao.getSession().clear();
+        List<LkCrmAdminFieldEntity> customerFieldList = new ArrayList<>();
+        LkCrmAdminFieldEntity newEntity;
+        for (LkCrmAdminFieldEntity db : defaultFieldList) {
+            newEntity = new LkCrmAdminFieldEntity();
+            BeanUtils.copyProperties(db, newEntity, "fieldId");
+            newEntity.setCustId(custId);
+            customerFieldList.add(newEntity);
+        }
+        crmAdminFieldDao.batchSaveOrUpdate(customerFieldList);
+        // 初始化跟进记录类型
+        String[] names = new String[]{"打电话", "发短信", "上门拜访"};
+        for (String n : names) {
+            LkCrmAdminConfigEntity entity = new LkCrmAdminConfigEntity();
+            entity.setCustId(custId);
+            entity.setIsSystem(1);
+            entity.setStatus(1);
+            entity.setName("followRecordOption");
+            entity.setValue(n);
+            entity.setDescription("跟进记录选项");
+            crmAdminConfigDao.saveOrUpdate(entity);
+        }
+        // 初始化场景数据
+        List<LkCrmAdminSceneEntity> defaultSceneList = crmAdminSceneDao.queryDefaultSceneList();
+        crmAdminFieldDao.getSession().clear();
+        List<LkCrmAdminSceneEntity> sceneFieldList = new ArrayList<>();
+        LkCrmAdminSceneEntity newScene;
+        for (LkCrmAdminSceneEntity db : defaultSceneList) {
+            newScene = new LkCrmAdminSceneEntity();
+            BeanUtils.copyProperties(db, newScene, "sceneId");
+            newScene.setCustId(custId);
+            sceneFieldList.add(newScene);
+        }
+        crmAdminFieldDao.batchSaveOrUpdate(sceneFieldList);
+        //默认产品分类
+        crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_crm_product_category` (`cust_id`, `name`, `pid`) VALUES (?, '默认分类', '0');", custId);
+        //默认默认商机租
+        crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_crm_business_type` (`cust_id`, `name`, `dept_ids`, `create_user_id`, `create_time`, `update_time`, `status`) VALUES (?, '默认商机组', '', ?, ?, NULL, '1');", custId, userId, new Date());
+        //创建默认视图
+        for (int label = 1; label < 8; label++) {
+            adminFieldService.createView(label,custId);
+        }
         return R.isSuccess(true);
     }
 
@@ -687,21 +739,31 @@ public class LkAdminUserService {
     @Before(Tx.class)
     public R usernameEdit(Long id, String username, String password) {
         LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(id);
-        if (adminUser == null) {
+        CustomerUser originalUser = customerUserDao.get(id);
+        if (adminUser == null || originalUser == null) {
             return R.error("用户不存在！");
         }
-        if (adminUser.getUsername().equals(username)) {
+        if (adminUser.getUsername().equals(username) || originalUser.getAccount().equals(username)) {
             return R.error("账号不能和原账号相同");
         }
+
         String intSql = "select count(*) from lkcrm_admin_user where username = ?";
         Integer count = crmAdminUserDao.queryForInt(intSql, username);
-        if (count > 0) {
+        String intSql2 = "select count(*) from t_customer_user where account = ?";
+        Integer count2 = crmAdminUserDao.queryForInt(intSql2, username);
+        if (count > 0 || count2 > 0) {
             return R.error("手机号重复！");
         }
+
         adminUser.setUsername(username);
-        adminUser.setPassword(BaseUtil.sign(username + password, adminUser.getSalt()));
+        adminUser.setPassword(CipherUtil.generatePassword(password));
+//        adminUser.setPassword(BaseUtil.sign(username + password, adminUser.getSalt()));
 //        return R.isSuccess(adminUser.update());
         crmAdminUserDao.update(adminUser);
+
+        originalUser.setAccount(username);
+        originalUser.setPassword(CipherUtil.generatePassword(password));
+        customerUserDao.update(originalUser);
         return R.isSuccess(true);
     }
 

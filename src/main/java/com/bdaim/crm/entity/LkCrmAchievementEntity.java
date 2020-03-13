@@ -8,7 +8,7 @@ import java.util.Objects;
 @Table(name = "lkcrm_crm_achievement", schema = "", catalog = "")
 public class LkCrmAchievementEntity {
     private Integer achievementId;
-    private Integer objId;
+    private long objId;
     private Integer type;
     private String year;
     private BigDecimal january;
@@ -39,11 +39,11 @@ public class LkCrmAchievementEntity {
 
     @Basic
     @Column(name = "obj_id")
-    public Integer getObjId() {
+    public long getObjId() {
         return objId;
     }
 
-    public void setObjId(Integer objId) {
+    public void setObjId(long objId) {
         this.objId = objId;
     }
 

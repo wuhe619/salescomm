@@ -261,7 +261,8 @@ public class CrmContractService {
      * 根据条件查询合同
      */
     public List queryListByType(String type, Integer id) {
-        StringBuilder sql = new StringBuilder("select * from contractview where ");
+        String contractview = BaseUtil.getViewSql("contractview");
+        StringBuilder sql = new StringBuilder("select * from "+contractview+" where ");
         if (type.equals(CrmEnum.CUSTOMER_TYPE_KEY.getTypes())) {
             sql.append("  customer_id = ? ");
         }
@@ -456,7 +457,8 @@ public class CrmContractService {
      * 查询编辑字段
      */
     public List<Record> queryField(Integer contractId) {
-        Record contract = JavaBeanUtil.mapToRecord(crmContractDao.sqlQuery("select * from contractview where contract_id = ?", contractId).get(0));
+        String contractview = BaseUtil.getViewSql("contractview");
+        Record contract = JavaBeanUtil.mapToRecord(crmContractDao.sqlQuery("select * from "+contractview+" where contract_id = ?", contractId).get(0));
         //Record contract = Db.findFirst("select * from contractview where contract_id = ?",contractId);
         List<Record> list = new ArrayList<>();
         list.add(new Record().set("customer_id", contract.getInt("customer_id")).set("customer_name", contract.getStr("customer_name")));

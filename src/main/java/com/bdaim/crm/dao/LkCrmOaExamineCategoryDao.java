@@ -58,4 +58,12 @@ public class LkCrmOaExamineCategoryDao extends SimpleHibernateDao<LkCrmOaExamine
         return super.queryUniqueSql(sql, sqlDateFormat, beginTime, finalTime);
 
     }
+
+    public List<Map<String, Object>> queryAllExamineCategoryList(Long userId, Integer deptId) {
+        String sql = " select category_id,title,type from lkcrm_oa_examine_category where\n" +
+                "        case when user_ids != '' or dept_ids != '' then (user_ids like concat('%,',?,',%') or dept_ids like concat('%,',?,',%')) and is_deleted = 0 and status = 1\n" +
+                "             else is_deleted = 0 and status = 1 " +
+                "        end";
+        return sqlQuery(sql, userId, deptId);
+    }
 }
