@@ -177,6 +177,8 @@ public class LkAdminRoleService {
                     object.put("oa", true);
                     object.put("crm", true);
                     object.put("permission", true);
+                    object.put("find", true);
+                    object.put("publicSea", true);
                 }
                 if (roleIds.contains(3) || roleIds.contains(BaseConstant.SUPER_ADMIN_ROLE_ID)) {
                     object.put("user", true);
