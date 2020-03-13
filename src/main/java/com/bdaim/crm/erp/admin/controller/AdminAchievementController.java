@@ -35,9 +35,9 @@ public class AdminAchievementController extends BasicAction {
      */
     @Permissions("manage:crm")
     @PostMapping("/setAchievement")
-    public R setAchievement() {
+    public R setAchievement(@RequestBody String data) {
 //        String data = getRawData();
-        String data = HttpKit.readData(this.request);
+//        String data = HttpKit.readData(this.request);
         List<LkCrmAchievementEntity> crmAchievements = JSON.parseArray(data, LkCrmAchievementEntity.class);
         return (adminAchievementService.setAchievement(crmAchievements));
     }
