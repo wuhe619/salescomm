@@ -18,6 +18,7 @@ import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerService;
+import com.bdaim.customer.user.service.CustomerUserService;
 import com.bdaim.industry.service.CustomerIndustryPoolService;
 import com.bdaim.rbac.DataFromEnum;
 import com.bdaim.rbac.dto.*;
@@ -87,6 +88,8 @@ public class UserAction extends BasicAction {
     private CustomerService customerService;
     @Resource
     private TokenCacheService<LoginUser> tokenCacheService;
+    @Resource
+    private CustomerUserService customerUserService;
 
     @RequestMapping(value = "/identify/check", method = RequestMethod.GET)
     @ResponseBody
@@ -1085,6 +1088,7 @@ public class UserAction extends BasicAction {
 
     }
 
+
     @RequestMapping(value = "/status/change", method = {RequestMethod.PUT, RequestMethod.POST})
     @ResponseBody
     public Object changeUserStatus(@RequestBody net.sf.json.JSONObject param) throws Exception {
@@ -1095,6 +1099,7 @@ public class UserAction extends BasicAction {
             throw new TouchException("300", "用户id不能为空");
         }
         try {
+            customerUserService.changeUserStatus(userId, action);
             userInfoService.changeUserStatus(userId, action);
         } catch (TouchException e) {
             throw new TouchException(e.getCode(), e.getMessage());
