@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmBusinessEntity;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.SqlAppendUtil;
 import org.springframework.stereotype.Component;
 
@@ -38,8 +39,9 @@ public class LkCrmBusinessDao extends SimpleHibernateDao<LkCrmBusinessEntity, In
     }
 
     public List queryProduct(Integer businessId) {
+        String productview = BaseUtil.getViewSqlNotASName("productview");
         String sql = " select b.product_id,b.name,b.name as productName,c.name as category_name,b.单位 as unit,a.price,a.sales_price,a.num,a.discount,a.subtotal,b.是否上下架\n" +
-                "    from lkcrm_crm_business_product as a inner join productview as b inner join lkcrm_crm_product_category as c\n" +
+                "    from lkcrm_crm_business_product as a inner join " + productview + " as b inner join lkcrm_crm_product_category as c\n" +
                 "    where a.product_id = b.product_id and b.category_id = c.category_id and a.business_id = ?  ";
         List param = new ArrayList();
         param.add(businessId);
@@ -47,8 +49,9 @@ public class LkCrmBusinessDao extends SimpleHibernateDao<LkCrmBusinessEntity, In
     }
 
     public Page pageQueryProduct(int pageNum, int pageSize, Integer businessId) {
+        String productview = BaseUtil.getViewSqlNotASName("productview");
         String sql = " select b.product_id,b.name,b.name as productName,c.name as category_name,b.单位 as unit,a.price,a.sales_price,a.num,a.discount,a.subtotal,b.是否上下架\n" +
-                "    from lkcrm_crm_business_product as a inner join productview as b inner join lkcrm_crm_product_category as c\n" +
+                "    from lkcrm_crm_business_product as a inner join " + productview + " as b inner join lkcrm_crm_product_category as c\n" +
                 "    where a.product_id = b.product_id and b.category_id = c.category_id and a.business_id = ?  ";
         List param = new ArrayList();
         param.add(businessId);
