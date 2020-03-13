@@ -264,9 +264,9 @@ public class CrmLeadsController extends BasicAction {
                 crmLeadsService.deletePublicClue(param.getSuperIds(), param.getSeaId());
             }
             if (3 == operate) {
+                crmLeadsService.batchClueBackToSea(param.getUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds(), param.getBackReason(), param.getBackRemark());
                 // 指定ID退回公海时删除私海线索
                 crmLeadsService.deleteByBatchIds(param.getSuperIds());
-                crmLeadsService.batchClueBackToSea(param.getUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds(), param.getBackReason(), param.getBackRemark());
             } else {
                 data = seaService.updateClueStatus(param, operate);
             }

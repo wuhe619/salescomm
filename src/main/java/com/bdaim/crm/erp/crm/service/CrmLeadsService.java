@@ -676,10 +676,10 @@ public class CrmLeadsService {
     public int transferToPublicSea(String seaId, String userId, String superId) {
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
-                .append("SELECT * FROM lkcrm_crm_leads  WHERE leads_id =? ");
+                .append("SELECT * FROM lkcrm_crm_leads  WHERE batch_id =? ");
         List<Map<String, Object>> maps = customerSeaDao.sqlQuery(sql.toString(), superId);
         int i = 0;
-        String insertSql = "INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " (`id`, `user_id`, `update_time`, `status`, " +
+        String insertSql = "REPLACE INTO " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " (`id`, `user_id`, `update_time`, `status`, " +
                 "super_name,super_telphone,super_phone,super_data,create_time,batch_id) VALUES(?,?,?,?,?,?,?,?,?,?)";
         for (Map<String, Object> m : maps) {
             JSONObject superData = new JSONObject();
