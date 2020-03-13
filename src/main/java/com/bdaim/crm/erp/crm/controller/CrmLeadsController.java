@@ -367,6 +367,8 @@ public class CrmLeadsController extends BasicAction {
         data = crmAdminFieldDao.executeUpdateSQL(sql);
         sql = "DELETE FROM lkcrm_admin_menu WHERE menu_id = 174; ";
         data = crmAdminFieldDao.executeUpdateSQL(sql);
+        sql = "DELETE FROM lkcrm_admin_field_sort ";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
     }
