@@ -190,11 +190,11 @@ public class AdminExamineService {
      * 查询当前启用审核流程步骤
      */
     public R queryExaminStep(Integer categoryType) {
-        Record record = JavaBeanUtil.mapToRecord(BeanUtil.beanToMap(crmAdminExamineDao.getExamineByCategoryType(categoryType)));
+        Record record = JavaBeanUtil.mapToRecord(BeanUtil.beanToMap(crmAdminExamineDao.getExamineByCategoryType(categoryType), true, true));
         if (record != null) {
             if (record.getInt("examine_type") == 1) {
                 List data = new ArrayList();
-                data.add(crmAdminExamineStepDao.queryExamineStepByExamineId(record.getInt("examine_id")));
+                data.add(BeanUtil.beanToMap(crmAdminExamineStepDao.queryExamineStepByExamineId(record.getInt("examine_id")), true, true));
                 List<Record> list = JavaBeanUtil.mapToRecords(data);
                 list.forEach(r -> {
                     //根据审核人id查询审核问信息
