@@ -185,13 +185,12 @@ public class CrmProductService {
         sqlfield.append(batchIds.toString());
         sqlfield.append(" )");
         int f = crmProductDao.executeUpdateSQL(sqlfield.toString());
-        String[] idsArray = ids.split(",");
-        for (String productId : idsArray) {
+        String[] idsArray = batchIds.toString().split(",");
+        for (String batchId : idsArray) {
             //旧的产品
-            LkCrmProductEntity crmProduct = crmProductDao.get(Integer.parseInt(productId));
-            LkCrmProductEntity newProduct = crmProduct;
-            newProduct.setStatus(status);
-            crmRecordService.updateRecord(crmProduct, newProduct, CrmEnum.PRODUCT_TYPE_KEY.getTypes());
+            String jsonStr = "[{\"formType\":\"select\",\"fieldName\":\"是否上下架\",\"isNull\":1,\"name\":\"是否上下架\",\"options\":\"上架,下架\",\"isUnique\":0,\"type\":3,\"value\":\"" +
+                    a + "\",\"fieldType\":0,\"fieldId\":1276,\"setting\":[\"上架\",\"下架\"]}]";
+            crmRecordService.updateRecord(JSONArray.parseArray(jsonStr), batchId);
         }
         return R.isSuccess(f > 0);
     }
