@@ -360,6 +360,13 @@ public class CrmLeadsController extends BasicAction {
         ResponseJson responseJson = new ResponseJson();
         String sql = "update lkcrm_admin_field SET is_null = 1, is_unique = 1 WHERE field_name = 'super_telphone'; ";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
+
+        sql = "update lkcrm_admin_menu SET realm='index' WHERE menu_id = 170; ";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
+        sql = "update lkcrm_admin_menu SET realm='index' WHERE menu_id = 173; ";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
+        sql = "DELETE FROM lkcrm_admin_menu WHERE menu_id = 174; ";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
     }
