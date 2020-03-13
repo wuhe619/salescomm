@@ -269,7 +269,8 @@ public class CrmBackLogService {
         if (receivablesIdList.size() > 0) {
             String contractIds = CollUtil.join(receivablesIdList, ",");
             JSONObject data = jsonObject.getJSONObject("data");
-            com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * from receivablesview as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data), basePageRequest.getPage(), basePageRequest.getLimit());
+            String receivablesview = BaseUtil.getViewSql("receivablesview");
+            com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * from "+receivablesview+" as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data), basePageRequest.getPage(), basePageRequest.getLimit());
             //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", "from receivablesview as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data));
             return R.ok().put("data", BaseUtil.crmPage(page));
         } else {
