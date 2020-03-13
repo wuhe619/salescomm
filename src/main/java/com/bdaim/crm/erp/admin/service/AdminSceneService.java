@@ -700,8 +700,13 @@ public class AdminSceneService {
         } else if (6 == type) {
             Record totalMoney = JavaBeanUtil.mapToRecord(crmAdminSceneDao.sqlQuery("select SUM(money) as contractMoney,GROUP_CONCAT(contract_id) as contractIds " + conditions.toString(), BaseUtil.getUser().getCustId()).get(0));
             String contractview = BaseUtil.getViewSql("contractview");
-            Page page = crmAdminSceneDao.sqlPageQuery("select *,IFNULL((select SUM(a.money) from lkcrm_crm_receivables as a where a.contract_id = " + contractview + ".contract_id),0) as receivedMoney" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
-
+            Page page = crmAdminSceneDao.sqlPageQuery("select * " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
+            Map map = null;
+            for (int i = 0; i < page.getData().size(); i++) {
+                map = (Map) page.getData().get(i);
+                Map<String, Object> count = crmAdminSceneDao.queryUniqueSql("select SUM(a.money) receivedMoney from lkcrm_crm_receivables as a where a.contract_id = ? and a.cust_id = ? ", map.get("contract_id"), BaseUtil.getCustId());
+                map.put("receivedMoney", count != null ? count.get("receivedMoney") : 0);
+            }
             String receivedMoney = crmAdminSceneDao.queryForObject("select SUM(money) from lkcrm_crm_receivables where receivables_id in (" + totalMoney.getStr("contractIds") + ")");
             JSONObject jsonObject = JSONObject.parseObject(JSON.toJSONString(BaseUtil.crmPage(page)), JSONObject.class);
             return R.ok().put("data", jsonObject.fluentPut("money", new JSONObject().fluentPut("contractMoney", totalMoney.getStr("contractMoney") != null ? totalMoney.getStr("contractMoney") : "0").fluentPut("receivedMoney", StringUtil.isNotEmpty(receivedMoney) ? receivedMoney : "0")));
