@@ -286,12 +286,12 @@ public class LkAdminUserService {
         lkCrmBusiness.setCreateUserId(userId);
         lkCrmBusiness.setStatus(1);
         int typeId = (int) crmBusinessTypeDao.saveReturnPk(lkCrmBusiness);
-        String typeSql = "INSERT INTO `lkcrm_crm_business_status` (`type_id`, `name`, `rate`, `order_num`) VALUES ( ?, ?, ?, ?);";
+        /*String typeSql = "INSERT INTO `lkcrm_crm_business_status` (`type_id`, `name`, `rate`, `order_num`) VALUES ( ?, ?, ?, ?);";
         String[] types = new String[]{"准备汇款", "报价", "还价"};
         int i = 0;
         for (String type : types) {
             crmBusinessTypeDao.executeUpdateSQL(typeSql, typeId, type, 30, ++i);
-        }
+        }*/
 
         //创建默认视图
         for (int label = 1; label < 8; label++) {
