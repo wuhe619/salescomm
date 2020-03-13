@@ -140,6 +140,7 @@ public class LkAdminUserService {
             adminUser.setCustId(BaseUtil.getCustId());
             adminUser.setNum(RandomUtil.randomNumbers(15));
             adminUser.setSalt(salt);
+            adminUser.setStatus(1);
             //adminUser.setPassword(BaseUtil.sign((adminUser.getUsername().trim() + adminUser.getPassword().trim()), salt));
             adminUser.setPassword(CipherUtil.generatePassword(adminUser.getPassword()));
             adminUser.setCreateTime(new Timestamp(System.currentTimeMillis()));
