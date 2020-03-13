@@ -122,7 +122,8 @@ public class CrmBackLogService {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         Integer type = jsonObject.getInteger("type");
         Integer isSub = jsonObject.getInteger("isSub");
-        StringBuffer stringBuffer = new StringBuffer("from leadsview as a where");
+        String leadsview = BaseUtil.getViewSql("leadsview");
+        StringBuffer stringBuffer = new StringBuffer("from " + leadsview + " as a where");
         if (type == 1) {
             stringBuffer.append(" a.followup = 0 and a.is_transform = 0");
         } else if (type == 2) {

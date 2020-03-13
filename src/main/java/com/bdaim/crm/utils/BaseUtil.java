@@ -7,9 +7,11 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.JfinalConfig;
 import com.bdaim.crm.dao.LkCrmAdminRoleDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
+import com.bdaim.crm.dao.LkCrmSqlViewDao;
 import com.bdaim.crm.entity.LkCrmAdminUserEntity;
 import com.bdaim.crm.erp.admin.service.LkAdminRoleService;
 import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import com.jfinal.log.Log;
@@ -33,6 +35,8 @@ public class BaseUtil {
 
     private static LkAdminRoleService adminRoleService;
 
+    private static LkCrmSqlViewDao crmSqlViewDao;
+
     public TokenCacheService<LoginUser> getTokenCacheService() {
         return tokenCacheService;
     }
@@ -50,6 +54,20 @@ public class BaseUtil {
     @Resource
     public void setAdminRoleService(LkAdminRoleService adminRoleService) {
         BaseUtil.adminRoleService = adminRoleService;
+    }
+
+    @Resource
+    public void setCrmSqlViewDao(LkCrmSqlViewDao crmSqlViewDao) {
+        BaseUtil.crmSqlViewDao = crmSqlViewDao;
+    }
+
+    public static String getViewSql(String name) {
+        String viewSql = crmSqlViewDao.getViewSql(BaseUtil.getCustId(), name);
+        if (StringUtil.isNotEmpty(name) && !name.startsWith("field")) {
+            String fieldViewSql = crmSqlViewDao.getViewSql(BaseUtil.getCustId(), "field" + name);
+            viewSql = viewSql.replace("?", fieldViewSql);
+        }
+        return "( " + viewSql + " ) temp1 ";
     }
 
     /**

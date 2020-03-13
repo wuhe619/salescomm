@@ -498,6 +498,7 @@ public class AdminSceneService {
         switch (type) {
             case 1:
                 viewName = "leadsview";
+                viewName = BaseUtil.getViewSql("leadsview");
                 realm = "leads";
                 break;
             case 2:
@@ -663,7 +664,8 @@ public class AdminSceneService {
             }
         }
         conditions.insert(0, " from " + viewName);
-        conditions.append(" order by ").append(viewName).append(".").append(sortField).append(" ").append(orderNum);
+        //conditions.append(" order by ").append(viewName).append(".").append(sortField).append(" ").append(orderNum);
+        conditions.append(" order by ").append(sortField).append(" ").append(orderNum);
         if (StrUtil.isNotEmpty(basePageRequest.getJsonObject().getString("excel"))) {
             return R.ok().put("excel", JavaBeanUtil.mapToRecords(crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), BaseUtil.getUser().getCustId())));
         }

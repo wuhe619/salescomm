@@ -99,7 +99,7 @@ public class LkAdminRoleService {
      */
     public R save(LkCrmAdminRoleEntity adminRole) {
         adminRole.setCustId(BaseUtil.getCustId());
-        Integer number = crmAdminRoleDao.queryForInt("select count(*) from lkcrm_admin_role where role_name = ? and role_type = ?", adminRole.getRoleName(), adminRole.getRoleType());
+        Integer number = crmAdminRoleDao.queryForInt("select count(*) from lkcrm_admin_role where role_name = ? and role_type = ? AND cust_id =?", adminRole.getRoleName(), adminRole.getRoleType(), BaseUtil.getCustId());
         if (number > 0) {
             return R.error("角色名已存在");
         }
