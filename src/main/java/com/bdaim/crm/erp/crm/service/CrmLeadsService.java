@@ -519,9 +519,9 @@ public class CrmLeadsService {
     public int distributionClue(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
         // 单一负责人分配线索|手动领取所选
         if (1 == operate) {
-            if (BaseUtil.getUserType() == 1) {
+           /* if (BaseUtil.getUserType() == 1) {
                 throw new TouchException("管理员不能领取线索");
-            }
+            }*/
             return singleDistributionClue(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
         } else if (2 == operate) {
             /*if (BaseUtil.getUserType() == 1) {
