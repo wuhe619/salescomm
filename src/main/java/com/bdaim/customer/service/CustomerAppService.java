@@ -427,9 +427,13 @@ public class CustomerAppService {
 //        BigDecimal b = new BigDecimal(10000);
 //        BigDecimal pre_money;
 //        int money = Integer.valueOf((Double.valueOf(deposit.getMoney())* 10000) + "".trim()).intValue();
-        BigDecimal bigDecimal = BigDecimal.valueOf(Float.valueOf(deposit.getMoney()));
-        int money = bigDecimal.multiply(new BigDecimal(10000)).intValue();
-//        int money = Integer.valueOf(String.valueOf(Float.valueOf(deposit.getMoney()) * 10000));
+//        BigDecimal bigDecimal = BigDecimal.valueOf(Float.valueOf(deposit.getMoney()));
+//        BigDecimal money1 = bigDecimal.multiply(new BigDecimal(10000);
+//        int money = money1.intValue();
+        BigDecimal money1 = BigDecimalUtil.mul(deposit.getMoney(),"10000");
+        int money = money1.intValue();
+
+        //        int money = Integer.valueOf(String.valueOf(Float.valueOf(deposit.getMoney()) * 10000));
         int pre_money = 0;
         CustomerProperty customerProperty = customerDao.getProperty(id, "remain_amount");
         if (customerProperty == null) {
