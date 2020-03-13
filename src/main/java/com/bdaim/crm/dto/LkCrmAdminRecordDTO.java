@@ -1,5 +1,7 @@
 package com.bdaim.crm.dto;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.util.Date;
 
 public class LkCrmAdminRecordDTO {
@@ -8,7 +10,7 @@ public class LkCrmAdminRecordDTO {
     private String typesId;
     private String content;
     private String category;
-    private Date nextTime;
+    private String nextTime;
     private String businessIds;
     private String contactsIds;
     private int createUserId;
@@ -58,11 +60,11 @@ public class LkCrmAdminRecordDTO {
         this.category = category;
     }
 
-    public Date getNextTime() {
+    public String getNextTime() {
         return nextTime;
     }
 
-    public void setNextTime(Date nextTime) {
+    public void setNextTime(String nextTime) {
         this.nextTime = nextTime;
     }
 
