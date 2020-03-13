@@ -177,7 +177,7 @@ public class CrmRecordService<T> {
         if (operationNames == null || operationNames.length == 0) {
             strings.add("新建了" + CrmEnum.getName(crmTypes));
         } else {
-            strings.add(operationNames + CrmEnum.getName(crmTypes));
+            strings.add(operationNames[0] + CrmEnum.getName(crmTypes));
         }
         crmActionRecord.setContent(JSON.toJSONString(strings));
         crmActionRecordDao.save(crmActionRecord);
