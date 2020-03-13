@@ -166,7 +166,7 @@ public class CrmRecordService<T> {
         textList.clear();
     }
 
-    public void addRecord(Object actionId, String crmTypes) {
+    public void addRecord(Object actionId, String crmTypes, final Object... operationNames) {
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
         crmActionRecord.setCustId(BaseUtil.getUser().getCustId());
@@ -174,7 +174,11 @@ public class CrmRecordService<T> {
         crmActionRecord.setTypes(crmTypes);
         crmActionRecord.setActionId(String.valueOf(actionId));
         ArrayList<String> strings = new ArrayList<>();
-        strings.add("新建了" + CrmEnum.getName(crmTypes));
+        if (operationNames == null || operationNames.length == 0) {
+            strings.add("新建了" + CrmEnum.getName(crmTypes));
+        } else {
+            strings.add(operationNames + CrmEnum.getName(crmTypes));
+        }
         crmActionRecord.setContent(JSON.toJSONString(strings));
         crmActionRecordDao.save(crmActionRecord);
     }
