@@ -53,6 +53,7 @@ public class AdminAchievementController extends BasicAction {
     public R queryAchievementList(LkCrmAchievementEntity achievement, String userId, Integer deptId) throws IllegalAccessException, IntrospectionException, InvocationTargetException {
         /*String userId = getPara("userId");
         Integer deptId = getParaToInt("deptId");*/
+
         return (adminAchievementService.queryAchievementList(achievement, userId, deptId));
     }
 
