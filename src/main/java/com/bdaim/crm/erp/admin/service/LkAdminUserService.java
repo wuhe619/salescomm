@@ -252,6 +252,7 @@ public class LkAdminUserService {
             customerFieldList.add(newEntity);
         }
         crmAdminFieldDao.batchSaveOrUpdate(customerFieldList);
+        crmAdminFieldDao.getSession().clear();
         // 初始化跟进记录类型
         String[] names = new String[]{"打电话", "发短信", "上门拜访"};
         for (String n : names) {
@@ -276,6 +277,7 @@ public class LkAdminUserService {
             sceneFieldList.add(newScene);
         }
         crmAdminFieldDao.batchSaveOrUpdate(sceneFieldList);
+        crmAdminFieldDao.getSession().clear();
         //默认产品分类
         crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_crm_product_category` (`cust_id`, `name`, `pid`) VALUES (?, '默认分类', '0');", custId);
         //默认默认商机租
