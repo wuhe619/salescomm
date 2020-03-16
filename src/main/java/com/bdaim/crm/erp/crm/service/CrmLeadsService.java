@@ -329,7 +329,8 @@ public class CrmLeadsService {
             int dataStatus = 1;
             // 组长和员工数据状态为已分配
             if (2 == user.getUserType()) {
-                dataStatus = 0;
+                //dataStatus = 1;
+                dto.setUser_id(null);
             } else {
                 // 超管和项目管理员数据状态为未分配
                 dto.setUser_id(null);
