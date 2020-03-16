@@ -243,6 +243,8 @@ public class LkAdminUserService {
         long seaId = marketProjectService.saveMarketProjectAndSeaReturnId(dto, custId, userId);
         CustomerSeaProperty cp = new CustomerSeaProperty(seaId, "clueGetMode", "1", new Timestamp(System.currentTimeMillis()));
         crmAdminFieldDao.saveOrUpdate(cp);
+        CustomerSeaProperty clueGetRestrict = new CustomerSeaProperty(seaId, "clueGetRestrict", "1", new Timestamp(System.currentTimeMillis()));
+        crmAdminFieldDao.saveOrUpdate(clueGetRestrict);
         // 初始化自定义字段
         List<LkCrmAdminFieldEntity> defaultFieldList = crmAdminFieldDao.queryDefaultCustomerFieldList();
         crmAdminFieldDao.getSession().clear();
