@@ -136,6 +136,7 @@ public class AdminExamineRecordService {
                     //examineRecord.update();
                 }
                 examineLog.setRecordId(examineRecord.getRecordId());
+                examineLog.setIsRecheck(0);
                 // examineLog.save();
                 crmAdminExamineLogDao.save(examineLog);
             }
