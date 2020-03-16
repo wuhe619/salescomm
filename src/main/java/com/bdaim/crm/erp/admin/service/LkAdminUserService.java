@@ -11,6 +11,7 @@ import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
+import com.bdaim.crm.erp.crm.service.CrmContractService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.Sort;
@@ -68,6 +69,8 @@ public class LkAdminUserService {
     private AdminFieldService adminFieldService;
     @Autowired
     private LkCrmBusinessTypeDao crmBusinessTypeDao;
+    @Autowired
+    private CrmContractService crmContractService;
 
     private void saveBpUser(long id, String userName, String realName, String password, String custId, int userType,
                             String callType, String callChannel, UserCallConfigDTO userDTO) {
@@ -300,6 +303,15 @@ public class LkAdminUserService {
         for (int label = 1; label < 8; label++) {
             adminFieldService.createView(label, custId);
         }
+        //合同到期提醒
+        LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
+        adminConfig.setCustId(custId);
+        adminConfig.setStatus(0);
+        adminConfig.setName("expiringContractDays");
+        adminConfig.setValue("3");
+        adminConfig.setDescription("合同到期提醒");
+        crmAdminConfigDao.save(adminConfig);
+
         return R.isSuccess(true);
     }
 
