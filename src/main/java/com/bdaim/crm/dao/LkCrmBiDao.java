@@ -1,6 +1,7 @@
 package com.bdaim.crm.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.SqlAppendUtil;
@@ -20,8 +21,9 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 " WHERE type='1' and type_id=a.log_id) as sum,a.send_user_ids,a.read_user_ids " +
                 "    FROM lkcrm_oa_log as a LEFT JOIN lkcrm_admin_user as b on a.create_user_id=b.user_id " +
                 "    WHERE DATE_FORMAT(a.create_time,?) between ? and" +
-                " ? and a.create_user_id =?";
-        return super.queryListBySql(sql, sqlDateFormat, beginTime, finalTime, uid);
+                " ? and a.create_user_id =? and a.cust_id=? and b.cust_id=?";
+        return super.queryListBySql(sql, sqlDateFormat, beginTime, finalTime, uid,
+                BaseUtil.getCustId(), BaseUtil.getCustId());
     }
 
     public List<Map<String, Object>> examineStatistics(List<Record> categoryList, List<String> users,
@@ -38,8 +40,8 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "WHERE " +
                 " a.user_id IN (";
         sql += SqlAppendUtil.sqlAppendWhereIn(users);
-        sql += " ) GROUP BY a.user_id";
-        return super.queryListBySql(sql, sqlDateFormat, beginTime, finalTime);
+        sql += " ) AND a.cust_id=? AND b.cust_id=? GROUP BY a.user_id";
+        return super.queryListBySql(sql, sqlDateFormat, beginTime, finalTime, BaseUtil.getCustId(), BaseUtil.getCustId());
     }
 
     public Map<String, Object> queryExamineCount(Object categoryId, Object beginDate, Object endDate, Object userId) {
@@ -53,8 +55,8 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "WHERE " +
                 " a.category_id = ?  " +
                 " AND ( a.create_time BETWEEN ? AND ? )  " +
-                " AND a.create_user_id = ?";
-        return super.queryUniqueSql(sql, categoryId, beginDate, endDate, userId);
+                " AND a.create_user_id = ? AND a.cust_id=? AND b.cust_id=?";
+        return super.queryUniqueSql(sql, categoryId, beginDate, endDate, userId, BaseUtil.getCustId(), BaseUtil.getCustId());
     }
 
     public List<Map<String, Object>> queryCrmBusinessStatistics(Long userId, Integer productId,
@@ -66,8 +68,9 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "    LEFT JOIN lkcrm_crm_business_product as scbp on scbp.business_id = scb.business_id " +
                 "    LEFT JOIN lkcrm_crm_business_status as scbs on scbs.status_id = scb.status_id " +
                 "    LEFT JOIN lkcrm_admin_user as sau on sau.user_id = scb.owner_user_id " +
-                "    where  1 = 1 ";
+                "    where  1 = 1 and scb.cust_id=? ";
         List<Object> params = new ArrayList<>();
+        params.add(BaseUtil.getCustId());
         if (userId != null) {
             sql += " and scb.owner_user_id = ? ";
             params.add(userId);
@@ -106,8 +109,9 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "      LEFT JOIN lkcrm_admin_user as sau on sau.user_id = scc.owner_user_id " +
                 "      LEFT JOIN lkcrm_crm_customer as sccu on sccu.customer_id = scc.customer_id " +
                 "      LEFT JOIN lkcrm_crm_product_category as scpc on scpc.category_id = scp.category_id " +
-                "      where 1 = 1 ";
+                "      where 1 = 1 and scp.cust_id=? ";
         List<Object> params = new ArrayList<>();
+        params.add(BaseUtil.getCustId());
         if (startTime != null) {
             sql += " and unix_timestamp(?) - unix_timestamp(scc.order_date) < 0 ";
             params.add(startTime);
@@ -129,9 +133,10 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
 
     public List<Map<String, Object>> queryByUserIdOrYear(String year, String month, Integer userId, Integer deptId) {
         String contractview = BaseUtil.getViewSqlNotASName("contractview");
-        String sql = "      select co.* from "+contractview+" as co LEFT JOIN lkcrm_admin_user as sau on co.owner_user_id = sau.user_id " +
-                "      where 1 = 1 ";
+        String sql = "      select co.* from " + contractview + " as co LEFT JOIN lkcrm_admin_user as sau on co.owner_user_id = sau.user_id " +
+                "      where 1 = 1 and sau.cust_id=? ";
         List<Object> params = new ArrayList<>();
+        params.add(BaseUtil.getCustId());
         if (StringUtil.isNotEmpty(year)) {
             sql += " and YEAR(co.create_time) = ? ";
             params.add(year);
@@ -153,87 +158,88 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
     }
 
     public List<Map<String, Object>> queryContractByDeptId(String year, Integer deptId) {
-        String sql = "select '一月' as month,IFNULL(january,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','01') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','01') and check_status = 2)/IFNULL(january,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+        String sql = "select '一月' as month,IFNULL(january,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','01') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','01') and check_status = 2)/IFNULL(january,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and a.cust_id = '" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '二月' as month,IFNULL(february,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','02') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','02') and check_status = 2)/IFNULL(february,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '二月' as month,IFNULL(february,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','02') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','02') and check_status = 2)/IFNULL(february,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and a.cust_id = '" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '三月' as month,IFNULL(march,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','03') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','03') and check_status = 2)/IFNULL(march,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '三月' as month,IFNULL(march,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','03') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','03') and check_status = 2)/IFNULL(march,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and a.cust_id = '" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '四月' as month,IFNULL(april,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','04') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','04') and check_status = 2)/IFNULL(april,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '四月' as month,IFNULL(april,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','04') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','04') and check_status = 2)/IFNULL(april,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and a.cust_id = '" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '五月' as month,IFNULL(may,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','05') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','05') and check_status = 2)/IFNULL(may,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '五月' as month,IFNULL(may,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','05') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','05') and check_status = 2)/IFNULL(may,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and a.cust_id = '" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '六月' as month,IFNULL(june,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','06') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','06') and check_status = 2)/IFNULL(june,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '六月' as month,IFNULL(june,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','06') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','06') and check_status = 2)/IFNULL(june,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and a.cust_id = '" + BaseUtil.getCustId() + "' " +
                 "    union all " +
                 "    select '七月' as month,IFNULL(july,0) as achievement,(select IFNULL(SUM(a.money),0) from " +
-                "    lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','07') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','07') and check_status = 2)/IFNULL(july,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','07') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','07') and check_status = 2)/IFNULL(july,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and a.cust_id = '" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '八月' as month,IFNULL(august,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','08') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','08') and check_status = 2)/IFNULL(august,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '八月' as month,IFNULL(august,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','08') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','08') and check_status = 2)/IFNULL(august,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and a.cust_id = '" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '九月' as month,IFNULL(september,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','09') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','09') and check_status = 2)/IFNULL(september,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '九月' as month,IFNULL(september,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','09') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','09') and check_status = 2)/IFNULL(september,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and a.cust_id = '" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '十月' as month,IFNULL(october,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','10') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','10') and check_status = 2)/IFNULL(october,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '十月' as month,IFNULL(october,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','10') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','10') and check_status = 2)/IFNULL(october,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and a.cust_id = '" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '十一月' as month,IFNULL(november,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','11') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','11') and check_status = 2)/IFNULL(november,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '十一月' as month,IFNULL(november,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','11') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','11') and check_status = 2)/IFNULL(november,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and a.cust_id = '" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '十二月' as month,IFNULL(december,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','12') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','12') and check_status = 2)/IFNULL(december,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' ";
+                "    select '十二月' as month,IFNULL(december,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','12') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_contract as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','12') and check_status = 2)/IFNULL(december,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and a.cust_id = '" + BaseUtil.getCustId() + "' ";
         return super.queryListBySql(sql);
     }
 
     public List<Map<String, Object>> queryContractByUserId(String year, Integer userId) {
-        String sql = "select '一月' as month,IFNULL(january,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','01') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','01') and check_status = 2)/IFNULL(january,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
+        String sql = "select '一月' as month,IFNULL(january,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where  cust_id = '" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','01') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id='" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','01') and check_status = 2)/IFNULL(january,0)*100,2),0) as rate from lkcrm_crm_achievement where cust_id='" + BaseUtil.getCustId() + "' and obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
                 "    union all " +
-                "    select '二月' as month,IFNULL(february,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','02') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','02') and check_status = 2)/IFNULL(february,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
+                "    select '二月' as month,IFNULL(february,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id = '" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','02') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id='" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','02') and check_status = 2)/IFNULL(february,0)*100,2),0) as rate from lkcrm_crm_achievement where cust_id='" + BaseUtil.getCustId() + "' and  obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
                 "    union all " +
-                "    select '三月' as month,IFNULL(march,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','03') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','03') and check_status = 2)/IFNULL(march,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
+                "    select '三月' as month,IFNULL(march,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id = '" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','03') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id='" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','03') and check_status = 2)/IFNULL(march,0)*100,2),0) as rate from lkcrm_crm_achievement where  cust_id='" + BaseUtil.getCustId() + "' and obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
                 "    union all " +
-                "    select '四月' as month,IFNULL(april,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','04') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','04') and check_status = 2)/IFNULL(april,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
+                "    select '四月' as month,IFNULL(april,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id = '" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','04') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id='" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','04') and check_status = 2)/IFNULL(april,0)*100,2),0) as rate from lkcrm_crm_achievement where  cust_id='" + BaseUtil.getCustId() + "' and obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
                 "    union all " +
-                "    select '五月' as month,IFNULL(may,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','05') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','05') and check_status = 2)/IFNULL(may,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
+                "    select '五月' as month,IFNULL(may,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id = '" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','05') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id='" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','05') and check_status = 2)/IFNULL(may,0)*100,2),0) as rate from lkcrm_crm_achievement where  cust_id='" + BaseUtil.getCustId() + "' and obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
                 "    union all " +
-                "    select '六月' as month,IFNULL(june,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','06') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','06') and check_status = 2)/IFNULL(june,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
+                "    select '六月' as month,IFNULL(june,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id = '" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','06') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id='" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','06') and check_status = 2)/IFNULL(june,0)*100,2),0) as rate from lkcrm_crm_achievement where  cust_id='" + BaseUtil.getCustId() + "' and obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
                 "    union all " +
-                "    select '七月' as month,IFNULL(july,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','07') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','07') and check_status = 2)/IFNULL(july,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
+                "    select '七月' as month,IFNULL(july,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id = '" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','07') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id='" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','07') and check_status = 2)/IFNULL(july,0)*100,2),0) as rate from lkcrm_crm_achievement where  cust_id='" + BaseUtil.getCustId() + "' and obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
                 "    union all " +
-                "    select '八月' as month,IFNULL(august,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','08') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','08') and check_status = 2)/IFNULL(august,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
+                "    select '八月' as month,IFNULL(august,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id = '" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','08') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id='" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','08') and check_status = 2)/IFNULL(august,0)*100,2),0) as rate from lkcrm_crm_achievement where  cust_id='" + BaseUtil.getCustId() + "' and obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
                 "    union all " +
-                "    select '九月' as month,IFNULL(september,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','09') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','09') and check_status = 2)/IFNULL(september,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
+                "    select '九月' as month,IFNULL(september,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id = '" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','09') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id='" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','09') and check_status = 2)/IFNULL(september,0)*100,2),0) as rate from lkcrm_crm_achievement where  cust_id='" + BaseUtil.getCustId() + "' and obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
                 "    union all " +
-                "    select '十月' as month,IFNULL(october,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','10') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','10') and check_status = 2)/IFNULL(october,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
+                "    select '十月' as month,IFNULL(october,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id = '" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','10') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id='" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','10') and check_status = 2)/IFNULL(october,0)*100,2),0) as rate from lkcrm_crm_achievement where  cust_id='" + BaseUtil.getCustId() + "' and obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
                 "    union all " +
-                "    select '十一月' as month,IFNULL(november,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','11') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','11') and check_status = 2)/IFNULL(november,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
+                "    select '十一月' as month,IFNULL(november,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id = '" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','11') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id='" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','11') and check_status = 2)/IFNULL(november,0)*100,2),0) as rate from lkcrm_crm_achievement where cust_id='" + BaseUtil.getCustId() + "' and  obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
                 "    union all " +
-                "    select '十二月' as month,IFNULL(december,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','12') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','12') and check_status = 2)/IFNULL(december,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
+                "    select '十二月' as month,IFNULL(december,0) as achievement,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id = '" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','12') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id='" + BaseUtil.getCustId() + "' and owner_user_id = '" + userId + "' and DATE_FORMAT(order_date,'%Y%m') = CONCAT('" + year + "','12') and check_status = 2)/IFNULL(december,0)*100,2),0) as rate from lkcrm_crm_achievement where cust_id='" + BaseUtil.getCustId() + "' and  obj_id = '" + userId + "' and type = 3 and year = '" + year + "' " +
                 " ";
         return super.queryListBySql(sql);
     }
 
     public List<Map<String, Object>> queryReceivablesByDeptId(String year, Integer deptId) {
-        String sql = "    select '一月' as month,IFNULL(january,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','01') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','01') and check_status = 2)/IFNULL(january,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+        String sql = "    select '一月' as month,IFNULL(january,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','01') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','01') and check_status = 2)/IFNULL(january,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and cust_id='" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '二月' as month,IFNULL(february,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','02') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','02') and check_status = 2)/IFNULL(february,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '二月' as month,IFNULL(february,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','02') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','02') and check_status = 2)/IFNULL(february,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and cust_id='" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '三月' as month,IFNULL(march,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','03') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','03') and check_status = 2)/IFNULL(march,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '三月' as month,IFNULL(march,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','03') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','03') and check_status = 2)/IFNULL(march,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and cust_id='" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '四月' as month,IFNULL(april,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','04') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','04') and check_status = 2)/IFNULL(april,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '四月' as month,IFNULL(april,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','04') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','04') and check_status = 2)/IFNULL(april,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and cust_id='" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '五月' as month,IFNULL(may,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','05') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','05') and check_status = 2)/IFNULL(may,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '五月' as month,IFNULL(may,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','05') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','05') and check_status = 2)/IFNULL(may,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and cust_id='" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '六月' as month,IFNULL(june,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','06') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','06') and check_status = 2)/IFNULL(june,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '六月' as month,IFNULL(june,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','06') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','06') and check_status = 2)/IFNULL(june,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and cust_id='" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '七月' as month,IFNULL(july,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','07') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','07') and check_status = 2)/IFNULL(july,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '七月' as month,IFNULL(july,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','07') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','07') and check_status = 2)/IFNULL(july,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and cust_id='" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '八月' as month,IFNULL(august,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','08') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','08') and check_status = 2)/IFNULL(august,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '八月' as month,IFNULL(august,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','08') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','08') and check_status = 2)/IFNULL(august,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and cust_id='" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '九月' as month,IFNULL(september,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','09') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','09') and check_status = 2)/IFNULL(september,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '九月' as month,IFNULL(september,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','09') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','09') and check_status = 2)/IFNULL(september,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and cust_id='" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '十月' as month,IFNULL(october,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','10') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','10') and check_status = 2)/IFNULL(october,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '十月' as month,IFNULL(october,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','10') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','10') and check_status = 2)/IFNULL(october,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and cust_id='" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '十一月' as month,IFNULL(november,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','11') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','11') and check_status = 2)/IFNULL(november,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '十一月' as month,IFNULL(november,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','11') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','11') and check_status = 2)/IFNULL(november,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and cust_id='" + BaseUtil.getCustId() + "' " +
                 "    union all " +
-                "    select '十二月' as month,IFNULL(december,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','12') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','12') and check_status = 2)/IFNULL(december,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' " +
+                "    select '十二月' as month,IFNULL(december,0) as achievement,(select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' and b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','12') and check_status = 2) as receivables,IFNULL(ROUND((select IFNULL(SUM(a.money),0) from lkcrm_crm_receivables as a inner join lkcrm_admin_user as b where a.owner_user_id = b.user_id and a.cust_id='" + BaseUtil.getCustId() + "' b.dept_id = '" + deptId + "' and DATE_FORMAT(return_time,'%Y%m') = CONCAT('" + year + "','12') and check_status = 2)/IFNULL(december,0)*100,2),0) as rate from lkcrm_crm_achievement where obj_id = '" + deptId + "' and type = 2 and year = '" + year + "' and cust_id='" + BaseUtil.getCustId() + "' " +
                 "  ";
         return super.queryListBySql(sql);
+
     }
 
     public List<Map<String, Object>> queryReceivablesByUserId(String year, Integer userId) {
@@ -278,7 +284,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 " check_status = 2  " +
                 " AND cct.owner_user_id IN (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIds);
-        sql += ") ";
+        sql += ") and cct.cust_id='" + BaseUtil.getCustId() + "' ";
         if (type == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(order_date) ";
 
@@ -333,7 +339,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "        check_status = 2 " +
                 "        and  cct.owner_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
-        sql += ") ";
+        sql += ") and cct.cust_id='" + BaseUtil.getCustId() + "' ";
         if (status == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(return_time) ";
         }
@@ -388,7 +394,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "        check_status = 2 " +
                 "        and  cct.owner_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
-        sql += ") ";
+        sql += ") and cct.cust_id='" + BaseUtil.getCustId() + "' ";
         if (status == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(order_date) ";
         }
@@ -443,7 +449,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "        check_status = 2 " +
                 "        and  cct.owner_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
-        sql += ") ";
+        sql += ") and cct.cust_id='" + BaseUtil.getCustId() + "' ";
         if (status == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(order_date) ";
         }
@@ -496,7 +502,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "      WHERE " +
                 "         cct.create_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
-        sql += ") ";
+        sql += ") and cct.cust_id='" + BaseUtil.getCustId() + "' ";
         if (status == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(cct.create_time) ";
         }
@@ -552,7 +558,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "           FROM customerview as ccc " +
                 "          where   ccc.owner_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
-        sql += ")";
+        sql += ") and ccc.cust_id='" + BaseUtil.getCustId() + "'";
         if (status == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(ccc.create_time) ";
         }
@@ -606,7 +612,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "          FROM customerview as ccc " +
                 "          where   ccc.owner_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
-        sql += ")";
+        sql += ") and ccc.cust_id='" + BaseUtil.getCustId() + "' ";
         if (status == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(ccc.create_time) ";
         }
@@ -659,7 +665,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "         FROM customerview as ccc " +
                 "         where   ccc.owner_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
-        sql += ") ";
+        sql += ") and ccc.cust_id='" + BaseUtil.getCustId() + "' ";
         if (status == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(ccc.create_time) ";
         }
@@ -708,8 +714,8 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 " and left(address,INSTR(address, ',') - 1) = left(ccc.address,INSTR(ccc.address, ',') - 1)) ,0)as dealCustomer, " +
                 "        ? as address " +
                 "        FROM lkcrm_crm_customer as ccc " +
-                "        where  left(ccc.address,INSTR(ccc.address, ',') - 1) like concat('%',?,'%')";
-        return JavaBeanUtil.mapToRecord(super.queryUniqueSql(sql, addRess, addRess));
+                "        where  left(ccc.address,INSTR(ccc.address, ',') - 1) like concat('%',?,'%') and ccc.cust_id=?";
+        return JavaBeanUtil.mapToRecord(super.queryUniqueSql(sql, addRess, addRess, BaseUtil.getCustId()));
     }
 
     public List<Record> productSellRanKing(String[] userIdsArr, Integer status, String startTime, String endTime) {
@@ -726,7 +732,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "          cct.check_status = 2 " +
                 "        and  cct.owner_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
-        sql += ")";
+        sql += ") and cct.cust_id='" + BaseUtil.getCustId() + "'";
         if (status == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(cct.order_date) ";
         }
@@ -778,7 +784,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "      WHERE " +
                 "         coe.create_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
-        sql += ")";
+        sql += ") and coe.cust_id='" + BaseUtil.getCustId() + "'";
         if (status == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(coet.start_time) ";
         }
@@ -833,7 +839,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "        and  cct.owner_user_id in (";
 
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
-        sql += ")";
+        sql += ") and cct.cust_id='" + BaseUtil.getCustId() + "'";
         if (status == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(cct.order_date) ";
         }
@@ -885,7 +891,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "      WHERE " +
                 "         ccr.create_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
-        sql += ")";
+        sql += ") and ccr.cust_id='" + BaseUtil.getCustId() + "'";
         if (status == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(ccr.create_time) ";
         }
@@ -938,7 +944,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "      WHERE " +
                 "         cct.owner_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
-        sql += ")";
+        sql += ") and cct.cust_id='" + BaseUtil.getCustId() + "'";
         if (status == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(update_time) ";
         }
@@ -991,7 +997,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "      WHERE " +
                 "         cct.create_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
-        sql += ")";
+        sql += ") and cct.cust_id='" + BaseUtil.getCustId() + "'";
         if (status == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(cct.create_time) ";
         }
@@ -1045,7 +1051,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "        where " +
                 "        owner_user_id in";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdss);
-        sql += ") ";
+        sql += ") and cust_id='" + BaseUtil.getCustId() + "' ";
         if (status == 1) {
             sql += " and to_days(NOW()) = TO_DAYS(create_time) ";
         }
@@ -1096,9 +1102,10 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "      FROM lkcrm_crm_business as ccb " +
                 "      LEFT JOIN lkcrm_crm_business_status as ccbs ON ccbs.status_id = ccb.status_id " +
                 "      where " +
-                "        ccbs.type_id = ? " +
+                "        ccbs.type_id = ? and ccbs.cust_id=? " +
                 "        and  ccb.owner_user_id in (";
         params.add(typeId);
+        params.add(BaseUtil.getCustId());
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdss);
         sql += ") ";
         if (status == 1) {
@@ -1140,5 +1147,29 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         }
         sql += "      GROUP BY ccbs.`name`,ccbs.order_num,ccb.type_id";
         return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+    }
+
+    public Page myInitiate(Object userId, Object categoryId, Object beginDate, Object endDate,
+                           Integer page, Integer limit) {
+        StringBuffer sqlBuffer = new StringBuffer();
+        List<Object> params = new ArrayList<>();
+        sqlBuffer.append("    select a.*,b.examine_status,b.record_id as examine_record_id,b.examine_step_id ,c.category_id,c.title as categoryTitle\n" +
+                "    from lkcrm_oa_examine a left join lkcrm_oa_examine_record b on a.examine_id = b.examine_id left join lkcrm_oa_examine_category c on a.category_id = c.category_id\n" +
+                "    where a.create_user_id = ? and a.cust_id=? and b.cust_id=? and c.cust_id=?");
+        params.add(userId);
+        if (categoryId != null && categoryId != "") {
+            sqlBuffer.append(" and a.category_id = ? ");
+            params.add(categoryId);
+        }
+        if (beginDate != null && endDate != null) {
+            sqlBuffer.append(" and a.create_time between #para(startTime) and  #para(endTime) ");
+            params.add(beginDate);
+            params.add(endDate);
+        }
+        sqlBuffer.append(" group by a.examine_id,b.record_id order by  a.create_time desc ");
+        params.add(BaseUtil.getCustId());
+        params.add(BaseUtil.getCustId());
+        params.add(BaseUtil.getCustId());
+        return sqlPageQuery(sqlBuffer.toString(), page, limit, params.toArray());
     }
 }

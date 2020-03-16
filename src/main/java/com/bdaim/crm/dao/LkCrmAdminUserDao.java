@@ -17,13 +17,13 @@ import java.util.Map;
 public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, Long> {
 
     public List queryUserIdByDeptId(List<String> deptIds) {
-        String sql = " select DISTINCT user_id from lkcrm_admin_user where dept_id in (? )";
-        return this.sqlQuery(sql, SqlAppendUtil.sqlAppendWhereIn(deptIds));
+        String sql = " select DISTINCT user_id from lkcrm_admin_user where dept_id in (? ) AND cust_id=?";
+        return this.sqlQuery(sql, SqlAppendUtil.sqlAppendWhereIn(deptIds), BaseUtil.getCustId());
     }
 
     public List<Long> queryUserIdByDeptId(String deptIds) {
-        String sql = " select DISTINCT user_id from lkcrm_admin_user where dept_id in (? )";
-        return this.queryListBySql(sql, deptIds);
+        String sql = " select DISTINCT user_id from lkcrm_admin_user where dept_id in (" + deptIds + " ) and cust_id=?";
+        return this.queryListBySql(sql, BaseUtil.getCustId());
     }
 
     public List<Map<String, Object>> queryUserByRealName(String name) {
@@ -34,8 +34,8 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
                 " LEFT JOIN lkcrm_admin_dept AS ad ON au.dept_id = ad.dept_id  " +
                 "WHERE " +
                 " 1 = 1  " +
-                " AND au.realname LIKE concat( '%', ?, '%' ) AND au.cust_id = ?";
-        return super.sqlQuery(sql, name, BaseUtil.getCustId());
+                " AND au.realname LIKE concat( '%', ?, '%' ) AND au.cust_id = ? AND ad.cust_id=?";
+        return super.sqlQuery(sql, name, BaseUtil.getCustId(), BaseUtil.getCustId());
     }
 
     public List<Map<String, Object>> querySuperior(String realName) {
@@ -53,8 +53,8 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
                 "WHERE " +
                 " 1 = 1  " +
                 " AND au.dept_id = ?  " +
-                " AND au.realname LIKE concat( '%', ?, '%' ) AND au.cust_id = ?";
-        return super.sqlQuery(sql, dept_id, name, BaseUtil.getCustId());
+                " AND au.realname LIKE concat( '%', ?, '%' ) AND au.cust_id = ? AND ad.cust_id=?";
+        return super.sqlQuery(sql, dept_id, name, BaseUtil.getCustId(), BaseUtil.getCustId());
     }
 
     public List<Map<String, Object>> queryUserList(String name, List<Integer> deptId, Integer status, String roleId, String roleName) {
@@ -143,7 +143,13 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
     }
 
     public List<Map<String, Object>> queryByIds(List ids) {
-        String sql = "  select user_id,realname,img from lkcrm_admin_user where user_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
-        return super.sqlQuery(sql);
+        String sql = "  select user_id,realname,img from lkcrm_admin_user where user_id in ("
+                + SqlAppendUtil.sqlAppendWhereIn(ids) + ") and cust_id = ?";
+        return super.sqlQuery(sql, BaseUtil.getCustId());
+    }
+
+    public LkCrmAdminUserEntity queryByUserName(String userName) {
+        String sql = " from LkCrmAdminUserEntity where username = ?";
+        return super.findUnique(sql, userName);
     }
 }

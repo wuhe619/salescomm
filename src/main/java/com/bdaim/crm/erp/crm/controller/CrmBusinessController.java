@@ -16,10 +16,16 @@ import com.bdaim.crm.erp.crm.service.CrmBusinessService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.StringUtil;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * 商机
@@ -32,6 +38,14 @@ public class CrmBusinessController extends BasicAction {
 
     @Resource
     private AdminSceneService adminSceneService;
+
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    @InitBinder
+    protected void init(ServletRequestDataBinder binder) {
+        dateFormat.setLenient(false);
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
+    }
 
     /**
      * @author wyq
@@ -268,7 +282,7 @@ public class CrmBusinessController extends BasicAction {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(LkCrmAdminRecordDTO adminRecord) {
+    public R addRecord(LkCrmAdminRecordDTO adminRecord) throws ParseException {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), adminRecord.getTypesId());
         if (auth) {
             return(R.noAuth());
@@ -276,6 +290,9 @@ public class CrmBusinessController extends BasicAction {
         }
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
+        if(StringUtil.isNotEmpty(adminRecord.getNextTime())){
+            lkCrmAdminRecordEntity.setNextTime(dateFormat.parse(adminRecord.getNextTime()));
+        }
         return(crmBusinessService.addRecord(lkCrmAdminRecordEntity));
     }
 

@@ -63,7 +63,7 @@ public class LkCrmAdminExamineLogDao extends SimpleHibernateDao<LkCrmAdminExamin
         param.add(recordId);
         param.add(auditUserId);
         if (StringUtil.isNotEmpty(stepId)) {
-            sql += "and examine_step_id = ?";
+            sql += " and examine_step_id = ?";
             param.add(stepId);
         }
 

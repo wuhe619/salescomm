@@ -1757,4 +1757,21 @@ public class CustomerUserService {
         return data;
     }
 
+    public void changeUserStatus(String userId, String action) throws Exception {
+        CustomerUser userDO = customerUserDao.findUniqueBy("id", Long.valueOf(userId));
+        //解冻
+        if ("1".equals(action)) {
+            userDO.setStatus(0);
+        }
+        //冻结
+        if ("2".equals(action)) {
+            userDO.setStatus(1);
+        }
+        try {
+            customerUserDao.update(userDO);
+        } catch (Exception e) {
+            throw new TouchException("300", e.getMessage());
+        }
+    }
+
 }

@@ -1,5 +1,9 @@
 package com.bdaim.crm.dto;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.util.Date;
+
 public class LkCrmAdminRecordDTO {
     private Integer recordId;
     private String types;

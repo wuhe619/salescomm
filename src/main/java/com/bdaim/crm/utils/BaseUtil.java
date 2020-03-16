@@ -9,7 +9,9 @@ import com.bdaim.crm.dao.LkCrmAdminRoleDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
 import com.bdaim.crm.dao.LkCrmSqlViewDao;
 import com.bdaim.crm.entity.LkCrmAdminUserEntity;
+import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.LkAdminRoleService;
+import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.kit.Prop;
@@ -37,6 +39,8 @@ public class BaseUtil {
 
     private static LkCrmSqlViewDao crmSqlViewDao;
 
+    private static AdminFieldService adminFieldService;
+
     public TokenCacheService<LoginUser> getTokenCacheService() {
         return tokenCacheService;
     }
@@ -61,11 +65,22 @@ public class BaseUtil {
         BaseUtil.crmSqlViewDao = crmSqlViewDao;
     }
 
+    @Resource
+    public void setAdminFieldService(AdminFieldService adminFieldService) {
+        BaseUtil.adminFieldService = adminFieldService;
+    }
+
     public static String getViewSql(String name) {
         String viewSql = crmSqlViewDao.getViewSql(BaseUtil.getCustId(), name);
         if (StringUtil.isNotEmpty(name) && !name.startsWith("field")) {
             String fieldViewSql = crmSqlViewDao.getViewSql(BaseUtil.getCustId(), "field" + name);
             viewSql = viewSql.replace("?", fieldViewSql);
+        }
+        if (StringUtil.isEmpty(viewSql)) {
+            for (int label = 1; label < 8; label++) {
+                adminFieldService.createView(label, BaseUtil.getCustId());
+            }
+            viewSql = getViewSql(name);
         }
         return "( " + viewSql + " ) temp1 ";
     }
@@ -76,7 +91,13 @@ public class BaseUtil {
             String fieldViewSql = crmSqlViewDao.getViewSql(BaseUtil.getCustId(), "field" + name);
             viewSql = viewSql.replace("?", fieldViewSql);
         }
-        return "( " + viewSql + " ) temp1 ";
+        if (StringUtil.isEmpty(viewSql)) {
+            for (int label = 1; label < 8; label++) {
+                adminFieldService.createView(label, BaseUtil.getCustId());
+            }
+            viewSql = getViewSqlNotASName(name);
+        }
+        return "( " + viewSql + " ) ";
     }
 
     /**

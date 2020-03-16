@@ -311,6 +311,8 @@ public class AdminSceneService {
                 crmAdminSceneDao.save(systemScene);
             } else if (2 == type) {
                 systemScene.setName("全部客户");
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("我负责的客户").setData(ownerObject.toString());
                 crmAdminSceneDao.getSession().clear();
                 crmAdminSceneDao.save(systemScene);
@@ -324,6 +326,8 @@ public class AdminSceneService {
                 crmAdminSceneDao.save(systemScene);
             } else if (3 == type) {
                 systemScene.setName("全部联系人");
+                crmAdminSceneDao.getSession().clear();
+                crmAdminSceneDao.save(systemScene);
                 systemScene.setSceneId(null).setName("我负责的联系人").setData(ownerObject.toString());
                 crmAdminSceneDao.getSession().clear();
                 crmAdminSceneDao.save(systemScene);
@@ -473,7 +477,7 @@ public class AdminSceneService {
             data = new JSONObject().fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", "0"));
         }
         if (sceneId == null && jsonObject.getInteger("type") == 4) {
-            data = new JSONObject().fluentPut("是否上下架", new JSONObject().fluentPut("name", "是否上下架").fluentPut("condition", "is").fluentPut("value", "上架"));
+            data = new JSONObject().fluentPut("是否上下架", new JSONObject().fluentPut("name", "是否上下架").fluentPut("condition", "in").fluentPut("value", "'上架','下架'"));
         }
         if (jsonObject.getJSONObject("data") != null) {
             if (data != null) {
@@ -483,7 +487,8 @@ public class AdminSceneService {
             jsonObject.put("data", data);
         }
         basePageRequest.setJsonObject(jsonObject);
-        return getCrmPageList(basePageRequest);
+        R result = getCrmPageList(basePageRequest);
+        return result;
     }
 
     /**
@@ -552,9 +557,9 @@ public class AdminSceneService {
             if (!ParamsUtil.isValid(name)) {
                 return R.error("参数包含非法字段");
             }
-            if (StrUtil.isNotEmpty(value) && !ParamsUtil.isValid(value)) {
-                return R.error("参数包含非法字段");
-            }
+//            if (StrUtil.isNotEmpty(value) && !ParamsUtil.isValid(value)) {
+//                return R.error("参数包含非法字段");
+//            }
             if (StrUtil.isNotEmpty(jsonObject.getString("start")) && !ParamsUtil.isValid(jsonObject.getString("start"))) {
                 return R.error("参数包含非法字段");
             }
@@ -674,7 +679,8 @@ public class AdminSceneService {
         //conditions.append(" order by ").append(viewName).append(".").append(sortField).append(" ").append(orderNum);
         conditions.append(" order by ").append(sortField).append(" ").append(orderNum);
         if (StrUtil.isNotEmpty(basePageRequest.getJsonObject().getString("excel"))) {
-            return R.ok().put("excel", JavaBeanUtil.mapToRecords(crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), BaseUtil.getUser().getCustId())));
+            List<Map<String, Object>> recordList = crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), BaseUtil.getUser().getCustId());
+            return R.ok().put("excel", JavaBeanUtil.mapToRecords(recordList));
         }
         if (2 == type || 8 == type) {
             Integer configType = crmAdminSceneDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting' AND cust_id = ? ", BaseUtil.getCustId());
@@ -687,14 +693,26 @@ public class AdminSceneService {
 
                 return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQuery(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
             } else {
-                return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQuery("select *,(select count(*) from lkcrm_crm_business as a where a.customer_id = " + viewName + ".customer_id) as business_count " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
+                Page page = crmAdminSceneDao.sqlPageQuery("select * " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
+                Map map = null;
+                for (int i = 0; i < page.getData().size(); i++) {
+                    map = (Map) page.getData().get(i);
+                    Map<String, Object> count = crmAdminSceneDao.queryUniqueSql("select count(*) count from lkcrm_crm_business as a where a.customer_id =? AND a.cust_id = ?  ", map.get("customer_id"), BaseUtil.getCustId());
+                    map.put("business_count", count != null ? count.get("count") : 0);
+                }
+                return R.ok().put("data", BaseUtil.crmPage(page));
             }
 
         } else if (6 == type) {
             Record totalMoney = JavaBeanUtil.mapToRecord(crmAdminSceneDao.sqlQuery("select SUM(money) as contractMoney,GROUP_CONCAT(contract_id) as contractIds " + conditions.toString(), BaseUtil.getUser().getCustId()).get(0));
             String contractview = BaseUtil.getViewSql("contractview");
-            Page page = crmAdminSceneDao.sqlPageQuery("select *,IFNULL((select SUM(a.money) from lkcrm_crm_receivables as a where a.contract_id = " + contractview + ".contract_id),0) as receivedMoney" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
-
+            Page page = crmAdminSceneDao.sqlPageQuery("select * " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
+            Map map = null;
+            for (int i = 0; i < page.getData().size(); i++) {
+                map = (Map) page.getData().get(i);
+                Map<String, Object> count = crmAdminSceneDao.queryUniqueSql("select SUM(a.money) receivedMoney from lkcrm_crm_receivables as a where a.contract_id = ? and a.cust_id = ? ", map.get("contract_id"), BaseUtil.getCustId());
+                map.put("receivedMoney", count != null ? count.get("receivedMoney") : 0);
+            }
             String receivedMoney = crmAdminSceneDao.queryForObject("select SUM(money) from lkcrm_crm_receivables where receivables_id in (" + totalMoney.getStr("contractIds") + ")");
             JSONObject jsonObject = JSONObject.parseObject(JSON.toJSONString(BaseUtil.crmPage(page)), JSONObject.class);
             return R.ok().put("data", jsonObject.fluentPut("money", new JSONObject().fluentPut("contractMoney", totalMoney.getStr("contractMoney") != null ? totalMoney.getStr("contractMoney") : "0").fluentPut("receivedMoney", StringUtil.isNotEmpty(receivedMoney) ? receivedMoney : "0")));

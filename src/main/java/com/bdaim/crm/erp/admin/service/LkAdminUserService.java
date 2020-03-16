@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.admin.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
@@ -10,6 +11,7 @@ import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
+import com.bdaim.crm.erp.crm.service.CrmContractService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.Sort;
@@ -18,6 +20,7 @@ import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.user.dto.UserCallConfigDTO;
+import com.bdaim.customersea.entity.CustomerSeaProperty;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.marketproject.dto.MarketProjectDTO;
 import com.bdaim.marketproject.service.MarketProjectService;
@@ -64,6 +67,10 @@ public class LkAdminUserService {
     private LkCrmAdminSceneDao crmAdminSceneDao;
     @Autowired
     private AdminFieldService adminFieldService;
+    @Autowired
+    private LkCrmBusinessTypeDao crmBusinessTypeDao;
+    @Autowired
+    private CrmContractService crmContractService;
 
     private void saveBpUser(long id, String userName, String realName, String password, String custId, int userType,
                             String callType, String callChannel, UserCallConfigDTO userDTO) {
@@ -233,7 +240,11 @@ public class LkAdminUserService {
         dto.setIndustryId(-1);
         dto.setName("默认公海项目");
         dto.setType("2");
-        marketProjectService.saveMarketProjectAndSeaReturnId(dto, custId, userId);
+        long seaId = marketProjectService.saveMarketProjectAndSeaReturnId(dto, custId, userId);
+        CustomerSeaProperty cp = new CustomerSeaProperty(seaId, "clueGetMode", "1", new Timestamp(System.currentTimeMillis()));
+        crmAdminFieldDao.saveOrUpdate(cp);
+        CustomerSeaProperty clueGetRestrict = new CustomerSeaProperty(seaId, "clueGetRestrict", "1", new Timestamp(System.currentTimeMillis()));
+        crmAdminFieldDao.saveOrUpdate(clueGetRestrict);
         // 初始化自定义字段
         List<LkCrmAdminFieldEntity> defaultFieldList = crmAdminFieldDao.queryDefaultCustomerFieldList();
         crmAdminFieldDao.getSession().clear();
@@ -246,6 +257,7 @@ public class LkAdminUserService {
             customerFieldList.add(newEntity);
         }
         crmAdminFieldDao.batchSaveOrUpdate(customerFieldList);
+        crmAdminFieldDao.getSession().clear();
         // 初始化跟进记录类型
         String[] names = new String[]{"打电话", "发短信", "上门拜访"};
         for (String n : names) {
@@ -270,14 +282,38 @@ public class LkAdminUserService {
             sceneFieldList.add(newScene);
         }
         crmAdminFieldDao.batchSaveOrUpdate(sceneFieldList);
+        crmAdminFieldDao.getSession().clear();
         //默认产品分类
         crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_crm_product_category` (`cust_id`, `name`, `pid`) VALUES (?, '默认分类', '0');", custId);
         //默认默认商机租
-        crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_crm_business_type` (`cust_id`, `name`, `dept_ids`, `create_user_id`, `create_time`, `update_time`, `status`) VALUES (?, '默认商机组', '', ?, ?, NULL, '1');", custId, userId, new Date());
+        LkCrmBusinessTypeEntity lkCrmBusiness = new LkCrmBusinessTypeEntity();
+        lkCrmBusiness.setCustId(custId);
+        lkCrmBusiness.setName("默认商机组");
+        lkCrmBusiness.setDeptIds("");
+        lkCrmBusiness.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        lkCrmBusiness.setCreateUserId(userId);
+        lkCrmBusiness.setStatus(1);
+        int typeId = (int) crmBusinessTypeDao.saveReturnPk(lkCrmBusiness);
+        /*String typeSql = "INSERT INTO `lkcrm_crm_business_status` (`type_id`, `name`, `rate`, `order_num`) VALUES ( ?, ?, ?, ?);";
+        String[] types = new String[]{"准备汇款", "报价", "还价"};
+        int i = 0;
+        for (String type : types) {
+            crmBusinessTypeDao.executeUpdateSQL(typeSql, typeId, type, 30, ++i);
+        }*/
+
         //创建默认视图
         for (int label = 1; label < 8; label++) {
-            adminFieldService.createView(label,custId);
+            adminFieldService.createView(label, custId);
         }
+        //合同到期提醒
+        LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
+        adminConfig.setCustId(custId);
+        adminConfig.setStatus(0);
+        adminConfig.setName("expiringContractDays");
+        adminConfig.setValue("3");
+        adminConfig.setDescription("合同到期提醒");
+        crmAdminConfigDao.save(adminConfig);
+
         return R.isSuccess(true);
     }
 
@@ -374,8 +410,8 @@ public class LkAdminUserService {
      * @param deptId 当前部门id
      */
     public List<Integer> queryChileDeptIds(Integer deptId, Integer deepness) {
-        String sql = "select dept_id from lkcrm_admin_dept where pid = ?";
-        List<Integer> list = crmAdminUserDao.queryListForInteger(sql, deptId);
+        String sql = "select dept_id from lkcrm_admin_dept where pid = ? and cust_id = ?";
+        List<Integer> list = crmAdminUserDao.queryListForInteger(sql, deptId, BaseUtil.getCustId());
         if (list != null && list.size() != 0 && deepness > 0) {
             int size = list.size();
             for (int i = 0; i < size; i++) {
@@ -391,7 +427,8 @@ public class LkAdminUserService {
      * @param userId 当前用户id
      */
     public List<Long> queryChileUserIds(Long userId, Integer deepness) {
-        List<Long> query = crmAdminUserDao.queryListBySql("select user_id from lkcrm_admin_user where parent_id = ?", userId);
+        List<Long> query = crmAdminUserDao.queryListBySql("select user_id from lkcrm_admin_user where parent_id = ?" +
+                " and cust_id = ?", userId, BaseUtil.getCustId());
         if (deepness > 0) {
             for (int i = 0, size = query.size(); i < size; i++) {
                 query.addAll(queryChileUserIds(query.get(i), deepness - 1));
@@ -512,13 +549,16 @@ public class LkAdminUserService {
         if (!BaseUtil.getUser().getUsername().equals(adminUser.getUsername())) {
             return false;
         }
+        LkCrmAdminUserEntity lkCrmAdminUserEntity = crmAdminUserDao.queryByUserName(adminUser.getUsername());
         adminUser.setUserId(BaseUtil.getUserId());
         if (StrUtil.isNotEmpty(adminUser.getPassword())) {
             adminUser.setSalt(IdUtil.simpleUUID());
-            adminUser.setPassword(BaseUtil.sign((adminUser.getUsername().trim() + adminUser.getPassword().trim()), adminUser.getSalt()));
+            adminUser.setPassword(CipherUtil.generatePassword(adminUser.getPassword()));
+            //adminUser.setPassword(BaseUtil.sign((adminUser.getUsername().trim() + adminUser.getPassword().trim()), adminUser.getSalt()));
         }
 //        return adminUser.update();
-        crmAdminUserDao.update(adminUser);
+        BeanUtils.copyProperties(adminUser, lkCrmAdminUserEntity, JavaBeanUtil.getNullPropertyNames(adminUser));
+        crmAdminUserDao.update(lkCrmAdminUserEntity);
         return true;
     }
 
@@ -683,7 +723,8 @@ public class LkAdminUserService {
 
     public List<Record> queryUserByDeptId(Integer deptId) {
         List<Map<String, Object>> objects = crmAdminDeptDao
-                .sqlQuery(" SELECT * FROM lkcrm_admin_dept WHERE dept_id = ? ", deptId);
+                .sqlQuery(" SELECT * FROM lkcrm_admin_dept WHERE dept_id = ? " +
+                        "AND cust_id = ? ", deptId, BaseUtil.getCustId());
         return JavaBeanUtil.mapToRecords(objects);
     }
 

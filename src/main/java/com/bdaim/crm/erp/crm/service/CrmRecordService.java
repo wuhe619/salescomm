@@ -103,7 +103,7 @@ public class CrmRecordService<T> {
             LkCrmProductEntity oldObj1 = (LkCrmProductEntity) oldObj;
             LkCrmProductEntity newObj1 = (LkCrmProductEntity) newObj;
             Map<String, Object> source = BeanUtil.beanToMap(oldObj1);
-            Map<String, Object> target = BeanUtil.beanToMap(newObj1);
+            Map<String, Object> target = BeanUtil.beanToMap(newObj1, false, true);
 
             searchChange(textList, source.entrySet(), target.entrySet(), CrmEnum.PRODUCT_TYPE_KEY.getTypes());
             crmActionRecord.setTypes(CrmEnum.PRODUCT_TYPE_KEY.getTypes());
@@ -112,7 +112,7 @@ public class CrmRecordService<T> {
             LkCrmContactsEntity oldObj1 = (LkCrmContactsEntity) oldObj;
             LkCrmContactsEntity newObj1 = (LkCrmContactsEntity) newObj;
             Map<String, Object> source = BeanUtil.beanToMap(oldObj1);
-            Map<String, Object> target = BeanUtil.beanToMap(newObj1);
+            Map<String, Object> target = BeanUtil.beanToMap(newObj1, false, true);
             searchChange(textList, source.entrySet(), target.entrySet(), CrmEnum.CONTACTS_TYPE_KEY.getTypes());
             crmActionRecord.setTypes(CrmEnum.CONTACTS_TYPE_KEY.getTypes());
             crmActionRecord.setActionId(oldObj1.getContactsId().toString());
@@ -120,7 +120,7 @@ public class CrmRecordService<T> {
             LkCrmCustomerEntity oldObj1 = (LkCrmCustomerEntity) oldObj;
             LkCrmCustomerEntity newObj1 = (LkCrmCustomerEntity) newObj;
             Map<String, Object> source = BeanUtil.beanToMap(oldObj1);
-            Map<String, Object> target = BeanUtil.beanToMap(newObj1);
+            Map<String, Object> target = BeanUtil.beanToMap(newObj1, false, true);
             searchChange(textList, source.entrySet(), target.entrySet(), CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
             crmActionRecord.setTypes(CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
             crmActionRecord.setActionId(oldObj1.getCustomerId().toString());
@@ -128,7 +128,7 @@ public class CrmRecordService<T> {
             LkCrmLeadsEntity oldObj1 = (LkCrmLeadsEntity) oldObj;
             LkCrmLeadsEntity newObj1 = (LkCrmLeadsEntity) newObj;
             Map<String, Object> source = BeanUtil.beanToMap(oldObj1);
-            Map<String, Object> target = BeanUtil.beanToMap(newObj1);
+            Map<String, Object> target = BeanUtil.beanToMap(newObj1, false, true);
 
             searchChange(textList, source.entrySet(), target.entrySet(), CrmEnum.LEADS_TYPE_KEY.getTypes());
             crmActionRecord.setTypes(CrmEnum.LEADS_TYPE_KEY.getTypes());
@@ -137,7 +137,7 @@ public class CrmRecordService<T> {
             LkCrmContractEntity oldObj1 = (LkCrmContractEntity) oldObj;
             LkCrmContractEntity newObj1 = (LkCrmContractEntity) newObj;
             Map<String, Object> source = BeanUtil.beanToMap(oldObj1);
-            Map<String, Object> target = BeanUtil.beanToMap(newObj1);
+            Map<String, Object> target = BeanUtil.beanToMap(newObj1, false, true);
             searchChange(textList, source.entrySet(), target.entrySet(), CrmEnum.CONTRACT_TYPE_KEY.getTypes());
             crmActionRecord.setTypes(CrmEnum.CONTRACT_TYPE_KEY.getTypes());
             crmActionRecord.setActionId(oldObj1.getContractId().toString());
@@ -145,7 +145,7 @@ public class CrmRecordService<T> {
             LkCrmReceivablesEntity oldObj1 = (LkCrmReceivablesEntity) oldObj;
             LkCrmReceivablesEntity newObj1 = (LkCrmReceivablesEntity) newObj;
             Map<String, Object> source = BeanUtil.beanToMap(oldObj1);
-            Map<String, Object> target = BeanUtil.beanToMap(newObj1);
+            Map<String, Object> target = BeanUtil.beanToMap(newObj1, false, true);
             searchChange(textList, source.entrySet(), target.entrySet(), CrmEnum.RECEIVABLES_TYPE_KEY.getTypes());
             crmActionRecord.setTypes(CrmEnum.RECEIVABLES_TYPE_KEY.getTypes());
             crmActionRecord.setActionId(oldObj1.getReceivablesId().toString());
@@ -153,7 +153,7 @@ public class CrmRecordService<T> {
             LkCrmBusinessEntity oldObj1 = (LkCrmBusinessEntity) oldObj;
             LkCrmBusinessEntity newObj1 = (LkCrmBusinessEntity) newObj;
             Map<String, Object> source = BeanUtil.beanToMap(oldObj1);
-            Map<String, Object> target = BeanUtil.beanToMap(newObj1);
+            Map<String, Object> target = BeanUtil.beanToMap(newObj1, false, true);
             searchChange(textList, source.entrySet(), target.entrySet(), CrmEnum.BUSINESS_TYPE_KEY.getTypes());
             crmActionRecord.setTypes(CrmEnum.BUSINESS_TYPE_KEY.getTypes());
             crmActionRecord.setActionId(oldObj1.getBusinessId().toString());
@@ -166,7 +166,7 @@ public class CrmRecordService<T> {
         textList.clear();
     }
 
-    public void addRecord(Object actionId, String crmTypes) {
+    public void addRecord(Object actionId, String crmTypes, final Object... operationNames) {
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
         crmActionRecord.setCustId(BaseUtil.getUser().getCustId());
@@ -174,7 +174,11 @@ public class CrmRecordService<T> {
         crmActionRecord.setTypes(crmTypes);
         crmActionRecord.setActionId(String.valueOf(actionId));
         ArrayList<String> strings = new ArrayList<>();
-        strings.add("新建了" + CrmEnum.getName(crmTypes));
+        if (operationNames == null || operationNames.length == 0) {
+            strings.add("新建了" + CrmEnum.getName(crmTypes));
+        } else {
+            strings.add(operationNames[0] + CrmEnum.getName(crmTypes));
+        }
         crmActionRecord.setContent(JSON.toJSONString(strings));
         crmActionRecordDao.save(crmActionRecord);
     }

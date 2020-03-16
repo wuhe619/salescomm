@@ -46,8 +46,10 @@ public class AdminBusinessTypeService {
             crmBusinessType.setCustId(BaseUtil.getCustId());
             crmBusinessType.setCreateTime(DateUtil.date().toTimestamp());
             crmBusinessType.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmBusinessType.setStatus(1);
             crmBusinessTypeDao.save(crmBusinessType);
         } else {
+            crmBusinessType.setStatus(1);
             crmBusinessType.setCustId(BaseUtil.getCustId());
             crmBusinessType.setUpdateTime(DateUtil.date().toTimestamp());
             LkCrmBusinessTypeEntity dbEntity = crmBusinessTypeDao.get(crmBusinessType.getTypeId());

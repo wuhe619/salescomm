@@ -55,7 +55,8 @@ public class LkAdminDeptService {
 
     public List<Record> queryDeptTree(String type, Integer id) {
         List<Record> allDeptList = new ArrayList<>();
-        List<Record> adminDeptList = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid from lkcrm_admin_dept WHERE cust_id = ?", BaseUtil.getCustId()));
+        List<Record> adminDeptList = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid " +
+                "from lkcrm_admin_dept WHERE cust_id = ?", BaseUtil.getCustId()));
         List<Record> recordList = buildTreeBy2Loop(adminDeptList, 0, allDeptList);
         if (StrUtil.isNotBlank(type) && "tree".equals(type)) {
             return recordList;
@@ -72,7 +73,8 @@ public class LkAdminDeptService {
      * 查询可设置为上级的部门
      */
     private List<Record> queryTopDeptList(Integer deptId) {
-        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid from lkcrm_admin_dept WHERE cust_id = ?", BaseUtil.getCustId()));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid " +
+                "from lkcrm_admin_dept WHERE cust_id = ?", BaseUtil.getCustId()));
         List<Integer> subDeptList = adminUserService.queryChileDeptIds(deptId, BaseConstant.AUTH_DATA_RECURSION_NUM);
         recordList.removeIf(record -> subDeptList.contains(record.getInt("id")));
         recordList.removeIf(record -> record.getInt("id").equals(deptId));
@@ -96,9 +98,11 @@ public class LkAdminDeptService {
         }
         //拥有最高数据权限
         if (list.contains(5)) {
-            return JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid from lkcrm_admin_dept WHERE cust_id = ?", BaseUtil.getCustId()));
+            return JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid from " +
+                    "lkcrm_admin_dept WHERE cust_id = ?", BaseUtil.getCustId()));
         } else {
-            adminDepts.add(JavaBeanUtil.mapToRecord(crmAdminDeptDao.queryUniqueSql("select dept_id as id,name,pid from lkcrm_admin_dept where dept_id=?", BaseUtil.getUser().getDeptId())));
+            adminDepts.add(JavaBeanUtil.mapToRecord(crmAdminDeptDao.queryUniqueSql("select dept_id as id,name,pid " +
+                    "from lkcrm_admin_dept where dept_id=? and cust_id=?", BaseUtil.getUser().getDeptId(), BaseUtil.getCustId())));
             if (list.contains(4)) {
                 adminDepts.addAll(queryDeptByParentDept(BaseUtil.getUser().getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM));
             }
@@ -114,7 +118,8 @@ public class LkAdminDeptService {
     public List<Record> queryDeptByParentDept(Integer deptId, Integer deepness) {
         List<Record> recordList = new ArrayList<>();
         if (deepness > 0) {
-            List<Record> records = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid from lkcrm_admin_dept where pid=?", deptId));
+            List<Record> records = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid " +
+                    "from lkcrm_admin_dept where pid=? and cust_id=?", deptId, BaseUtil.getCustId()));
             recordList.addAll(records);
             records.forEach(record -> {
                 recordList.addAll(queryDeptByParentDept(record.getInt("id"), deepness - 1));
@@ -126,7 +131,9 @@ public class LkAdminDeptService {
     private List<Record> queryDeptByParentUser(Long userId, Integer deepness) {
         List<Record> recordList = new ArrayList<>();
         if (deepness > 0) {
-            List<Record> records = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("SELECT a.dept_id AS id,a.name,a.pid,b.user_id FROM lkcrm_admin_dept as a LEFT JOIN lkcrm_admin_user as b on a.dept_id=b.dept_id WHERE b.parent_id = ?", userId));
+            List<Record> records = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("SELECT a.dept_id AS id,a.name," +
+                    "a.pid,b.user_id FROM lkcrm_admin_dept as a LEFT JOIN lkcrm_admin_user as b on a.dept_id=b.dept_id" +
+                    " WHERE b.parent_id = ? AND a.cust_id = ? AND b.cust_id = ?", userId, BaseUtil.getCustId(), BaseUtil.getCustId()));
             recordList.addAll(records);
             records.forEach(record -> {
                 recordList.addAll(queryDeptByParentUser(record.getLong("user_id"), deepness - 1));
@@ -161,15 +168,18 @@ public class LkAdminDeptService {
     }
 
     public R deleteDept(String id) {
-        Integer userCount = crmAdminDeptDao.queryForInt("select count(*) from lkcrm_admin_user where dept_id = ?", id);
+        Integer userCount = crmAdminDeptDao.queryForInt("select count(*) from lkcrm_admin_user where " +
+                "dept_id = ? and cust_id = ?", id, BaseUtil.getCustId());
         if (userCount > 0) {
             return R.error("该部门下有员工，不能删除！");
         }
-        Integer childDeptCount = crmAdminDeptDao.queryForInt("select count(*) from lkcrm_admin_dept where pid = ?", id);
+        Integer childDeptCount = crmAdminDeptDao.queryForInt("select count(*) from lkcrm_admin_dept where " +
+                "pid = ? and cust_id = ?", id, BaseUtil.getCustId());
         if (childDeptCount > 0) {
             return R.error("该部门下有下级部门，不能删除！");
         }
-        int delete = crmAdminDeptDao.executeUpdateSQL("delete from lkcrm_admin_dept where dept_id = ?", id);
+        int delete = crmAdminDeptDao.executeUpdateSQL("delete from lkcrm_admin_dept where dept_id = ? " +
+                "and cust_id = ?", id, BaseUtil.getCustId());
         return delete > 0 ? R.ok() : R.error();
     }
 }

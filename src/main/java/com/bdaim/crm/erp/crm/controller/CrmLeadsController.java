@@ -11,6 +11,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
@@ -31,6 +32,7 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
+import com.bdaim.customersea.dto.CustomerSeaParam;
 import com.bdaim.customersea.dto.CustomerSeaSearch;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.util.IDHelper;
@@ -47,6 +49,10 @@ import org.apache.poi.ss.util.CellRangeAddressList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.http.MediaType;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -55,7 +61,10 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -81,6 +90,14 @@ public class CrmLeadsController extends BasicAction {
 
     @Resource
     private LkCrmAdminFieldDao crmAdminFieldDao;
+
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    @InitBinder
+    protected void init(ServletRequestDataBinder binder) {
+        dateFormat.setLenient(false);
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, false));
+    }
 
     /**
      * 公海内线索分页
@@ -138,6 +155,13 @@ public class CrmLeadsController extends BasicAction {
                     seaId, superData, jsonO.getString("qq"), jsonO.getString("email"), jsonO.getString("profession"), jsonO.getString("weChat"),
                     jsonO.getString("followStatus"), jsonO.getString("invalidReason"), jsonO.getString("company"));
             // 保存标记信息
+            for (int i = 0; i < jsonO.getJSONArray("field").size(); i++) {
+                // 处理线索名称
+                if ("leads_name".equals(jsonO.getJSONArray("field").getJSONObject(i).getString("fieldName"))) {
+                    dto.setSuper_name(jsonO.getJSONArray("field").getJSONObject(i).getString("value"));
+                    break;
+                }
+            }
             int status = crmLeadsService.addClueData0(dto, jsonO);
             if (status == 1) {
                 responseJson.setCode(200);
@@ -257,9 +281,9 @@ public class CrmLeadsController extends BasicAction {
                 crmLeadsService.deletePublicClue(param.getSuperIds(), param.getSeaId());
             }
             if (3 == operate) {
+                crmLeadsService.batchClueBackToSea(param.getUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds(), param.getBackReason(), param.getBackRemark());
                 // 指定ID退回公海时删除私海线索
                 crmLeadsService.deleteByBatchIds(param.getSuperIds());
-                crmLeadsService.batchClueBackToSea(param.getUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds(), param.getBackReason(), param.getBackRemark());
             } else {
                 data = seaService.updateClueStatus(param, operate);
             }
@@ -302,6 +326,11 @@ public class CrmLeadsController extends BasicAction {
             userIds.add(String.valueOf(BaseUtil.getUser().getId()));
             param.setUserIds(userIds);
         }
+        if (1 == BaseUtil.getUserType() && (param.getUserIds() == null || param.getUserIds().size() == 0)) {
+            List<String> userIds = new ArrayList<>();
+            userIds.add(String.valueOf(BaseUtil.getUser().getId()));
+            param.setUserIds(userIds);
+        }
         // 快速分配时用户和数量数组
         JSONArray assignedList = jsonObject.getJSONArray("assignedlist");
         int data = 0;
@@ -322,6 +351,27 @@ public class CrmLeadsController extends BasicAction {
             LOG.error("线索分配异常,", e);
         }
         responseJson.setData(data);
+        return responseJson;
+    }
+
+    /**
+     * 公海基础信息分页查询
+     *
+     * @return
+     */
+    @RequestMapping(value = "/cluesea/page/query", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseJson page(@RequestBody @Valid CustomerSeaParam param, BindingResult error) {
+        ResponseJson responseJson = new ResponseJson();
+        if (error.hasFieldErrors()) {
+            responseJson.setData(getErrors(error));
+            return responseJson;
+        }
+        param.setCustId(opUser().getCustId());
+        param.setUserId(opUser().getId());
+        param.setUserType(opUser().getUserType());
+        Page page = crmLeadsService.listPublicSea(param, param.getPageNum(), param.getPageSize());
+        responseJson.setData(getPageData(page));
+        responseJson.setCode(200);
         return responseJson;
     }
 
@@ -351,8 +401,19 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "DELETE FROM lkcrm_admin_field WHERE field_id = 142";
+        String sql = "update lkcrm_admin_field SET is_null = 1, is_unique = 1 WHERE field_name = 'super_telphone'; ";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
+
+        sql = "update lkcrm_admin_menu SET realm='index' WHERE menu_id = 170; ";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
+        sql = "update lkcrm_admin_menu SET realm='index' WHERE menu_id = 173; ";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
+        sql = "DELETE FROM lkcrm_admin_menu WHERE menu_id = 174; ";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
+        sql = "DELETE FROM lkcrm_admin_field_sort ";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
+        sql = "DELETE FROM lkcrm_admin_field WHERE  field_id IN(117,176) ";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
     }
@@ -459,7 +520,7 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(LkCrmAdminRecordDTO adminRecord) {
+    public R addRecord(LkCrmAdminRecordDTO adminRecord) throws ParseException {
         String sign = CrmEnum.LEADS_TYPE_KEY.getSign();
         String typesId = adminRecord.getTypesId();
         if (StringUtil.isNotEmpty(adminRecord.getSeaId())) {
@@ -473,6 +534,9 @@ public class CrmLeadsController extends BasicAction {
         }
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
+        if (StringUtil.isNotEmpty(adminRecord.getNextTime())) {
+            lkCrmAdminRecordEntity.setNextTime(dateFormat.parse(adminRecord.getNextTime()));
+        }
         return (crmLeadsService.addRecord(lkCrmAdminRecordEntity));
     }
 
@@ -599,7 +663,7 @@ public class CrmLeadsController extends BasicAction {
             //HttpServletResponse response = getResponse();
             List<Map<String, Object>> list = new ArrayList<>();
             for (Record record : recordList) {
-                list.add(record.remove("cust_id", "batch_id", "is_transform", "customer_id", "leads_id", "owner_user_id", "create_user_id", "followup", "field_batch_id").getColumns());
+                list.add(record.remove("company", "is_lock", "sea_id", "cust_id", "batch_id", "is_transform", "customer_id", "leads_id", "owner_user_id", "create_user_id", "followup", "field_batch_id").getColumns());
             }
             writer.write(list, true);
             writer.setRowHeight(0, 30);
@@ -894,6 +958,9 @@ public class CrmLeadsController extends BasicAction {
                     break;
                 }
             }
+        }
+        if (ownerUserId == null) {
+            ownerUserId = BaseUtil.getUserId();
         }
         R result = crmLeadsService.uploadExcelPublicSea(file, repeatHandling, ownerUserId, seaId);
         return (result);

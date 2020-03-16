@@ -2,6 +2,7 @@ package com.bdaim.crm.entity;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Objects;
 
 @Entity
@@ -13,7 +14,7 @@ public class LkCrmAdminRecordEntity {
     private String typesId;
     private String content;
     private String category;
-    private Timestamp nextTime;
+    private Date nextTime;
     private String businessIds;
     private String contactsIds;
     private Timestamp createTime;
@@ -116,11 +117,11 @@ public class LkCrmAdminRecordEntity {
 
     @Basic
     @Column(name = "next_time")
-    public Timestamp getNextTime() {
+    public Date getNextTime() {
         return nextTime;
     }
 
-    public void setNextTime(Timestamp nextTime) {
+    public void setNextTime(Date nextTime) {
         this.nextTime = nextTime;
     }
 

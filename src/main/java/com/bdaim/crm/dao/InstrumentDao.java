@@ -197,7 +197,7 @@ public class InstrumentDao extends SimpleHibernateDao {
     public Map queryMoneys(String[] userIds, String startTime, String endTime) {
         String sql = "SELECT distinct " +
                 "    (select IFNULL(SUM(money),0) FROM lkcrm_crm_contract where DATE_FORMAT(create_time,'%Y%m') between :startTime  and :endTime AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as contractMoneys, " +
-                "    (select IFNULL(SUM(money),0) FROM lkcrm_crm_receivables where DATE_FORMAT(create_time,'%Y%m') between  :startTime  and :endTime AND create_user_id in ("+ SqlAppendUtil.sqlAppendWhereIn(userIds) +") as receivablesMoneys " +
+                "    (select IFNULL(SUM(money),0) FROM lkcrm_crm_receivables where DATE_FORMAT(create_time,'%Y%m') between  :startTime  and :endTime AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as receivablesMoneys " +
                 "     FROM lkcrm_crm_contract ";
         Map<String, Object> params = new HashMap<>();
         params.put("startTime", startTime);
@@ -234,5 +234,98 @@ public class InstrumentDao extends SimpleHibernateDao {
         return list.size() > 0 ? list.get(0) : null;
     }*/
 
+    public Map queryContractMoeny(String[] userIds, int type, String startTime, String endTime) {
+        List param = new ArrayList();
+        String sql = " SELECT IFNULL(SUM(money),0) as money\n" +
+                "      FROM lkcrm_crm_contract\n" +
+                "      where check_status = 2\n" +
+                "      and  owner_user_id in  ( " + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ";
+        switch (type) {
+            case 1:
+                sql += " and to_days(NOW()) = TO_DAYS(order_date)";
+                break;
+            case 2:
+                sql += " and to_days(NOW()) - TO_DAYS(order_date) = 1 ";
+                break;
+            case 3:
+                sql += " and YEARWEEK(date_format(order_date,'%Y-%m-%d')) = YEARWEEK(now()) ";
+                break;
+            case 4:
+                sql += "  and YEARWEEK(date_format(order_date,'%Y-%m-%d')) = YEARWEEK(now()) -1 ";
+                break;
+            case 5:
+                sql += "  and date_format(order_date,'%Y-%m')=date_format(now(),'%Y-%m') ";
+                break;
+            case 6:
+                sql += "  and date_format(order_date,'%Y-%m')=date_format(DATE_SUB(curdate(), INTERVAL 1 MONTH),'%Y-%m')";
+                break;
+            case 7:
+                sql += "  and QUARTER(order_date)=QUARTER(now()) AND YEAR(order_date)=YEAR(NOW())";
+                break;
+            case 8:
+                sql += " and QUARTER(order_date)=QUARTER(DATE_SUB(now(),interval 1 QUARTER)) and YEAR(DATE_SUB(order_date,interval 1 QUARTER)) = YEAR(DATE_SUB(NOW(),interval 1 QUARTER))";
+                break;
+            case 9:
+                sql += "  and YEAR(order_date)=YEAR(NOW()) ";
+                break;
+            case 10:
+                sql += "  and YEAR(order_date)=YEAR(date_sub(now(),interval 1 year)) ";
+                break;
+            case 11:
+                param.add(startTime);
+                param.add(endTime);
+                sql += "  and  TO_DAYS(order_date) >= TO_DAYS(?) and  TO_DAYS(order_date) <= TO_DAYS(?)";
+                break;
+
+        }
+        return queryUniqueSql(sql, param.toArray());
+    }
+
+    public Map queryReceivablesMoeny(String[] userIds, int type, String startTime, String endTime) {
+        List param = new ArrayList();
+        String sql = " SELECT IFNULL(SUM(money),0) as money\n" +
+                "      FROM lkcrm_crm_receivables\n" +
+                "      where check_status = 2" +
+                "      and  owner_user_id in  ( " + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ";
+        switch (type) {
+            case 1:
+                sql += " and to_days(NOW()) = TO_DAYS(return_time) ";
+                break;
+            case 2:
+                sql += " and to_days(NOW()) - TO_DAYS(return_time) = 1 ";
+                break;
+            case 3:
+                sql += " and YEARWEEK(date_format(return_time,'%Y-%m-%d')) = YEARWEEK(now()) ";
+                break;
+            case 4:
+                sql += "  and YEARWEEK(date_format(return_time,'%Y-%m-%d')) = YEARWEEK(now()) -1 ";
+                break;
+            case 5:
+                sql += "  and date_format(return_time,'%Y-%m')=date_format(now(),'%Y-%m') ";
+                break;
+            case 6:
+                sql += "   and date_format(return_time,'%Y-%m')=date_format(DATE_SUB(curdate(), INTERVAL 1 MONTH),'%Y-%m')";
+                break;
+            case 7:
+                sql += "  and QUARTER(return_time)=QUARTER(now()) AND YEAR(return_time)=YEAR(NOW()) ";
+                break;
+            case 8:
+                sql += " and QUARTER(return_time)=QUARTER(DATE_SUB(now(),interval 1 QUARTER)) and YEAR(DATE_SUB(return_time,interval 1 QUARTER)) = YEAR(DATE_SUB(NOW(),interval 1 QUARTER)) ";
+                break;
+            case 9:
+                sql += "    and YEAR(return_time)=YEAR(NOW()) ";
+                break;
+            case 10:
+                sql += "   and YEAR(return_time)=YEAR(date_sub(now(),interval 1 year)) ";
+                break;
+            case 11:
+                param.add(startTime);
+                param.add(endTime);
+                sql += "  and  TO_DAYS(return_time) >= TO_DAYS(?) and  TO_DAYS(return_time) <= TO_DAYS(?)";
+                break;
+
+        }
+        return queryUniqueSql(sql, param.toArray());
+    }
 
 }

@@ -2,16 +2,11 @@ package com.bdaim.crm.erp.bi.service;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.dao.LkCrmBiDao;
-import com.bdaim.crm.dao.LkCrmOaExamineCategoryDao;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.aop.Aop;
-import com.jfinal.aop.Inject;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.SqlPara;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
 import com.bdaim.crm.erp.oa.service.OaExamineService;
@@ -28,9 +23,9 @@ public class BiWorkService {
     @Resource
     private BiTimeUtil biTimeUtil;
     @Autowired
-    private LkCrmOaExamineCategoryDao categoryDao;
-    @Autowired
     private LkCrmBiDao biDao;
+    @Autowired
+    private OaExamineService oaExamineService;
 
 
     /**
@@ -81,8 +76,8 @@ public class BiWorkService {
         JSONObject object = new JSONObject();
         Record record = new Record().set("deptId", deptId).set("userId", userId).set("type", type);
         biTimeUtil.analyzeType(record);
-        String categoryListSql = "SELECT category_id,title FROM lkcrm_oa_examine_category WHERE 1=1";
-        List<Map<String, Object>> categoryListMap = biDao.queryListBySql(categoryListSql);
+        String categoryListSql = "SELECT category_id,title FROM lkcrm_oa_examine_category WHERE 1=1 AND cust_id=?";
+        List<Map<String, Object>> categoryListMap = biDao.queryListBySql(categoryListSql, BaseUtil.getCustId());
         List<Record> categoryList = JavaBeanUtil.mapToRecords(categoryListMap);
         object.put("categoryList", categoryList);
         List<String> users = StrUtil.splitTrim(record.getStr("userIds"), ",");
@@ -106,15 +101,15 @@ public class BiWorkService {
         JSONObject jsonObject = request.getJsonObject();
         Record record = new Record().set("userId", jsonObject.getInteger("userId")).set("type", jsonObject.get("type"));
         biTimeUtil.analyzeType(record);
-        Kv kv = Kv.by("userId", jsonObject.get("userId")).set("categoryId", jsonObject.get("categoryId"))
-                .set("startTime", record.get("beginDate")).set("endTime", record.get("endDate"));
-        Page<Record> recordList = Db.paginate(request.getPage(), request.getLimit(),
-                Db.getSqlPara("oa.examine.myInitiate", kv));
-        Aop.get(OaExamineService.class).transfer(recordList.getList());
+        Page page = biDao.myInitiate(jsonObject.get("userId"), jsonObject.get("categoryId"),
+                record.get("beginDate"), record.get("endDate"),
+                request.getPage(), request.getLimit());
+        List<Record> recordList = page.getData();
+        oaExamineService.transfer(recordList);
         Map<String, Object> map = biDao.queryExamineCount(jsonObject.get("categoryId"), record.get("beginDate"),
                 record.get("endDate"), jsonObject.get("userId"));
         Record info = JavaBeanUtil.mapToRecord(map);
-        info.set("list", recordList.getList()).set("totalRow", recordList.getTotalRow());
+        info.set("list", page.getData()).set("totalRow", page.getTotal());
         return info;
     }
 

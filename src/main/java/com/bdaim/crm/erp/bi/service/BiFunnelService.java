@@ -5,9 +5,6 @@ import com.bdaim.crm.dao.LkCrmBiDao;
 import com.bdaim.crm.dao.LkCrmOaExamineCategoryDao;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.aop.Inject;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
 import com.bdaim.crm.utils.R;
@@ -73,7 +70,9 @@ public class BiFunnelService {
             sqlStringBuffer.append("select '").append(beginTime).append("' as type,IFNULL((select count(1) from " + businessview + " where DATE_FORMAT(create_time,'")
                     .append(sqlDateFormat).append("') = '").append(beginTime).append("' and owner_user_id in (").append(userIds)
                     .append(")),0) as businessNum,IFNULL(sum(money),0) as businessMoney from lkcrm_crm_business  where DATE_FORMAT(create_time,'")
-                    .append(sqlDateFormat).append("') = '").append(beginTime).append("' and owner_user_id in (").append(userIds).append(")");
+                    .append(sqlDateFormat).append("') = '").append(beginTime)
+                    .append("' and cust_id='").append(BaseUtil.getCustId()).append("' and owner_user_id in (")
+                    .append(userIds).append(")");
             if (i != cycleNum) {
                 sqlStringBuffer.append(" union all ");
             }
@@ -124,7 +123,7 @@ public class BiFunnelService {
                     .append(")),0) as businessEnd,COUNT(1) as businessNum,").append(" IFNULL((select count(1) from " + businessview + " where DATE_FORMAT(create_time,'")
                     .append(sqlDateFormat).append("') = '").append(beginTime).append("'and is_end = 1 and owner_user_id in (").append(userIds).
                     append(")) / COUNT(1),0 )").append(" as proportion ").
-                    append(" from lkcrm_crm_business  where DATE_FORMAT(create_time,'")
+                    append(" from lkcrm_crm_business  where cust_id='").append(BaseUtil.getCustId()).append("' and DATE_FORMAT(create_time,'")
                     .append(sqlDateFormat).append("') = '").append(beginTime).append("' and owner_user_id in (").append(userIds).append(")");
             if (i != cycleNum) {
                 sqlStringBuffer.append(" union all ");

@@ -6,13 +6,16 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.poi.excel.ExcelReader;
 import cn.hutool.poi.excel.ExcelUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.dao.LkCrmActionRecordDao;
 import com.bdaim.crm.dao.LkCrmAdminFieldDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
 import com.bdaim.crm.dao.LkCrmProductDao;
+import com.bdaim.crm.entity.LkCrmActionRecordEntity;
 import com.bdaim.crm.entity.LkCrmProductEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
@@ -29,11 +32,17 @@ import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.annotation.AccessType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,6 +52,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class CrmProductService {
+
+    public static final Logger LOG = LoggerFactory.getLogger(CrmProductService.class);
 
     @Resource
     private AdminFieldService adminFieldService;
@@ -67,6 +78,8 @@ public class CrmProductService {
 
     @Resource
     private LkCrmAdminFieldDao crmAdminFieldDao;
+    @Autowired
+    private LkCrmActionRecordDao crmActionRecordDao;
 
     /**
      * 分页条件查询产品
@@ -166,7 +179,7 @@ public class CrmProductService {
      * 上架或者下架
      */
     public R updateStatus(String ids, Integer status) {
-        List<Record> recordList = JavaBeanUtil.mapToRecords(crmProductDao.sqlQuery("select batch_id from lkcrm_crm_product where  product_id in (" + ids + ")"));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmProductDao.sqlQuery("select batch_id,product_id from lkcrm_crm_product where  product_id in (" + ids + ")"));
         StringBuilder batchIds = new StringBuilder();
         for (Record record : recordList) {
             if (batchIds.length() == 0) {
@@ -185,7 +198,31 @@ public class CrmProductService {
         sqlfield.append(batchIds.toString());
         sqlfield.append(" )");
         int f = crmProductDao.executeUpdateSQL(sqlfield.toString());
+//        String[] idsArray = batchIds.toString().split(",");
+        for (Record record : recordList) {
+            LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
+            crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmActionRecord.setCustId(BaseUtil.getUser().getCustId());
+            crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            crmActionRecord.setTypes(CrmEnum.PRODUCT_TYPE_KEY.getTypes());
+            crmActionRecord.setActionId(record.getStr("product_id"));
+            ArrayList<String> strings = new ArrayList<>();
+            if (status == 0) {
+                strings.add("将是否上下架 由上架修改为下架。");
+            } else {
+                strings.add("将是否上下架 由下架修改为上架。");
+            }
+            crmActionRecord.setContent(JSON.toJSONString(strings));
+            crmActionRecordDao.save(crmActionRecord);
+        }
         return R.isSuccess(f > 0);
+    }
+
+    public static void main(String[] args) {
+        String jsonStr = "[{\"formType\":\"select\",\"fieldName\":\"是否上下架\",\"isNull\":1,\"name\":\"是否上下架\",\"options\":\"上架,下架\",\"isUnique\":0,\"type\":3,\"value\":\"" +
+                "下架" + "\",\"fieldType\":0,\"fieldId\":1276,\"setting\":[\"上架\",\"下架\"]}]";
+        JSONArray result = JSONArray.parseArray(jsonStr);
+        System.out.println(result.size());
     }
 
     /**
@@ -226,7 +263,7 @@ public class CrmProductService {
      *
      * @author zxy
      */
-    public R uploadExcel(UploadFile file, Integer repeatHandling, Integer ownerUserId) {
+    public R uploadExcel0(UploadFile file, Integer repeatHandling, Integer ownerUserId) {
         ExcelReader reader = ExcelUtil.getReader(FileUtil.file(file.getUploadPath() + "\\" + file.getFileName()));
         //AdminFieldService adminFieldService = new AdminFieldService();
         Kv kv = new Kv();
@@ -311,6 +348,88 @@ public class CrmProductService {
         return R.ok();
     }
 
+    public R uploadExcel(MultipartFile file, Integer repeatHandling, Long ownerUserId) {
+        //AdminFieldService adminFieldService = new AdminFieldService();
+        Kv kv = new Kv();
+        Integer errNum = 0;
+        try (ExcelReader reader = ExcelUtil.getReader(file.getInputStream())) {
+            List<List<Object>> read = reader.read();
+            List<Object> list = read.get(1);
+            List<Record> recordList = adminFieldService.customFieldList("4");
+            recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            List<Record> fieldList = adminFieldService.queryAddField(4);
+            fieldList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            fieldList.forEach(record -> {
+                if (record.getInt("is_null") == 1) {
+                    record.set("name", record.getStr("name") + "(*)");
+                }
+            });
+            List<String> nameList = fieldList.stream().map(record -> record.getStr("name")).collect(Collectors.toList());
+            if (nameList.size() != list.size() || !nameList.containsAll(list)) {
+                return R.error("请使用最新导入模板");
+            }
+            Kv nameMap = new Kv();
+            fieldList.forEach(record -> nameMap.set(record.getStr("name"), record.getStr("field_name")));
+            for (int i = 0; i < list.size(); i++) {
+                kv.set(nameMap.get(list.get(i)), i);
+            }
+            if (read.size() > 2) {
+                JSONObject object = new JSONObject();
+                for (int i = 2; i < read.size(); i++) {
+                    errNum = i;
+                    List<Object> productList = read.get(i);
+                    if (productList.size() < list.size()) {
+                        for (int j = productList.size() - 1; j < list.size(); j++) {
+                            productList.add(null);
+                        }
+                    }
+                    String productName = productList.get(kv.getInt("name")).toString();
+                    Integer number = crmProductDao.queryForInt("select count(*) from lkcrm_crm_product where name = ?", productName);
+                    Integer categoryId = crmProductDao.queryForInt("select category_id from lkcrm_crm_product_category where name = ?", productList.get(kv.getInt("category_id")));
+                    if (categoryId == null) {
+                        return R.error("第" + errNum + 1 + "行填写的产品类型不存在");
+                    }
+                    if (0 == number) {
+                        object.fluentPut("entity", new JSONObject().fluentPut("name", productName)
+                                .fluentPut("num", productList.get(kv.getInt("num")))
+                                .fluentPut("unit", productList.get(kv.getInt("单位")))
+                                .fluentPut("price", productList.get(kv.getInt("price")))
+                                .fluentPut("category_id", categoryId)
+                                .fluentPut("description", productList.get(kv.getInt("description")))
+                                .fluentPut("owner_user_id", ownerUserId));
+                    } else if (number > 0 && repeatHandling == 1) {
+                        Record product = JavaBeanUtil.mapToRecord(crmProductDao.sqlQuery("select product_id,batch_id from lkcrm_crm_product where name = ?", productName).get(0));
+                        object.fluentPut("entity", new JSONObject().fluentPut("product_id", product.getInt("product_id"))
+                                .fluentPut("name", productName)
+                                .fluentPut("num", productList.get(kv.getInt("num")))
+                                .fluentPut("unit", productList.get(kv.getInt("单位")))
+                                .fluentPut("price", productList.get(kv.getInt("price")))
+                                .fluentPut("category_id", categoryId)
+                                .fluentPut("description", productList.get(kv.getInt("description")))
+                                .fluentPut("owner_user_id", ownerUserId)
+                                .fluentPut("batch_id", product.getStr("batch_id")));
+                    } else if (number > 0 && repeatHandling == 2) {
+                        continue;
+                    }
+                    JSONArray jsonArray = new JSONArray();
+                    for (Record record : recordList) {
+                        record.set("value", productList.get(kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)")));
+                        jsonArray.add(JSONObject.parseObject(record.toJson()));
+                    }
+                    object.fluentPut("field", jsonArray);
+                    saveAndUpdate(object);
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("", e);
+            if (errNum != 0) {
+                return R.error("第" + (errNum + 1) + "行错误!");
+            }
+            return R.error();
+        }
+        return R.ok();
+    }
+
     /**
      * @author zxy
      * 获取上架商品
@@ -320,5 +439,10 @@ public class CrmProductService {
         jsonObject.fluentPut("status", new JSONObject().fluentPut("name", "status").fluentPut("condition", "is").fluentPut("value", "1"));
         basePageRequest.setJsonObject(jsonObject);
         return adminSceneService.getCrmPageList(basePageRequest);
+    }
+
+    public List<String> categoryList() {
+        String sql = "select name from lkcrm_crm_product_category";
+        return crmActionRecordDao.queryForList(sql);
     }
 }

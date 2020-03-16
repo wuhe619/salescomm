@@ -25,16 +25,19 @@ import com.bdaim.crm.erp.crm.entity.CrmLeads;
 import com.bdaim.crm.utils.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.entity.CustomerUserGroup;
 import com.bdaim.customer.service.CustomerLabelService;
 import com.bdaim.customersea.dao.CustomerSeaDao;
-import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
-import com.bdaim.customersea.dto.CustomerSeaESDTO;
-import com.bdaim.customersea.dto.CustomerSeaSearch;
+import com.bdaim.customersea.dto.*;
 import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.customersea.entity.CustomerSeaProperty;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customgroup.dao.CustomGroupDao;
+import com.bdaim.marketproject.entity.MarketProject;
+import com.bdaim.marketproject.entity.MarketProjectProperty;
+import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.util.*;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
@@ -55,6 +58,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
+import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -325,7 +329,8 @@ public class CrmLeadsService {
             int dataStatus = 1;
             // 组长和员工数据状态为已分配
             if (2 == user.getUserType()) {
-                dataStatus = 0;
+                //dataStatus = 1;
+                dto.setUser_id(null);
             } else {
                 // 超管和项目管理员数据状态为未分配
                 dto.setUser_id(null);
@@ -342,7 +347,7 @@ public class CrmLeadsService {
                 return -1;
             }
 
-            sql.append(" INSERT INTO " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id())
+            sql.append(" REPLACE INTO " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id())
                     .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`,update_time) ")
                     .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ");
             this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
@@ -350,7 +355,7 @@ public class CrmLeadsService {
                     dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), new Timestamp(System.currentTimeMillis()));
 
             sql = new StringBuffer();
-            sql.append(" INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId())
+            sql.append(" REPLACE INTO " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId())
                     .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`, batch_id, data_source,create_time) ")
                     .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
             this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
@@ -459,6 +464,8 @@ public class CrmLeadsService {
     public Map queryClueById(long seaId, String id) {
         List<Map<String, Object>> publicSeaClue = crmLeadsDao.getPublicSeaClue(seaId, id);
         if (publicSeaClue.size() > 0) {
+            JSONObject superData = JSON.parseObject(String.valueOf(publicSeaClue.get(0).get("super_data")));
+            publicSeaClue.get(0).put("company", superData.getString("SYS005"));
             return publicSeaClue.get(0);
         }
         return null;
@@ -489,6 +496,18 @@ public class CrmLeadsService {
         List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.queryCustomField(id));
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
+
+
+        Set names = new HashSet();
+        for (Record r : recordList) {
+            names.add(r.getStr("name"));
+        }
+        List<Record> dbList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.sqlQuery("SELECT * FROM lkcrm_admin_field WHERE label = ? AND cust_id =?", 11, BaseUtil.getCustId()));
+        for (Record r : dbList) {
+            if (!names.contains(r.getStr("name")) && !"公司名称".equals(r.getStr("name"))) {
+                fieldList.add(r);
+            }
+        }
         return fieldList;
     }
 
@@ -505,7 +524,7 @@ public class CrmLeadsService {
     public int distributionClue(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
         // 单一负责人分配线索|手动领取所选
         if (1 == operate) {
-            /*if (BaseUtil.getUserType() == 1) {
+           /* if (BaseUtil.getUserType() == 1) {
                 throw new TouchException("管理员不能领取线索");
             }*/
             return singleDistributionClue(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
@@ -525,6 +544,12 @@ public class CrmLeadsService {
         return 0;
     }
 
+    public com.bdaim.common.dto.Page listPublicSea(CustomerSeaParam param, int pageNum, int pageSize) {
+        List values = new ArrayList();
+        values.add(BaseUtil.getCustId());
+        com.bdaim.common.dto.Page page = customerSeaDao.page("from CustomerSea m where custId = ? ", values, pageNum, pageSize);
+        return page;
+    }
 
     /**
      * 线索领取方式 1-手动 2-系统自动
@@ -676,10 +701,10 @@ public class CrmLeadsService {
     public int transferToPublicSea(String seaId, String userId, String superId) {
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
-                .append("SELECT * FROM lkcrm_crm_leads  WHERE leads_id =? ");
+                .append("SELECT * FROM lkcrm_crm_leads  WHERE batch_id =? ");
         List<Map<String, Object>> maps = customerSeaDao.sqlQuery(sql.toString(), superId);
         int i = 0;
-        String insertSql = "INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " (`id`, `user_id`, `update_time`, `status`, " +
+        String insertSql = "REPLACE INTO " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " (`id`, `user_id`, `update_time`, `status`, " +
                 "super_name,super_telphone,super_phone,super_data,create_time,batch_id) VALUES(?,?,?,?,?,?,?,?,?,?)";
         for (Map<String, Object> m : maps) {
             JSONObject superData = new JSONObject();
@@ -719,7 +744,10 @@ public class CrmLeadsService {
         for (Map<String, Object> m : maps) {
             JSONObject superData = JSON.parseObject(String.valueOf(m.get("super_data")));
             LkCrmLeadsEntity crmLeads = BeanUtil.mapToBean(m, LkCrmLeadsEntity.class, true);
-            crmLeads.setLeadsName(superData.getString("SYS005") + (++i));
+            crmLeads.setLeadsName(String.valueOf(m.get("super_name")));
+            crmLeads.setMobile(String.valueOf(m.get("super_telphone")));
+            crmLeads.setTelephone(String.valueOf(m.get("super_phone")));
+            crmLeads.setAddress(String.valueOf(m.get("super_address_province_city")) + String.valueOf(m.get("super_address_street")));
             crmLeads.setCompany(superData.getString("SYS005"));
             crmLeads.setIsTransform(0);
             // 查询公海线索的标记信息
@@ -950,7 +978,6 @@ public class CrmLeadsService {
     }
 
     /**
-     * @author wyq
      * 新增或更新线索
      */
     @Before(Tx.class)
@@ -1011,13 +1038,29 @@ public class CrmLeadsService {
                 .set("手机", crmLeads.getTelephone()).set("下次联系时间", DateUtil.formatDateTime(crmLeads.getNextTime()))
                 .set("地址", crmLeads.getAddress()).set("备注", crmLeads.getRemark())
                 .set("公司名称", crmLeads.getCompany());
+
+
         List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.queryCustomField(crmLeads.getBatchId()));
         //List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), crmLeads.getBatchId());
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
 
+        Set names = new HashSet();
+        for (Record r : recordList) {
+            names.add(r.getStr("name"));
+        }
+        List<Record> dbList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.sqlQuery("SELECT * FROM lkcrm_admin_field WHERE label = ? AND cust_id =?", 1, BaseUtil.getCustId()));
+        for (Record r : dbList) {
+            if (!names.contains(r.getStr("name"))) {
+                fieldList.add(r);
+            }
+        }
+
         List<Record> result = new ArrayList<>();
         for (Record r : fieldList) {
+            if (r.getStr("name").equals("公司名称")) {
+                continue;
+            }
             if (r.getStr("name").equals("当前负责人")) {
                 Record record = new Record();
                 LkCrmAdminUserEntity createUser = crmAdminUserDao.get(crmLeads.getCreateUserId());
@@ -1511,6 +1554,7 @@ public class CrmLeadsService {
                     Integer number = crmLeadsDao.queryForInt("select count(*) from lkcrm_crm_leads where leads_name = ?", leadsName);
                     if (0 == number) {
                         object.fluentPut("entity", new JSONObject().fluentPut("leads_name", leadsName)
+                                .fluentPut("company", leadsList.get(kv.getInt("company")))
                                 .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
                                 .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
                                 .fluentPut("address", leadsList.get(kv.getInt("address")))
@@ -1521,6 +1565,7 @@ public class CrmLeadsService {
                         Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select leads_id,batch_id from lkcrm_crm_leads where leads_name = ?", leadsName).get(0));
                         object.fluentPut("entity", new JSONObject().fluentPut("leads_id", leads.getInt("leads_id"))
                                 .fluentPut("leads_name", leadsName)
+                                .fluentPut("company", leadsList.get(kv.getInt("company")))
                                 .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
                                 .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
                                 .fluentPut("address", leadsList.get(kv.getInt("address")))
@@ -1534,6 +1579,9 @@ public class CrmLeadsService {
                     JSONArray jsonArray = new JSONArray();
                     for (Record record : recordList) {
                         Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)");
+                        if (columnsNum == null) {
+                            continue;
+                        }
                         record.set("value", leadsList.get(columnsNum));
                         jsonArray.add(JSONObject.parseObject(record.toJson()));
                     }
@@ -1603,18 +1651,30 @@ public class CrmLeadsService {
                                 .fluentPut("super_telphone", leadsList.get(kv.getInt("super_telphone")))
                                 .fluentPut("super_phone", leadsList.get(kv.getInt("super_phone")))
                                 .fluentPut("super_address_street", leadsList.get(kv.getInt("super_address_street")))
-                                .fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
+                                //.fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
                                 .fluentPut("remark", leadsList.get(kv.getInt("remark")))
                                 .fluentPut("owner_user_id", ownerUserId)
                                 .fluentPut("user_id", ownerUserId)
-                                .fluentPut("super_address_province_city", leadsList.get(kv.getInt("super_address_province_city")))
-                                .fluentPut("SYS002", leadsList.get(kv.getInt("qq")))
-                                .fluentPut("SYS003", leadsList.get(kv.getInt("email")))
-                                .fluentPut("SYS001", leadsList.get(kv.getInt("weChat")))
-                                .fluentPut("SYS005", leadsList.get(kv.getInt("company")))
-                                .fluentPut("dept", leadsList.get(kv.getInt("dept")))
-                                .fluentPut("position", leadsList.get(kv.getInt("position")))
-                                .fluentPut("site", leadsList.get(kv.getInt("site")));
+                                .fluentPut("super_address_province_city", leadsList.get(kv.getInt("super_address_province_city")));
+                        if (kv.getInt("qq") != null) {
+                            object.fluentPut("qq", leadsList.get(kv.getInt("qq")));
+                        }
+                        if (kv.getInt("email") != null) {
+                            object.fluentPut("email", leadsList.get(kv.getInt("email")));
+                        }
+                        if (kv.getInt("weChat") != null) {
+                            object.fluentPut("weChat", leadsList.get(kv.getInt("weChat")));
+                        }
+                        if (kv.getInt("company") != null) {
+                            object.fluentPut("company", leadsList.get(kv.getInt("company")));
+                        }
+                        if (kv.getInt("position") != null) {
+                            object.fluentPut("position", leadsList.get(kv.getInt("position")));
+                        }
+                        if (kv.getInt("site") != null) {
+                            object.fluentPut("site", leadsList.get(kv.getInt("site")));
+                        }
+
                     } else if (number > 0 && repeatHandling == 1) {
                         Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select id from t_customer_sea_list_" + seaId + " where super_name = ?", superName).get(0));
                         object.fluentPut("leads_id", leads.getStr("id"))
@@ -1622,19 +1682,30 @@ public class CrmLeadsService {
                                 .fluentPut("super_telphone", leadsList.get(kv.getInt("super_telphone")))
                                 .fluentPut("super_phone", leadsList.get(kv.getInt("super_phone")))
                                 .fluentPut("super_address_street", leadsList.get(kv.getInt("super_address_street")))
-                                .fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
+                                //.fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
                                 .fluentPut("remark", leadsList.get(kv.getInt("remark")))
                                 .fluentPut("owner_user_id", ownerUserId)
                                 .fluentPut("user_id", ownerUserId)
                                 .fluentPut("batch_id", leads.getStr("id"))
-                                .fluentPut("super_address_province_city", leadsList.get(kv.getInt("super_address_province_city")))
-                                .fluentPut("SYS002", leadsList.get(kv.getInt("qq")))
-                                .fluentPut("SYS003", leadsList.get(kv.getInt("email")))
-                                .fluentPut("SYS001", leadsList.get(kv.getInt("weChat")))
-                                .fluentPut("SYS005", leadsList.get(kv.getInt("company")))
-                                .fluentPut("dept", leadsList.get(kv.getInt("dept")))
-                                .fluentPut("position", leadsList.get(kv.getInt("position")))
-                                .fluentPut("site", leadsList.get(kv.getInt("site")));
+                                .fluentPut("super_address_province_city", leadsList.get(kv.getInt("super_address_province_city")));
+                        if (kv.getInt("qq") != null) {
+                            object.fluentPut("qq", leadsList.get(kv.getInt("qq")));
+                        }
+                        if (kv.getInt("email") != null) {
+                            object.fluentPut("email", leadsList.get(kv.getInt("email")));
+                        }
+                        if (kv.getInt("weChat") != null) {
+                            object.fluentPut("weChat", leadsList.get(kv.getInt("weChat")));
+                        }
+                        if (kv.getInt("company") != null) {
+                            object.fluentPut("company", leadsList.get(kv.getInt("company")));
+                        }
+                        if (kv.getInt("position") != null) {
+                            object.fluentPut("position", leadsList.get(kv.getInt("position")));
+                        }
+                        if (kv.getInt("site") != null) {
+                            object.fluentPut("site", leadsList.get(kv.getInt("site")));
+                        }
                     } else if (number > 0 && repeatHandling == 2) {
                         continue;
                     }
@@ -1642,10 +1713,18 @@ public class CrmLeadsService {
                     for (Record record : recordList) {
                         //Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)");
                         Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("field_name"));
+                        if (columnsNum == null) {
+                            continue;
+                        }
                         record.set("value", leadsList.get(columnsNum));
                         jsonArray.add(JSONObject.parseObject(record.toJson()));
                     }
                     object.fluentPut("field", jsonArray);
+                    //BeanUtil.mapToBean(object, dto, true);
+                    dto.setSuper_name(object.getString("leads_name"));
+                    dto.setSuper_telphone(object.getString("super_telphone"));
+                    dto.setSuper_phone(object.getString("super_phone"));
+                    dto.setCompany(object.getString("company"));
                     // 导入线索
                     if (0 == number) {
                         addClueData0(dto, object);
