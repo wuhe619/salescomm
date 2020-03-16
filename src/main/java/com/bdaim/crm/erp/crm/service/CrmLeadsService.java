@@ -1642,18 +1642,30 @@ public class CrmLeadsService {
                                 .fluentPut("super_telphone", leadsList.get(kv.getInt("super_telphone")))
                                 .fluentPut("super_phone", leadsList.get(kv.getInt("super_phone")))
                                 .fluentPut("super_address_street", leadsList.get(kv.getInt("super_address_street")))
-                                .fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
+                                //.fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
                                 .fluentPut("remark", leadsList.get(kv.getInt("remark")))
                                 .fluentPut("owner_user_id", ownerUserId)
                                 .fluentPut("user_id", ownerUserId)
-                                .fluentPut("super_address_province_city", leadsList.get(kv.getInt("super_address_province_city")))
-                                .fluentPut("SYS002", leadsList.get(kv.getInt("qq")))
-                                .fluentPut("SYS003", leadsList.get(kv.getInt("email")))
-                                .fluentPut("SYS001", leadsList.get(kv.getInt("weChat")))
-                                .fluentPut("SYS005", leadsList.get(kv.getInt("company")))
-                                .fluentPut("dept", leadsList.get(kv.getInt("dept")))
-                                .fluentPut("position", leadsList.get(kv.getInt("position")))
-                                .fluentPut("site", leadsList.get(kv.getInt("site")));
+                                .fluentPut("super_address_province_city", leadsList.get(kv.getInt("super_address_province_city")));
+                        if (kv.getInt("qq") != null) {
+                            object.fluentPut("qq", leadsList.get(kv.getInt("qq")));
+                        }
+                        if (kv.getInt("email") != null) {
+                            object.fluentPut("email", leadsList.get(kv.getInt("email")));
+                        }
+                        if (kv.getInt("weChat") != null) {
+                            object.fluentPut("weChat", leadsList.get(kv.getInt("weChat")));
+                        }
+                        if (kv.getInt("company") != null) {
+                            object.fluentPut("company", leadsList.get(kv.getInt("company")));
+                        }
+                        if (kv.getInt("position") != null) {
+                            object.fluentPut("position", leadsList.get(kv.getInt("position")));
+                        }
+                        if (kv.getInt("site") != null) {
+                            object.fluentPut("site", leadsList.get(kv.getInt("site")));
+                        }
+
                     } else if (number > 0 && repeatHandling == 1) {
                         Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select id from t_customer_sea_list_" + seaId + " where super_name = ?", superName).get(0));
                         object.fluentPut("leads_id", leads.getStr("id"))
@@ -1661,19 +1673,30 @@ public class CrmLeadsService {
                                 .fluentPut("super_telphone", leadsList.get(kv.getInt("super_telphone")))
                                 .fluentPut("super_phone", leadsList.get(kv.getInt("super_phone")))
                                 .fluentPut("super_address_street", leadsList.get(kv.getInt("super_address_street")))
-                                .fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
+                                //.fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
                                 .fluentPut("remark", leadsList.get(kv.getInt("remark")))
                                 .fluentPut("owner_user_id", ownerUserId)
                                 .fluentPut("user_id", ownerUserId)
                                 .fluentPut("batch_id", leads.getStr("id"))
-                                .fluentPut("super_address_province_city", leadsList.get(kv.getInt("super_address_province_city")))
-                                .fluentPut("SYS002", leadsList.get(kv.getInt("qq")))
-                                .fluentPut("SYS003", leadsList.get(kv.getInt("email")))
-                                .fluentPut("SYS001", leadsList.get(kv.getInt("weChat")))
-                                .fluentPut("SYS005", leadsList.get(kv.getInt("company")))
-                                .fluentPut("dept", leadsList.get(kv.getInt("dept")))
-                                .fluentPut("position", leadsList.get(kv.getInt("position")))
-                                .fluentPut("site", leadsList.get(kv.getInt("site")));
+                                .fluentPut("super_address_province_city", leadsList.get(kv.getInt("super_address_province_city")));
+                        if (kv.getInt("qq") != null) {
+                            object.fluentPut("qq", leadsList.get(kv.getInt("qq")));
+                        }
+                        if (kv.getInt("email") != null) {
+                            object.fluentPut("email", leadsList.get(kv.getInt("email")));
+                        }
+                        if (kv.getInt("weChat") != null) {
+                            object.fluentPut("weChat", leadsList.get(kv.getInt("weChat")));
+                        }
+                        if (kv.getInt("company") != null) {
+                            object.fluentPut("company", leadsList.get(kv.getInt("company")));
+                        }
+                        if (kv.getInt("position") != null) {
+                            object.fluentPut("position", leadsList.get(kv.getInt("position")));
+                        }
+                        if (kv.getInt("site") != null) {
+                            object.fluentPut("site", leadsList.get(kv.getInt("site")));
+                        }
                     } else if (number > 0 && repeatHandling == 2) {
                         continue;
                     }
@@ -1681,10 +1704,18 @@ public class CrmLeadsService {
                     for (Record record : recordList) {
                         //Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)");
                         Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("field_name"));
+                        if (columnsNum == null) {
+                            continue;
+                        }
                         record.set("value", leadsList.get(columnsNum));
                         jsonArray.add(JSONObject.parseObject(record.toJson()));
                     }
                     object.fluentPut("field", jsonArray);
+                    //BeanUtil.mapToBean(object, dto, true);
+                    dto.setSuper_name(object.getString("leads_name"));
+                    dto.setSuper_telphone(object.getString("super_telphone"));
+                    dto.setSuper_phone(object.getString("super_phone"));
+                    dto.setCompany(object.getString("company"));
                     // 导入线索
                     if (0 == number) {
                         addClueData0(dto, object);
