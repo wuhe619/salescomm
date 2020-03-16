@@ -110,7 +110,7 @@ public class TaskController extends BasicAction {
     }
 
     @RequestMapping(value = "/setWorkTask", method = RequestMethod.POST)
-    public R setWorkTask(@Para("") LkCrmTaskEntity task) {
+    public R setWorkTask(LkCrmTaskEntity task) {
         if (task.getWorkId() != null) {
             Integer isOpen = new Work().findById(task.getWorkId()).getIsOpen();
             if (isOpen == 0 && !AuthUtil.isWorkAuth(task.getWorkId().toString(), "task:save")) {

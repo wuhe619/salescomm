@@ -76,7 +76,8 @@ public class CrmBackLogService {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         Integer type = jsonObject.getInteger("type");
         Integer isSub = jsonObject.getInteger("isSub");
-        StringBuffer stringBuffer = new StringBuffer("from customerview as a where ");
+        String customerview = BaseUtil.getViewSqlNotASName("customerview");
+        StringBuffer stringBuffer = new StringBuffer("from " + customerview + " as a where ");
         if (type == 1) {
             stringBuffer.append(" a.customer_id not in (IFNULL((select GROUP_CONCAT(types_id) from lkcrm_admin_record where types = 'crm_customer' and to_days(create_time) = to_days(now())),0)) and to_days(a.next_time) = to_days(now())");
         } else if (type == 2) {
@@ -224,7 +225,7 @@ public class CrmBackLogService {
         } else {
             return R.error("isSub参数不正确");
         }
-        List<Integer> contractIdList = Db.query(stringBuffer.toString());
+        List<Integer> contractIdList = crmCustomerDao.queryListForInteger(stringBuffer.toString());
         if (contractIdList.size() > 0) {
             String contractIds = CollUtil.join(contractIdList, ",");
             JSONObject data = jsonObject.getJSONObject("data");
@@ -270,7 +271,7 @@ public class CrmBackLogService {
             String contractIds = CollUtil.join(receivablesIdList, ",");
             JSONObject data = jsonObject.getJSONObject("data");
             String receivablesview = BaseUtil.getViewSql("receivablesview");
-            com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * from "+receivablesview+" as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data), basePageRequest.getPage(), basePageRequest.getLimit());
+            com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * from " + receivablesview + " as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data), basePageRequest.getPage(), basePageRequest.getLimit());
             //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", "from receivablesview as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data));
             return R.ok().put("data", BaseUtil.crmPage(page));
         } else {
