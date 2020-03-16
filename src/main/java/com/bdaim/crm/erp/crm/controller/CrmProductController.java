@@ -13,6 +13,7 @@ import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.entity.CrmProduct;
 import com.bdaim.crm.erp.crm.service.CrmProductService;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Db;
@@ -24,12 +25,16 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -280,8 +285,22 @@ public class CrmProductController extends BasicAction {
      */
     @Permissions("crm:product:excelimport")
     @RequestMapping(value = "uploadExcel", method = RequestMethod.POST)
-    public R uploadExcel(@RequestParam("file") UploadFile file, @RequestParam("repeatHandling") Integer repeatHandling, @RequestParam("ownerUserId") Integer ownerUserId) {
+    public R uploadExcel( @RequestParam("repeatHandling") Integer repeatHandling, @RequestParam("ownerUserId") Long ownerUserId) {
         //Db.tx(() -> {
+        MultipartFile file = null;
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
+                BaseUtil.getRequest().getSession().getServletContext());
+        if (multipartResolver.isMultipart(BaseUtil.getRequest())) {
+            MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) BaseUtil.getRequest();
+            Iterator<String> iter = multiRequest.getFileNames();
+            while (iter.hasNext()) {
+                MultipartFile multiRequestFile = multiRequest.getFile(iter.next());
+                if (multiRequestFile != null) {
+                    file = multiRequestFile;
+                    break;
+                }
+            }
+        }
         R result = crmProductService.uploadExcel(file, repeatHandling, ownerUserId);
         return (result);
             /*if (result.get("code").equals(500)) {
