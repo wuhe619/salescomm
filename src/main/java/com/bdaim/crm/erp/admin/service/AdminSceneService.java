@@ -487,7 +487,8 @@ public class AdminSceneService {
             jsonObject.put("data", data);
         }
         basePageRequest.setJsonObject(jsonObject);
-        return getCrmPageList(basePageRequest);
+        R result = getCrmPageList(basePageRequest);
+        return result;
     }
 
     /**
@@ -678,7 +679,8 @@ public class AdminSceneService {
         //conditions.append(" order by ").append(viewName).append(".").append(sortField).append(" ").append(orderNum);
         conditions.append(" order by ").append(sortField).append(" ").append(orderNum);
         if (StrUtil.isNotEmpty(basePageRequest.getJsonObject().getString("excel"))) {
-            return R.ok().put("excel", JavaBeanUtil.mapToRecords(crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), BaseUtil.getUser().getCustId())));
+            List<Map<String, Object>> recordList = crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), BaseUtil.getUser().getCustId());
+            return R.ok().put("excel", JavaBeanUtil.mapToRecords(recordList));
         }
         if (2 == type || 8 == type) {
             Integer configType = crmAdminSceneDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting' AND cust_id = ? ", BaseUtil.getCustId());

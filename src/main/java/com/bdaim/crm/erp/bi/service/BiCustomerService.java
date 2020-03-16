@@ -85,7 +85,7 @@ public class BiCustomerService {
                     .append(") as realname,count(a.customer_id) as customerNum,IFNULL((select count(distinct b.customer_id) from " +
                             "lkcrm_crm_contract as b left join lkcrm_crm_customer as c on b.customer_id = c.customer_id where " +
                             "b.cust_id='" + BaseUtil.getCustId() +
-                            "' c.customer_id = a.customer_id and b.check_status = 2 ),0) as dealCustomerNum,(select IFNULL(SUM(money),0) " +
+                            "' and c.customer_id = a.customer_id and b.check_status = 2 ),0) as dealCustomerNum,(select IFNULL(SUM(money),0) " +
                             "from lkcrm_crm_contract where DATE_FORMAT(order_date,'").append(sqlDateFormat).append("') between '")
                     .append(beginTime).append("' and '").append(finalTime).append("' and owner_user_id = ").append(userIdsArr[i - 1])
                     .append(" ) as contractMoney,(select IFNULL(SUM(d.money),0) from lkcrm_crm_receivables as d left join lkcrm_crm_contract" +

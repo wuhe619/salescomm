@@ -22,8 +22,8 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
     }
 
     public List<Long> queryUserIdByDeptId(String deptIds) {
-        String sql = " select DISTINCT user_id from lkcrm_admin_user where dept_id in (? ) and cust_id=?";
-        return this.queryListBySql(sql, deptIds, BaseUtil.getCustId());
+        String sql = " select DISTINCT user_id from lkcrm_admin_user where dept_id in (" + deptIds + " ) and cust_id=?";
+        return this.queryListBySql(sql, BaseUtil.getCustId());
     }
 
     public List<Map<String, Object>> queryUserByRealName(String name) {

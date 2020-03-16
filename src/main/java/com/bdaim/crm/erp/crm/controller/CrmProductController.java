@@ -22,6 +22,7 @@ import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -143,11 +144,12 @@ public class CrmProductController extends BasicAction {
      */
     @Permissions("crm:product:excelexport")
     @RequestMapping(value = "allExportExcel", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = BasePageRequest.class)
     public void allExportExcel(BasePageRequest basePageRequest, HttpServletResponse response) throws IOException {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "4");
-        AdminSceneService adminSceneService = new AdminSceneService();
-        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
+//        AdminSceneService adminSceneService = new AdminSceneService();
+        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("excel");
         export(recordList, response);
         //renderNull();
     }
@@ -156,7 +158,7 @@ public class CrmProductController extends BasicAction {
         ExcelWriter writer = null;
         try {
             writer = ExcelUtil.getWriter();
-            AdminFieldService adminFieldService = new AdminFieldService();
+//            AdminFieldService adminFieldService = new AdminFieldService();
             List<Record> fieldList = adminFieldService.customFieldList("4");
             writer.addHeaderAlias("name", "产品名称");
             writer.addHeaderAlias("num", "产品编码");

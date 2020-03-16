@@ -657,9 +657,14 @@ public class AdminFieldService {
      */
     public List<Record> customFieldList(String label) {
         //List<Record> recordList = Db.find(Db.getSql("admin.field.customerFieldList"), label);
-        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.customerFieldList(label));
-        recordToFormType(recordList);
-        return recordList;
+        try{
+            List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.customerFieldList(label));
+            recordToFormType(recordList);
+            return recordList;
+        }catch (Exception e){
+            System.out.println("出错了 "+e);
+        }
+        return null;
     }
 
     public List<Record> list(String label) {
