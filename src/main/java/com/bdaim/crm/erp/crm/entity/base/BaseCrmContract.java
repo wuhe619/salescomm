@@ -68,20 +68,20 @@ public abstract class BaseCrmContract<M extends BaseCrmContract<M>> extends Mode
 		return get("order_date");
 	}
 
-	public void setCreateUserId(Integer createUserId) {
+	public void setCreateUserId(Long createUserId) {
 		set("create_user_id", createUserId);
 	}
 
-	public Integer getCreateUserId() {
-		return getInt("create_user_id");
+	public Long getCreateUserId() {
+		return getLong("create_user_id");
 	}
 
-	public void setOwnerUserId(Integer ownerUserId) {
+	public void setOwnerUserId(Long ownerUserId) {
 		set("owner_user_id", ownerUserId);
 	}
 
-	public Integer getOwnerUserId() {
-		return getInt("owner_user_id");
+	public Long getOwnerUserId() {
+		return getLong("owner_user_id");
 	}
 
 	public void setCreateTime(Timestamp createTime) {
@@ -210,12 +210,12 @@ public abstract class BaseCrmContract<M extends BaseCrmContract<M>> extends Mode
 	public Integer getContactsId() {
 		return getInt("contacts_id");
 	}
-	public void setCompanyUserId(Integer companyUserId) {
+	public void setCompanyUserId(Long companyUserId) {
 		set("company_user_id", companyUserId);
 	}
 
-	public Integer getCompanyUserId() {
-		return getInt("company_user_id");
+	public Long getCompanyUserId() {
+		return getLong("company_user_id");
 	}
 	public String getRemark() {
 		return getStr("remark");

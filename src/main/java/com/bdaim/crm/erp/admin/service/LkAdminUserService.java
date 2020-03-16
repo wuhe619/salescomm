@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.admin.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
@@ -532,13 +533,16 @@ public class LkAdminUserService {
         if (!BaseUtil.getUser().getUsername().equals(adminUser.getUsername())) {
             return false;
         }
+        LkCrmAdminUserEntity lkCrmAdminUserEntity = crmAdminUserDao.queryByUserName(adminUser.getUsername());
         adminUser.setUserId(BaseUtil.getUserId());
         if (StrUtil.isNotEmpty(adminUser.getPassword())) {
             adminUser.setSalt(IdUtil.simpleUUID());
-            adminUser.setPassword(BaseUtil.sign((adminUser.getUsername().trim() + adminUser.getPassword().trim()), adminUser.getSalt()));
+            adminUser.setPassword(CipherUtil.generatePassword(adminUser.getPassword()));
+            //adminUser.setPassword(BaseUtil.sign((adminUser.getUsername().trim() + adminUser.getPassword().trim()), adminUser.getSalt()));
         }
 //        return adminUser.update();
-        crmAdminUserDao.update(adminUser);
+        BeanUtils.copyProperties(adminUser, lkCrmAdminUserEntity, JavaBeanUtil.getNullPropertyNames(adminUser));
+        crmAdminUserDao.update(lkCrmAdminUserEntity);
         return true;
     }
 

@@ -147,4 +147,9 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
                 + SqlAppendUtil.sqlAppendWhereIn(ids) + ") and cust_id = ?";
         return super.sqlQuery(sql, BaseUtil.getCustId());
     }
+
+    public LkCrmAdminUserEntity queryByUserName(String userName) {
+        String sql = " from LkCrmAdminUserEntity where username = ?";
+        return super.findUnique(sql, userName);
+    }
 }
