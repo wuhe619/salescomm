@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.bi.controller;
 
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.utils.R;
 import com.jfinal.aop.Inject;
 import com.jfinal.core.Controller;
@@ -15,7 +16,7 @@ import java.util.Date;
 
 @RestController
 @RequestMapping(value = "/bi")
-public class BiController extends Controller {
+public class BiController extends BasicAction {
     @Resource
     private BiService biService;
 
@@ -26,12 +27,11 @@ public class BiController extends Controller {
     @Permissions("bi:business:read")
     @RequestMapping(value = "/funnelStatistics")
     public R funnelStatistics() {
-        Date startTime = getDate("startTime");
-        Date endTime = getDate("endTime");
+        Date startTime = getParaToDate("startTime");
+        Date endTime = getParaToDate("endTime");
         Long userId = getLong("userId");
         Integer productId = getInt("productId");
         Integer deptId = getInt("deptId");
-//        renderJson(biService.queryCrmBusinessStatistics(userId,deptId,productId,startTime,endTime));
         return biService.queryCrmBusinessStatistics(userId, deptId, productId, startTime, endTime);
     }
 
@@ -44,11 +44,10 @@ public class BiController extends Controller {
     @Permissions("bi:product:read")
     @RequestMapping(value = "/productStatistics")
     public R productStatistics() {
-        Date startTime = getDate("startTime");
-        Date endTime = getDate("endTime");
+        Date startTime = getParaToDate("startTime");
+        Date endTime = getParaToDate("endTime");
         Integer userId = getInt("userId");
         Integer deptId = getInt("deptId");
-//        renderJson(biService.queryProductSell(startTime,endTime,userId,deptId));
         return biService.queryProductSell(startTime, endTime, userId, deptId);
     }
 

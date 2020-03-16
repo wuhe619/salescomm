@@ -3,9 +3,6 @@ package com.bdaim.crm.erp.bi.service;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.crm.dao.LkCrmOaExamineCategoryDao;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.aop.Inject;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
 import com.bdaim.crm.utils.R;
@@ -47,11 +44,11 @@ public class BiEmployeeService {
         if ("contractNum".equals(type)) {
             for (int i = 1; i <= cycleNum; i++) {
                 sqlStringBuffer.append("select '").append(beginTime).append("' as month,count(contract_id) as thisMonth," +
-                        "(select count(contract_id) from 72crm_crm_contract where DATE_FORMAT(order_date,'%Y%m ') = '")
+                        "(select count(contract_id) from lkcrm_crm_contract where DATE_FORMAT(order_date,'%Y%m ') = '")
                         .append(beginTime - 1).append("' and check_status = 2 and owner_user_id in (").append(userIds)
-                        .append(")) as lastMonth,(select count(contract_id) from 72crm_crm_contract where DATE_FORMAt(order_date,'%Y%m') = '")
+                        .append(")) as lastMonth,(select count(contract_id) from lkcrm_crm_contract where DATE_FORMAt(order_date,'%Y%m') = '")
                         .append(beginTime - 100).append("' and check_status = 2  and owner_user_id in (").append(userIds)
-                        .append(")) as lastYear from 72crm_crm_contract where DATE_FORMAT(order_date,'%Y%m') = '")
+                        .append(")) as lastYear from lkcrm_crm_contract where DATE_FORMAT(order_date,'%Y%m') = '")
                         .append(beginTime).append("' and check_status = 2 and owner_user_id in (").append(userIds).append(")");
                 if (i != cycleNum) {
                     sqlStringBuffer.append(" union all ");
@@ -61,11 +58,11 @@ public class BiEmployeeService {
         } else if ("contractMoney".equals(type)) {
             for (int i = 1; i <= cycleNum; i++) {
                 sqlStringBuffer.append("select '").append(beginTime).append("' as month,IFNULL(SUM(money),0) as thisMonth," +
-                        "(select IFNULL(SUM(money),0) from 72crm_crm_contract where DATE_FORMAT(order_date,'%Y%m ') = '")
+                        "(select IFNULL(SUM(money),0) from lkcrm_crm_contract where DATE_FORMAT(order_date,'%Y%m ') = '")
                         .append(beginTime - 1).append("' and check_status = 2 and owner_user_id in (").append(userIds)
-                        .append(")) as lastMonth,(select IFNULL(SUM(money),0) from 72crm_crm_contract where DATE_FORMAt(order_date,'%Y%m') = '")
+                        .append(")) as lastMonth,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where DATE_FORMAt(order_date,'%Y%m') = '")
                         .append(beginTime - 100).append("' and check_status = 2  and owner_user_id in (").append(userIds)
-                        .append(")) as lastYear from 72crm_crm_contract where DATE_FORMAT(order_date,'%Y%m') = '")
+                        .append(")) as lastYear from lkcrm_crm_contract where DATE_FORMAT(order_date,'%Y%m') = '")
                         .append(beginTime).append("' and check_status = 2 and owner_user_id in (").append(userIds).append(")");
                 if (i != cycleNum) {
                     sqlStringBuffer.append(" union all ");
@@ -75,11 +72,11 @@ public class BiEmployeeService {
         } else if ("receivables".equals(type)) {
             for (int i = 1; i <= cycleNum; i++) {
                 sqlStringBuffer.append("select '").append(beginTime).append("' as month,IFNULL(SUM(money),0) as thisMonth," +
-                        "(select IFNULL(SUM(money),0) from 72crm_crm_receivables where DATE_FORMAT(return_time,'%Y%m ') = '")
+                        "(select IFNULL(SUM(money),0) from lkcrm_crm_receivables where DATE_FORMAT(return_time,'%Y%m ') = '")
                         .append(beginTime - 1).append("' and check_status = 2 and owner_user_id in (").append(userIds)
-                        .append(")) as lastMonth,(select IFNULL(SUM(money),0) from 72crm_crm_receivables where DATE_FORMAt(return_time,'%Y%m') = '")
+                        .append(")) as lastMonth,(select IFNULL(SUM(money),0) from lkcrm_crm_receivables where DATE_FORMAt(return_time,'%Y%m') = '")
                         .append(beginTime - 100).append("' and check_status = 2  and owner_user_id in (").append(userIds)
-                        .append(")) as lastYear from 72crm_crm_receivables where DATE_FORMAT(return_time,'%Y%m') = '")
+                        .append(")) as lastYear from lkcrm_crm_receivables where DATE_FORMAT(return_time,'%Y%m') = '")
                         .append(beginTime).append("' and check_status = 2 and owner_user_id in (").append(userIds).append(")");
                 if (i != cycleNum) {
                     sqlStringBuffer.append(" union all ");
@@ -122,8 +119,8 @@ public class BiEmployeeService {
         StringBuffer sqlStringBuffer = new StringBuffer();
         for (int i = 1; i <= cycleNum; i++) {
             sqlStringBuffer.append("select '").append(beginTime).append("'as type,count(contract_id) as contractNum,IFNULL(SUM(money),0) " +
-                    "as contractMoney,IFNULL((select SUM(money) from 72crm_crm_receivables as b where b.contract_id = a.contract_id),0)" +
-                    " as receivablesMoney from 72crm_crm_contract as a where DATE_FORMAT(order_date,'").append(sqlDateFormat)
+                    "as contractMoney,IFNULL((select SUM(money) from lkcrm_crm_receivables as b where b.contract_id = a.contract_id),0)" +
+                    " as receivablesMoney from lkcrm_crm_contract as a where DATE_FORMAT(order_date,'").append(sqlDateFormat)
                     .append("') = '").append(beginTime).append("' and check_status = 2 and owner_user_id in (").append(userIds).append(")");
             if (i != cycleNum) {
                 sqlStringBuffer.append(" union all ");

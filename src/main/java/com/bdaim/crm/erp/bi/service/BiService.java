@@ -2,8 +2,6 @@ package com.bdaim.crm.erp.bi.service;
 
 import com.bdaim.crm.dao.LkCrmBiDao;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.bdaim.crm.utils.R;
 import org.springframework.beans.factory.annotation.Autowired;
