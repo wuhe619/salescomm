@@ -744,7 +744,10 @@ public class CrmLeadsService {
         for (Map<String, Object> m : maps) {
             JSONObject superData = JSON.parseObject(String.valueOf(m.get("super_data")));
             LkCrmLeadsEntity crmLeads = BeanUtil.mapToBean(m, LkCrmLeadsEntity.class, true);
-            crmLeads.setLeadsName(superData.getString("SYS005") + (++i));
+            crmLeads.setLeadsName(String.valueOf(m.get("super_name")));
+            crmLeads.setMobile(String.valueOf(m.get("super_telphone")));
+            crmLeads.setTelephone(String.valueOf(m.get("super_phone")));
+            crmLeads.setAddress(String.valueOf(m.get("super_address_province_city")) + String.valueOf(m.get("super_address_street")));
             crmLeads.setCompany(superData.getString("SYS005"));
             crmLeads.setIsTransform(0);
             // 查询公海线索的标记信息
@@ -1551,7 +1554,7 @@ public class CrmLeadsService {
                     Integer number = crmLeadsDao.queryForInt("select count(*) from lkcrm_crm_leads where leads_name = ?", leadsName);
                     if (0 == number) {
                         object.fluentPut("entity", new JSONObject().fluentPut("leads_name", leadsName)
-                                .fluentPut("company",leadsList.get(kv.getInt("company")))
+                                .fluentPut("company", leadsList.get(kv.getInt("company")))
                                 .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
                                 .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
                                 .fluentPut("address", leadsList.get(kv.getInt("address")))
@@ -1562,7 +1565,7 @@ public class CrmLeadsService {
                         Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select leads_id,batch_id from lkcrm_crm_leads where leads_name = ?", leadsName).get(0));
                         object.fluentPut("entity", new JSONObject().fluentPut("leads_id", leads.getInt("leads_id"))
                                 .fluentPut("leads_name", leadsName)
-                                .fluentPut("company",leadsList.get(kv.getInt("company")))
+                                .fluentPut("company", leadsList.get(kv.getInt("company")))
                                 .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
                                 .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
                                 .fluentPut("address", leadsList.get(kv.getInt("address")))
