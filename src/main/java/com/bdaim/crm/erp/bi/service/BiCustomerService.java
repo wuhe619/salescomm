@@ -4,8 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.crm.dao.LkCrmOaExamineCategoryDao;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.aop.Inject;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
 import com.bdaim.crm.utils.R;

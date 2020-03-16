@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -402,6 +403,19 @@ public class BasicAction {
 
     public String get(String name) {
         return this.request.getParameter(name);
+    }
+
+    public Date getParaToDate(String name) {
+        if (StringUtil.isEmpty(getPara(name))) {
+            return null;
+        }
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            return format.parse(name);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public String getPara(String name) {

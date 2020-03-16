@@ -1,6 +1,7 @@
 package com.bdaim.crm.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.SqlAppendUtil;
@@ -129,7 +130,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
 
     public List<Map<String, Object>> queryByUserIdOrYear(String year, String month, Integer userId, Integer deptId) {
         String contractview = BaseUtil.getViewSqlNotASName("contractview");
-        String sql = "      select co.* from "+contractview+" as co LEFT JOIN lkcrm_admin_user as sau on co.owner_user_id = sau.user_id " +
+        String sql = "      select co.* from " + contractview + " as co LEFT JOIN lkcrm_admin_user as sau on co.owner_user_id = sau.user_id " +
                 "      where 1 = 1 ";
         List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(year)) {
@@ -1140,5 +1141,29 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         }
         sql += "      GROUP BY ccbs.`name`,ccbs.order_num,ccb.type_id";
         return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+    }
+
+    public Page myInitiate(Object userId, Object categoryId, Object beginDate, Object endDate,
+                           Integer page, Integer limit) {
+        StringBuffer sqlBuffer = new StringBuffer();
+        List<Object> params = new ArrayList<>();
+        sqlBuffer.append("    select a.*,b.examine_status,b.record_id as examine_record_id,b.examine_step_id ,c.category_id,c.title as categoryTitle\n" +
+                "    from lkcrm_oa_examine a left join lkcrm_oa_examine_record b on a.examine_id = b.examine_id left join lkcrm_oa_examine_category c on a.category_id = c.category_id\n" +
+                "    where a.create_user_id = ? and a.cust_id=? and b.cust_id=? and c.cust_id=?");
+        params.add(userId);
+        if (categoryId != null && categoryId != "") {
+            sqlBuffer.append(" and a.category_id = ? ");
+            params.add(categoryId);
+        }
+        if (beginDate != null && endDate != null) {
+            sqlBuffer.append(" and a.create_time between #para(startTime) and  #para(endTime) ");
+            params.add(beginDate);
+            params.add(endDate);
+        }
+        sqlBuffer.append(" group by a.examine_id,b.record_id order by  a.create_time desc ");
+        params.add(BaseUtil.getCustId());
+        params.add(BaseUtil.getCustId());
+        params.add(BaseUtil.getCustId());
+        return sqlPageQuery(sqlBuffer.toString(), page, limit, params.toArray());
     }
 }
