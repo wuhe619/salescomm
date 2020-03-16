@@ -1550,6 +1550,7 @@ public class CrmLeadsService {
                     Integer number = crmLeadsDao.queryForInt("select count(*) from lkcrm_crm_leads where leads_name = ?", leadsName);
                     if (0 == number) {
                         object.fluentPut("entity", new JSONObject().fluentPut("leads_name", leadsName)
+                                .fluentPut("company",leadsList.get(kv.getInt("company")))
                                 .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
                                 .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
                                 .fluentPut("address", leadsList.get(kv.getInt("address")))
@@ -1560,6 +1561,7 @@ public class CrmLeadsService {
                         Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select leads_id,batch_id from lkcrm_crm_leads where leads_name = ?", leadsName).get(0));
                         object.fluentPut("entity", new JSONObject().fluentPut("leads_id", leads.getInt("leads_id"))
                                 .fluentPut("leads_name", leadsName)
+                                .fluentPut("company",leadsList.get(kv.getInt("company")))
                                 .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
                                 .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
                                 .fluentPut("address", leadsList.get(kv.getInt("address")))
@@ -1573,6 +1575,9 @@ public class CrmLeadsService {
                     JSONArray jsonArray = new JSONArray();
                     for (Record record : recordList) {
                         Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)");
+                        if (columnsNum == null) {
+                            continue;
+                        }
                         record.set("value", leadsList.get(columnsNum));
                         jsonArray.add(JSONObject.parseObject(record.toJson()));
                     }
