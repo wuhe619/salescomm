@@ -178,7 +178,10 @@ public class AdminExamineRecordService {
             ownerUserId = crmReceivablesDao.get(id).getOwnerUserId();
         }
         //查询当前审批步骤
-        LkCrmAdminExamineStepEntity examineStep = crmAdminExamineStepDao.get(examineRecord.getExamineStepId());
+        LkCrmAdminExamineStepEntity examineStep = null;
+        if (examineRecord.getExamineStepId() != null) {
+            examineStep = crmAdminExamineStepDao.get(examineRecord.getExamineStepId());
+        }
         //查询当前审核日志
         LkCrmAdminExamineLogEntity nowadayExamineLog = null;
         if (examine.getExamineType() == 1) {
