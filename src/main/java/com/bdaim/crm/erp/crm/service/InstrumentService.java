@@ -12,6 +12,7 @@ import com.bdaim.crm.utils.CrmPage;
 import com.bdaim.crm.utils.ParamsUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.SqlAppendUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
@@ -66,9 +67,9 @@ public class InstrumentService {
     }
 
     /**
+     * @return
      * @author zhang
      * 销售简报的数据查看详情
-     * @return
      */
     public CrmPage queryBulletinInfo(BasePageRequest basePageRequest, String userIds, String type, Integer label) {
         Record record = new Record().set("type", type);
@@ -485,13 +486,18 @@ public class InstrumentService {
         Integer beginTime = record.getInt("beginTime");
         List<Record> recordList = new ArrayList<>();
         for (int i = 1; i <= cycleNum; i++) {
+            String sql = "select ? as type,IFNULL(SUM(money),0) as contractMoneys, (SELECT IFNULL(SUM(money),0) FROM lkcrm_crm_receivables WHERE DATE_FORMAT( return_time,? ) = ?  " +
+                    "and check_status = 2 AND owner_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds.split(",")) + ") as receivablesMoneys FROM lkcrm_crm_contract as ccco where DATE_FORMAT(ccco.order_date,?)=? and ccco.check_status = 2 AND owner_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds.split(",")) + ")";
             recordList.addAll(Db.find(Db.getSqlPara("bi.base.salesTrend", Kv.by("beginTime", beginTime).set("sqlDateFormat", sqlDateFormat).set("userIds", userIds))));
+            recordList.addAll(JavaBeanUtil.mapToRecords(instrumentDao.sqlQuery(sql, beginTime, sqlDateFormat, beginTime, sqlDateFormat, beginTime)));
             beginTime = biTimeUtil.estimateTime(beginTime);
         }
 
         Integer ststus = biTimeUtil.analyzeType(type);
-        Record totlaContractMoney = Db.findFirst(Db.getSqlPara("crm.Instrument.queryContractMoeny", Kv.by("userIds", userIdss).set("type", ststus).set("startTime", startTime).set("endTime", endTime)));
-        Record totlaReceivablesMoney = Db.findFirst(Db.getSqlPara("crm.Instrument.queryReceivablesMoeny", Kv.by("userIds", userIdss).set("type", ststus).set("startTime", startTime).set("endTime", endTime)));
+        Record totlaContractMoney = JavaBeanUtil.mapToRecord(instrumentDao.queryContractMoeny(userIdss, ststus, startTime, endTime));
+        //Record totlaContractMoney = Db.findFirst(Db.getSqlPara("crm.Instrument.queryContractMoeny", Kv.by("userIds", userIdss).set("type", ststus).set("startTime", startTime).set("endTime", endTime)));
+        Record totlaReceivablesMoney = JavaBeanUtil.mapToRecord(instrumentDao.queryReceivablesMoeny(userIdss, ststus, startTime, endTime));
+        //Record totlaReceivablesMoney = Db.findFirst(Db.getSqlPara("crm.Instrument.queryReceivablesMoeny", Kv.by("userIds", userIdss).set("type", ststus).set("startTime", startTime).set("endTime", endTime)));
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("list", recordList);
         jsonObject.put("totlaContractMoney", totlaContractMoney != null ? totlaContractMoney.getBigDecimal("money") : 0);

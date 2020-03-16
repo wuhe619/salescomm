@@ -959,6 +959,9 @@ public class CrmLeadsController extends BasicAction {
                 }
             }
         }
+        if (ownerUserId == null) {
+            ownerUserId = BaseUtil.getUserId();
+        }
         R result = crmLeadsService.uploadExcelPublicSea(file, repeatHandling, ownerUserId, seaId);
         return (result);
         //return !result.get("code").equals(500);

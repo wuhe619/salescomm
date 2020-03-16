@@ -329,7 +329,8 @@ public class CrmLeadsService {
             int dataStatus = 1;
             // 组长和员工数据状态为已分配
             if (2 == user.getUserType()) {
-                dataStatus = 0;
+                //dataStatus = 1;
+                dto.setUser_id(null);
             } else {
                 // 超管和项目管理员数据状态为未分配
                 dto.setUser_id(null);
@@ -346,7 +347,7 @@ public class CrmLeadsService {
                 return -1;
             }
 
-            sql.append(" INSERT INTO " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id())
+            sql.append(" REPLACE INTO " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id())
                     .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`,update_time) ")
                     .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ");
             this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
@@ -354,7 +355,7 @@ public class CrmLeadsService {
                     dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), new Timestamp(System.currentTimeMillis()));
 
             sql = new StringBuffer();
-            sql.append(" INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId())
+            sql.append(" REPLACE INTO " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId())
                     .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`, batch_id, data_source,create_time) ")
                     .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
             this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
@@ -743,7 +744,10 @@ public class CrmLeadsService {
         for (Map<String, Object> m : maps) {
             JSONObject superData = JSON.parseObject(String.valueOf(m.get("super_data")));
             LkCrmLeadsEntity crmLeads = BeanUtil.mapToBean(m, LkCrmLeadsEntity.class, true);
-            crmLeads.setLeadsName(superData.getString("SYS005") + (++i));
+            crmLeads.setLeadsName(String.valueOf(m.get("super_name")));
+            crmLeads.setMobile(String.valueOf(m.get("super_telphone")));
+            crmLeads.setTelephone(String.valueOf(m.get("super_phone")));
+            crmLeads.setAddress(String.valueOf(m.get("super_address_province_city")) + String.valueOf(m.get("super_address_street")));
             crmLeads.setCompany(superData.getString("SYS005"));
             crmLeads.setIsTransform(0);
             // 查询公海线索的标记信息
@@ -1550,7 +1554,7 @@ public class CrmLeadsService {
                     Integer number = crmLeadsDao.queryForInt("select count(*) from lkcrm_crm_leads where leads_name = ?", leadsName);
                     if (0 == number) {
                         object.fluentPut("entity", new JSONObject().fluentPut("leads_name", leadsName)
-                                .fluentPut("company",leadsList.get(kv.getInt("company")))
+                                .fluentPut("company", leadsList.get(kv.getInt("company")))
                                 .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
                                 .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
                                 .fluentPut("address", leadsList.get(kv.getInt("address")))
@@ -1561,7 +1565,7 @@ public class CrmLeadsService {
                         Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select leads_id,batch_id from lkcrm_crm_leads where leads_name = ?", leadsName).get(0));
                         object.fluentPut("entity", new JSONObject().fluentPut("leads_id", leads.getInt("leads_id"))
                                 .fluentPut("leads_name", leadsName)
-                                .fluentPut("company",leadsList.get(kv.getInt("company")))
+                                .fluentPut("company", leadsList.get(kv.getInt("company")))
                                 .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
                                 .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
                                 .fluentPut("address", leadsList.get(kv.getInt("address")))

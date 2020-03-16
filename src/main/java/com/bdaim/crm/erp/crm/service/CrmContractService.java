@@ -262,7 +262,7 @@ public class CrmContractService {
      */
     public List queryListByType(String type, Integer id) {
         String contractview = BaseUtil.getViewSql("contractview");
-        StringBuilder sql = new StringBuilder("select * from "+contractview+" where ");
+        StringBuilder sql = new StringBuilder("select * from " + contractview + " where ");
         if (type.equals(CrmEnum.CUSTOMER_TYPE_KEY.getTypes())) {
             sql.append("  customer_id = ? ");
         }
@@ -400,7 +400,7 @@ public class CrmContractService {
         StringBuilder stringBuilder = new StringBuilder();
         for (String id : contractIdsArr) {
             LkCrmContractEntity entity = crmContractDao.get(Integer.valueOf(id));
-            if(entity==null){
+            if (entity == null) {
                 return R.error("合同不存在");
             }
             Long ownerUserId = entity.getOwnerUserId();
@@ -458,7 +458,7 @@ public class CrmContractService {
      */
     public List<Record> queryField(Integer contractId) {
         String contractview = BaseUtil.getViewSql("contractview");
-        Record contract = JavaBeanUtil.mapToRecord(crmContractDao.sqlQuery("select * from "+contractview+" where contract_id = ?", contractId).get(0));
+        Record contract = JavaBeanUtil.mapToRecord(crmContractDao.sqlQuery("select * from " + contractview + " where contract_id = ?", contractId).get(0));
         //Record contract = Db.findFirst("select * from contractview where contract_id = ?",contractId);
         List<Record> list = new ArrayList<>();
         list.add(new Record().set("customer_id", contract.getInt("customer_id")).set("customer_name", contract.getStr("customer_name")));
@@ -561,9 +561,11 @@ public class CrmContractService {
      * 查询合同到期提醒设置
      */
     public R queryContractConfig() {
-        LkCrmAdminConfigEntity config = crmAdminConfigDao.findUniqueBy("name", "expiringContractDays");
+        //LkCrmAdminConfigEntity config = crmAdminConfigDao.findUniqueBy("name", "expiringContractDays");
+        LkCrmAdminConfigEntity config = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity WHERE name = ? AND custId = ?", "expiringContractDays", BaseUtil.getCustId());
         if (config == null) {
             config = new LkCrmAdminConfigEntity();
+            config.setCustId(BaseUtil.getCustId());
             config.setStatus(0);
             config.setName("expiringContractDays");
             config.setValue("3");
@@ -586,6 +588,7 @@ public class CrmContractService {
         //Integer number = Db.update(Db.getSqlPara("crm.contract.setContractConfig", Kv.by("status", status).set("contractDay", contractDay)));
         if (0 == number) {
             LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
+            adminConfig.setCustId(BaseUtil.getCustId());
             adminConfig.setStatus(0);
             adminConfig.setName("expiringContractDays");
             adminConfig.setValue("3");

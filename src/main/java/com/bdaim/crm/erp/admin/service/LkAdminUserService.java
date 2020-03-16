@@ -11,6 +11,7 @@ import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
+import com.bdaim.crm.erp.crm.service.CrmContractService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.Sort;
@@ -68,6 +69,8 @@ public class LkAdminUserService {
     private AdminFieldService adminFieldService;
     @Autowired
     private LkCrmBusinessTypeDao crmBusinessTypeDao;
+    @Autowired
+    private CrmContractService crmContractService;
 
     private void saveBpUser(long id, String userName, String realName, String password, String custId, int userType,
                             String callType, String callChannel, UserCallConfigDTO userDTO) {
@@ -240,6 +243,8 @@ public class LkAdminUserService {
         long seaId = marketProjectService.saveMarketProjectAndSeaReturnId(dto, custId, userId);
         CustomerSeaProperty cp = new CustomerSeaProperty(seaId, "clueGetMode", "1", new Timestamp(System.currentTimeMillis()));
         crmAdminFieldDao.saveOrUpdate(cp);
+        CustomerSeaProperty clueGetRestrict = new CustomerSeaProperty(seaId, "clueGetRestrict", "1", new Timestamp(System.currentTimeMillis()));
+        crmAdminFieldDao.saveOrUpdate(clueGetRestrict);
         // 初始化自定义字段
         List<LkCrmAdminFieldEntity> defaultFieldList = crmAdminFieldDao.queryDefaultCustomerFieldList();
         crmAdminFieldDao.getSession().clear();
@@ -252,6 +257,7 @@ public class LkAdminUserService {
             customerFieldList.add(newEntity);
         }
         crmAdminFieldDao.batchSaveOrUpdate(customerFieldList);
+        crmAdminFieldDao.getSession().clear();
         // 初始化跟进记录类型
         String[] names = new String[]{"打电话", "发短信", "上门拜访"};
         for (String n : names) {
@@ -276,6 +282,7 @@ public class LkAdminUserService {
             sceneFieldList.add(newScene);
         }
         crmAdminFieldDao.batchSaveOrUpdate(sceneFieldList);
+        crmAdminFieldDao.getSession().clear();
         //默认产品分类
         crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_crm_product_category` (`cust_id`, `name`, `pid`) VALUES (?, '默认分类', '0');", custId);
         //默认默认商机租
@@ -298,6 +305,15 @@ public class LkAdminUserService {
         for (int label = 1; label < 8; label++) {
             adminFieldService.createView(label, custId);
         }
+        //合同到期提醒
+        LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
+        adminConfig.setCustId(custId);
+        adminConfig.setStatus(0);
+        adminConfig.setName("expiringContractDays");
+        adminConfig.setValue("3");
+        adminConfig.setDescription("合同到期提醒");
+        crmAdminConfigDao.save(adminConfig);
+
         return R.isSuccess(true);
     }
 
