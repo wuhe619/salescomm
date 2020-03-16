@@ -353,4 +353,9 @@ public class CrmProductService {
         basePageRequest.setJsonObject(jsonObject);
         return adminSceneService.getCrmPageList(basePageRequest);
     }
+
+    public List<String> categoryList() {
+        String sql = "select name from lkcrm_crm_product_category";
+        return crmActionRecordDao.queryForList(sql);
+    }
 }
