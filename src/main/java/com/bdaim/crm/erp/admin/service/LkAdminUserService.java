@@ -393,8 +393,8 @@ public class LkAdminUserService {
      * @param deptId 当前部门id
      */
     public List<Integer> queryChileDeptIds(Integer deptId, Integer deepness) {
-        String sql = "select dept_id from lkcrm_admin_dept where pid = ?";
-        List<Integer> list = crmAdminUserDao.queryListForInteger(sql, deptId);
+        String sql = "select dept_id from lkcrm_admin_dept where pid = ? and cust_id = ?";
+        List<Integer> list = crmAdminUserDao.queryListForInteger(sql, deptId, BaseUtil.getCustId());
         if (list != null && list.size() != 0 && deepness > 0) {
             int size = list.size();
             for (int i = 0; i < size; i++) {
@@ -410,7 +410,8 @@ public class LkAdminUserService {
      * @param userId 当前用户id
      */
     public List<Long> queryChileUserIds(Long userId, Integer deepness) {
-        List<Long> query = crmAdminUserDao.queryListBySql("select user_id from lkcrm_admin_user where parent_id = ?", userId);
+        List<Long> query = crmAdminUserDao.queryListBySql("select user_id from lkcrm_admin_user where parent_id = ?" +
+                " and cust_id = ?", userId, BaseUtil.getCustId());
         if (deepness > 0) {
             for (int i = 0, size = query.size(); i < size; i++) {
                 query.addAll(queryChileUserIds(query.get(i), deepness - 1));
@@ -702,7 +703,8 @@ public class LkAdminUserService {
 
     public List<Record> queryUserByDeptId(Integer deptId) {
         List<Map<String, Object>> objects = crmAdminDeptDao
-                .sqlQuery(" SELECT * FROM lkcrm_admin_dept WHERE dept_id = ? ", deptId);
+                .sqlQuery(" SELECT * FROM lkcrm_admin_dept WHERE dept_id = ? " +
+                        "AND cust_id = ? ", deptId, BaseUtil.getCustId());
         return JavaBeanUtil.mapToRecords(objects);
     }
 

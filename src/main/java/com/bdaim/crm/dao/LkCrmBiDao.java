@@ -1148,8 +1148,8 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         StringBuffer sqlBuffer = new StringBuffer();
         List<Object> params = new ArrayList<>();
         sqlBuffer.append("    select a.*,b.examine_status,b.record_id as examine_record_id,b.examine_step_id ,c.category_id,c.title as categoryTitle\n" +
-                "    from 72crm_oa_examine a left join 72crm_oa_examine_record b on a.examine_id = b.examine_id left join 72crm_oa_examine_category c on a.category_id = c.category_id\n" +
-                "    where a.create_user_id = ? ");
+                "    from lkcrm_oa_examine a left join lkcrm_oa_examine_record b on a.examine_id = b.examine_id left join lkcrm_oa_examine_category c on a.category_id = c.category_id\n" +
+                "    where a.create_user_id = ? and a.cust_id=? and b.cust_id=? and c.cust_id=?");
         params.add(userId);
         if (categoryId != null && categoryId != "") {
             sqlBuffer.append(" and a.category_id = ? ");
@@ -1161,6 +1161,9 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
             params.add(endDate);
         }
         sqlBuffer.append(" group by a.examine_id,b.record_id order by  a.create_time desc ");
+        params.add(BaseUtil.getCustId());
+        params.add(BaseUtil.getCustId());
+        params.add(BaseUtil.getCustId());
         return sqlPageQuery(sqlBuffer.toString(), page, limit, params.toArray());
     }
 }

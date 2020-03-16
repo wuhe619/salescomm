@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.dao.LkCrmBiDao;
 import com.bdaim.crm.dao.LkCrmOaExamineCategoryDao;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
@@ -79,8 +80,8 @@ public class BiWorkService {
         JSONObject object = new JSONObject();
         Record record = new Record().set("deptId", deptId).set("userId", userId).set("type", type);
         biTimeUtil.analyzeType(record);
-        String categoryListSql = "SELECT category_id,title FROM lkcrm_oa_examine_category WHERE 1=1";
-        List<Map<String, Object>> categoryListMap = biDao.queryListBySql(categoryListSql);
+        String categoryListSql = "SELECT category_id,title FROM lkcrm_oa_examine_category WHERE 1=1 AND cust_id=?";
+        List<Map<String, Object>> categoryListMap = biDao.queryListBySql(categoryListSql, BaseUtil.getCustId());
         List<Record> categoryList = JavaBeanUtil.mapToRecords(categoryListMap);
         object.put("categoryList", categoryList);
         List<String> users = StrUtil.splitTrim(record.getStr("userIds"), ",");
