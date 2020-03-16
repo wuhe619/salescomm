@@ -84,7 +84,11 @@ public class OaExamineService {
         Long userId = BaseUtil.getUser().getUserId();
         JSONObject jsonObject = request.getJsonObject();
         if (request.getPageType() == 0) {
-            List<Record> recordList = Db.find(Db.getSqlPara("oa.examine.myOaExamine", Kv.by("userId", userId).set("categoryId", jsonObject.getInteger("categoryId")).set("status", jsonObject.getInteger("status")).set("startTime", jsonObject.getDate("startTime")).set("endTime", jsonObject.getDate("endTime"))));
+            List<Record> recordList = Db.find(Db.getSqlPara("oa.examine.myOaExamine", Kv.by("userId", userId)
+                    .set("categoryId", jsonObject.getInteger("categoryId"))
+                    .set("status", jsonObject.getInteger("status"))
+                    .set("startTime", jsonObject.getDate("startTime"))
+                    .set("endTime", jsonObject.getDate("endTime"))));
             transfer(recordList);
             return R.ok().put("data", recordList);
         } else {
