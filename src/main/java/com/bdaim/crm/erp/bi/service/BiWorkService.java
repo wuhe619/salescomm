@@ -4,10 +4,8 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.dao.LkCrmBiDao;
-import com.bdaim.crm.dao.LkCrmOaExamineCategoryDao;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
@@ -24,8 +22,6 @@ import java.util.*;
 public class BiWorkService {
     @Resource
     private BiTimeUtil biTimeUtil;
-    @Autowired
-    private LkCrmOaExamineCategoryDao categoryDao;
     @Autowired
     private LkCrmBiDao biDao;
     @Autowired
