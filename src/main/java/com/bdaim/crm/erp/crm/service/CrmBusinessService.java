@@ -456,7 +456,6 @@ public class CrmBusinessService {
     }
 
     /**
-     * @author wyq
      * 商机状态组推进
      */
     @Before(Tx.class)
@@ -469,7 +468,9 @@ public class CrmBusinessService {
             change.setCreateUserId(BaseUtil.getUserId());
             crmBusinessDao.saveOrUpdate(change);
         }
-        crmBusinessDao.update(crmBusiness);
+        LkCrmBusinessEntity dbEntity = crmBusinessDao.get(crmBusiness.getBusinessId());
+        BeanUtils.copyProperties(crmBusiness, dbEntity, JavaBeanUtil.getNullPropertyNames(crmBusiness));
+        crmBusinessDao.update(dbEntity);
         return R.ok();
     }
 
@@ -504,7 +505,7 @@ public class CrmBusinessService {
      * 查询商机状态组及商机状态
      */
     public List queryBusinessStatusOptions(String type) {
-        List<Record> businessTypeList = JavaBeanUtil.mapToRecords(crmBusinessDao.sqlQuery("select * from lkcrm_crm_business_type where status = 1 AND cust_id = ? ",BaseUtil.getCustId()));
+        List<Record> businessTypeList = JavaBeanUtil.mapToRecords(crmBusinessDao.sqlQuery("select * from lkcrm_crm_business_type where status = 1 AND cust_id = ? ", BaseUtil.getCustId()));
         for (Record record : businessTypeList) {
             Integer typeId = record.getInt("type_id");
             List<Record> businessStatusList = JavaBeanUtil.mapToRecords(crmBusinessDao.sqlQuery("select * from lkcrm_crm_business_status where type_id = ? ", typeId));
