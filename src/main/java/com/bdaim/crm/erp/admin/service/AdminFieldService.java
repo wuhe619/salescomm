@@ -92,7 +92,7 @@ public class AdminFieldService {
      * 查询编辑字段列表
      */
     public List<Record> queryUpdateField(Integer label, Record record) {
-        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery("select field_id,field_name,name,type,input_tips,options,is_unique,is_null,'' as value,field_type from lkcrm_admin_field where label = ? AND cust_id = ? order by sorting", label, BaseUtil.getCustId());
+        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery("select field_id,field_name,name,type,input_tips,options,is_unique,is_null,'' as value,field_type from lkcrm_admin_field where label = ? AND cust_id = ? AND (add_hidden is NULL OR add_hidden =2)  order by sorting", label, BaseUtil.getCustId());
         List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
         recordList.forEach(r -> {
             if (r.getInt("type") == 10 || r.getInt("type") == 12) {
