@@ -109,21 +109,25 @@ public class OaLogService {
                 kv.getInt("category_id"), kv.getInt("log_id"), kv.getLong("userId"));
       /*  Page<Record> recordList = Db.paginate(basePageRequest.getPage(),
                 basePageRequest.getLimit(), Db.getSqlPara("oa.log.queryList", kv));*/
+        List list = new ArrayList();
         page.getData().forEach((record -> {
-            queryLogDetail(JavaBeanUtil.mapToRecord((Map<String, Object>) record), user.getUserId());
+            Record data = JavaBeanUtil.mapToRecord((Map<String, Object>) record);
+            queryLogDetail(data, user.getUserId());
+            list.add(data);
         }));
+        page.setData(list);
         return BaseUtil.crmPage(page);
     }
 
     public void queryLogDetail(Record record, Long userId) {
         adminFileService.queryByBatchId(record.get("batch_id"), record);
-        record.set("sendUserList", (StrUtil.isNotEmpty(record.getStr("send_user_ids")) && record.getStr("send_user_ids").split(",").length > 0) ?  crmAdminUserDao.queryByIds(Arrays.asList(record.getStr("send_user_ids").split(","))) : new ArrayList<>());
+        record.set("sendUserList", (StrUtil.isNotEmpty(record.getStr("send_user_ids")) && record.getStr("send_user_ids").split(",").length > 0) ? crmAdminUserDao.queryByIds(Arrays.asList(record.getStr("send_user_ids").split(","))) : new ArrayList<>());
         record.set("sendDeptList", (StrUtil.isNotEmpty(record.getStr("send_dept_ids")) && record.getStr("send_dept_ids").split(",").length > 0) ? crmAdminDeptDao.queryByIds(Arrays.asList(record.getStr("send_dept_ids").split(","))) : new ArrayList<>());
         record.set("customerList", (StrUtil.isNotEmpty(record.getStr("customer_ids")) && record.getStr("customer_ids").split(",").length > 0) ? crmCustomerDao.queryByIds(Arrays.asList(record.getStr("customer_ids").split(","))) : new ArrayList<>());
         record.set("businessList", (StrUtil.isNotEmpty(record.getStr("business_ids")) && record.getStr("business_ids").split(",").length > 0) ? crmBusinessDao.queryByIds(Arrays.asList(record.getStr("business_ids").split(","))) : new ArrayList<>());
         record.set("contactsList", (StrUtil.isNotEmpty(record.getStr("contacts_ids")) && record.getStr("contacts_ids").split(",").length > 0) ? crmContactsDao.queryByIds(Arrays.asList(record.getStr("contacts_ids").split(","))) : new ArrayList<>());
         record.set("contractList", (StrUtil.isNotEmpty(record.getStr("contract_ids")) && record.getStr("contract_ids").split(",").length > 0) ? crmContractDao.queryByIds(Arrays.asList(record.getStr("contract_ids").split(","))) : new ArrayList<>());
-        record.set("createUser", customerUserDao.get(record.getLong("create_user_id")));
+        record.set("createUser", crmAdminUserDao.get(record.getLong("create_user_id")));
         Integer isRead = record.getStr("read_user_ids").contains("," + userId + ",") ? 1 : 0;
         int isEdit = userId.intValue() == record.getInt("create_user_id") ? 1 : 0;
         int isDel = 0;
@@ -173,7 +177,7 @@ public class OaLogService {
         }
         if (oaLogRelation != null) {
             //Db.deleteById("lkcrm_oa_log_relation", "log_id", oaLog.getLogId());
-            crmOaLogDao.executeUpdateSQL("delete from lkcrm_oa_log_relation where log_id=? ",oaLog.getLogId());
+            crmOaLogDao.executeUpdateSQL("delete from lkcrm_oa_log_relation where log_id=? ", oaLog.getLogId());
             oaLogRelation.setLogId(oaLog.getLogId());
             oaLogRelation.setBusinessIds(TagUtil.fromString(oaLogRelation.getBusinessIds()));
             oaLogRelation.setContactsIds(TagUtil.fromString(oaLogRelation.getContactsIds()));
@@ -218,11 +222,11 @@ public class OaLogService {
         LkCrmOaLogEntity oaLog = crmOaLogDao.get(logId);
         if (oaLog != null) {
             oaActionRecordService.deleteRecord(OaEnum.LOG_TYPE_KEY.getTypes(), logId);
-            crmOaLogDao.executeUpdateSQL("delete from lkcrm_oa_log_relation where log_id=? ",logId);
+            crmOaLogDao.executeUpdateSQL("delete from lkcrm_oa_log_relation where log_id=? ", logId);
             //Db.deleteById("lkcrm_oa_log_relation", "log_id", logId);
             adminFileService.removeByBatchId(oaLog.getBatchId());
             //Db.deleteById("lkcrm_oa_log", "log_id", logId);
-            crmOaLogDao.executeUpdateSQL("delete from lkcrm_oa_log where log_id=? ",logId);
+            crmOaLogDao.executeUpdateSQL("delete from lkcrm_oa_log where log_id=? ", logId);
             return true;
         }
         return false;
