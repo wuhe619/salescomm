@@ -29,11 +29,11 @@ public class LkCrmOaExamineCategoryDao extends SimpleHibernateDao<LkCrmOaExamine
         params.add(record.get("sqlDateFormat"));
         params.add(record.get("beginTime"));
         params.add(record.get("deptId"));
-        if (record.get("userId")) {
+        if (record.get("userId") != null) {
             sql += "  and a.user_id = ? ";
             params.add(record.get("userId"));
         }
-        return super.queryListBySql(sql, params.toArray());
+        return super.sqlQuery(sql, params.toArray());
     }
 
     public Map<String, Object> totalContract(String sqlDateFormat, Integer beginTime,
