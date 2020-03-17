@@ -117,9 +117,6 @@ public class TaskService {
         if (task.getLabelId() != null) {
             task.setLabelId(TagUtil.fromString(task.getLabelId()));
         }
-        if (task.getTopOrderNum() == null) {
-            task.setTopOrderNum(999);
-        }
         if (task.getTaskId() == null) {
             if (task.getMainUserId() == null) {
                 task.setMainUserId(user.getUserId());
