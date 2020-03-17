@@ -1,7 +1,7 @@
 package com.bdaim.crm.erp.admin.service;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -657,12 +657,12 @@ public class AdminFieldService {
      */
     public List<Record> customFieldList(String label) {
         //List<Record> recordList = Db.find(Db.getSql("admin.field.customerFieldList"), label);
-        try{
+        try {
             List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.customerFieldList(label));
             recordToFormType(recordList);
             return recordList;
-        }catch (Exception e){
-            System.out.println("出错了 "+e);
+        } catch (Exception e) {
+            System.out.println("出错了 " + e);
         }
         return null;
     }
@@ -866,7 +866,23 @@ public class AdminFieldService {
         if (null != adminFieldSort.getHideIds()) {
             String[] hideIdsArr = adminFieldSort.getHideIds().split(",");
             for (int i = 0; i < hideIdsArr.length; i++) {
-                crmAdminFieldDao.executeUpdateSQL("  update lkcrm_admin_field_sort set is_hide = 1,sort = 0 where id =? and label = ? and user_id = ?", hideIdsArr[i], adminFieldSort.getLabel(), userId);
+                LkCrmAdminFieldEntity lkCrmAdminFieldEntity = crmAdminFieldDao.get(NumberUtil.parseInt(hideIdsArr[i]));
+                if (lkCrmAdminFieldEntity != null) {
+                    crmAdminFieldDao.executeUpdateSQL("  update lkcrm_admin_field_sort set is_hide = 1,sort = 0,field_name=?,name=?  where id =? and label = ? and user_id = ?", lkCrmAdminFieldEntity.getFieldName(), lkCrmAdminFieldEntity.getName(), hideIdsArr[i], adminFieldSort.getLabel(), userId);
+                } else {
+                    crmAdminFieldDao.executeUpdateSQL("  update lkcrm_admin_field_sort set is_hide = 1,sort = 0 where id =? and label = ? and user_id = ?", hideIdsArr[i], adminFieldSort.getLabel(), userId);
+                }
+            }
+            //Db.update(Db.getSqlPara("admin.field.isHide", Kv.by("ids", hideIdsArr).set("label", adminFieldSort.getLabel()).set("userId", userId)));
+        }
+
+        if (null != adminFieldSort.getNoHideIds()) {
+            String[] hideIdsArr = adminFieldSort.getNoHideIds().split(",");
+            for (int i = 0; i < hideIdsArr.length; i++) {
+                LkCrmAdminFieldEntity lkCrmAdminFieldEntity = crmAdminFieldDao.get(NumberUtil.parseInt(hideIdsArr[i]));
+                if (lkCrmAdminFieldEntity != null) {
+                    crmAdminFieldDao.executeUpdateSQL("  update lkcrm_admin_field_sort set field_name=?,name=?  where id =? and label = ? and user_id = ?", lkCrmAdminFieldEntity.getFieldName(), lkCrmAdminFieldEntity.getName(), hideIdsArr[i], adminFieldSort.getLabel(), userId);
+                }
             }
             //Db.update(Db.getSqlPara("admin.field.isHide", Kv.by("ids", hideIdsArr).set("label", adminFieldSort.getLabel()).set("userId", userId)));
         }
