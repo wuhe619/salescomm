@@ -104,7 +104,7 @@ public class LkCrmOaLogDao extends SimpleHibernateDao<LkCrmOaLogEntity, Integer>
             param.add(create_user_id);
             sql += "  and a.create_user_id = ? ";
         }
-        if (create_user_id != null && by != null) {
+        if (create_user_id == null && by != null) {
             param.add(send_user_ids);
             param.add(send_dept_ids);
             sql += " and (a.send_user_ids like concat(\"%,\",?,\",%\") or a.send_dept_ids like concat(\"%,\",?,\",%\")";

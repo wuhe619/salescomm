@@ -74,8 +74,8 @@ public class OaLogService {
         List<Long> userIds;
         if (user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID)) {
 //            userIds = Db.query("SELECT user_id FROM `lkcrm_admin_user` where user_id != ? ", user.getUserId());
-            String userIdsSql = "SELECT user_id FROM `lkcrm_admin_user` where user_id != ?";
-            userIds = crmOaLogDao.queryListForLong(userIdsSql, user.getUserId());
+            String userIdsSql = "SELECT user_id FROM `lkcrm_admin_user` where user_id != ? AND cust_id = ?";
+            userIds = crmOaLogDao.queryListForLong(userIdsSql, user.getUserId(), BaseUtil.getCustId());
         } else {
             userIds = adminUserService.queryUserByParentUser(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
             if (object.containsKey("createUserId")) {
@@ -83,6 +83,9 @@ public class OaLogService {
                     return new CrmPage();
                 }
             }
+        }
+        if (userIds == null) {
+            userIds = new ArrayList<>();
         }
         if (by == 1) {
             kv.set("create_user_id", user.getUserId());
@@ -105,7 +108,7 @@ public class OaLogService {
         }
         com.bdaim.common.dto.Page page = crmOaLogDao.queryList(basePageRequest.getPage(),
                 basePageRequest.getLimit(), kv.getLong("create_user_id"), kv.getInt("by"), kv.getInt("send_user_ids"),
-                kv.getInt("send_dept_ids"), (List<Long>) kv.get(userIds), kv.getStr("create_time"),
+                kv.getInt("send_dept_ids"), (List<Long>) kv.get("userIds"), kv.getStr("create_time"),
                 kv.getInt("category_id"), kv.getInt("log_id"), kv.getLong("userId"));
       /*  Page<Record> recordList = Db.paginate(basePageRequest.getPage(),
                 basePageRequest.getLimit(), Db.getSqlPara("oa.log.queryList", kv));*/
