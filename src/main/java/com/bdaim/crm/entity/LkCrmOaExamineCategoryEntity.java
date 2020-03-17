@@ -1,10 +1,15 @@
 package com.bdaim.crm.entity;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
+@DynamicUpdate
+@DynamicInsert
 @Table(name = "lkcrm_oa_examine_category", schema = "", catalog = "")
 public class LkCrmOaExamineCategoryEntity {
     private Integer categoryId;
