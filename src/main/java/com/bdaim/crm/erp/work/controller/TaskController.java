@@ -22,6 +22,7 @@ import com.bdaim.crm.utils.TagUtil;
 import com.jfinal.core.paragetter.Para;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -37,12 +38,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/task")
 public class TaskController extends BasicAction {
-    @InitBinder
-    protected void init(ServletRequestDataBinder binder) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        dateFormat.setLenient(false);
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
-    }
 
     @Resource
     private TaskService taskService;

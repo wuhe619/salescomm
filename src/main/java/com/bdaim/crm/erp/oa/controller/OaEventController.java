@@ -26,12 +26,7 @@ import java.util.Date;
 @RestController
 @RequestMapping("/OaEvent")
 public class OaEventController extends BasicAction {
-    @InitBinder
-    protected void init(ServletRequestDataBinder binder) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        dateFormat.setLenient(false);
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, false));
-    }
+
     @Resource
     private OaEventService oaEventService;
 

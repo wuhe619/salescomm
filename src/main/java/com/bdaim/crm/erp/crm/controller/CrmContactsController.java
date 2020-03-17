@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.crm.controller;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONArray;
@@ -59,14 +60,6 @@ public class CrmContactsController extends BasicAction {
 
     @Resource
     private AdminSceneService adminSceneService;
-
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-    @InitBinder
-    protected void init(ServletRequestDataBinder binder) {
-        dateFormat.setLenient(false);
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
-    }
 
     /**
      * @author wyq
@@ -208,7 +201,7 @@ public class CrmContactsController extends BasicAction {
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
         if(StringUtil.isNotEmpty(adminRecord.getNextTime())){
-            lkCrmAdminRecordEntity.setNextTime(dateFormat.parse(adminRecord.getNextTime()));
+            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(),"yyyy-MM-dd HH:mm:ss"));
         }
         return (crmContactsService.addRecord(lkCrmAdminRecordEntity));
     }

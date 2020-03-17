@@ -30,13 +30,6 @@ import java.util.Date;
 @RequestMapping(value = "/OaAnnouncement")
 public class OaAnnouncementController extends BasicAction {
 
-    @InitBinder
-    protected void init(ServletRequestDataBinder binder) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        dateFormat.setLenient(false);
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
-    }
-
     @Resource
     private OaAnnouncementService announcementService;
 
