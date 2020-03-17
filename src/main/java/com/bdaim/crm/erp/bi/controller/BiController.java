@@ -75,7 +75,7 @@ public class BiController extends BasicAction {
     @Permissions("bi:achievement:read")
     @NotNullValidate(value = "year", message = "year不能为空")
     @NotNullValidate(value = "type", message = "type不能为空")
-    public R taskCompleteStatistics(@Para("year") String year, @Para("type") Integer type, @Para("deptId") Integer deptId, @Para("userId") Integer userId) {
+    public R taskCompleteStatistics(@Para("year") String year, @Para("type") Integer type, @Para("deptId") Integer deptId, @Para("userId") Long userId) {
 //        renderJson(biService.taskCompleteStatistics(year,type,deptId,userId));
         return biService.taskCompleteStatistics(year, type, deptId, userId);
     }

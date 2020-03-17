@@ -54,7 +54,7 @@ public class BiService {
      *
      * @author Chacker
      */
-    public R taskCompleteStatistics(String year, Integer type, Integer deptId, Integer userId) {
+    public R taskCompleteStatistics(String year, Integer type, Integer deptId, Long userId) {
         if (type == 1) {
             if (userId == null) {
                 List<Map<String, Object>> maps = biDao.queryContractByDeptId(year, deptId);
