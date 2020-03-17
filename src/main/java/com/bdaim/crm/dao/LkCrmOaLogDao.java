@@ -111,6 +111,7 @@ public class LkCrmOaLogDao extends SimpleHibernateDao<LkCrmOaLogEntity, Integer>
             if (userIds != null && userIds.size() > 0) {
                 sql += "  or a.create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")";
             }
+            sql+=" ) ";
         }
         if (StringUtil.isNotEmpty(createTime)) {
             param.add(createTime);
@@ -130,7 +131,7 @@ public class LkCrmOaLogDao extends SimpleHibernateDao<LkCrmOaLogEntity, Integer>
         }
         sql += " AND a.cust_id = ? ";
         param.add(BaseUtil.getCustId());
-        sql += " order by log_id desc";
+        sql += " order by a.log_id desc";
         return super.sqlPageQuery(sql, pageNum, pageSize, param.toArray());
     }
 
