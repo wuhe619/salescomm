@@ -15,7 +15,6 @@ import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.stereotype.Service;
@@ -123,7 +122,7 @@ public class CrmBackLogService {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         Integer type = jsonObject.getInteger("type");
         Integer isSub = jsonObject.getInteger("isSub");
-        String leadsview = BaseUtil.getViewSql("leadsview");
+        String leadsview = BaseUtil.getViewSqlNotASName("leadsview");
         StringBuffer stringBuffer = new StringBuffer("from " + leadsview + " as a where");
         if (type == 1) {
             stringBuffer.append(" a.followup = 0 and a.is_transform = 0");
@@ -266,7 +265,7 @@ public class CrmBackLogService {
         } else {
             return R.error("isSub参数不正确");
         }
-        List<Integer> receivablesIdList = Db.query(stringBuffer.toString());
+        List<Integer> receivablesIdList = crmCustomerDao.queryListForInteger(stringBuffer.toString());
         if (receivablesIdList.size() > 0) {
             String contractIds = CollUtil.join(receivablesIdList, ",");
             JSONObject data = jsonObject.getJSONObject("data");
@@ -325,7 +324,7 @@ public class CrmBackLogService {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         Integer type = jsonObject.getInteger("type");
         Integer isSub = jsonObject.getInteger("isSub");
-        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUniqueBy("name", "expiringContractDays");
+        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUnique(" FROM LkCrmAdminConfigEntity WHERE name = ? AND custId= ?", "expiringContractDays", BaseUtil.getCustId());
         String contractview = BaseUtil.getViewSqlNotASName("contractview");
         StringBuffer stringBuffer = new StringBuffer("from " + contractview + " as a where");
         if (type == 1) {

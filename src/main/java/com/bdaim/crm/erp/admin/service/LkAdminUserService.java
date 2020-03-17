@@ -1,6 +1,7 @@
 package com.bdaim.crm.erp.admin.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
@@ -313,6 +314,27 @@ public class LkAdminUserService {
         adminConfig.setValue("3");
         adminConfig.setDescription("合同到期提醒");
         crmAdminConfigDao.save(adminConfig);
+        // 创建默认审批流程
+        LkCrmAdminExamineEntity  examineEntity  = new LkCrmAdminExamineEntity();
+        examineEntity.setCustId(custId);
+        examineEntity.setExamineType(2);
+        examineEntity.setCategoryType(2);
+        examineEntity.setName("回款审批流程");
+        examineEntity.setCreateTime(DateUtil.date().toTimestamp());
+        examineEntity.setCreateUserId(userId);
+        examineEntity.setStatus(1);
+        crmAdminConfigDao.saveOrUpdate(examineEntity);
+        crmAdminConfigDao.getSession().clear();
+        examineEntity  = new LkCrmAdminExamineEntity();
+        examineEntity.setCustId(custId);
+        examineEntity.setExamineType(2);
+        examineEntity.setCategoryType(1);
+        examineEntity.setName("合同审批流程");
+        examineEntity.setCreateTime(DateUtil.date().toTimestamp());
+        examineEntity.setCreateUserId(userId);
+        examineEntity.setStatus(1);
+        examineEntity.setRemarks("说明");
+        crmAdminConfigDao.saveOrUpdate(examineEntity);
 
         return R.isSuccess(true);
     }
