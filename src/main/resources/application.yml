@@ -11,11 +11,13 @@ spring:
     test-on-borrow: false
     test-while-idle: true
     time-between-eviction-runs-millis: 1000000
-    username: dev
-    password: dev__807
+#    username: dev
+#    password: dev__807
     #    url: jdbc:mysql://localhost:3306/bp?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
-    url: jdbc:mysql://192.168.32.200/label?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
-#    url: jdbc:mysql://47.104.205.217:3306/label_dev?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
+#    url: jdbc:mysql://192.168.32.200/label?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
+    url: jdbc:mysql://47.104.205.217:3306/label_dev?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
+    username: chacker
+    password: chacker
     hikari:
       auto-commit: true
       minimum-idle: 5
