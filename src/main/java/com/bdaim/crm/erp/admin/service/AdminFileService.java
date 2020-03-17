@@ -112,7 +112,7 @@ public class AdminFileService {
             adminFile.setFileType(fileType);
         }
         adminFile.setCreateUserId(BaseUtil.getUser().getUserId());
-        return (int) crmAdminFileDao.saveReturnPk(adminFile) > 0 ? R.ok().put("batchId", batchId).put("name", adminFile.getName()).put("url", adminFile.getFilePath()).put("size", adminFile.getSize() / 1000 + "KB").put("file_id", adminFile.getFileId()) : R.error();
+        return (int) crmAdminFileDao.saveReturnPk(adminFile) > 0 ? R.ok().put("batchId", batchId).put("name", adminFile.getName()).put("url", adminFile.getFilePath()).put("size", adminFile.getSize() / 1000 + "KB").put("file_id", adminFile.getFileId()).put("fileId", adminFile.getFileId()) : R.error();
     }
 
     /**
