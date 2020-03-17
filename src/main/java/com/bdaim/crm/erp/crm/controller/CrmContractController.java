@@ -47,13 +47,6 @@ public class CrmContractController extends BasicAction {
 
     @Resource
     private AdminSceneService adminSceneService;
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-    @InitBinder
-    protected void init(ServletRequestDataBinder binder) {
-        dateFormat.setLenient(false);
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
-    }
 
     /**
      * @author wyq
