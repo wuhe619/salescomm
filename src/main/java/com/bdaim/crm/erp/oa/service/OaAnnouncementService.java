@@ -25,10 +25,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 公告
@@ -136,6 +133,7 @@ public class OaAnnouncementService {
         String cc = " order by an.announcement_id desc";
         Page page = adminRoleDao.pageByFullSql(basePageRequest.getPage(), basePageRequest.getLimit(),
                 tatal + sql, queryList + sql + cc, BaseUtil.getCustId());
+        List list = new ArrayList();
         for (Map<String, Object> obj : (List<Map<String, Object>>) page.getData()) {
             Record r = JavaBeanUtil.mapToRecord(obj);
             r.set("is_update", status);
@@ -145,7 +143,9 @@ public class OaAnnouncementService {
             } else {
                 r.set("is_read", 0);
             }
+            list.add(r);
         }
+        page.setData(list);
         Map<String, Object> map = new HashMap<>();
         map.put("totalRow", page.getTotal());
 //        map.put("totalPage", page.get());
