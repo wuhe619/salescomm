@@ -1150,6 +1150,61 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
     }
 
+    public Map sellFunnelSum(Integer isEnd, String[] userIdss, Integer status, String startTime, String endTime, Integer typeId) {
+        List<Object> params = new ArrayList<>();
+        String sql = " SELECT IFNULL(SUM(ccb.money),0) as money" +
+                "      FROM lkcrm_crm_business as ccb " +
+                "      LEFT JOIN lkcrm_crm_business_status as ccbs ON ccbs.status_id = ccb.status_id " +
+                "      where  ccbs.type_id = ? and ccb.cust_id=? and  ccb.owner_user_id in (";
+        sql += SqlAppendUtil.sqlAppendWhereIn(userIdss);
+        sql += ") ";
+        params.add(typeId);
+        params.add(BaseUtil.getCustId());
+        if (isEnd != null) {
+            sql += "  and ccb.is_end = ? ";
+            params.add(isEnd);
+        }
+        if (status == 1) {
+            sql += " and to_days(NOW()) = TO_DAYS(create_time) ";
+        }
+        if (status == 2) {
+            sql += " and to_days(NOW()) - TO_DAYS(create_time) = 1 ";
+        }
+        if (status == 3) {
+            sql += " and YEARWEEK(date_format(create_time,'%Y-%m-%d')) = YEARWEEK(now()) ";
+        }
+        if (status == 4) {
+            sql += " and YEARWEEK(date_format(create_time,'%Y-%m-%d')) = YEARWEEK(now()) -1 ";
+        }
+        if (status == 5) {
+            sql += " and date_format(create_time,'%Y-%m')=date_format(now(),'%Y-%m') ";
+        }
+        if (status == 6) {
+            sql += "  and date_format(create_time,'%Y-%m')=date_format(DATE_SUB(curdate(), INTERVAL 1 MONTH),'%Y-%m') ";
+        }
+        if (status == 7) {
+            sql += " and QUARTER(create_time)=QUARTER(now()) AND YEAR(create_time)=YEAR(NOW()) ";
+        }
+        if (status == 8) {
+            sql += " and QUARTER(create_time)=QUARTER(DATE_SUB(now(),interval 1 QUARTER)) and YEAR(DATE_SUB(create_time,interval 1 QUARTER)) = YEAR(DATE_SUB(NOW(),interval 1 QUARTER)) " +
+                    "           ";
+        }
+        if (status == 9) {
+            sql += " and YEAR(create_time)=YEAR(NOW()) ";
+        }
+        if (status == 10) {
+            sql += " and YEAR(create_time)=YEAR(date_sub(now(),interval 1 year)) ";
+        }
+        if (status == 11) {
+            sql += "            and  TO_DAYS(create_time) >= TO_DAYS(?) " +
+                    "            and  TO_DAYS(create_time) <= TO_DAYS(?)";
+            params.add(startTime);
+            params.add(endTime);
+        }
+        sql += " GROUP BY ccbs.`name`";
+        return queryUniqueSql(sql, params.toArray());
+    }
+
     public Page myInitiate(Object userId, Object categoryId, Object beginDate, Object endDate,
                            Integer page, Integer limit) {
         StringBuffer sqlBuffer = new StringBuffer();
@@ -1172,5 +1227,10 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         params.add(BaseUtil.getCustId());
         params.add(BaseUtil.getCustId());
         return sqlPageQuery(sqlBuffer.toString(), page, limit, params.toArray());
+    }
+
+    public List<Map<String, Object>> salesTrend(Object sqlDateFormat, Object beginTime, String[] userIds) {
+        String sql = "select '" + beginTime + "' as type,IFNULL(SUM(money),0) as contractMoneys, (SELECT IFNULL(SUM(money),0) FROM lkcrm_crm_receivables WHERE DATE_FORMAT( return_time,? ) = ?  and check_status = 2 AND owner_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")) as receivablesMoneys FROM lkcrm_crm_contract as ccco where DATE_FORMAT(ccco.order_date,?)=? and ccco.check_status = 2 AND owner_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")";
+        return super.sqlQuery(sql, sqlDateFormat, beginTime, sqlDateFormat, beginTime);
     }
 }

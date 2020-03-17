@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.InstrumentDao;
+import com.bdaim.crm.dao.LkCrmBiDao;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.CrmPage;
@@ -16,6 +17,7 @@ import com.bdaim.util.SqlAppendUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -32,6 +34,8 @@ public class InstrumentService {
     private BiTimeUtil biTimeUtil;
     @Resource
     private InstrumentDao instrumentDao;
+    @Autowired
+    private LkCrmBiDao crmBiDao;
 
     /**
      * 销售简报
@@ -486,10 +490,10 @@ public class InstrumentService {
         Integer beginTime = record.getInt("beginTime");
         List<Record> recordList = new ArrayList<>();
         for (int i = 1; i <= cycleNum; i++) {
-            String sql = "select ? as type,IFNULL(SUM(money),0) as contractMoneys, (SELECT IFNULL(SUM(money),0) FROM lkcrm_crm_receivables WHERE DATE_FORMAT( return_time,? ) = ?  " +
-                    "and check_status = 2 AND owner_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds.split(",")) + ") as receivablesMoneys FROM lkcrm_crm_contract as ccco where DATE_FORMAT(ccco.order_date,?)=? and ccco.check_status = 2 AND owner_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds.split(",")) + ")";
-            recordList.addAll(Db.find(Db.getSqlPara("bi.base.salesTrend", Kv.by("beginTime", beginTime).set("sqlDateFormat", sqlDateFormat).set("userIds", userIds))));
-            recordList.addAll(JavaBeanUtil.mapToRecords(instrumentDao.sqlQuery(sql, beginTime, sqlDateFormat, beginTime, sqlDateFormat, beginTime)));
+            String sql = "select '"+beginTime+"' as type,IFNULL(SUM(money),0) as contractMoneys, (SELECT IFNULL(SUM(money),0) FROM lkcrm_crm_receivables WHERE DATE_FORMAT( return_time,? ) = ?  " +
+                    "and check_status = 2 AND owner_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds.split(",")) + ")) as receivablesMoneys FROM lkcrm_crm_contract as ccco where DATE_FORMAT(ccco.order_date,?)=? and ccco.check_status = 2 AND owner_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds.split(",")) + ")";
+            recordList.addAll(JavaBeanUtil.mapToRecords(crmBiDao.salesTrend(sqlDateFormat, beginTime, userIdss)));
+            recordList.addAll(JavaBeanUtil.mapToRecords(instrumentDao.sqlQuery(sql, sqlDateFormat, beginTime, sqlDateFormat, beginTime)));
             beginTime = biTimeUtil.estimateTime(beginTime);
         }
 
@@ -511,10 +515,13 @@ public class InstrumentService {
         record.set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         Integer ststus = biTimeUtil.analyzeType(type);
-        List<Record> list = Db.find(Db.getSqlPara("bi.funnel.sellFunnel", Kv.by("userIds", userIdss).set("type", ststus).set("startTime", startTime).set("endTime", endTime).set("typeId", typeId)));
-        Record sum_money = Db.findFirst(Db.getSqlPara("bi.funnel.sellFunnelSum", Kv.by("userIds", userIdss).set("type", ststus).set("startTime", startTime).set("endTime", endTime).set("typeId", typeId)));
-        Record sum_shu = Db.findFirst(Db.getSqlPara("bi.funnel.sellFunnelSum", Kv.by("userIds", userIdss).set("type", ststus).set("startTime", startTime).set("endTime", endTime).set("typeId", typeId).set("isEnd", 2)));
-        Record sum_ying = Db.findFirst(Db.getSqlPara("bi.funnel.sellFunnelSum", Kv.by("userIds", userIdss).set("type", ststus).set("startTime", startTime).set("endTime", endTime).set("typeId", typeId).set("isEnd", 1)));
+        List<Record> list = crmBiDao.sellFunnel(userIdss, ststus, startTime, endTime, typeId);
+        Record sum_money = JavaBeanUtil.mapToRecord(crmBiDao.sellFunnelSum(null, userIdss, ststus, startTime, endTime, typeId));
+        //Record sum_money = Db.findFirst(Db.getSqlPara("bi.funnel.sellFunnelSum", Kv.by("userIds", userIdss).set("type", ststus).set("startTime", startTime).set("endTime", endTime).set("typeId", typeId)));
+        Record sum_shu = JavaBeanUtil.mapToRecord(crmBiDao.sellFunnelSum(2, userIdss, ststus, startTime, endTime, typeId));
+        //Record sum_shu = Db.findFirst(Db.getSqlPara("bi.funnel.sellFunnelSum", Kv.by("userIds", userIdss).set("type", ststus).set("startTime", startTime).set("endTime", endTime).set("typeId", typeId).set("isEnd", 2)));
+        Record sum_ying = JavaBeanUtil.mapToRecord(crmBiDao.sellFunnelSum(1, userIdss, ststus, startTime, endTime, typeId));
+        //Record sum_ying = Db.findFirst(Db.getSqlPara("bi.funnel.sellFunnelSum", Kv.by("userIds", userIdss).set("type", ststus).set("startTime", startTime).set("endTime", endTime).set("typeId", typeId).set("isEnd", 1)));
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("list", list);
         jsonObject.put("sum_money", sum_money != null ? sum_money.getBigDecimal("money") : 0);

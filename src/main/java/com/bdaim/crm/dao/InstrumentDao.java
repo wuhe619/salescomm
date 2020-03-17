@@ -145,15 +145,15 @@ public class InstrumentDao extends SimpleHibernateDao {
 
     public Map thisYear(String[] userIds) {
         String sql = "select distinct " +
-                "      (SELECT COUNT(*) FROM lkcrm_crm_business WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as businessCount,\n" +
-                "      (SELECT COUNT(*) FROM lkcrm_crm_contacts WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as contactsCount,\n" +
-                "      (SELECT COUNT(*) FROM lkcrm_crm_contract WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as contractCount,\n" +
-                "      (SELECT COUNT(*) FROM lkcrm_crm_customer WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as customerCount,\n" +
-                "      (SELECT COUNT(*) FROM lkcrm_crm_product WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as productCount,\n" +
-                "      (SELECT COUNT(*) FROM lkcrm_crm_leads WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in ( " + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as leadsCount,\n" +
-                "      (SELECT COUNT(*) FROM lkcrm_crm_receivables WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in ( " + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as receivablesCount,\n" +
-                "      (SELECT COUNT(*) FROM lkcrm_admin_record WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in ( " + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as recordCount,\n" +
-                "      (SELECT COUNT(*) FROM lkcrm_crm_business_change WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as recordStatusCount\n" +
+                "      (SELECT COUNT(*) FROM lkcrm_crm_business WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")) as businessCount,\n" +
+                "      (SELECT COUNT(*) FROM lkcrm_crm_contacts WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")) as contactsCount,\n" +
+                "      (SELECT COUNT(*) FROM lkcrm_crm_contract WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")) as contractCount,\n" +
+                "      (SELECT COUNT(*) FROM lkcrm_crm_customer WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")) as customerCount,\n" +
+                "      (SELECT COUNT(*) FROM lkcrm_crm_product WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")) as productCount,\n" +
+                "      (SELECT COUNT(*) FROM lkcrm_crm_leads WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in ( " + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")) as leadsCount,\n" +
+                "      (SELECT COUNT(*) FROM lkcrm_crm_receivables WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in ( " + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")) as receivablesCount,\n" +
+                "      (SELECT COUNT(*) FROM lkcrm_admin_record WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in ( " + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")) as recordCount,\n" +
+                "      (SELECT COUNT(*) FROM lkcrm_crm_business_change WHERE YEAR(create_time)=YEAR(NOW()) AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")) as recordStatusCount\n" +
                 "      FROM lkcrm_crm_customer";
         List<Map<String, Object>> list = sqlQuery(sql);
         return list.size() > 0 ? list.get(0) : null;
@@ -196,8 +196,8 @@ public class InstrumentDao extends SimpleHibernateDao {
 
     public Map queryMoneys(String[] userIds, String startTime, String endTime) {
         String sql = "SELECT distinct " +
-                "    (select IFNULL(SUM(money),0) FROM lkcrm_crm_contract where DATE_FORMAT(create_time,'%Y%m') between :startTime  and :endTime AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as contractMoneys, " +
-                "    (select IFNULL(SUM(money),0) FROM lkcrm_crm_receivables where DATE_FORMAT(create_time,'%Y%m') between  :startTime  and :endTime AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as receivablesMoneys " +
+                "    (select IFNULL(SUM(money),0) FROM lkcrm_crm_contract where DATE_FORMAT(create_time,'%Y%m') between :startTime  and :endTime AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")) as contractMoneys, " +
+                "    (select IFNULL(SUM(money),0) FROM lkcrm_crm_receivables where DATE_FORMAT(create_time,'%Y%m') between  :startTime  and :endTime AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")) as receivablesMoneys " +
                 "     FROM lkcrm_crm_contract ";
         Map<String, Object> params = new HashMap<>();
         params.put("startTime", startTime);
