@@ -107,7 +107,7 @@ public class OaLogService {
             kv.set("category_id", object.get("categoryId"));
         }
         com.bdaim.common.dto.Page page = crmOaLogDao.queryList(basePageRequest.getPage(),
-                basePageRequest.getLimit(), kv.getLong("create_user_id"), kv.getInt("by"), kv.getInt("send_user_ids"),
+                basePageRequest.getLimit(), kv.getLong("create_user_id"), kv.getInt("by"), kv.getLong("send_user_ids"),
                 kv.getInt("send_dept_ids"), (List<Long>) kv.get("userIds"), kv.getStr("create_time"),
                 kv.getInt("category_id"), kv.getInt("log_id"), kv.getLong("userId"));
       /*  Page<Record> recordList = Db.paginate(basePageRequest.getPage(),

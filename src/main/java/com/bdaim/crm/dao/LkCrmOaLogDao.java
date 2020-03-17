@@ -84,7 +84,7 @@ public class LkCrmOaLogDao extends SimpleHibernateDao<LkCrmOaLogEntity, Integer>
     }
 
 
-    public Page queryList(int pageNum, int pageSize, Long create_user_id, Integer by, Integer send_user_ids,
+    public Page queryList(int pageNum, int pageSize, Long create_user_id, Integer by, Long send_user_ids,
                           Integer send_dept_ids, List<Long> userIds, String createTime, Integer category_id,
                           Integer logId, Long userId) {
         String sql = "SELECT\n" +
