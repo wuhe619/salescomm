@@ -40,10 +40,10 @@ public class WorkbenchService {
 
     public R myTask(Long userId) {
         List<Record> result = new ArrayList<>();
-        result.add(new Record().set("title", "收件箱").set("is_top", 0).set("count", 0).set("list", new ArrayList<>()));
-        result.add(new Record().set("title", "今天要做").set("is_top", 1).set("count", 0).set("list", new ArrayList<>()));
-        result.add(new Record().set("title", "下一步要做").set("is_top", 2).set("count", 0).set("list", new ArrayList<>()));
-        result.add(new Record().set("title", "以后要做").set("is_top", 3).set("count", 0).set("list", new ArrayList<>()));
+        result.add(new Record().set("title", "任务池").set("is_top", 0).set("count", 0).set("list", new ArrayList<>()));
+        result.add(new Record().set("title", "今日任务").set("is_top", 1).set("count", 0).set("list", new ArrayList<>()));
+        result.add(new Record().set("title", "进行中").set("is_top", 2).set("count", 0).set("list", new ArrayList<>()));
+        result.add(new Record().set("title", "已完成").set("is_top", 3).set("count", 0).set("list", new ArrayList<>()));
         result.forEach(record -> {
             Integer isTop = record.getInt("is_top");
 //            List<Record> resultist = Db.find(Db.getSqlPara("work.workbench.myTask", Kv.by("userId", userId).set("isTop", isTop)));
