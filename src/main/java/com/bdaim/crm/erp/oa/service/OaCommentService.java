@@ -54,7 +54,7 @@ public class OaCommentService {
     public List<Record> queryCommentList(String typeId, String type) {
         String sql = "select a.comment_id,a.content,a.user_id,a.create_time,a.type_id,a.type,a.favour,a.pid,a.main_id" +
                 " from lkcrm_task_comment a  where a.type_id = ? and a.type = ?";
-        List<Record> recordList = JavaBeanUtil.mapToRecords(commentDao.queryListBySql(sql, typeId, type));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(commentDao.sqlQuery(sql, typeId, type));
         if (recordList == null || recordList.size() == 0) {
             return new ArrayList<>();
         }
