@@ -291,7 +291,7 @@ public class AdminSceneService {
             JSONObject ownerObject = new JSONObject();
             ownerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "is").fluentPut("value", userId));
             JSONObject subOwnerObject = new JSONObject();
-            subOwnerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "in").fluentPut("value", getSubUserId(userId.intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1)));
+            subOwnerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "in").fluentPut("value", getSubUserId(userId, BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1)));
             if (1 == type) {
                 systemScene.setName("全部线索").setData(new JSONObject().fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", 0)).toString());
                 crmAdminSceneDao.getSession().clear();
@@ -300,7 +300,7 @@ public class AdminSceneService {
                 systemScene.setSceneId(null).setName("我负责的线索").setData(ownerObject.toString());
                 crmAdminSceneDao.getSession().clear();
                 crmAdminSceneDao.save(systemScene);
-                subOwnerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "in").fluentPut("value", getSubUserId(userId.intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1))).fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", 0));
+                subOwnerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "in").fluentPut("value", getSubUserId(userId, BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1))).fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", 0));
                 systemScene.setSceneId(null).setName("下属负责的线索").setData(subOwnerObject.toString());
                 crmAdminSceneDao.getSession().clear();
                 crmAdminSceneDao.save(systemScene);
@@ -399,7 +399,7 @@ public class AdminSceneService {
     /**
      * 递归查询下属id
      */
-    public String getSubUserId(Integer userId, Integer deepness) {
+    public String getSubUserId(Long userId, Integer deepness) {
         StringBuilder ids = new StringBuilder();
         if (deepness > 0) {
             List<Long> list = new ArrayList<>();
@@ -407,7 +407,7 @@ public class AdminSceneService {
             data.forEach(s -> list.add(NumberConvertUtil.parseLong(s.get("user_id"))));
             if (list != null && list.size() > 0) {
                 for (Long l : list) {
-                    ids.append(",").append(l).append(getSubUserId(l.intValue(), deepness - 1));
+                    ids.append(",").append(l).append(getSubUserId(l, deepness - 1));
                 }
             }
         }

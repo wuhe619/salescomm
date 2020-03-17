@@ -89,7 +89,7 @@ public class CrmBackLogService {
         if (isSub == 1) {
             stringBuffer.append(" and a.owner_user_id = ").append(BaseUtil.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId().intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -134,7 +134,7 @@ public class CrmBackLogService {
         if (isSub == 1) {
             stringBuffer.append(" and a.owner_user_id = ").append(BaseUtil.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId().intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -181,7 +181,7 @@ public class CrmBackLogService {
         if (isSub == 1) {
             stringBuffer.append(" and a.owner_user_id = ").append(BaseUtil.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId().intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -216,7 +216,7 @@ public class CrmBackLogService {
         if (isSub == 1) {
             stringBuffer.append(" and c.examine_user = ").append(BaseUtil.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId().intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -257,7 +257,7 @@ public class CrmBackLogService {
         if (isSub == 1) {
             stringBuffer.append(" and c.examine_user = ").append(BaseUtil.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId().intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -300,7 +300,7 @@ public class CrmBackLogService {
         if (isSub == 1) {
             stringBuffer.append(" and c.owner_user_id = ").append(BaseUtil.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId().intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -340,7 +340,7 @@ public class CrmBackLogService {
         if (isSub == 1) {
             stringBuffer.append(" and owner_user_id = ").append(BaseUtil.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId().intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
