@@ -28,17 +28,17 @@ public class SystemConfig {
     @PostConstruct
     public void initDatabasePropertySourceUsage() {
         // 获取系统属性集合
-//        MutablePropertySources propertySources = environment.getPropertySources();
-//        Map<String, Object> config = new HashMap<>();
-//        List<Map<String, Object>> list = jdbcTemplate.queryForList("SELECT * FROM t_market_resource_property WHERE property_name = 'xz_call_api' ");
-//        for (Map<String, Object> k : list) {
-//            config.put(String.valueOf(k.get("property_name")), k.get("property_value"));
-//        }
-//        // 将转换后的列表加入属性中
-//        Properties properties = new Properties();
-//        properties.putAll(config);
-//        // 将属性转换为属性集合,并指定名称
-//        PropertiesPropertySource constants = new PropertiesPropertySource("system-config", properties);
-//        propertySources.addLast(constants);
+        MutablePropertySources propertySources = environment.getPropertySources();
+        Map<String, Object> config = new HashMap<>();
+        List<Map<String, Object>> list = jdbcTemplate.queryForList("SELECT * FROM t_market_resource_property WHERE property_name = 'xz_call_api' ");
+        for (Map<String, Object> k : list) {
+            config.put(String.valueOf(k.get("property_name")), k.get("property_value"));
+        }
+        // 将转换后的列表加入属性中
+        Properties properties = new Properties();
+        properties.putAll(config);
+        // 将属性转换为属性集合,并指定名称
+        PropertiesPropertySource constants = new PropertiesPropertySource("system-config", properties);
+        propertySources.addLast(constants);
     }
 }
