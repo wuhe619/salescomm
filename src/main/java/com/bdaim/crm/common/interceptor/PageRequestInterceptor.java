@@ -1,6 +1,12 @@
 package com.bdaim.crm.common.interceptor;
 
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONObject;
+import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.exception.ParamValidateException;
+import com.bdaim.crm.utils.R;
 import com.jfinal.json.Json;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -14,6 +20,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.lang.reflect.*;
 import java.util.*;
@@ -42,6 +50,28 @@ public class PageRequestInterceptor {
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         LOGGER.debug("methodSignature :" + methodSignature);
         Method method = methodSignature.getMethod();
+
+        //通过注解 @NotNullValidate 对入参进行非空校验
+        NotNullValidate[] validates = method.getAnnotationsByType(NotNullValidate.class);
+        if (ArrayUtil.isNotEmpty(validates)) {
+            for (NotNullValidate validate : validates) {
+                //获取注解参数值
+                if (!isJson) {
+                    //请求数据类型为 request params
+                    if (request.getParameter(validate.value()) == null) {
+                        throw new ParamValidateException("500", validate.message());
+                    }
+                } else {
+                    //请求数据类型为 application/json   读取 raw 参数
+                    String bodyStr = getRequestBody(request);
+                    JSONObject jsonObject = JSONObject.parseObject(bodyStr);
+                    if (!jsonObject.containsKey(validate.value()) || jsonObject.get(validate.value()) == null) {
+                        throw new ParamValidateException("500", validate.message());
+                    }
+                }
+            }
+        }
+
         //如果设置了泛型注解 @ClassTypeCheck
         if (method.isAnnotationPresent(ClassTypeCheck.class)) {
             //获取注解对象
@@ -68,18 +98,7 @@ public class PageRequestInterceptor {
             } else {
                 //请求数据类型为 application/json   读取 raw 参数
                 Object[] args = joinPoint.getArgs();
-                BufferedReader bufferedReader = request.getReader();
-                StringWriter writer = new StringWriter();
-                try {
-                    int read;
-                    char[] buf = new char[BUFFER_SIZE];
-                    while ((read = bufferedReader.read(buf)) != -1) {
-                        writer.write(buf, 0, read);
-                    }
-                } finally {
-                    writer.close();
-                }
-                String bodyStr = writer.getBuffer().toString();
+                String bodyStr = getRequestBody(request);
                 args[0] = new BasePageRequest(bodyStr, clazz);
                 return joinPoint.proceed(args);
             }
@@ -88,6 +107,28 @@ public class PageRequestInterceptor {
         }
     }
 
+    /**
+     * 请求数据类型为 application/json   读取 raw 参数
+     *
+     * @param request
+     * @return
+     * @throws IOException
+     * @author Chacker
+     */
+    private String getRequestBody(HttpServletRequest request) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(request.getInputStream()));
+        StringWriter writer = new StringWriter();
+        try {
+            int read;
+            char[] buf = new char[BUFFER_SIZE];
+            while ((read = bufferedReader.read(buf)) != -1) {
+                writer.write(buf, 0, read);
+            }
+        } finally {
+            writer.close();
+        }
+        return writer.getBuffer().toString();
+    }
 }
 
 

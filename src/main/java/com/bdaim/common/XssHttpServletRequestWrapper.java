@@ -14,10 +14,7 @@ import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,6 +27,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
     private static String key = "and|exec|insert|select|delete|update|count|*|%|chr|mid|master|truncate|char|declare|;|or|-|+|'|()|,|";
     private static Set<String> notAllowedKeyWords = new HashSet<String>(0);
     private static String replacedString = "INVALID";
+    private final String body;
 
     //判断是否是上传 上传忽略
     boolean isUpData = false;
@@ -50,6 +48,26 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         if (null != contentType) {
             isUpData = contentType.startsWith("multipart");
         }
+        StringBuilder sb = new StringBuilder();
+        InputStream ins = servletRequest.getInputStream();
+        BufferedReader isr = null;
+        try {
+            if (ins != null) {
+                isr = new BufferedReader(new InputStreamReader(ins));
+                char[] charBuffer = new char[128];
+                int readCount;
+                while ((readCount = isr.read(charBuffer)) != -1) {
+                    sb.append(charBuffer, 0, readCount);
+                }
+            }
+        } catch (IOException e) {
+            throw e;
+        } finally {
+            if (isr != null) {
+                isr.close();
+            }
+        }
+        body = sb.toString();
     }
 
     public String inputHandlers(ServletInputStream servletInputStream) {
@@ -99,7 +117,8 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
             return super.getInputStream();
         } else {
             //处理原request的流中的数据
-            byte[] bytes = inputHandlers(super.getInputStream()).getBytes();
+            String requestBody = body;
+            byte[] bytes = requestBody.getBytes();
             final ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
             return new ServletInputStream() {
                 @Override

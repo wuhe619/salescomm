@@ -10,6 +10,7 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.AccessDeniedException;
 import com.bdaim.common.exception.ParamException;
 import com.bdaim.crm.common.config.json.ErpJsonFactory;
+import com.bdaim.crm.common.exception.ParamValidateException;
 import com.bdaim.crm.utils.R;
 import com.bdaim.label.service.CommonService;
 import com.bdaim.log.entity.OperLog;
@@ -228,6 +229,8 @@ public class BasicAction {
                 out.println(returnError(ex.getMessage()));
             } else if (ex instanceof ParamException) {
                 out.println(returnError(ex.getMessage()));
+            } else if (ex instanceof ParamValidateException) {
+                out.println(returnJson(500, ((ParamValidateException) ex).getMsg()));
             } else {
                 out.println(returnError("系统异常"));
             }
