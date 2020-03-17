@@ -47,6 +47,13 @@ public class CrmContractController extends BasicAction {
 
     @Resource
     private AdminSceneService adminSceneService;
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    @InitBinder
+    protected void init(ServletRequestDataBinder binder) {
+        dateFormat.setLenient(false);
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
+    }
 
     /**
      * @author wyq
@@ -54,11 +61,12 @@ public class CrmContractController extends BasicAction {
      */
     @Permissions({"crm:contract:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody JSONObject jsonObject) {
-        jsonObject.fluentPut("type", 6);
-        BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryPageList(BasePageRequest basePageRequest) {
+        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type",6);
         basePageRequest.setJsonObject(jsonObject);
-        return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
+//        renderJson(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        return adminSceneService.filterConditionAndGetPageList(basePageRequest);
     }
 
     /**

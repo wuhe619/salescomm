@@ -17,7 +17,7 @@ public class LkCrmReceivablesEntity {
     private Integer contractId;
     private Integer checkStatus;
     private Integer examineRecordId;
-    private Date returnTime;
+    private Timestamp returnTime;
     private String returnType;
     private BigDecimal money;
     private String remark;
@@ -111,11 +111,11 @@ public class LkCrmReceivablesEntity {
 
     @Basic
     @Column(name = "return_time")
-    public Date getReturnTime() {
+    public Timestamp getReturnTime() {
         return returnTime;
     }
 
-    public void setReturnTime(Date returnTime) {
+    public void setReturnTime(Timestamp returnTime) {
         this.returnTime = returnTime;
     }
 
