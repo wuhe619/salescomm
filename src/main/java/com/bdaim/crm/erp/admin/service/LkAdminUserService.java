@@ -745,7 +745,7 @@ public class LkAdminUserService {
 
     public List<Record> queryUserByDeptId(Integer deptId) {
         List<Map<String, Object>> objects = crmAdminDeptDao
-                .sqlQuery(" SELECT * FROM lkcrm_admin_dept WHERE dept_id = ? " +
+                .sqlQuery(" SELECT user_id as id,realname FROM lkcrm_admin_user WHERE dept_id = ? " +
                         "AND cust_id = ? ", deptId, BaseUtil.getCustId());
         return JavaBeanUtil.mapToRecords(objects);
     }

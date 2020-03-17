@@ -1049,7 +1049,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "        status_id,status_name,type_id,type_name " +
                 "        FROM businessview " +
                 "        where " +
-                "        owner_user_id in";
+                "        owner_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdss);
         sql += ") and cust_id='" + BaseUtil.getCustId() + "' ";
         if (status == 1) {
@@ -1090,7 +1090,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
             params.add(startTime);
             params.add(endTime);
         }
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
     }
 
     public List<Record> sellFunnel(String[] userIdss, Integer status, String startTime, String endTime, Integer typeId) {
@@ -1102,7 +1102,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "      FROM lkcrm_crm_business as ccb " +
                 "      LEFT JOIN lkcrm_crm_business_status as ccbs ON ccbs.status_id = ccb.status_id " +
                 "      where " +
-                "        ccbs.type_id = ? and ccbs.cust_id=? " +
+                "        ccbs.type_id = ? and ccb.cust_id=? " +
                 "        and  ccb.owner_user_id in (";
         params.add(typeId);
         params.add(BaseUtil.getCustId());
@@ -1146,7 +1146,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
             params.add(endTime);
         }
         sql += "      GROUP BY ccbs.`name`,ccbs.order_num,ccb.type_id";
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
     }
 
     public Page myInitiate(Object userId, Object categoryId, Object beginDate, Object endDate,
