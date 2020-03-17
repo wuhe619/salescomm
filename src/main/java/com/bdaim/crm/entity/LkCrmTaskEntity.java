@@ -34,6 +34,10 @@ public class LkCrmTaskEntity {
     private Timestamp hiddenTime;
     private String batchId;
     private Integer isArchive;
+    /**
+     * 任务类型
+     */
+    private String category;
 
     @Id
     @Column(name = "task_id")
@@ -294,6 +298,16 @@ public class LkCrmTaskEntity {
 
     public void setIsArchive(Integer isArchive) {
         this.isArchive = isArchive;
+    }
+
+    @Basic
+    @Column(name = "category")
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     @Override

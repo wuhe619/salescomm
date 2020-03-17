@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.crm.controller;
 
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.NotNullValidate;
@@ -46,13 +47,6 @@ public class CrmContractController extends BasicAction {
 
     @Resource
     private AdminSceneService adminSceneService;
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-    @InitBinder
-    protected void init(ServletRequestDataBinder binder) {
-        dateFormat.setLenient(false);
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
-    }
 
     /**
      * @author wyq
@@ -240,8 +234,8 @@ public class CrmContractController extends BasicAction {
         }
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
-        if (StringUtil.isNotEmpty(adminRecord.getNextTime())) {
-            lkCrmAdminRecordEntity.setNextTime(dateFormat.parse(adminRecord.getNextTime()));
+        if(StringUtil.isNotEmpty(adminRecord.getNextTime())){
+            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(),"yyyy-MM-dd HH:mm:ss"));
         }
         return (crmContractService.addRecord(lkCrmAdminRecordEntity));
     }

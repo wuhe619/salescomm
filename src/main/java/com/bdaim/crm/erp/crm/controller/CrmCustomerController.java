@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.crm.controller;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
@@ -26,6 +27,7 @@ import com.bdaim.crm.erp.crm.service.CrmCustomerService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.DatetimeUtils;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
@@ -60,6 +62,7 @@ import java.util.*;
 @RequestMapping("/CrmCustomer")
 public class CrmCustomerController extends BasicAction {
 
+
     @Resource
     private CrmCustomerService crmCustomerService;
 
@@ -77,15 +80,6 @@ public class CrmCustomerController extends BasicAction {
 
     @Resource
     private AdminSceneService adminSceneService;
-
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-
-    @InitBinder
-    protected void init(ServletRequestDataBinder binder) {
-        dateFormat.setLenient(false);
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
-    }
 
     /**
      * @author wyq
@@ -424,7 +418,7 @@ public class CrmCustomerController extends BasicAction {
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
         if(StringUtil.isNotEmpty(adminRecord.getNextTime())){
-            lkCrmAdminRecordEntity.setNextTime(dateFormat.parse(adminRecord.getNextTime()));
+            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(),"yyyy-MM-dd HH:mm:ss"));
         }
         return (crmCustomerService.addRecord(lkCrmAdminRecordEntity));
     }
