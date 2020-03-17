@@ -60,11 +60,12 @@ public class CrmContractController extends BasicAction {
      */
     @Permissions({"crm:contract:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody JSONObject jsonObject) {
-        jsonObject.fluentPut("type", 6);
-        BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryPageList(BasePageRequest basePageRequest) {
+        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type",6);
         basePageRequest.setJsonObject(jsonObject);
-        return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
+//        renderJson(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        return adminSceneService.filterConditionAndGetPageList(basePageRequest);
     }
 
     /**
@@ -239,7 +240,7 @@ public class CrmContractController extends BasicAction {
         }
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
-        if(StringUtil.isNotEmpty(adminRecord.getNextTime())){
+        if (StringUtil.isNotEmpty(adminRecord.getNextTime())) {
             lkCrmAdminRecordEntity.setNextTime(dateFormat.parse(adminRecord.getNextTime()));
         }
         return (crmContractService.addRecord(lkCrmAdminRecordEntity));
