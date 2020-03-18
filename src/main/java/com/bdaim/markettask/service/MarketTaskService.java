@@ -4464,7 +4464,7 @@ public class MarketTaskService {
                 sql.append(" LIMIT ").append(pageIndex).append(",").append(pageSize);
             }
             LOG.info("入数据到营销任务:"+marketTaskId+";"+sql.toString()+";"+args);
-            marketTaskDao.executeUpdateSQL(sql.toString(), args);
+            marketTaskDao.executeUpdateSQL(sql.toString(), args.toArray());
         }
 
     }
