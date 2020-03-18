@@ -64,12 +64,17 @@ public class CrmContactsController extends BasicAction {
      */
     @Permissions({"crm:contacts:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody JSONObject jsonObject) {
-        jsonObject.fluentPut("type", 3);
-        BasePageRequest basePageRequest = new BasePageRequest(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryPageList(BasePageRequest basePageRequest) {
+//        jsonObject.fluentPut("type", 3);
+//        BasePageRequest basePageRequest = new BasePageRequest(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
+//        basePageRequest.setJsonObject(jsonObject);
+//        basePageRequest.setJsonObject(jsonObject);
+//        return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 3);
         basePageRequest.setJsonObject(jsonObject);
-        basePageRequest.setJsonObject(jsonObject);
-        return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
+//        renderJson(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        return adminSceneService.filterConditionAndGetPageList(basePageRequest);
     }
 
     /**

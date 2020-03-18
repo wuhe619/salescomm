@@ -486,7 +486,7 @@ public class CrmContractService {
         contract.set("company_user_id", list);
         List<Record> fieldList = adminFieldService.queryUpdateField(6, contract);
         Kv kv = Kv.by("discount_rate", contract.getBigDecimal("discount_rate"))
-                .set("product", crmContractDao.queryBusinessProduct(contractId).get(0))
+                .set("product", crmContractDao.queryBusinessProduct(contractId))
                 .set("total_price", contract.getStr("total_price"));
         fieldList.add(new Record().set("field_name", "product").set("name", "产品").set("value", kv).set("form_type", "product").set("setting", new String[]{}).set("is_null", 0).set("field_type", 1));
         return fieldList;
