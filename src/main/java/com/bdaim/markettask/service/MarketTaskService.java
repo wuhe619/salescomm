@@ -1262,6 +1262,7 @@ public class MarketTaskService {
         }
 
         sb.append(" ORDER BY id ASC ");
+        LOG.info("markettaskdetail:{},{}",sb.toString(),args.toArray());
         try {
             page = marketTaskDao.sqlPageQuery0(sb.toString(), pageNum, pageSize, args.toArray());
         } catch (Exception e) {
