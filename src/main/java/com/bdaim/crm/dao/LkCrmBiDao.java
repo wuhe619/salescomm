@@ -29,11 +29,13 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
 
     public List<Map<String, Object>> examineStatistics(List<Record> categoryList, List<String> users,
                                                        Object sqlDateFormat, Object beginTime, Object finalTime) {
+        List<Object> params = new ArrayList<>();
         String custId = BaseUtil.getCustId();
         String sql = "SELECT " +
                 " a.user_id,a.username,a.realname,a.img ";
         for (Record record : categoryList) {
-            sql += ",COUNT(case when b.category_id=#para(x.category_id) then 1 end) as count_" + record.get("category_id");
+            sql += ",COUNT(case when b.category_id=? then 1 end) as count_" + record.get("category_id");
+            params.add(record.get("category_id"));
         }
         sql += " FROM " +
                 " lkcrm_admin_user AS a " +
@@ -43,7 +45,12 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 " a.user_id IN (";
         sql += SqlAppendUtil.sqlAppendWhereIn(users);
         sql += " ) AND a.cust_id=? AND b.cust_id=? GROUP BY a.user_id";
-        return super.queryListBySql(sql, sqlDateFormat, beginTime, finalTime, custId, custId);
+        params.add(sqlDateFormat);
+        params.add(beginTime);
+        params.add(finalTime);
+        params.add(custId);
+        params.add(custId);
+        return super.queryMapsListBySql(sql, params.toArray());
     }
 
     public Map<String, Object> queryExamineCount(Object categoryId, Object beginDate, Object endDate, Object userId) {

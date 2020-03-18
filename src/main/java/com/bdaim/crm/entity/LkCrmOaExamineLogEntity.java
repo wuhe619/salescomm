@@ -23,6 +23,17 @@ public class LkCrmOaExamineLogEntity {
     private String remarks;
     private Integer isRecheck;
     private Integer orderId;
+    private String custId;
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
+    }
 
     @Id
     @Column(name = "log_id")
@@ -141,6 +152,7 @@ public class LkCrmOaExamineLogEntity {
         LkCrmOaExamineLogEntity that = (LkCrmOaExamineLogEntity) o;
         return logId == that.logId &&
                 Objects.equals(recordId, that.recordId) &&
+                Objects.equals(custId, that.custId) &&
                 Objects.equals(examineStepId, that.examineStepId) &&
                 Objects.equals(examineStatus, that.examineStatus) &&
                 Objects.equals(createUser, that.createUser) &&
@@ -154,6 +166,7 @@ public class LkCrmOaExamineLogEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(logId, recordId, examineStepId, examineStatus, createUser, createTime, examineUser, examineTime, remarks, isRecheck, orderId);
+        return Objects.hash(logId, recordId, examineStepId, examineStatus, createUser, createTime, examineUser,
+                examineTime, remarks, isRecheck, orderId,custId);
     }
 }
