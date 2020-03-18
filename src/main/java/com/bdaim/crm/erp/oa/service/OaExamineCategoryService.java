@@ -54,6 +54,7 @@ public class OaExamineCategoryService {
             oaExamineCategory.setCreateTime(new Timestamp(System.currentTimeMillis()));
             oaExamineCategory.setUpdateTime(new Timestamp(System.currentTimeMillis()));
 //            bol = oaExamineCategory.save();
+            oaExamineCategory.setCustId(BaseUtil.getCustId());
             categoryDao.save(oaExamineCategory);
             categoryId = oaExamineCategory.getCategoryId();
             LkCrmAdminFieldEntity content = new LkCrmAdminFieldEntity();
@@ -74,6 +75,7 @@ public class OaExamineCategoryService {
             content.setIsNull(0);
             content.setName("备注");
 //            content.save();
+            fieldDao.getSession().clear();
             fieldDao.save(content);
         } else {
             oaExamineCategory.setUpdateTime(new Timestamp(System.currentTimeMillis()));
@@ -98,6 +100,7 @@ public class OaExamineCategoryService {
     public R queryExamineCategoryList(BasePageRequest basePageRequest) {
         //Page<Record> paginate = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select * ", "from lkcrm_oa_examine_category where is_deleted = 0 AND cust_id = ? ");
         Page paginate = categoryDao.sqlPageQuery("select * from lkcrm_oa_examine_category where is_deleted = 0 AND cust_id = ? ", basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getCustId());
+        List<Record> recordList = new ArrayList<>();
         paginate.getData().forEach(m -> {
                     Record record = JavaBeanUtil.mapToRecord((Map<String, Object>) m);
                     String stepListSql = "select * from lkcrm_oa_examine_step where category_id = ?";
@@ -127,9 +130,11 @@ public class OaExamineCategoryService {
                     } else {
                         record.set("deptIds", new ArrayList<>());
                     }
+                    recordList.add(record);
                 }
         );
-        return R.ok().put("data", paginate);
+        paginate.setData(recordList);
+        return R.ok().put("data", BaseUtil.crmPage(paginate));
     }
 
     public R deleteExamineCategory(String id) {
