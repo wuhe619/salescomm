@@ -96,6 +96,7 @@ public class WorkbenchService {
                 relationCount += TagUtil.toSet(taskRelation.getContactsIds()).size();
                 relationCount += TagUtil.toSet(taskRelation.getCustomerIds()).size();
                 relationCount += TagUtil.toSet(taskRelation.getContractIds()).size();
+                relationCount += TagUtil.toSet(taskRelation.getLeadsIds()).size();
             }
             task.set("relationCount", relationCount);
         });

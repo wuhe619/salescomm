@@ -25,7 +25,6 @@ import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.beans.BeanUtils;
@@ -244,6 +243,7 @@ public class TaskService {
         List<Record> contactsList = new ArrayList<>();
         List<Record> businessList = new ArrayList<>();
         List<Record> contractList = new ArrayList<>();
+        List<Record> leadsList = new ArrayList<>();
         if (relation != null) {
             if (StrUtil.isNotBlank(relation.getStr("customer_ids"))) {
                 String[] customerIds = relation.getStr("customer_ids").split(",");
@@ -301,11 +301,26 @@ public class TaskService {
                 }
                 task.set("contractList", contractList);
             }
+
+            if (StrUtil.isNotBlank(relation.getStr("leads_ids"))) {
+                String[] leadsIds = relation.getStr("leads_ids").split(",");
+
+                for (String leadsId : leadsIds) {
+                    if (StrUtil.isNotBlank(leadsId)) {
+                        String businessSql = "select leads_id,leads_name  from lkcrm_crm_leads  where leads_id = ?";
+                        Record lead = JavaBeanUtil.mapToRecord(taskClassDao.queryUniqueSql(businessSql, leadsId));
+                        if (lead != null) {
+                            leadsList.add(lead);
+                        }
+                    }
+                }
+            }
         }
         task.set("customerList", customerList);
         task.set("contactsList", contactsList);
         task.set("businessList", businessList);
         task.set("contractList", contractList);
+        task.set("leadsList", leadsList);
 
         return task.set("labelList", labelList).set("ownerUserList", ownerUserList);
     }
