@@ -1,4 +1,4 @@
-package com.bdaim.crm.common.interceptor;
+package com.bdaim.crm.common.annotation;
 
 import org.springframework.core.annotation.AliasFor;
 

@@ -1,25 +1,18 @@
 package com.bdaim.crm.erp.oa.controller;
 
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.crm.common.interceptor.ClassTypeCheck;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.entity.LkCrmOaAnnouncementEntity;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.oa.entity.OaAnnouncement;
 import com.bdaim.crm.erp.oa.service.OaAnnouncementService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
-import org.springframework.beans.propertyeditors.CustomDateEditor;
-import org.springframework.web.bind.ServletRequestDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * 公告

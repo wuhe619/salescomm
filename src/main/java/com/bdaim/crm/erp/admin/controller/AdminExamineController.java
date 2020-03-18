@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.common.interceptor.ClassTypeCheck;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.entity.LkCrmAdminExamineEntity;
 import com.bdaim.crm.erp.admin.entity.AdminExamine;
 import com.bdaim.crm.erp.admin.service.AdminExamineService;

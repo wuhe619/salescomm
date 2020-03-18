@@ -10,8 +10,6 @@ import com.bdaim.crm.common.config.paragetter.PageParaGetter;
 import com.bdaim.crm.common.config.redis.RedisPlugin;
 import com.bdaim.crm.common.config.render.ErpRenderFactory;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.common.interceptor.AuthInterceptor;
-import com.bdaim.crm.common.interceptor.ErpInterceptor;
 import com.bdaim.crm.erp._MappingKit;
 import com.bdaim.crm.erp.admin.common.AdminRouter;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
@@ -125,8 +123,8 @@ public class JfinalConfig extends JFinalConfig {
     @Override
     public void configInterceptor(Interceptors me) {
         //添加全局拦截器
-        me.addGlobalActionInterceptor(new ErpInterceptor());
-        me.add(new AuthInterceptor());
+//        me.addGlobalActionInterceptor(new ErpInterceptor());
+//        me.add(new AuthInterceptor());
     }
 
     /**

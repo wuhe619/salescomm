@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.common.interceptor.ClassTypeCheck;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaExamine;
 import com.bdaim.crm.erp.oa.entity.OaExamineLog;

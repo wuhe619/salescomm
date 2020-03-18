@@ -3,7 +3,7 @@ package com.bdaim.crm.erp.crm.controller;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.common.interceptor.ClassTypeCheck;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.erp.crm.service.InstrumentService;
 import com.bdaim.crm.utils.BaseUtil;
