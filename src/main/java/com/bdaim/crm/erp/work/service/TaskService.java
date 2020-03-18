@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.work.service;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
@@ -461,11 +462,11 @@ public class TaskService {
                     if (!"update_time".equals(y.getKey()) && !"label_id".equals(y.getKey()) && !"owner_user_id".equals(y.getKey())) {
                         if ("priority".equals(y.getKey())) {
                             String value = "";
-                            if (Integer.valueOf(newValue.toString()) == 1) {
+                            if (NumberUtil.isInteger(newValue.toString()) && NumberUtil.parseInt(newValue.toString()) == 1) {
                                 value = "普通";
-                            } else if (Integer.valueOf(newValue.toString()) == 2) {
+                            } else if (NumberUtil.isInteger(newValue.toString()) && NumberUtil.parseInt(newValue.toString()) == 2) {
                                 value = "紧急";
-                            } else if (Integer.valueOf(newValue.toString()) == 3) {
+                            } else if (NumberUtil.isInteger(newValue.toString()) && NumberUtil.parseInt(newValue.toString()) == 3) {
                                 value = "非常紧急";
                             } else {
                                 value = "无";

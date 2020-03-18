@@ -45,7 +45,7 @@ public class OaCommentController extends BasicAction {
      * 添加项目任务评论或者修改
      */
     @RequestMapping(value = "/setWorkTaskComment")
-    public R setWorkTaskComment(@Para("") LkCrmTaskCommentEntity comment) {
+    public R setWorkTaskComment(LkCrmTaskCommentEntity comment) {
 //        renderJson(commentService.setComment(comment));
         return commentService.setComment(comment);
     }

@@ -17,7 +17,7 @@ public class LkCrmTaskCommentEntity {
     private String content;
     private Timestamp createTime;
     private Integer mainId;
-    private Integer pid;
+    private Long pid;
     private Integer status;
     private Integer typeId;
     private Integer favour;
@@ -76,11 +76,11 @@ public class LkCrmTaskCommentEntity {
 
     @Basic
     @Column(name = "pid")
-    public Integer getPid() {
+    public Long getPid() {
         return pid;
     }
 
-    public void setPid(Integer pid) {
+    public void setPid(Long pid) {
         this.pid = pid;
     }
 
