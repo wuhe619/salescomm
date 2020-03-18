@@ -231,7 +231,7 @@ public class TaskController extends BasicAction {
      */
     @RequestMapping(value = "/svaeTaskRelation", method = RequestMethod.POST)
     public R svaeTaskRelation(@Para("") LkCrmTaskRelationEntity taskRelation) {
-        return (taskService.svaeTaskRelation(taskRelation, BaseUtil.getUser().getUserId().intValue()));
+        return (taskService.saveTaskRelation(taskRelation, BaseUtil.getUser().getUserId().intValue()));
     }
 
     /**

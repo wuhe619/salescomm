@@ -574,12 +574,11 @@ public class TaskService {
     }
 
     /**
-     * @author zxy
      * 添加任务与业务关联
      */
-    public R svaeTaskRelation(LkCrmTaskRelationEntity taskRelation, Integer userId) {
-//        Db.delete("delete from `lkcrm_task_relation` where task_id = ?", taskRelation.getTaskId());
-//        taskRelation.setCreateTime(DateUtil.date());
+    public R saveTaskRelation(LkCrmTaskRelationEntity taskRelation, Integer userId) {
+        taskRelationDao.executeUpdateSQL("delete from `lkcrm_task_relation` where task_id = ?", taskRelation.getTaskId());
+        taskRelation.setCreateTime(DateUtil.date().toTimestamp());
 //        return taskRelation.save() ? R.ok() : R.error();
         taskRelationDao.saveOrUpdate(taskRelation);
         return R.ok();

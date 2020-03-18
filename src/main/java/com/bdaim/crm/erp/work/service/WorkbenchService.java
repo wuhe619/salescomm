@@ -88,9 +88,10 @@ public class WorkbenchService {
                 }
             }
             task.set("labelList", labelList);
-            LkCrmTaskRelationEntity taskRelation =crmTaskRelationDao.findUniqueBy("taskId",taskId);
+            List<LkCrmTaskRelationEntity> list = crmTaskRelationDao.find("FROM LkCrmTaskRelationEntity WHERE taskId = ? ", taskId);
             int relationCount = 0;
-            if (taskRelation != null) {
+            if (list.size() > 0) {
+                LkCrmTaskRelationEntity taskRelation = list.get(0);
                 relationCount += TagUtil.toSet(taskRelation.getBusinessIds()).size();
                 relationCount += TagUtil.toSet(taskRelation.getContactsIds()).size();
                 relationCount += TagUtil.toSet(taskRelation.getCustomerIds()).size();
