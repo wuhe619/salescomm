@@ -411,6 +411,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
             }
         }
         p.add(customerId);
+        logger.info("listNotInUserGroupByCustomerId:"+sql.toString()+";"+p.toArray());
         List<CustomerUserDTO> customerUserList = this.find(sql.toString(), p.toArray());
         return customerUserList;
     }
