@@ -173,7 +173,8 @@ public class AdminExamineRecordService {
         //查询审批流程
         LkCrmAdminExamineEntity examine = crmAdminExamineDao.get(examineRecord.getExamineId());
         if (examine.getCategoryType() == 1) {
-            ownerUserId = crmContactsDao.get(id).getOwnerUserId();
+            LkCrmContractEntity contactsEntity = crmContractDao.get(id);
+            ownerUserId = contactsEntity.getOwnerUserId();
         } else {
             ownerUserId = crmReceivablesDao.get(id).getOwnerUserId();
         }

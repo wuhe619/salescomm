@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,7 +34,8 @@ public class OaCommentService {
             comment.setCreateTime(new Timestamp(System.currentTimeMillis()));
             comment.setUserId(BaseUtil.getUser().getUserId());
 //            bol = comment.save();
-            commentDao.save(comment);
+            Integer id = (Integer) commentDao.saveReturnPk(comment);
+            comment.setCommentId(id);
         } else {
 //            bol = comment.update ();
             commentDao.update(comment);
@@ -44,11 +46,11 @@ public class OaCommentService {
         return bol ? R.ok().put("data", comment) : R.error();
     }
 
-    @Before(Tx.class)
     public R deleteComment(Integer commentId) {
         String delSql = "delete from `lkcrm_task_comment` where main_id = ?";
         commentDao.executeUpdateSQL(delSql, commentId);
-        return new TaskComment().dao().deleteById(commentId) ? R.ok() : R.error();
+        commentDao.delete(commentId);
+        return R.ok();
     }
 
     public List<Record> queryCommentList(String typeId, String type) {
