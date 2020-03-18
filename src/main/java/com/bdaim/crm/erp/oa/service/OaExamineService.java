@@ -217,6 +217,7 @@ public class OaExamineService {
             oaExamineStep = OaExamineStep.dao.findFirst("SELECT * FROM lkcrm_oa_examine_step WHERE category_id = ? ORDER BY step_num LIMIT 0,1", categoryId);
         }
         Integer recordId = null;
+        oaExamine.setCustId(BaseUtil.getCustId());
         //创建审批记录
         if (oaExamine.getExamineId() == null) {
             oaExamine.setCreateUserId(user.getUserId());
