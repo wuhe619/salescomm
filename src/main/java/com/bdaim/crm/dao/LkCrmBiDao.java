@@ -131,7 +131,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
             sql += "  and sau.dept_id = ? ";
             params.add(deptId);
         }
-        return super.queryListBySql(sql, params.toArray());
+        return super.queryMapsListBySql(sql, params.toArray());
     }
 
     public List<Map<String, Object>> queryByUserIdOrYear(String year, String month, Long userId, Integer deptId) {
@@ -887,7 +887,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
             params.add(endTime);
         }
         sql += "   GROUP BY cccp.product_id";
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
     }
 
     public List<Record> recordCountRanKing(String[] userIdsArr, Integer status, String startTime, String endTime) {
