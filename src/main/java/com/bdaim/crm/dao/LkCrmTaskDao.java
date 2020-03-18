@@ -45,20 +45,17 @@ public class LkCrmTaskDao extends SimpleHibernateDao<LkCrmTaskEntity, Integer> {
     }
 
     public List<Map<String, Object>> dateList(Long userId, String startTime, String endTime) {
-        String sql = "SELECT " +
-                " task_id,name,date_format( start_time, '%Y-%m-%d' ) AS start_time, " +
+        String sql = "SELECT task_id,name,date_format( start_time, '%Y-%m-%d' ) AS start_time, " +
                 " date_format( stop_time, '%Y-%m-%d' ) AS stop_time, " +
                 " priority,create_time,update_time  " +
-                "FROM " +
-                " lkcrm_task a  " +
-                "WHERE " +
+                " FROM lkcrm_task a WHERE " +
                 " ( a.main_user_id = ? OR a.owner_user_id LIKE concat( '%,', ?, ',%' ) )  " +
                 " AND ( a.stop_time BETWEEN ? AND ? OR a.stop_time IS NULL )  " +
                 " AND a.pid = 0  " +
                 " AND ( a.STATUS = 1 OR a.STATUS = 2 )  " +
                 " AND a.is_archive = 0  " +
-                " AND a.ishidden = 0";
-        return super.queryListBySql(sql, userId, userId, startTime, endTime);
+                " AND a.ishidden = 0 AND a.cust_id = ? ";
+        return super.sqlQuery(sql, userId, userId, startTime, endTime, BaseUtil.getCustId());
     }
 
     public LkCrmSqlParams getTaskList(Integer type, List<Long> userIds, Integer status,

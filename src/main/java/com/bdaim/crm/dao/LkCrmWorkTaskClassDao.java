@@ -17,6 +17,6 @@ public class LkCrmWorkTaskClassDao extends SimpleHibernateDao<LkCrmWorkTaskClass
                 " WHERE wtl.task_id = ?  " +
                 " AND wtl.STATUS != 4  " +
                 " ORDER BY wtl.create_time DESC";
-        return super.queryListBySql(sql, taskId);
+        return super.sqlQuery(sql, taskId);
     }
 }
