@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.util.TypeUtils;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmOaExamineDao;
@@ -30,7 +31,6 @@ import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.SqlPara;
 import com.jfinal.plugin.activerecord.tx.Tx;
@@ -92,8 +92,14 @@ public class OaExamineService {
             transfer(recordList);
             return R.ok().put("data", recordList);
         } else {
-            Page<Record> recordList = Db.paginate(request.getPage(), request.getLimit(), Db.getSqlPara("oa.examine.myOaExamine", Kv.by("userId", userId).set("categoryId", jsonObject.getInteger("categoryId")).set("status", jsonObject.getInteger("status")).set("startTime", jsonObject.getDate("startTime")).set("endTime", jsonObject.getDate("endTime"))));
-            transfer(recordList.getList());
+//            Page<Record> recordList = Db.paginate(request.getPage(), request.getLimit(),
+//            Db.getSqlPara("oa.examine.myOaExamine", Kv.by("userId", userId).
+//            set("categoryId", jsonObject.getInteger("categoryId")).set("status", jsonObject.getInteger("status"))
+//            .set("startTime", jsonObject.getDate("startTime")).set("endTime", jsonObject.getDate("endTime"))));
+            Page recordList = crmOaExamineDao.myOaExamine(request.getPage(), request.getLimit(),
+                    userId, jsonObject.getInteger("categoryId"), jsonObject.getInteger("status"),
+                    jsonObject.getDate("startTime"), jsonObject.getDate("endTime"));
+            transfer(JavaBeanUtil.mapToRecords(recordList.getData()));
             return R.ok().put("data", recordList);
         }
     }
