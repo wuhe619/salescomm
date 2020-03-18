@@ -4463,6 +4463,7 @@ public class MarketTaskService {
             if (StringUtil.isNotEmpty(pageIndex) && StringUtil.isNotEmpty(pageSize)) {
                 sql.append(" LIMIT ").append(pageIndex).append(",").append(pageSize);
             }
+            LOG.info("入数据到营销任务:"+marketTaskId+";"+sql.toString()+";"+args);
             marketTaskDao.executeUpdateSQL(sql.toString(), args);
         }
 
