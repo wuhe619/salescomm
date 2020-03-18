@@ -46,7 +46,7 @@ public class BiController extends BasicAction {
     public R productStatistics() {
         Date startTime = getParaToDate("startTime");
         Date endTime = getParaToDate("endTime");
-        Integer userId = getInt("userId");
+        Long userId = getLong("userId");
         Integer deptId = getInt("deptId");
         return biService.queryProductSell(startTime, endTime, userId, deptId);
     }
@@ -60,7 +60,7 @@ public class BiController extends BasicAction {
     public R queryByMonth() {
         String year = get("year");
         String month = get("month");
-        Integer userId = getInt("userId");
+        Long userId = getLong("userId");
         Integer deptId = getInt("deptId");
 //        renderJson(biService.queryByUserIdOrYear(userId,deptId,year,month));
         return biService.queryByUserIdOrYear(userId, deptId, year, month);
