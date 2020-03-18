@@ -23,7 +23,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "    FROM lkcrm_oa_log as a LEFT JOIN lkcrm_admin_user as b on a.create_user_id=b.user_id " +
                 "    WHERE DATE_FORMAT(a.create_time,?) between ? and" +
                 " ? and a.create_user_id =? and a.cust_id=? and b.cust_id=?";
-        return super.queryListBySql(sql, sqlDateFormat, beginTime, finalTime, uid,
+        return super.queryMapsListBySql(sql, sqlDateFormat, beginTime, finalTime, uid,
                 custId, custId);
     }
 
@@ -98,7 +98,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         return super.queryListBySql(sql, params.toArray());
     }
 
-    public List<Map<String, Object>> queryProductSell(Date startTime, Date endTime, Integer userId, Integer deptId) {
+    public List<Map<String, Object>> queryProductSell(Date startTime, Date endTime, Long userId, Integer deptId) {
         String sql = "      SELECT scp.product_id,scpc.name as categoryName , scpc.category_id, " +
                 "      scp.name as productName, scc.num as contracNum , " +
                 "      sau.realname as ownerUserName,sccu.customer_name as customerName , " +
@@ -134,7 +134,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         return super.queryListBySql(sql, params.toArray());
     }
 
-    public List<Map<String, Object>> queryByUserIdOrYear(String year, String month, Integer userId, Integer deptId) {
+    public List<Map<String, Object>> queryByUserIdOrYear(String year, String month, Long userId, Integer deptId) {
         String contractview = BaseUtil.getViewSqlNotASName("contractview");
         String sql = "      select co.* from " + contractview + " as co LEFT JOIN lkcrm_admin_user as sau on co.owner_user_id = sau.user_id " +
                 "      where 1 = 1 and sau.cust_id=? ";
@@ -334,7 +334,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         sql += "        GROUP BY cct.owner_user_id " +
                 "        ORDER BY IFNULL(SUM(cct.money), 0) DESC";
 
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
     }
 
     public List<Record> receivablesRanKing(String[] userIdsArr, Integer status, String startTime, String endTime) {
@@ -388,7 +388,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         }
         sql += "        GROUP BY cct.owner_user_id " +
                 "        ORDER BY IFNULL(SUM(cct.money), 0) DESC";
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
 
     }
 
@@ -443,7 +443,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         }
         sql += "        GROUP BY cct.owner_user_id " +
                 "        ORDER BY count(1) DESC";
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
     }
 
     public List<Record> productCountRanKing(String[] userIdsArr, Integer status, String startTime, String endTime) {
@@ -498,7 +498,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         }
         sql += "        GROUP BY cct.owner_user_id " +
                 "        ORDER BY count(1) DESC";
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
     }
 
     public List<Record> customerCountRanKing(String[] userIdsArr, Integer status, String startTime, String endTime) {
@@ -551,7 +551,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         }
         sql += "       GROUP BY cct.create_user_id " +
                 "        ORDER BY count(1) DESC";
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
 
 
     }
@@ -606,7 +606,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
             params.add(endTime);
         }
         sql += "  GROUP BY ccc.`客户来源`";
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
 
     }
 
@@ -660,7 +660,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
             params.add(endTime);
         }
         sql += " GROUP BY ccc.`客户级别`";
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
     }
 
     public List<Record> portrait(String[] userIdsArr, Integer status, String startTime, String endTime) {
@@ -713,7 +713,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
             params.add(endTime);
         }
         sql += " GROUP BY ccc.`客户行业`";
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
     }
 
     public Record addressAnalyse(String addRess) {
@@ -833,7 +833,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         }
         sql += "        GROUP BY coe.create_user_id " +
                 "        ORDER BY count(1) DESC";
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
     }
 
     public List<Record> contractProductRanKing(String[] userIdsArr, Integer status, String startTime, String endTime) {
@@ -940,7 +940,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         }
         sql += "        GROUP BY ccr.create_user_id " +
                 "        ORDER BY count(1) DESC";
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
     }
 
     public List<Record> customerGenjinCountRanKing(String[] userIdsArr, Integer status, String startTime, String endTime) {
@@ -993,7 +993,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         }
         sql += "       GROUP BY cct.owner_user_id " +
                 "        ORDER BY count(1) DESC";
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
     }
 
     public List<Record> contactsCountRanKing(String[] userIdsArr, Integer status, String startTime, String endTime) {
@@ -1046,7 +1046,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         }
         sql += "        GROUP BY cct.create_user_id " +
                 "        ORDER BY count(1) DESC";
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+        return JavaBeanUtil.mapToRecords(super.queryMapsListBySql(sql, params.toArray()));
     }
 
     public List<Record> sellFunnelList(String[] userIdss, Integer status, String startTime, String endTime) {
