@@ -98,7 +98,7 @@ public class OaLogService {
             kv.set("send_user_ids", user.getUserId()).set("send_dept_ids", user.getDeptId()).set("userIds", userIds);
         }
         if (object.containsKey("createUserId")) {
-            kv.set("create_user_id", object.get("createUserId"));
+            kv.set("create_user_id", object.getLong("createUserId"));
         }
         if (object.containsKey("createTime")) {
             kv.set("create_time", object.get("createTime"));
