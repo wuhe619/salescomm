@@ -10,13 +10,8 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.dao.LkCrmOaExamineDao;
-import com.bdaim.crm.dao.LkCrmOaExamineLogDao;
-import com.bdaim.crm.dao.LkCrmOaExamineRecordDao;
-import com.bdaim.crm.dao.LkCrmOaExamineRelationDao;
-import com.bdaim.crm.entity.LkCrmOaExamineLogEntity;
-import com.bdaim.crm.entity.LkCrmOaExamineRecordEntity;
-import com.bdaim.crm.entity.LkCrmOaExamineRelationEntity;
+import com.bdaim.crm.dao.*;
+import com.bdaim.crm.entity.*;
 import com.bdaim.crm.erp.admin.entity.AdminExamineLog;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
@@ -60,9 +55,19 @@ public class OaExamineService {
     @Autowired
     private LkCrmOaExamineRecordDao recordDao;
     @Autowired
+    private LkCrmOaExamineCategoryDao categoryDao;
+    @Autowired
     private LkCrmOaExamineLogDao logDao;
     @Autowired
     private LkCrmOaExamineRelationDao relationDao;
+    @Autowired
+    private LkCrmCustomerDao customerDao;
+    @Autowired
+    private LkCrmContactsDao contactsDao;
+    @Autowired
+    private LkCrmBusinessDao businessDao;
+    @Autowired
+    private LkCrmContractDao contractDao;
 
 
     public R myInitiate(BasePageRequest<Void> request) {
@@ -75,8 +80,9 @@ public class OaExamineService {
         } else {
             com.bdaim.common.dto.Page recordList = crmOaExamineDao.pageMyInitiate(request.getPage(), request.getLimit(), userId, jsonObject.getInteger("categoryId"), jsonObject.getInteger("checkStatus"), jsonObject.getDate("startTime"), jsonObject.getDate("endTime"));
             //Page<Record> recordList = Db.paginate(request.getPage(), request.getLimit(), Db.getSqlPara("oa.examine.myInitiate", Kv.by("userId", userId).set("categoryId", jsonObject.getInteger("categoryId")).set("status", jsonObject.getInteger("checkStatus")).set("startTime", jsonObject.getDate("startTime")).set("endTime", jsonObject.getDate("endTime"))));
-            transfer(JavaBeanUtil.mapToRecords(recordList.getData()));
-            return R.ok().put("data", JavaBeanUtil.mapToRecords(recordList.getData()));
+            List<Record> recordListResult = JavaBeanUtil.mapToRecords(recordList.getData());
+            transfer(recordListResult);
+            return R.ok().put("data", recordListResult);
         }
     }
 
@@ -99,8 +105,9 @@ public class OaExamineService {
             Page recordList = crmOaExamineDao.myOaExamine(request.getPage(), request.getLimit(),
                     userId, jsonObject.getInteger("categoryId"), jsonObject.getInteger("status"),
                     jsonObject.getDate("startTime"), jsonObject.getDate("endTime"));
-            transfer(JavaBeanUtil.mapToRecords(recordList.getData()));
-            return R.ok().put("data", recordList);
+            List<Record> result = JavaBeanUtil.mapToRecords(recordList.getData());
+            transfer(result);
+            return R.ok().put("data", result);
         }
     }
 
@@ -111,7 +118,7 @@ public class OaExamineService {
 //            record.getInt("create_user_id")));
             String sql = "select user_id,realname,img from lkcrm_admin_user where user_id = ?";
             Record createUser = JavaBeanUtil.mapToRecord(crmOaExamineDao.queryUniqueSql(sql,
-                    record.getInt("create_user_id")));
+                    record.getLong("create_user_id")));
             record.set("createUser", createUser);
             String batchId = record.getStr("batch_id");
             adminFileService.queryByBatchId(batchId, record);
@@ -186,7 +193,7 @@ public class OaExamineService {
     @Before(Tx.class)
     public R setOaExamine(JSONObject jsonObject) {
         LoginUser user = BaseUtil.getUser();
-        OaExamine oaExamine = jsonObject.getObject("oaExamine", OaExamine.class);
+        LkCrmOaExamineEntity oaExamine = jsonObject.getObject("oaExamine", LkCrmOaExamineEntity.class);
         boolean oaAuth = AuthUtil.isOaAuth(OaEnum.EXAMINE_TYPE_KEY.getTypes(), oaExamine.getExamineId());
         if (oaAuth) {
             return R.noAuth();
@@ -202,7 +209,8 @@ public class OaExamineService {
         oaExamine.setBatchId(batchId);
         String checkUserIds = jsonObject.getString("checkUserId");
         Integer categoryId = oaExamine.getCategoryId();
-        OaExamineCategory oaExamineCategory = OaExamineCategory.dao.findById(categoryId);
+//        OaExamineCategory oaExamineCategory = OaExamineCategory.dao.findById(categoryId);
+        LkCrmOaExamineCategoryEntity oaExamineCategory = categoryDao.get(categoryId);
         OaExamineStep oaExamineStep = new OaExamineStep();
         Integer examineType = oaExamineCategory.getExamineType();
         if (oaExamineCategory.getExamineType() == 1) {
@@ -211,12 +219,16 @@ public class OaExamineService {
         Integer recordId = null;
         //创建审批记录
         if (oaExamine.getExamineId() == null) {
-            oaExamine.setCreateUserId(user.getUserId().intValue());
-            oaExamine.setCreateTime(new Date());
-            bol = oaExamine.save();
+            oaExamine.setCreateUserId(user.getUserId());
+            oaExamine.setCreateTime(new Timestamp(System.currentTimeMillis()));
+//            bol = oaExamine.save();
+            crmOaExamineDao.save(oaExamine);
+            bol = true;
         } else {
-            oaExamine.setUpdateTime(new Date());
-            bol = oaExamine.update();
+            oaExamine.setUpdateTime(new Timestamp(System.currentTimeMillis()));
+//            bol = oaExamine.update();
+            crmOaExamineDao.update(oaExamine);
+            bol = true;
             String delSql1 = "delete from lkcrm_oa_examine_travel where examine_id = ?";
             crmOaExamineDao.executeUpdateSQL(delSql1, oaExamine.getExamineId());
             String delSql2 = "delete from lkcrm_oa_examine_relation where examine_id = ?";
@@ -224,7 +236,7 @@ public class OaExamineService {
             String intSql = "select  record_id from lkcrm_oa_examine_record where examine_id = ? limit 1";
             recordId = crmOaExamineDao.queryForInt(intSql, oaExamine.getExamineId());
         }
-        oaExamine = new OaExamine().findById(oaExamine.getExamineId());
+        oaExamine = crmOaExamineDao.get(oaExamine.getExamineId());
         LkCrmOaExamineRecordEntity oaExamineRecord = new LkCrmOaExamineRecordEntity();
         oaExamineRecord.setExamineId(oaExamine.getExamineId());
         oaExamineRecord.setExamineStepId(oaExamineStep.getStepId());
@@ -234,12 +246,12 @@ public class OaExamineService {
             oaExamineRecord.setCreateUser(user.getUserId());
             oaExamineRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
 //            oaExamineRecord.save();
-            recordDao.save(oaExamineRecord);
+            recordDao.saveReturnPk(oaExamineRecord);
         } else {
             oaExamineRecord.setExamineStatus(0);
             oaExamineRecord.setRecordId(recordId);
 //            oaExamineRecord.update();
-            recordDao.save(oaExamineRecord);
+            recordDao.saveReturnPk(oaExamineRecord);
             //更新审核日志状态
             String updateSql = "update lkcrm_oa_examine_log set is_recheck = 1 where record_id = ?";
             recordDao.executeUpdateSQL(updateSql, recordId);
@@ -268,7 +280,7 @@ public class OaExamineService {
             recordDao.update(oaExamineRecord);
         } else {
             //添加审核日志
-            for (Integer userId : TagUtil.toSet(checkUserIds)) {
+            for (Long userId : TagUtil.toLongSet(checkUserIds)) {
                 LkCrmOaExamineLogEntity oaExamineLog = new LkCrmOaExamineLogEntity();
                 oaExamineLog.setRecordId(oaExamineRecord.getRecordId());
                 oaExamineLog.setOrderId(1);
@@ -279,6 +291,7 @@ public class OaExamineService {
                 oaExamineLog.setCreateUser(user.getUserId());
                 oaExamineLog.setCreateTime(new Timestamp(System.currentTimeMillis()));
                 oaExamineLog.setExamineUser(Long.valueOf(userId));
+                oaExamineLog.setCustId(BaseUtil.getCustId());
 //                oaExamineLog.save();
                 logDao.save(oaExamineLog);
             }
@@ -576,42 +589,49 @@ public class OaExamineService {
 
 
     private void setRelation(Record relationRecord) {
-        List<Record> recordList = Db.find("select * from lkcrm_oa_examine_relation where examine_id = ?", relationRecord.getInt("examine_id"));
+//        List<Record> recordList = Db.find("select * from lkcrm_oa_examine_relation where examine_id = ?", relationRecord.getInt("examine_id"));
+        String sql = "select * from lkcrm_oa_examine_relation where examine_id = ?";
+        List<Record> recordList = JavaBeanUtil.mapToRecords(
+                recordDao.queryMapsListBySql(sql, relationRecord.getInt("examine_id")));
+
         for (Record record : recordList) {
-            List<CrmCustomer> customerList = new ArrayList<>();
+            List<LkCrmCustomerEntity> customerList = new ArrayList<>();
             if (record.getStr("customer_ids") != null && !record.getStr("customer_ids").isEmpty()) {
                 for (Integer customerId : TagUtil.toSet(record.getStr("customer_ids"))) {
-                    CrmCustomer crmCustomer = CrmCustomer.dao.findById(customerId);
+//                    CrmCustomer crmCustomer = CrmCustomer.dao.findById(customerId);
+                    LkCrmCustomerEntity crmCustomer = customerDao.get(customerId);
                     if (crmCustomer != null) {
                         customerList.add(crmCustomer);
                     }
                 }
             }
             relationRecord.set("customerList", customerList);
-            List<CrmContacts> contactsList = new ArrayList<>();
+            List<LkCrmContactsEntity> contactsList = new ArrayList<>();
             if (record.getStr("contacts_ids") != null && !record.getStr("contacts_ids").isEmpty()) {
                 for (Integer contactsId : TagUtil.toSet(record.getStr("contacts_ids"))) {
-                    CrmContacts crmContacts = CrmContacts.dao.findById(contactsId);
+//                    LkCrmContactsEntity crmContacts = CrmContacts.dao.findById(contactsId);
+                    LkCrmContactsEntity crmContacts = contactsDao.get(contactsId);
                     if (crmContacts != null) {
                         contactsList.add(crmContacts);
                     }
                 }
             }
             relationRecord.set("contactsList", contactsList);
-            List<CrmBusiness> businessList = new ArrayList<>();
+            List<LkCrmBusinessEntity> businessList = new ArrayList<>();
             if (record.getStr("business_ids") != null && !record.getStr("business_ids").isEmpty()) {
                 for (Integer businessId : TagUtil.toSet(record.getStr("business_ids"))) {
-                    CrmBusiness crmBusiness = CrmBusiness.dao.findById(Integer.valueOf(businessId));
+//                    LkCrmBusinessEntity crmBusiness = CrmBusiness.dao.findById(Integer.valueOf(businessId));
+                    LkCrmBusinessEntity crmBusiness = businessDao.get(Integer.valueOf(businessId));
                     if (crmBusiness != null) {
                         businessList.add(crmBusiness);
                     }
                 }
             }
             relationRecord.set("businessList", businessList);
-            List<CrmContract> contractList = new ArrayList<>();
+            List<LkCrmContractEntity> contractList = new ArrayList<>();
             if (record.getStr("contract_ids") != null && !record.getStr("contract_ids").isEmpty()) {
                 for (Integer contractId : TagUtil.toSet(record.getStr("contract_ids"))) {
-                    CrmContract crmContract = CrmContract.dao.findById(Integer.valueOf(contractId));
+                    LkCrmContractEntity crmContract = contractDao.get(Integer.valueOf(contractId));
                     if (crmContract != null) {
                         contractList.add(crmContract);
                     }

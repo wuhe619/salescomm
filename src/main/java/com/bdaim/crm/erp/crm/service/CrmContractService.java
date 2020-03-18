@@ -179,8 +179,14 @@ public class CrmContractService {
             crmContract.setCheckStatus(0);
             crmContract.setOwnerUserId(BaseUtil.getUser().getUserId());
 
+            Map<String, Integer> map = null;
+            try {
+                map = examineRecordService.saveExamineRecord(1, jsonObject.getLong("checkUserId"), crmContract.getOwnerUserId(), null);
 
-            Map<String, Integer> map = examineRecordService.saveExamineRecord(1, jsonObject.getLong("checkUserId"), crmContract.getOwnerUserId(), null);
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+
             if (map.get("status") == 0) {
                 return R.error("没有启动的审核步骤，不能添加！");
             } else {

@@ -174,7 +174,9 @@ public class OaExamineCategoryService {
     }
 
     public List<Record> queryField(Integer id) {
-        List<Record> list = JavaBeanUtil.mapToRecords(categoryDao.sqlQuery("select * from `lkcrm_admin_field` where examine_category_id = ?", id));
+        String custId = BaseUtil.getCustId();
+        String sql = "select * from `lkcrm_admin_field` where examine_category_id = ? and cust_id = ?";
+        List<Record> list = JavaBeanUtil.mapToRecords(categoryDao.sqlQuery(sql, id, custId));
         adminFieldService.recordToFormType(list);
         return list;
     }
