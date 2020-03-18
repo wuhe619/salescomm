@@ -186,7 +186,7 @@ public class TaskService {
         adminFileService.queryByBatchId(mainTask.get("batch_id"), mainTask);
 //        List<Record> recordList = Db.find("select task_id from lkcrm_task where pid = ?", taskId);
         String sql = "select task_id from lkcrm_task where pid = ?";
-        List<Record> recordList = JavaBeanUtil.mapToRecords(taskClassDao.queryListBySql(sql, taskId));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(taskClassDao.sqlQuery(sql, taskId));
         List<Record> childTaskList = new ArrayList<>();
         if (recordList != null && recordList.size() > 0) {
             recordList.forEach(childTaskRecord -> {
@@ -323,7 +323,7 @@ public class TaskService {
         if (basePageRequest.getPageType() != null && basePageRequest.getPageType() == 0) {
             LkCrmSqlParams sqlParams = taskDao.getTaskList(type, userIds, status,
                     priority, date, name);
-            List<Map<String, Object>> maps = taskDao.queryListBySql(sqlParams.getSql(), sqlParams.getParams().toArray());
+            List<Map<String, Object>> maps = taskDao.sqlQuery(sqlParams.getSql(), sqlParams.getParams().toArray());
             List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
             return R.ok().put("data", queryUser(recordList));
         } else {
