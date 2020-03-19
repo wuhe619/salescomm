@@ -547,6 +547,7 @@ public class CrmCustomerService {
      */
     public List<Record> queryField(Integer customerId) {
         String customerview = BaseUtil.getViewSql("customerview");
+        LOG.info("Sql is {}","select * from " + customerview + " where customer_id = ?");
         Record customer = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from " + customerview + " where customer_id = ?", customerId).get(0));
         //Record customer = Db.findFirst("select * from customerview where customer_id = ?",customerId);
         List<Record> fieldList = adminFieldService.queryUpdateField(2, customer);
