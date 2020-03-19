@@ -222,8 +222,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
 
-    @Permissions("crm:leads:read")
-    @NotNullValidate(value = "leadsId", message = "线索id不能为空")
     @RequestMapping(value = "/cluesea/queryById", method = RequestMethod.POST)
     public ResponseInfo clueSeaQueryById(@RequestBody JSONObject jsonO) {
         ResponseInfo responseInfo = new ResponseInfo();
@@ -391,7 +389,7 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "DELETE FROM lkcrm_admin_field_sort ";
+        String sql = "DELETE FROM lkcrm_admin_field WHERE `name` = '当前负责人' ";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
@@ -413,7 +411,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 全局搜索查询线索
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
