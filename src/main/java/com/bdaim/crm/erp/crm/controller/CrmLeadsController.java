@@ -222,8 +222,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
 
-    @Permissions("crm:leads:read")
-    @NotNullValidate(value = "leadsId", message = "线索id不能为空")
     @RequestMapping(value = "/cluesea/queryById", method = RequestMethod.POST)
     public ResponseInfo clueSeaQueryById(@RequestBody JSONObject jsonO) {
         ResponseInfo responseInfo = new ResponseInfo();
@@ -413,7 +411,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 全局搜索查询线索
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
