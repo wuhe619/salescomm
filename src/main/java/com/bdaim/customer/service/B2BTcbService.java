@@ -340,7 +340,7 @@ public class B2BTcbService implements BusiService {
                 // 保存领取记录
                 saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));
                 // 判断是否为crm的线索领取
-                if ("crm".equals(param.getString("source")) && BaseUtil.getUserType() == 2 && status != -1) {
+                if ("crm".equals(param.getString("source")) && status != -1) {
                     List<String> superIds = new ArrayList<>();
                     superIds.add(dto.getSuper_id());
                     crmLeadsService.transferToPrivateSea(seaId, data.get(entId).getString("entName"), String.valueOf(userId), superIds);
