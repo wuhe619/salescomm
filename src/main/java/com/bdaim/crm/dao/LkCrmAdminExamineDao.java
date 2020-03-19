@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmAdminExamineEntity;
+import com.bdaim.crm.utils.BaseUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -33,8 +34,8 @@ public class LkCrmAdminExamineDao extends SimpleHibernateDao<LkCrmAdminExamineEn
                 "     from lkcrm_admin_examine as adminExamine " +
                 "    LEFT JOIN lkcrm_admin_user as adminUser on adminUser.user_id = adminExamine.update_user_id\n" +
                 "    LEFT JOIN lkcrm_admin_user as createUser on createUser.user_id = adminExamine.create_user_id\n" +
-                "    where  adminExamine.status != 2 ";
-        Page maps = sqlPageQuery(sql, pageNum, pageSize);
+                "    where  adminExamine.status != 2 AND adminExamine.cust_id = ? ";
+        Page maps = sqlPageQuery(sql, pageNum, pageSize, BaseUtil.getCustId());
         return maps;
     }
 
