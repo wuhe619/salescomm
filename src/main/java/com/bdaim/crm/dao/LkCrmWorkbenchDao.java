@@ -26,7 +26,7 @@ public class LkCrmWorkbenchDao extends SimpleHibernateDao<LkCrmTaskEntity, Integ
                 " AND a.pid = 0  " +
                 " AND a.ishidden = 0  " +
                 " AND a.is_top = ?  " +
-                " AND ( a.STATUS = 1 OR a.STATUS = 2 )  " +
+                //" AND ( a.STATUS = 1 OR a.STATUS = 2 )  " +
                 " AND a.is_archive = 0";
         return super.sqlQuery(sql, userId, userId, isTop);
     }
