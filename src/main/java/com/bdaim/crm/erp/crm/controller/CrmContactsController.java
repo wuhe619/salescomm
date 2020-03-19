@@ -156,7 +156,7 @@ public class CrmContactsController extends BasicAction {
      * @RequestParamm jsonArray
      * @return
      */
-    @Permissions({"crm:contacts:batchAddContacts"})
+    //@Permissions({"crm:contacts:batchAddContacts"})
     @RequestMapping(value = "/batchAddContacts", method = RequestMethod.POST)
     public R batchAddContacts(@org.springframework.web.bind.annotation.RequestBody JSONArray jsonArray) {
         // JSONObject jsonObject = JSON.parseObject(getRawData());
