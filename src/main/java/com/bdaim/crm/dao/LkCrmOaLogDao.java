@@ -84,7 +84,7 @@ public class LkCrmOaLogDao extends SimpleHibernateDao<LkCrmOaLogEntity, Integer>
     }
 
 
-    public Page queryList(int pageNum, int pageSize, Long create_user_id, Integer by, Integer send_user_ids,
+    public Page queryList(int pageNum, int pageSize, Long create_user_id, Integer by, Long send_user_ids,
                           Integer send_dept_ids, List<Long> userIds, String createTime, Integer category_id,
                           Integer logId, Long userId) {
         String sql = "SELECT\n" +
@@ -104,13 +104,14 @@ public class LkCrmOaLogDao extends SimpleHibernateDao<LkCrmOaLogEntity, Integer>
             param.add(create_user_id);
             sql += "  and a.create_user_id = ? ";
         }
-        if (create_user_id != null && by != null) {
+        if (create_user_id == null && by != null) {
             param.add(send_user_ids);
             param.add(send_dept_ids);
             sql += " and (a.send_user_ids like concat(\"%,\",?,\",%\") or a.send_dept_ids like concat(\"%,\",?,\",%\")";
             if (userIds != null && userIds.size() > 0) {
                 sql += "  or a.create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")";
             }
+            sql+=" ) ";
         }
         if (StringUtil.isNotEmpty(createTime)) {
             param.add(createTime);
@@ -130,7 +131,7 @@ public class LkCrmOaLogDao extends SimpleHibernateDao<LkCrmOaLogEntity, Integer>
         }
         sql += " AND a.cust_id = ? ";
         param.add(BaseUtil.getCustId());
-        sql += " order by log_id desc";
+        sql += " order by a.log_id desc";
         return super.sqlPageQuery(sql, pageNum, pageSize, param.toArray());
     }
 

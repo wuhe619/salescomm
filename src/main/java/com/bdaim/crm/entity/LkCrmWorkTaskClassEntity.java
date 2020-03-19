@@ -1,10 +1,15 @@
 package com.bdaim.crm.entity;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
+@DynamicUpdate
+@DynamicInsert
 @Table(name = "lkcrm_work_task_class", schema = "", catalog = "")
 public class LkCrmWorkTaskClassEntity {
     private Integer classId;

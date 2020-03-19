@@ -1,10 +1,15 @@
 package com.bdaim.crm.entity;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
 import javax.persistence.*;
 import java.util.Date;
 import java.util.Objects;
 
 @Entity
+@DynamicUpdate
+@DynamicInsert
 @Table(name = "lkcrm_admin_role", schema = "", catalog = "")
 public class LkCrmAdminRoleEntity {
     private Integer roleId;

@@ -1,11 +1,16 @@
 package com.bdaim.crm.entity;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Objects;
 
 @Entity
+@DynamicUpdate
+@DynamicInsert
 @Table(name = "lkcrm_task", schema = "", catalog = "")
 public class LkCrmTaskEntity {
     private Integer taskId;
@@ -34,6 +39,10 @@ public class LkCrmTaskEntity {
     private Timestamp hiddenTime;
     private String batchId;
     private Integer isArchive;
+    /**
+     * 任务类型
+     */
+    private String category;
 
     @Id
     @Column(name = "task_id")
@@ -294,6 +303,16 @@ public class LkCrmTaskEntity {
 
     public void setIsArchive(Integer isArchive) {
         this.isArchive = isArchive;
+    }
+
+    @Basic
+    @Column(name = "category")
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.admin.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
@@ -14,10 +15,7 @@ import com.bdaim.crm.entity.LkCrmCustomerEntity;
 import com.bdaim.crm.entity.LkCrmLeadsEntity;
 import com.bdaim.crm.erp.admin.entity.AdminScene;
 import com.bdaim.crm.erp.crm.service.CrmBusinessService;
-import com.bdaim.crm.utils.BaseUtil;
-import com.bdaim.crm.utils.FieldUtil;
-import com.bdaim.crm.utils.ParamsUtil;
-import com.bdaim.crm.utils.R;
+import com.bdaim.crm.utils.*;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
@@ -291,7 +289,7 @@ public class AdminSceneService {
             JSONObject ownerObject = new JSONObject();
             ownerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "is").fluentPut("value", userId));
             JSONObject subOwnerObject = new JSONObject();
-            subOwnerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "in").fluentPut("value", getSubUserId(userId.intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1)));
+            subOwnerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "in").fluentPut("value", getSubUserId(userId, BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1)));
             if (1 == type) {
                 systemScene.setName("全部线索").setData(new JSONObject().fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", 0)).toString());
                 crmAdminSceneDao.getSession().clear();
@@ -300,7 +298,7 @@ public class AdminSceneService {
                 systemScene.setSceneId(null).setName("我负责的线索").setData(ownerObject.toString());
                 crmAdminSceneDao.getSession().clear();
                 crmAdminSceneDao.save(systemScene);
-                subOwnerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "in").fluentPut("value", getSubUserId(userId.intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1))).fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", 0));
+                subOwnerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "in").fluentPut("value", getSubUserId(userId, BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1))).fluentPut("is_transform", new JSONObject().fluentPut("name", "is_transform").fluentPut("condition", "is").fluentPut("value", 0));
                 systemScene.setSceneId(null).setName("下属负责的线索").setData(subOwnerObject.toString());
                 crmAdminSceneDao.getSession().clear();
                 crmAdminSceneDao.save(systemScene);
@@ -399,7 +397,7 @@ public class AdminSceneService {
     /**
      * 递归查询下属id
      */
-    public String getSubUserId(Integer userId, Integer deepness) {
+    public String getSubUserId(Long userId, Integer deepness) {
         StringBuilder ids = new StringBuilder();
         if (deepness > 0) {
             List<Long> list = new ArrayList<>();
@@ -407,7 +405,7 @@ public class AdminSceneService {
             data.forEach(s -> list.add(NumberConvertUtil.parseLong(s.get("user_id"))));
             if (list != null && list.size() > 0) {
                 for (Long l : list) {
-                    ids.append(",").append(l).append(getSubUserId(l.intValue(), deepness - 1));
+                    ids.append(",").append(l).append(getSubUserId(l, deepness - 1));
                 }
             }
         }
@@ -492,7 +490,7 @@ public class AdminSceneService {
     }
 
     /**
-     * @author wyq
+     * @author Chacker
      * Crm列表页查询
      */
     public R getCrmPageList(BasePageRequest basePageRequest) {
@@ -666,7 +664,7 @@ public class AdminSceneService {
             conditions.append(" and owner_user_id is null");
         }
         Long userId = BaseUtil.getUserId();
-        if (!type.equals(8) && !type.equals(4) && !BaseConstant.SUPER_ADMIN_USER_ID.equals(userId)) {
+        if (!type.equals(8) && !type.equals(4) && !BaseUtil.getAdminUserId().equals(userId)) {
             List<Long> longs = adminUserService.queryUserByAuth(userId, realm);
             if (longs != null && longs.size() > 0) {
                 conditions.append(" and owner_user_id in (").append(StrUtil.join(",", longs)).append(")");
@@ -714,8 +712,11 @@ public class AdminSceneService {
                 map.put("receivedMoney", count != null ? count.get("receivedMoney") : 0);
             }
             String receivedMoney = crmAdminSceneDao.queryForObject("select SUM(money) from lkcrm_crm_receivables where receivables_id in (" + totalMoney.getStr("contractIds") + ")");
-            JSONObject jsonObject = JSONObject.parseObject(JSON.toJSONString(BaseUtil.crmPage(page)), JSONObject.class);
-            return R.ok().put("data", jsonObject.fluentPut("money", new JSONObject().fluentPut("contractMoney", totalMoney.getStr("contractMoney") != null ? totalMoney.getStr("contractMoney") : "0").fluentPut("receivedMoney", StringUtil.isNotEmpty(receivedMoney) ? receivedMoney : "0")));
+            //JSONObject jsonObject = JSONObject.parseObject(JSON.toJSONString(BaseUtil.crmPage(page)), JSONObject.class);
+            CrmPage crmPage = BaseUtil.crmPage(page);
+            Map result = BeanUtil.beanToMap(crmPage);
+            result.put("money", new JSONObject().fluentPut("contractMoney", totalMoney.getStr("contractMoney") != null ? totalMoney.getStr("contractMoney") : "0").fluentPut("receivedMoney", StringUtil.isNotEmpty(receivedMoney) ? receivedMoney : "0"));
+            return R.ok().put("data", result);
         }
         com.bdaim.common.dto.Page recordPage = crmAdminSceneDao.sqlPageQuery("select *" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
         if (type == 5) {

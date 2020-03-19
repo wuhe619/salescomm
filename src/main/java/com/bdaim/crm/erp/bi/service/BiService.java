@@ -33,7 +33,7 @@ public class BiService {
      * 产品销售情况统计
      * startTime 开始时间 endTime 结束时间 userId用户ID deptId部门ID
      */
-    public R queryProductSell(Date startTime, Date endTime, Integer userId, Integer deptId) {
+    public R queryProductSell(Date startTime, Date endTime, Long userId, Integer deptId) {
         List<Map<String, Object>> maps = biDao.queryProductSell(startTime, endTime, userId, deptId);
         List<Record> categorys = JavaBeanUtil.mapToRecords(maps);
         return R.ok().put("data", categorys);
@@ -43,7 +43,7 @@ public class BiService {
      * 回款统计，根据月份获取合同信息
      * userId用户ID deptId部门ID
      */
-    public R queryByUserIdOrYear(Integer userId, Integer deptId, String year, String month) {
+    public R queryByUserIdOrYear(Long userId, Integer deptId, String year, String month) {
         List<Map<String, Object>> maps = biDao.queryByUserIdOrYear(year, month, userId, deptId);
         List<Record> categorys = JavaBeanUtil.mapToRecords(maps);
         return R.ok().put("data", categorys);
@@ -54,7 +54,7 @@ public class BiService {
      *
      * @author Chacker
      */
-    public R taskCompleteStatistics(String year, Integer type, Integer deptId, Integer userId) {
+    public R taskCompleteStatistics(String year, Integer type, Integer deptId, Long userId) {
         if (type == 1) {
             if (userId == null) {
                 List<Map<String, Object>> maps = biDao.queryContractByDeptId(year, deptId);

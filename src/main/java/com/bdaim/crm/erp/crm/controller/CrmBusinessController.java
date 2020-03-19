@@ -1,11 +1,12 @@
 package com.bdaim.crm.erp.crm.controller;
 
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.common.interceptor.ClassTypeCheck;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.dto.LkCrmAdminRecordDTO;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.entity.LkCrmBusinessEntity;
@@ -18,14 +19,10 @@ import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.StringUtil;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.propertyeditors.CustomDateEditor;
-import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * 商机
@@ -39,24 +36,15 @@ public class CrmBusinessController extends BasicAction {
     @Resource
     private AdminSceneService adminSceneService;
 
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-    @InitBinder
-    protected void init(ServletRequestDataBinder binder) {
-        dateFormat.setLenient(false);
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
-    }
-
     /**
      * @author wyq
      * 查看列表页
      */
     @Permissions({"crm:business:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody JSONObject jsonObject) {
-        BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"),jsonObject.getIntValue("limit"));
-        //JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type",5);
-        jsonObject.fluentPut("type", 5);
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryPageList(BasePageRequest basePageRequest) {
+        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 5);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
@@ -149,7 +137,7 @@ public class CrmBusinessController extends BasicAction {
      */
     @RequestMapping(value = "/relateContacts", method = RequestMethod.POST)
     public R relateContacts(@RequestParam("businessId") Integer businessId, @RequestParam("contactsIds") String contactsIds) {
-        return(crmBusinessService.relateContacts(businessId, contactsIds));
+        return (crmBusinessService.relateContacts(businessId, contactsIds));
     }
 
     /**
@@ -158,7 +146,7 @@ public class CrmBusinessController extends BasicAction {
      */
     @RequestMapping(value = "/unrelateContacts", method = RequestMethod.POST)
     public R unrelateContacts(@RequestParam("businessId") Integer businessId, @RequestParam("contactsIds") String contactsIds) {
-        return(crmBusinessService.unrelateContacts(businessId, contactsIds));
+        return (crmBusinessService.unrelateContacts(businessId, contactsIds));
     }
 
     /**
@@ -169,7 +157,7 @@ public class CrmBusinessController extends BasicAction {
     @NotNullValidate(value = "businessIds", message = "商机id不能为空")
     @RequestMapping(value = "/deleteByIds", method = RequestMethod.POST)
     public R deleteByIds(@RequestParam("businessIds") String businessIds) {
-        return(crmBusinessService.deleteByIds(businessIds));
+        return (crmBusinessService.deleteByIds(businessIds));
     }
 
     /**
@@ -182,7 +170,7 @@ public class CrmBusinessController extends BasicAction {
     @NotNullValidate(value = "transferType", message = "移除方式不能为空")
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
     public R transfer(LkCrmBusinessEntity crmBusiness) {
-        return(crmBusinessService.transfer(crmBusiness));
+        return (crmBusinessService.transfer(crmBusiness));
     }
 
     /**
@@ -194,10 +182,10 @@ public class CrmBusinessController extends BasicAction {
     public R getMembers(@RequestParam("businessId") Integer businessId) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), businessId);
         if (auth) {
-            return(R.noAuth());
+            return (R.noAuth());
             //return;
         }
-        return(R.ok().put("data", crmBusinessService.getMembers(businessId)));
+        return (R.ok().put("data", crmBusinessService.getMembers(businessId)));
     }
 
     /**
@@ -210,7 +198,7 @@ public class CrmBusinessController extends BasicAction {
     @NotNullValidate(value = "power", message = "读写权限不能为空")
     @RequestMapping(value = "/addMembers", method = RequestMethod.POST)
     public R addMembers(CrmBusiness crmBusiness) {
-        return(crmBusinessService.addMember(crmBusiness));
+        return (crmBusinessService.addMember(crmBusiness));
     }
 
     /**
@@ -222,7 +210,7 @@ public class CrmBusinessController extends BasicAction {
     @NotNullValidate(value = "power", message = "读写权限不能为空")
     @RequestMapping(value = "/updateMembers", method = RequestMethod.POST)
     public R updateMembers(CrmBusiness crmBusiness) {
-        return(crmBusinessService.addMember(crmBusiness));
+        return (crmBusinessService.addMember(crmBusiness));
     }
 
     /**
@@ -233,7 +221,7 @@ public class CrmBusinessController extends BasicAction {
     @NotNullValidate(value = "memberIds", message = "成员id不能为空")
     @RequestMapping(value = "/deleteMembers", method = RequestMethod.POST)
     public R deleteMembers(CrmBusiness crmBusiness) {
-        return(crmBusinessService.deleteMembers(crmBusiness));
+        return (crmBusinessService.deleteMembers(crmBusiness));
     }
 
     /**
@@ -244,10 +232,10 @@ public class CrmBusinessController extends BasicAction {
     public R queryBusinessStatus(@RequestParam("businessId") Integer businessId) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), businessId);
         if (auth) {
-            return(R.noAuth());
+            return (R.noAuth());
             //return;
         }
-        return(R.ok().put("data", crmBusinessService.queryBusinessStatus(businessId)));
+        return (R.ok().put("data", crmBusinessService.queryBusinessStatus(businessId)));
     }
 
     /**
@@ -259,10 +247,10 @@ public class CrmBusinessController extends BasicAction {
     public R boostBusinessStatus(LkCrmBusinessEntity crmBusiness) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), crmBusiness.getBusinessId());
         if (auth) {
-            return(R.noAuth());
+            return (R.noAuth());
             //return;
         }
-        return(crmBusinessService.boostBusinessStatus(crmBusiness));
+        return (crmBusinessService.boostBusinessStatus(crmBusiness));
     }
 
     /**
@@ -271,7 +259,7 @@ public class CrmBusinessController extends BasicAction {
      */
     @RequestMapping(value = "/queryBusinessStatusOptions", method = RequestMethod.POST)
     public R queryBusinessStatusOptions() {
-        return(R.ok().put("data", JavaBeanUtil.recordToMap(crmBusinessService.queryBusinessStatusOptions(null))));
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmBusinessService.queryBusinessStatusOptions(null))));
     }
 
     /**
@@ -285,15 +273,15 @@ public class CrmBusinessController extends BasicAction {
     public R addRecord(LkCrmAdminRecordDTO adminRecord) throws ParseException {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), adminRecord.getTypesId());
         if (auth) {
-            return(R.noAuth());
+            return (R.noAuth());
             //return;
         }
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
-        if(StringUtil.isNotEmpty(adminRecord.getNextTime())){
-            lkCrmAdminRecordEntity.setNextTime(dateFormat.parse(adminRecord.getNextTime()));
+        if (StringUtil.isNotEmpty(adminRecord.getNextTime())) {
+            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(), "yyyy-MM-dd HH:mm:ss"));
         }
-        return(crmBusinessService.addRecord(lkCrmAdminRecordEntity));
+        return (crmBusinessService.addRecord(lkCrmAdminRecordEntity));
     }
 
     /**
@@ -305,10 +293,10 @@ public class CrmBusinessController extends BasicAction {
         basePageRequest.setData(crmBusiness);
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), crmBusiness.getBusinessId());
         if (auth) {
-            return(R.noAuth());
+            return (R.noAuth());
             //return;
         }
-        return(R.ok().put("data", JavaBeanUtil.recordToMap(crmBusinessService.getRecord(basePageRequest))));
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmBusinessService.getRecord(basePageRequest))));
     }
 
 }

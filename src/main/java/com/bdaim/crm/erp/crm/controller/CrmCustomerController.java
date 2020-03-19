@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.crm.controller;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
@@ -9,7 +10,7 @@ import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.common.interceptor.ClassTypeCheck;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.dto.LkCrmAdminRecordDTO;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.entity.LkCrmCustomerEntity;
@@ -38,8 +39,6 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.propertyeditors.CustomDateEditor;
-import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -50,7 +49,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -59,6 +57,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/CrmCustomer")
 public class CrmCustomerController extends BasicAction {
+
 
     @Resource
     private CrmCustomerService crmCustomerService;
@@ -78,24 +77,15 @@ public class CrmCustomerController extends BasicAction {
     @Resource
     private AdminSceneService adminSceneService;
 
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-
-    @InitBinder
-    protected void init(ServletRequestDataBinder binder) {
-        dateFormat.setLenient(false);
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
-    }
-
     /**
      * @author wyq
      * 查看列表页
      */
     @Permissions({"crm:customer:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody JSONObject jsonObject) {
-        BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
-        jsonObject.fluentPut("type", 2);
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryPageList(BasePageRequest basePageRequest) {
+        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 2);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
@@ -105,10 +95,9 @@ public class CrmCustomerController extends BasicAction {
      */
     @Permissions({"crm:pool:index"})
     @RequestMapping(value = "/queryPoolPageList", method = RequestMethod.POST)
-    public R queryPoolPageList(@RequestBody JSONObject jsonObject) {
-        //JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 8);
-        BasePageRequest basePageRequest = new BasePageRequest(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
-        jsonObject.fluentPut("type", 8);
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryPoolPageList(BasePageRequest basePageRequest) {
+        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 8);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
@@ -423,8 +412,8 @@ public class CrmCustomerController extends BasicAction {
         }
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
-        if(StringUtil.isNotEmpty(adminRecord.getNextTime())){
-            lkCrmAdminRecordEntity.setNextTime(dateFormat.parse(adminRecord.getNextTime()));
+        if (StringUtil.isNotEmpty(adminRecord.getNextTime())) {
+            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(), "yyyy-MM-dd HH:mm:ss"));
         }
         return (crmCustomerService.addRecord(lkCrmAdminRecordEntity));
     }
@@ -511,15 +500,13 @@ public class CrmCustomerController extends BasicAction {
      */
     @Permissions("crm:pool:excelexport")
     @RequestMapping(value = "/poolAllExportExcel")
-    public void poolAllExportExcel(@RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
-        //JSONObject jsonObject = basePageRequest.getJsonObject();
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public void poolAllExportExcel(BasePageRequest basePageRequest, HttpServletResponse response) throws IOException {
+        JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", 8);
-        //AdminSceneService adminSceneService = new AdminSceneService();
-        BasePageRequest basePageRequest = new BasePageRequest(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
-        basePageRequest.setJsonObject(jsonObject);
-        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("excel");
+        AdminSceneService adminSceneService = new AdminSceneService();
+        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
         export(recordList, response);
-        //renderNull();
     }
 
     @RequestMapping(value = "/export")

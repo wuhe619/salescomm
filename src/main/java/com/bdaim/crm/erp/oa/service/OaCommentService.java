@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,7 +34,8 @@ public class OaCommentService {
             comment.setCreateTime(new Timestamp(System.currentTimeMillis()));
             comment.setUserId(BaseUtil.getUser().getUserId());
 //            bol = comment.save();
-            commentDao.save(comment);
+            Integer id = (Integer) commentDao.saveReturnPk(comment);
+            comment.setCommentId(id);
         } else {
 //            bol = comment.update ();
             commentDao.update(comment);
@@ -44,17 +46,17 @@ public class OaCommentService {
         return bol ? R.ok().put("data", comment) : R.error();
     }
 
-    @Before(Tx.class)
     public R deleteComment(Integer commentId) {
         String delSql = "delete from `lkcrm_task_comment` where main_id = ?";
         commentDao.executeUpdateSQL(delSql, commentId);
-        return new TaskComment().dao().deleteById(commentId) ? R.ok() : R.error();
+        commentDao.delete(commentId);
+        return R.ok();
     }
 
     public List<Record> queryCommentList(String typeId, String type) {
         String sql = "select a.comment_id,a.content,a.user_id,a.create_time,a.type_id,a.type,a.favour,a.pid,a.main_id" +
                 " from lkcrm_task_comment a  where a.type_id = ? and a.type = ?";
-        List<Record> recordList = JavaBeanUtil.mapToRecords(commentDao.queryListBySql(sql, typeId, type));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(commentDao.sqlQuery(sql, typeId, type));
         if (recordList == null || recordList.size() == 0) {
             return new ArrayList<>();
         }

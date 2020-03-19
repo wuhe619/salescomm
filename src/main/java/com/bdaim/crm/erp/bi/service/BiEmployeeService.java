@@ -42,17 +42,18 @@ public class BiEmployeeService {
         }
         Integer beginTime = record.getInt("beginTime");
         StringBuffer sqlStringBuffer = new StringBuffer();
+        String custId = BaseUtil.getCustId();
         if ("contractNum".equals(type)) {
             for (int i = 1; i <= cycleNum; i++) {
                 sqlStringBuffer.append("select '").append(beginTime).append("' as month,count(contract_id) as thisMonth," +
                         "(select count(contract_id) from lkcrm_crm_contract where cust_id='")
-                        .append(BaseUtil.getCustId()).append("' and DATE_FORMAT(order_date,'%Y%m ') = '")
+                        .append(custId).append("' and DATE_FORMAT(order_date,'%Y%m ') = '")
                         .append(beginTime - 1).append("' and check_status = 2 and owner_user_id in (").append(userIds)
                         .append(")) as lastMonth,(select count(contract_id) from lkcrm_crm_contract where DATE_FORMAt(order_date,'%Y%m') = '")
-                        .append(beginTime - 100).append("' and cust_id='").append(BaseUtil.getCustId())
+                        .append(beginTime - 100).append("' and cust_id='").append(custId)
                         .append("' and check_status = 2  and owner_user_id in (").append(userIds)
                         .append(")) as lastYear from lkcrm_crm_contract where DATE_FORMAT(order_date,'%Y%m') = '")
-                        .append(beginTime).append("' and cust_id='").append(BaseUtil.getCustId())
+                        .append(beginTime).append("' and cust_id='").append(custId)
                         .append("' and check_status = 2 and owner_user_id in (").append(userIds).append(")");
                 if (i != cycleNum) {
                     sqlStringBuffer.append(" union all ");
@@ -63,13 +64,13 @@ public class BiEmployeeService {
             for (int i = 1; i <= cycleNum; i++) {
                 sqlStringBuffer.append("select '").append(beginTime).append("' as month,IFNULL(SUM(money),0) as thisMonth," +
                         "(select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id='")
-                        .append(BaseUtil.getCustId()).append("' and DATE_FORMAT(order_date,'%Y%m ') = '")
+                        .append(custId).append("' and DATE_FORMAT(order_date,'%Y%m ') = '")
                         .append(beginTime - 1).append("' and check_status = 2 and owner_user_id in (").append(userIds)
                         .append(")) as lastMonth,(select IFNULL(SUM(money),0) from lkcrm_crm_contract where cust_id='")
-                        .append(BaseUtil.getCustId()).append("' and DATE_FORMAt(order_date,'%Y%m') = '")
+                        .append(custId).append("' and DATE_FORMAt(order_date,'%Y%m') = '")
                         .append(beginTime - 100).append("' and check_status = 2  and owner_user_id in (").append(userIds)
                         .append(")) as lastYear from lkcrm_crm_contract where cust_id='")
-                        .append(BaseUtil.getCustId()).append("' and DATE_FORMAT(order_date,'%Y%m') = '")
+                        .append(custId).append("' and DATE_FORMAT(order_date,'%Y%m') = '")
                         .append(beginTime).append("' and check_status = 2 and owner_user_id in (").append(userIds).append(")");
                 if (i != cycleNum) {
                     sqlStringBuffer.append(" union all ");
@@ -80,13 +81,13 @@ public class BiEmployeeService {
             for (int i = 1; i <= cycleNum; i++) {
                 sqlStringBuffer.append("select '").append(beginTime).append("' as month,IFNULL(SUM(money),0) as thisMonth," +
                         "(select IFNULL(SUM(money),0) from lkcrm_crm_receivables where cust_id='")
-                        .append(BaseUtil.getCustId()).append("' and DATE_FORMAT(return_time,'%Y%m ') = '")
+                        .append(custId).append("' and DATE_FORMAT(return_time,'%Y%m ') = '")
                         .append(beginTime - 1).append("' and check_status = 2 and owner_user_id in (").append(userIds)
                         .append(")) as lastMonth,(select IFNULL(SUM(money),0) from lkcrm_crm_receivables where cust_id='")
-                        .append(BaseUtil.getCustId()).append("' and DATE_FORMAt(return_time,'%Y%m') = '")
+                        .append(custId).append("' and DATE_FORMAt(return_time,'%Y%m') = '")
                         .append(beginTime - 100).append("' and check_status = 2  and owner_user_id in (").append(userIds)
                         .append(")) as lastYear from lkcrm_crm_receivables where cust_id='")
-                        .append(BaseUtil.getCustId()).append("' and DATE_FORMAT(return_time,'%Y%m') = '")
+                        .append(custId).append("' and DATE_FORMAT(return_time,'%Y%m') = '")
                         .append(beginTime).append("' and check_status = 2 and owner_user_id in (").append(userIds).append(")");
                 if (i != cycleNum) {
                     sqlStringBuffer.append(" union all ");
@@ -127,12 +128,13 @@ public class BiEmployeeService {
                 finalTime, userIds);
         Record total = JavaBeanUtil.mapToRecord(totalMap);
         StringBuffer sqlStringBuffer = new StringBuffer();
+        String custId = BaseUtil.getCustId();
         for (int i = 1; i <= cycleNum; i++) {
             sqlStringBuffer.append("select '").append(beginTime).append("'as type,count(contract_id) as contractNum,IFNULL(SUM(money),0) " +
                     "as contractMoney,IFNULL((select SUM(money) from lkcrm_crm_receivables as b where b.cust_id='")
-                    .append(BaseUtil.getCustId()).append("' and b.contract_id = a.contract_id),0)" +
+                    .append(custId).append("' and b.contract_id = a.contract_id),0)" +
                     " as receivablesMoney from lkcrm_crm_contract as a where a.cust_id='")
-                    .append(BaseUtil.getCustId()).append("' and DATE_FORMAT(order_date,'").append(sqlDateFormat)
+                    .append(custId).append("' and DATE_FORMAT(order_date,'").append(sqlDateFormat)
                     .append("') = '").append(beginTime).append("' and check_status = 2 and owner_user_id in (").append(userIds).append(")");
             if (i != cycleNum) {
                 sqlStringBuffer.append(" union all ");

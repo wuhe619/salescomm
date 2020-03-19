@@ -10,17 +10,13 @@ import java.util.Map;
 @Component
 public class LkCrmWorkTaskClassDao extends SimpleHibernateDao<LkCrmWorkTaskClassEntity, Integer> {
     public List<Map<String, Object>> myWorkLog(Integer taskId) {
-        String sql = "SELECT " +
-                " wtl.log_id,wtl.content, " +
+        String sql = "SELECT wtl.log_id,wtl.content, " +
                 " wtl.create_time,au.img,au.realname  " +
-                "FROM " +
-                " lkcrm_work_task_log AS wtl " +
+                " FROM lkcrm_work_task_log AS wtl " +
                 " LEFT JOIN lkcrm_admin_user AS au ON au.user_id = wtl.user_id  " +
-                "WHERE " +
-                " wtl.task_id = 'taskId'  " +
+                " WHERE wtl.task_id = ?  " +
                 " AND wtl.STATUS != 4  " +
-                "ORDER BY " +
-                " wtl.create_time DESC";
-        return super.queryListBySql(sql, taskId);
+                " ORDER BY wtl.create_time DESC";
+        return super.sqlQuery(sql, taskId);
     }
 }

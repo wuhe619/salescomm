@@ -1,10 +1,15 @@
 package com.bdaim.crm.entity;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
+@DynamicUpdate
+@DynamicInsert
 @Table(name = "lkcrm_task_comment", schema = "", catalog = "")
 public class LkCrmTaskCommentEntity {
     private Integer commentId;
@@ -12,7 +17,7 @@ public class LkCrmTaskCommentEntity {
     private String content;
     private Timestamp createTime;
     private Integer mainId;
-    private Integer pid;
+    private Long pid;
     private Integer status;
     private Integer typeId;
     private Integer favour;
@@ -71,11 +76,11 @@ public class LkCrmTaskCommentEntity {
 
     @Basic
     @Column(name = "pid")
-    public Integer getPid() {
+    public Long getPid() {
         return pid;
     }
 
-    public void setPid(Integer pid) {
+    public void setPid(Long pid) {
         this.pid = pid;
     }
 

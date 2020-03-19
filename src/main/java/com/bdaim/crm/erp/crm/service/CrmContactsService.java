@@ -237,6 +237,7 @@ public class CrmContactsService {
         int count = 0;
         for (int i = 0; i < objects.size(); i++) {
             LkCrmContactsEntity crmContacts = objects.getObject(i, LkCrmContactsEntity.class);
+            crmContacts.setCustomerId(objects.getJSONObject(i).getInteger("customer_id"));
             String batchId = StrUtil.isNotEmpty(crmContacts.getBatchId()) ? crmContacts.getBatchId() : IdUtil.simpleUUID();
             //crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
             //adminFieldService.save(jsonObject.getJSONArray("field"), batchId);

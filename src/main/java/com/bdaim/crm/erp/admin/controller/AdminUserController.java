@@ -6,7 +6,7 @@ import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.common.interceptor.ClassTypeCheck;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.entity.LkCrmAdminUserEntity;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
@@ -69,9 +69,7 @@ public class AdminUserController extends BasicAction {
     @RequestMapping(value = "/queryUserList", method = RequestMethod.POST)
     @ClassTypeCheck(classType = BasePageRequest.class)
     public R queryUserList(BasePageRequest basePageRequest, AdminUser adminUser, String roleId, String roleName) {
-        //String roleId = getPara("roleId");
         basePageRequest.setData(adminUser);
-//        renderJson(adminUserService.queryUserList(basePageRequest, roleId));
         return adminUserService.queryUserList(basePageRequest, roleId, roleName);
     }
 

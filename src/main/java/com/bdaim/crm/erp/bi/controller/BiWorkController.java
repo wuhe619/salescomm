@@ -3,8 +3,7 @@ package com.bdaim.crm.erp.bi.controller;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.crm.common.interceptor.ClassTypeCheck;
-import com.jfinal.aop.Inject;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.plugin.activerecord.Record;
@@ -46,7 +45,8 @@ public class BiWorkController extends Controller {
      * @author Chacker
      */
     @RequestMapping(value = "/logStatisticsExport")
-    public void logStatisticsExport(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type) throws IOException {
+    public void logStatisticsExport(@Para("deptId") Integer deptId, @Para("userId") Long userId,
+                                    @Para("type") String type, HttpServletResponse response) throws IOException {
         List<Record> recordList = biWorkService.logStatistics(deptId, userId, type);
         List<Map<String, Object>> mapList = new LinkedList<>();
         recordList.forEach(record -> mapList.add(record.remove("img", "user_id", "username").getColumns()));
@@ -59,7 +59,6 @@ public class BiWorkController extends Controller {
             writer.addHeaderAlias("unCommentCount", "未评论数");
             writer.addHeaderAlias("commentCount", "已评论数");
             writer.setColumnWidth(0, 20).setColumnWidth(1, 20).setColumnWidth(2, 30).setColumnWidth(3, 20).setColumnWidth(4, 20);
-            HttpServletResponse response = getResponse();
             writer.write(mapList, true);
             //自定义标题别名
             //response为HttpServletResponse对象
@@ -95,7 +94,8 @@ public class BiWorkController extends Controller {
      */
     @SuppressWarnings("unchecked")
     @RequestMapping(value = "/examineStatisticsExport")
-    public void examineStatisticsExport(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type) throws IOException {
+    public void examineStatisticsExport(@Para("deptId") Integer deptId, @Para("userId") Long userId,
+                                        @Para("type") String type, HttpServletResponse response) throws IOException {
         JSONObject object = biWorkService.examineStatistics(deptId, userId, type);
         List<Map<String, Object>> mapList = new LinkedList<>();
         ExcelWriter writer = null;
@@ -107,7 +107,6 @@ public class BiWorkController extends Controller {
                 writer.addHeaderAlias("count_" + record.get("category_id"), record.get("title"));
             }
             writer.setColumnWidth(0, 20).setColumnWidth(1, 20).setColumnWidth(2, 30).setColumnWidth(3, 20).setColumnWidth(4, 20);
-            HttpServletResponse response = getResponse();
             ((List<Record>) object.get("userList")).forEach(record -> mapList.add(record.remove("img", "user_id", "username").getColumns()));
             writer.write(mapList, true);
             //自定义标题别名

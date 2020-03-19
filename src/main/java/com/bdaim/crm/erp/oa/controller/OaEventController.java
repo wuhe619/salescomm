@@ -2,36 +2,24 @@ package com.bdaim.crm.erp.oa.controller;
 
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.common.interceptor.ClassTypeCheck;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.entity.LkCrmOaEventEntity;
 import com.bdaim.crm.erp.oa.common.OaEnum;
-import com.bdaim.crm.erp.oa.entity.OaAnnouncement;
-import com.bdaim.crm.erp.oa.entity.OaEvent;
 import com.bdaim.crm.erp.oa.entity.OaEventRelation;
 import com.bdaim.crm.erp.oa.service.OaEventService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 import com.jfinal.core.paragetter.Para;
-import org.springframework.beans.propertyeditors.CustomDateEditor;
-import org.springframework.web.bind.ServletRequestDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 @RestController
 @RequestMapping("/OaEvent")
 public class OaEventController extends BasicAction {
-    @InitBinder
-    protected void init(ServletRequestDataBinder binder) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        dateFormat.setLenient(false);
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, false));
-    }
+
     @Resource
     private OaEventService oaEventService;
 

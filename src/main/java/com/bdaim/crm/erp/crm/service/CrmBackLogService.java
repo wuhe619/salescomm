@@ -15,7 +15,6 @@ import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.stereotype.Service;
@@ -59,10 +58,10 @@ public class CrmBackLogService {
         }
         Kv kv = Kv.by("todayCustomer", todayCustomer).set("followLeads", followLeads).set("followCustomer", followCustomer)
                 .set("checkReceivables", checkReceivables).set("remindReceivablesPlan", remindReceivablesPlan).set("endContract", endContract);
-        if (config == 1) {
-            Integer checkContract = crmCustomerDao.checkContractNum(userId);
-            kv.set("checkContract", checkContract);
-        }
+        //if (config == 1) {
+        Integer checkContract = crmCustomerDao.checkContractNum(userId);
+        kv.set("checkContract", checkContract);
+        // }
         return R.ok().put("data", kv);
     }
 
@@ -90,7 +89,7 @@ public class CrmBackLogService {
         if (isSub == 1) {
             stringBuffer.append(" and a.owner_user_id = ").append(BaseUtil.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId().intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -123,7 +122,7 @@ public class CrmBackLogService {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         Integer type = jsonObject.getInteger("type");
         Integer isSub = jsonObject.getInteger("isSub");
-        String leadsview = BaseUtil.getViewSql("leadsview");
+        String leadsview = BaseUtil.getViewSqlNotASName("leadsview");
         StringBuffer stringBuffer = new StringBuffer("from " + leadsview + " as a where");
         if (type == 1) {
             stringBuffer.append(" a.followup = 0 and a.is_transform = 0");
@@ -135,7 +134,7 @@ public class CrmBackLogService {
         if (isSub == 1) {
             stringBuffer.append(" and a.owner_user_id = ").append(BaseUtil.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId().intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -182,7 +181,7 @@ public class CrmBackLogService {
         if (isSub == 1) {
             stringBuffer.append(" and a.owner_user_id = ").append(BaseUtil.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId().intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -217,7 +216,7 @@ public class CrmBackLogService {
         if (isSub == 1) {
             stringBuffer.append(" and c.examine_user = ").append(BaseUtil.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId().intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -258,7 +257,7 @@ public class CrmBackLogService {
         if (isSub == 1) {
             stringBuffer.append(" and c.examine_user = ").append(BaseUtil.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId().intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -266,11 +265,11 @@ public class CrmBackLogService {
         } else {
             return R.error("isSub参数不正确");
         }
-        List<Integer> receivablesIdList = Db.query(stringBuffer.toString());
+        List<Integer> receivablesIdList = crmCustomerDao.queryListForInteger(stringBuffer.toString());
         if (receivablesIdList.size() > 0) {
             String contractIds = CollUtil.join(receivablesIdList, ",");
             JSONObject data = jsonObject.getJSONObject("data");
-            String receivablesview = BaseUtil.getViewSql("receivablesview");
+            String receivablesview = BaseUtil.getViewSqlNotASName("receivablesview");
             com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * from " + receivablesview + " as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data), basePageRequest.getPage(), basePageRequest.getLimit());
             //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", "from receivablesview as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data));
             return R.ok().put("data", BaseUtil.crmPage(page));
@@ -301,7 +300,7 @@ public class CrmBackLogService {
         if (isSub == 1) {
             stringBuffer.append(" and c.owner_user_id = ").append(BaseUtil.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId().intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -325,7 +324,7 @@ public class CrmBackLogService {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         Integer type = jsonObject.getInteger("type");
         Integer isSub = jsonObject.getInteger("isSub");
-        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUniqueBy("name", "expiringContractDays");
+        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUnique(" FROM LkCrmAdminConfigEntity WHERE name = ? AND custId= ?", "expiringContractDays", BaseUtil.getCustId());
         String contractview = BaseUtil.getViewSqlNotASName("contractview");
         StringBuffer stringBuffer = new StringBuffer("from " + contractview + " as a where");
         if (type == 1) {
@@ -341,7 +340,7 @@ public class CrmBackLogService {
         if (isSub == 1) {
             stringBuffer.append(" and owner_user_id = ").append(BaseUtil.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId().intValue(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }

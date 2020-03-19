@@ -565,10 +565,11 @@ public class WorkService {
         Integer workMenuId = workDao.queryForInt(workMenuIdSql);
         List<LkCrmAdminMenuEntity> adminMenus = adminMenuService.queryMenuByParentId(workMenuId);
         JSONObject object = new JSONObject();
+        Long adminUserId = BaseUtil.getAdminUserId();
         adminMenus.forEach(menu -> {
             JSONObject authObject = new JSONObject();
             List<LkCrmAdminMenuEntity> chlidMenus = adminMenuService.queryMenuByParentId(menu.getMenuId());
-            if ((roleId != null && roleId.equals(BaseConstant.SMALL_WORK_ADMIN_ROLE_ID)) || userId.equals(BaseConstant.SUPER_ADMIN_USER_ID) || user.getRoles().contains(BaseConstant.WORK_ADMIN_ROLE_ID) || user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID)) {
+            if ((roleId != null && roleId.equals(BaseConstant.SMALL_WORK_ADMIN_ROLE_ID)) || userId.equals(adminUserId) || user.getRoles().contains(BaseConstant.WORK_ADMIN_ROLE_ID) || user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID)) {
                 chlidMenus.forEach(child -> {
                     authObject.put(child.getRealm(), true);
                 });

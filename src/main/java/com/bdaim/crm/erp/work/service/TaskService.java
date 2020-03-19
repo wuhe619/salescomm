@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.work.service;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
@@ -24,7 +25,6 @@ import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.beans.BeanUtils;
@@ -185,7 +185,7 @@ public class TaskService {
         adminFileService.queryByBatchId(mainTask.get("batch_id"), mainTask);
 //        List<Record> recordList = Db.find("select task_id from lkcrm_task where pid = ?", taskId);
         String sql = "select task_id from lkcrm_task where pid = ?";
-        List<Record> recordList = JavaBeanUtil.mapToRecords(taskClassDao.queryListBySql(sql, taskId));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(taskClassDao.sqlQuery(sql, taskId));
         List<Record> childTaskList = new ArrayList<>();
         if (recordList != null && recordList.size() > 0) {
             recordList.forEach(childTaskRecord -> {
@@ -243,6 +243,7 @@ public class TaskService {
         List<Record> contactsList = new ArrayList<>();
         List<Record> businessList = new ArrayList<>();
         List<Record> contractList = new ArrayList<>();
+        List<Record> leadsList = new ArrayList<>();
         if (relation != null) {
             if (StrUtil.isNotBlank(relation.getStr("customer_ids"))) {
                 String[] customerIds = relation.getStr("customer_ids").split(",");
@@ -300,11 +301,26 @@ public class TaskService {
                 }
                 task.set("contractList", contractList);
             }
+
+            if (StrUtil.isNotBlank(relation.getStr("leads_ids"))) {
+                String[] leadsIds = relation.getStr("leads_ids").split(",");
+
+                for (String leadsId : leadsIds) {
+                    if (StrUtil.isNotBlank(leadsId)) {
+                        String businessSql = "select leads_id,leads_name  from lkcrm_crm_leads  where leads_id = ?";
+                        Record lead = JavaBeanUtil.mapToRecord(taskClassDao.queryUniqueSql(businessSql, leadsId));
+                        if (lead != null) {
+                            leadsList.add(lead);
+                        }
+                    }
+                }
+            }
         }
         task.set("customerList", customerList);
         task.set("contactsList", contactsList);
         task.set("businessList", businessList);
         task.set("contractList", contractList);
+        task.set("leadsList", leadsList);
 
         return task.set("labelList", labelList).set("ownerUserList", ownerUserList);
     }
@@ -322,7 +338,7 @@ public class TaskService {
         if (basePageRequest.getPageType() != null && basePageRequest.getPageType() == 0) {
             LkCrmSqlParams sqlParams = taskDao.getTaskList(type, userIds, status,
                     priority, date, name);
-            List<Map<String, Object>> maps = taskDao.queryListBySql(sqlParams.getSql(), sqlParams.getParams().toArray());
+            List<Map<String, Object>> maps = taskDao.sqlQuery(sqlParams.getSql(), sqlParams.getParams().toArray());
             List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
             return R.ok().put("data", queryUser(recordList));
         } else {
@@ -461,11 +477,11 @@ public class TaskService {
                     if (!"update_time".equals(y.getKey()) && !"label_id".equals(y.getKey()) && !"owner_user_id".equals(y.getKey())) {
                         if ("priority".equals(y.getKey())) {
                             String value = "";
-                            if (Integer.valueOf(newValue.toString()) == 1) {
+                            if (NumberUtil.isInteger(newValue.toString()) && NumberUtil.parseInt(newValue.toString()) == 1) {
                                 value = "普通";
-                            } else if (Integer.valueOf(newValue.toString()) == 2) {
+                            } else if (NumberUtil.isInteger(newValue.toString()) && NumberUtil.parseInt(newValue.toString()) == 2) {
                                 value = "紧急";
-                            } else if (Integer.valueOf(newValue.toString()) == 3) {
+                            } else if (NumberUtil.isInteger(newValue.toString()) && NumberUtil.parseInt(newValue.toString()) == 3) {
                                 value = "非常紧急";
                             } else {
                                 value = "无";
@@ -573,12 +589,11 @@ public class TaskService {
     }
 
     /**
-     * @author zxy
      * 添加任务与业务关联
      */
-    public R svaeTaskRelation(LkCrmTaskRelationEntity taskRelation, Integer userId) {
-//        Db.delete("delete from `lkcrm_task_relation` where task_id = ?", taskRelation.getTaskId());
-//        taskRelation.setCreateTime(DateUtil.date());
+    public R saveTaskRelation(LkCrmTaskRelationEntity taskRelation, Integer userId) {
+        taskRelationDao.executeUpdateSQL("delete from `lkcrm_task_relation` where task_id = ?", taskRelation.getTaskId());
+        taskRelation.setCreateTime(DateUtil.date().toTimestamp());
 //        return taskRelation.save() ? R.ok() : R.error();
         taskRelationDao.saveOrUpdate(taskRelation);
         return R.ok();

@@ -102,6 +102,9 @@ public class ResponseBodyInterceptor {
                     if (json.containsKey("_message")) {
                         result.put("_message", json.getString("_message"));
                     }
+                    if (json.containsKey("message")) {
+                        result.put("msg", json.getString("message"));
+                    }
                     if (json.containsKey("data")) {
                         result.put("data", json.get("data"));
                     } else {
@@ -121,6 +124,7 @@ public class ResponseBodyInterceptor {
                 result.put("code", e.getCode());
             }
             result.put("_message", "失败");
+            result.put("msg", "失败");
             log.error(e.getMessage());
         }
         log.info("method:" + className + "." + method + " time:" + (System.currentTimeMillis() - begin) + "ms " + "response:" + result);

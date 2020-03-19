@@ -1,10 +1,9 @@
 package com.bdaim.crm.erp.oa.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.common.interceptor.ClassTypeCheck;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaLog;
 import com.bdaim.crm.erp.oa.entity.OaLogRelation;
@@ -14,7 +13,6 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.CrmPage;
 import com.bdaim.crm.utils.R;
 import com.jfinal.core.paragetter.Para;
-import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,9 +39,8 @@ public class OaLogController extends BasicAction {
      * @author zhangzhiwei
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
-    public R queryList(@RequestBody JSONObject jsonObject) {
-        BasePageRequest<OaLog> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"),jsonObject.getIntValue("limit"));
-        basePageRequest.setJsonObject(jsonObject);
+    @ClassTypeCheck(classType = OaLog.class)
+    public R queryList(BasePageRequest<OaLog> basePageRequest) {
         CrmPage recordList = oaLogService.queryList(basePageRequest);
         return (R.ok().put("data", recordList));
     }

@@ -1,13 +1,19 @@
 package com.bdaim.crm.entity;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
+@DynamicUpdate
+@DynamicInsert
 @Table(name = "lkcrm_oa_examine_category", schema = "", catalog = "")
 public class LkCrmOaExamineCategoryEntity {
     private Integer categoryId;
+    private String custId;
     private String title;
     private String remarks;
     private Integer type;
@@ -22,6 +28,17 @@ public class LkCrmOaExamineCategoryEntity {
     private Integer isDeleted;
     private Timestamp deleteTime;
     private Long deleteUserId;
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
+    }
+
 
     @Id
     @Column(name = "category_id")
@@ -185,6 +202,7 @@ public class LkCrmOaExamineCategoryEntity {
                 Objects.equals(type, that.type) &&
                 Objects.equals(createUserId, that.createUserId) &&
                 Objects.equals(status, that.status) &&
+                Objects.equals(custId, that.custId) &&
                 Objects.equals(isSys, that.isSys) &&
                 Objects.equals(examineType, that.examineType) &&
                 Objects.equals(userIds, that.userIds) &&
@@ -198,6 +216,6 @@ public class LkCrmOaExamineCategoryEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(categoryId, title, remarks, type, createUserId, status, isSys, examineType, userIds, deptIds, createTime, updateTime, isDeleted, deleteTime, deleteUserId);
+        return Objects.hash(categoryId, title, custId, remarks, type, createUserId, status, isSys, examineType, userIds, deptIds, createTime, updateTime, isDeleted, deleteTime, deleteUserId);
     }
 }

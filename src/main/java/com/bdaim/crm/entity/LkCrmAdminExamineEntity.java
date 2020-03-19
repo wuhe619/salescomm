@@ -1,16 +1,22 @@
 package com.bdaim.crm.entity;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
+@DynamicUpdate
+@DynamicInsert
 @Table(name = "lkcrm_admin_examine", schema = "", catalog = "")
 public class LkCrmAdminExamineEntity {
     private Integer examineId;
     private Integer categoryType;
     private Integer examineType;
     private String name;
+    private String custId;
     private String deptIds;
     private String userIds;
     private Timestamp createTime;
@@ -59,6 +65,15 @@ public class LkCrmAdminExamineEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic

@@ -9,6 +9,8 @@ import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
+import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
+import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
@@ -67,6 +69,8 @@ public class B2BTcbService implements BusiService {
     private MarketResourceDao marketResourceDao;
     @Autowired
     private CrmLeadsService crmLeadsService;
+    @Autowired
+    private AdminFieldService adminFieldService;
 
     /**
      * 企业开通B2B套餐
@@ -328,7 +332,7 @@ public class B2BTcbService implements BusiService {
                     continue;
                 }
                 dto = new CustomSeaTouchInfoDTO("", custId, String.valueOf(userId), "", "",
-                        "", "", "", pNumbers.getString(i),
+                        data.get(entId).getString("entName") + (i + 1), "", "", pNumbers.getString(i),
                         "", "", "",
                         seaId, superData, "", "", "", "",
                         "", "", data.get(entId).getString("entName"),
@@ -340,10 +344,32 @@ public class B2BTcbService implements BusiService {
                 // 保存领取记录
                 saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));
                 // 判断是否为crm的线索领取
-                if ("crm".equals(param.getString("source")) && BaseUtil.getUserType() == 2 && status != -1) {
+                if ("crm".equals(param.getString("source")) && status != -1) {
+                    // 保存公海标记信息
+                    JSONArray list = new JSONArray();
+                    String[] values = new String[]{"手机", "线索名称", "公司名称"};
+                    for (String v : values) {
+                        Map<String, Object> field = marketResourceDao.queryUniqueSql("SELECT * FROM lkcrm_admin_field WHERE name = ? AND cust_id = ? AND label =11", v, BaseUtil.getCustId());
+                        if (field != null) {
+                            LkCrmAdminFieldvEntity value = new LkCrmAdminFieldvEntity();
+                            value.setFieldId(NumberConvertUtil.parseInt(field.get("field_id")));
+                            value.setCustId(BaseUtil.getCustId());
+                            value.setName(String.valueOf(field.get("name")));
+                            if ("手机".equals(v)) {
+                                value.setValue(dto.getSuper_telphone());
+                            } else if ("线索名称".equals(v)) {
+                                value.setValue(dto.getSuper_name());
+                            } else if ("公司名称".equals(v)) {
+                                value.setValue(dto.getCompany());
+                            }
+                            list.add(value);
+                        }
+                    }
+                    adminFieldService.save(list, dto.getSuper_id());
+                    //领取到私海
                     List<String> superIds = new ArrayList<>();
                     superIds.add(dto.getSuper_id());
-                    crmLeadsService.transferToPrivateSea(seaId,data.get(entId).getString("entName"), String.valueOf(userId), superIds);
+                    crmLeadsService.transferToPrivateSea(seaId, data.get(entId).getString("entName"), String.valueOf(userId), superIds, i + 1);
                 }
             }
             consumeNum++;
@@ -365,7 +391,7 @@ public class B2BTcbService implements BusiService {
                 + " set content = JSON_SET(content, '$.consume_num', JSON_EXTRACT(content, '$.consume_num') + ?), " +
                 " content = JSON_SET ( content, '$.remain_num', JSON_EXTRACT(content, '$.remain_num') - ? )" +
                 " where id = ? and type=?";
-        jdbcTemplate.update(updateNumSql, consumerNum, consumerNum, id,busiType);
+        jdbcTemplate.update(updateNumSql, consumerNum, consumerNum, id, busiType);
     }
 
     /**
@@ -414,7 +440,7 @@ public class B2BTcbService implements BusiService {
        /* Random random = new Random();
         long pageNo = random.nextInt((int) getNumber), pageSize = getNumber * 5;*/
         // 预查询数据
-        param.put("endTime","1900-01-01");
+        param.put("endTime", "1900-01-01");
         baseResult = searchListService.pageSearch(custId, "", userId, busiType, param);
         resultData = (JSONObject) baseResult.getData();
         if (resultData != null || "100".equals(baseResult.getCode())) {

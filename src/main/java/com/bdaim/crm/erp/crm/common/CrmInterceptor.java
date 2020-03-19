@@ -24,9 +24,10 @@ public class CrmInterceptor implements Interceptor {
         String requestURI = request.getRequestURI();
         String[] split = requestURI.split("/");
         Long userId = BaseUtil.getUserId();
+        Long adminUserId = BaseUtil.getAdminUserId();
         boolean flag = false;
         Map<String, String> tablePara =  AuthUtil.getCrmTablePara(split[1]);
-        if(! userId.equals(BaseConstant.SUPER_ADMIN_USER_ID)){
+        if(! userId.equals(adminUserId)){
             if(tablePara != null){
                 if("addOrUpdate".equals(split[2]) || "saveAndUpdate".equals(split[2])){
                     String rawData = controller.getRawData();

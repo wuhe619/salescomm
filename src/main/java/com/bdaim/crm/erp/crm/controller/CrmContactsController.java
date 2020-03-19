@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.crm.controller;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONArray;
@@ -9,7 +10,7 @@ import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.common.interceptor.ClassTypeCheck;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.dto.LkCrmAdminRecordDTO;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
@@ -29,8 +30,6 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.propertyeditors.CustomDateEditor;
-import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -41,7 +40,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -60,26 +58,23 @@ public class CrmContactsController extends BasicAction {
     @Resource
     private AdminSceneService adminSceneService;
 
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-    @InitBinder
-    protected void init(ServletRequestDataBinder binder) {
-        dateFormat.setLenient(false);
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
-    }
-
     /**
      * @author wyq
      * 查看列表页
      */
     @Permissions({"crm:contacts:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody JSONObject jsonObject) {
-        jsonObject.fluentPut("type", 3);
-        BasePageRequest basePageRequest = new BasePageRequest(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryPageList(BasePageRequest basePageRequest) {
+//        jsonObject.fluentPut("type", 3);
+//        BasePageRequest basePageRequest = new BasePageRequest(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
+//        basePageRequest.setJsonObject(jsonObject);
+//        basePageRequest.setJsonObject(jsonObject);
+//        return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 3);
         basePageRequest.setJsonObject(jsonObject);
-        basePageRequest.setJsonObject(jsonObject);
-        return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
+//        renderJson(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        return adminSceneService.filterConditionAndGetPageList(basePageRequest);
     }
 
     /**
@@ -161,7 +156,7 @@ public class CrmContactsController extends BasicAction {
      * @RequestParamm jsonArray
      * @return
      */
-    @Permissions({"crm:contacts:batchAddContacts"})
+    //@Permissions({"crm:contacts:batchAddContacts"})
     @RequestMapping(value = "/batchAddContacts", method = RequestMethod.POST)
     public R batchAddContacts(@org.springframework.web.bind.annotation.RequestBody JSONArray jsonArray) {
         // JSONObject jsonObject = JSON.parseObject(getRawData());
@@ -208,7 +203,7 @@ public class CrmContactsController extends BasicAction {
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
         if(StringUtil.isNotEmpty(adminRecord.getNextTime())){
-            lkCrmAdminRecordEntity.setNextTime(dateFormat.parse(adminRecord.getNextTime()));
+            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(),"yyyy-MM-dd HH:mm:ss"));
         }
         return (crmContactsService.addRecord(lkCrmAdminRecordEntity));
     }

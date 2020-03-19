@@ -18,7 +18,7 @@ import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.common.interceptor.ClassTypeCheck;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.dao.LkCrmAdminFieldDao;
 import com.bdaim.crm.dto.LkCrmAdminRecordDTO;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
@@ -49,10 +49,8 @@ import org.apache.poi.ss.util.CellRangeAddressList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.http.MediaType;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -64,7 +62,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -91,13 +88,6 @@ public class CrmLeadsController extends BasicAction {
     @Resource
     private LkCrmAdminFieldDao crmAdminFieldDao;
 
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-    @InitBinder
-    protected void init(ServletRequestDataBinder binder) {
-        dateFormat.setLenient(false);
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, false));
-    }
 
     /**
      * 公海内线索分页
@@ -165,18 +155,18 @@ public class CrmLeadsController extends BasicAction {
             int status = crmLeadsService.addClueData0(dto, jsonO);
             if (status == 1) {
                 responseJson.setCode(200);
-                responseJson.setMessage("添加成功");
+                responseJson.setMsg("添加成功");
             } else if (status == -1) {
                 responseJson.setCode(-1);
-                responseJson.setMessage("线索已经存在");
+                responseJson.setMsg("线索已经存在");
             } else {
                 responseJson.setCode(-1);
-                responseJson.setMessage("添加成功");
+                responseJson.setMsg("添加成功");
             }
         } catch (Exception e) {
             LOG.error("添加线索失败,", e);
             responseJson.setCode(-1);
-            responseJson.setMessage("添加线索失败");
+            responseJson.setMsg("添加线索失败");
         }
         return responseJson;
     }
@@ -226,14 +216,12 @@ public class CrmLeadsController extends BasicAction {
         } catch (Exception e) {
             LOG.error("更新个人信息失败,", e);
             responseJson.setCode(-1);
-            responseJson.setMessage("更新失败");
+            responseJson.setMsg("更新失败");
         }
         return responseJson;
     }
 
 
-    @Permissions("crm:leads:read")
-    @NotNullValidate(value = "leadsId", message = "线索id不能为空")
     @RequestMapping(value = "/cluesea/queryById", method = RequestMethod.POST)
     public ResponseInfo clueSeaQueryById(@RequestBody JSONObject jsonO) {
         ResponseInfo responseInfo = new ResponseInfo();
@@ -291,6 +279,7 @@ public class CrmLeadsController extends BasicAction {
         } catch (Exception e) {
             LOG.error("公海线索状态修改异常,", e);
             responseJson.setCode(-1);
+            responseJson.setMsg("公海线索状态修改异常");
         }
         responseJson.setData(data);
         return responseJson;
@@ -308,16 +297,19 @@ public class CrmLeadsController extends BasicAction {
         Integer operate = jsonObject.getInteger("operate");
         if (operate == null) {
             responseJson.setData("operate参数必填");
+            responseJson.setMsg("operate参数必填");
             responseJson.setCode(-1);
             return responseJson;
         }
         CustomerSeaSearch param = JSON.parseObject(jsonObject.toJSONString(), CustomerSeaSearch.class);
         if (StringUtil.isEmpty(param.getSeaId())) {
             responseJson.setData("seaId参数必填");
+            responseJson.setMsg("seaId参数必填");
             responseJson.setCode(-1);
         }
         if (param.getUserIds() == null || param.getUserIds().size() == 0) {
             responseJson.setData("userIds参数必填");
+            responseJson.setMsg("userIds参数必填");
             responseJson.setCode(-1);
         }
         // 员工和组长领取线索处理
@@ -347,7 +339,7 @@ public class CrmLeadsController extends BasicAction {
             responseJson.setCode(200);
         } catch (TouchException e) {
             responseJson.setCode(-1);
-            responseJson.setMessage(e.getMessage());
+            responseJson.setMsg(e.getMessage());
             LOG.error("线索分配异常,", e);
         }
         responseJson.setData(data);
@@ -387,11 +379,11 @@ public class CrmLeadsController extends BasicAction {
         long data = 0;
         try {
             param.setUserId(BaseUtil.getUser().getId());
-            data = seaService.getUserReceivableQuantity(param.getSeaId(), String.valueOf(BaseUtil.getUser().getId()));
+            data = crmLeadsService.getUserReceivableQuantity(param.getSeaId(), String.valueOf(BaseUtil.getUser().getId()));
             responseJson.setCode(200);
         } catch (Exception e) {
             responseJson.setCode(0);
-            responseJson.setMessage(e.getMessage());
+            responseJson.setMsg(e.getMessage());
             LOG.error("查询公海下坐席可领取线索量异常,", e);
         }
         responseJson.setData(data);
@@ -401,18 +393,9 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "update lkcrm_admin_field SET is_null = 1, is_unique = 1 WHERE field_name = 'super_telphone'; ";
+        String sql = "DELETE FROM lkcrm_admin_field WHERE `name` = '当前负责人' ";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
-
-        sql = "update lkcrm_admin_menu SET realm='index' WHERE menu_id = 170; ";
-        data = crmAdminFieldDao.executeUpdateSQL(sql);
-        sql = "update lkcrm_admin_menu SET realm='index' WHERE menu_id = 173; ";
-        data = crmAdminFieldDao.executeUpdateSQL(sql);
-        sql = "DELETE FROM lkcrm_admin_menu WHERE menu_id = 174; ";
-        data = crmAdminFieldDao.executeUpdateSQL(sql);
         sql = "DELETE FROM lkcrm_admin_field_sort ";
-        data = crmAdminFieldDao.executeUpdateSQL(sql);
-        sql = "DELETE FROM lkcrm_admin_field WHERE  field_id IN(117,176) ";
         data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
@@ -424,17 +407,14 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions({"crm:leads:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody JSONObject jsonObject) {
-        BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
-        jsonObject.fluentPut("type", 1);
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryPageList(BasePageRequest basePageRequest) {
+        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
-        //resp.setData(adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
         return adminSceneService.filterConditionAndGetPageList(basePageRequest);
-        //return resp;
     }
 
     /**
-     * @author wyq
      * 全局搜索查询线索
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
@@ -513,7 +493,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 添加跟进记录
      */
     @NotNullValidate(value = "typesId", message = "线索id不能为空")
@@ -535,7 +514,7 @@ public class CrmLeadsController extends BasicAction {
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
         if (StringUtil.isNotEmpty(adminRecord.getNextTime())) {
-            lkCrmAdminRecordEntity.setNextTime(dateFormat.parse(adminRecord.getNextTime()));
+            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(), "yyyy-MM-dd HH:mm:ss"));
         }
         return (crmLeadsService.addRecord(lkCrmAdminRecordEntity));
     }
@@ -587,10 +566,8 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 批量导出线索
      */
-    @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/cluesea/batchExportExcel", method = RequestMethod.POST)
     public void clueSeaBatchExportExcel(@RequestParam(name = "ids") String superIds, Long seaId, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmLeadsService.exportPublicSeaClues(seaId, superIds);
@@ -619,7 +596,6 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 导出公海全部线索
      */
-    @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/cluesea/allExportExcel", method = RequestMethod.POST)
     public void clueSeaAllExportExcel(Long seaId, String search, HttpServletResponse response) throws IOException, TouchException {
         JSONObject jsonObject = new JSONObject();
@@ -837,7 +813,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 获取线索导入模板
      */
     @LoginFormCookie
@@ -936,11 +911,8 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 线索导入
      */
-    @Permissions("crm:leads:excelimport")
-    @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
     @Before(Tx.class)
     @RequestMapping(value = "/cluesea/uploadExcel")
     public R clueSeaUploadExcel(Integer repeatHandling, Long ownerUserId, Long seaId) {

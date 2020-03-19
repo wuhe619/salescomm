@@ -3,7 +3,9 @@ package com.bdaim.customer.service;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.service.PhoneService;
 import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.smscenter.service.SendSmsService;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +27,12 @@ public class CustomerExtensionService {
     @Autowired
     private CustomerDao customerDao;
 
+    @Autowired
+    private SendSmsService sendSmsService;
+
+    @Autowired
+    private PhoneService phoneService;
+
     public String saveExtension(JSONObject info) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         if(!info.containsKey("clazz")){
@@ -32,6 +40,16 @@ public class CustomerExtensionService {
         }
         String sql = "insert into op_crm_clue_log(content,create_time,update_time) values (?, ?, ?)";
         jdbcTemplate.update(sql, info.toJSONString(), timestamp, timestamp);
+        try {
+            if ("toC".equals(info.getString("clazz"))) {
+                List list = new ArrayList();
+                list.add("72jxqir");
+                list.add("e7xt5h5");
+                sendSmsService.sendSmsToQueue("1807310926310004", "23", list, "255", "18073109262400000", null);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         return "Success";
     }
 

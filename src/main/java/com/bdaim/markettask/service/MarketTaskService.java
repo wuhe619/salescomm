@@ -1262,6 +1262,7 @@ public class MarketTaskService {
         }
 
         sb.append(" ORDER BY id ASC ");
+        LOG.info("markettaskdetail:{},{}",sb.toString(),args.toArray());
         try {
             page = marketTaskDao.sqlPageQuery0(sb.toString(), pageNum, pageSize, args.toArray());
         } catch (Exception e) {
@@ -4462,7 +4463,8 @@ public class MarketTaskService {
             if (StringUtil.isNotEmpty(pageIndex) && StringUtil.isNotEmpty(pageSize)) {
                 sql.append(" LIMIT ").append(pageIndex).append(",").append(pageSize);
             }
-            marketTaskDao.executeUpdateSQL(sql.toString(), args);
+            LOG.info("入数据到营销任务:"+marketTaskId+";"+sql.toString()+";"+args);
+            marketTaskDao.executeUpdateSQL(sql.toString(), args.toArray());
         }
 
     }

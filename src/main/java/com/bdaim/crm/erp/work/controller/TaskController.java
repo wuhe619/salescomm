@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.common.interceptor.ClassTypeCheck;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.entity.LkCrmTaskEntity;
 import com.bdaim.crm.entity.LkCrmTaskRelationEntity;
 import com.bdaim.crm.entity.LkCrmWorkTaskClassEntity;
@@ -20,15 +20,10 @@ import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
 import com.jfinal.core.paragetter.Para;
-import org.springframework.beans.propertyeditors.CustomDateEditor;
-import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -37,12 +32,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/task")
 public class TaskController extends BasicAction {
-    @InitBinder
-    protected void init(ServletRequestDataBinder binder) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        dateFormat.setLenient(false);
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
-    }
 
     @Resource
     private TaskService taskService;
@@ -237,12 +226,11 @@ public class TaskController extends BasicAction {
     }
 
     /**
-     * @author zxy
      * 添加任务与业务关联
      */
     @RequestMapping(value = "/svaeTaskRelation", method = RequestMethod.POST)
     public R svaeTaskRelation(@Para("") LkCrmTaskRelationEntity taskRelation) {
-        return (taskService.svaeTaskRelation(taskRelation, BaseUtil.getUser().getUserId().intValue()));
+        return (taskService.saveTaskRelation(taskRelation, BaseUtil.getUser().getUserId().intValue()));
     }
 
     /**
