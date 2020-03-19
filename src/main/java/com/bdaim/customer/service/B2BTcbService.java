@@ -328,7 +328,7 @@ public class B2BTcbService implements BusiService {
                     continue;
                 }
                 dto = new CustomSeaTouchInfoDTO("", custId, String.valueOf(userId), "", "",
-                        "", "", "", pNumbers.getString(i),
+                        data.get(entId).getString("entName") + (i + 1), "", "", pNumbers.getString(i),
                         "", "", "",
                         seaId, superData, "", "", "", "",
                         "", "", data.get(entId).getString("entName"),
@@ -343,7 +343,7 @@ public class B2BTcbService implements BusiService {
                 if ("crm".equals(param.getString("source")) && BaseUtil.getUserType() == 2 && status != -1) {
                     List<String> superIds = new ArrayList<>();
                     superIds.add(dto.getSuper_id());
-                    crmLeadsService.transferToPrivateSea(seaId,data.get(entId).getString("entName"), String.valueOf(userId), superIds);
+                    crmLeadsService.transferToPrivateSea(seaId, data.get(entId).getString("entName"), String.valueOf(userId), superIds);
                 }
             }
             consumeNum++;
@@ -365,7 +365,7 @@ public class B2BTcbService implements BusiService {
                 + " set content = JSON_SET(content, '$.consume_num', JSON_EXTRACT(content, '$.consume_num') + ?), " +
                 " content = JSON_SET ( content, '$.remain_num', JSON_EXTRACT(content, '$.remain_num') - ? )" +
                 " where id = ? and type=?";
-        jdbcTemplate.update(updateNumSql, consumerNum, consumerNum, id,busiType);
+        jdbcTemplate.update(updateNumSql, consumerNum, consumerNum, id, busiType);
     }
 
     /**
@@ -414,7 +414,7 @@ public class B2BTcbService implements BusiService {
        /* Random random = new Random();
         long pageNo = random.nextInt((int) getNumber), pageSize = getNumber * 5;*/
         // 预查询数据
-        param.put("endTime","1900-01-01");
+        param.put("endTime", "1900-01-01");
         baseResult = searchListService.pageSearch(custId, "", userId, busiType, param);
         resultData = (JSONObject) baseResult.getData();
         if (resultData != null || "100".equals(baseResult.getCode())) {

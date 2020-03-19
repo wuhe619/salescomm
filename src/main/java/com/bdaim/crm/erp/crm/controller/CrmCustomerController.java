@@ -83,9 +83,9 @@ public class CrmCustomerController extends BasicAction {
      */
     @Permissions({"crm:customer:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody JSONObject jsonObject) {
-        BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
-        jsonObject.fluentPut("type", 2);
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryPageList(BasePageRequest basePageRequest) {
+        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 2);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
@@ -95,10 +95,9 @@ public class CrmCustomerController extends BasicAction {
      */
     @Permissions({"crm:pool:index"})
     @RequestMapping(value = "/queryPoolPageList", method = RequestMethod.POST)
-    public R queryPoolPageList(@RequestBody JSONObject jsonObject) {
-        //JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 8);
-        BasePageRequest basePageRequest = new BasePageRequest(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
-        jsonObject.fluentPut("type", 8);
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryPoolPageList(BasePageRequest basePageRequest) {
+        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 8);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
@@ -413,8 +412,8 @@ public class CrmCustomerController extends BasicAction {
         }
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
-        if(StringUtil.isNotEmpty(adminRecord.getNextTime())){
-            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(),"yyyy-MM-dd HH:mm:ss"));
+        if (StringUtil.isNotEmpty(adminRecord.getNextTime())) {
+            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(), "yyyy-MM-dd HH:mm:ss"));
         }
         return (crmCustomerService.addRecord(lkCrmAdminRecordEntity));
     }
@@ -501,15 +500,13 @@ public class CrmCustomerController extends BasicAction {
      */
     @Permissions("crm:pool:excelexport")
     @RequestMapping(value = "/poolAllExportExcel")
-    public void poolAllExportExcel(@RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
-        //JSONObject jsonObject = basePageRequest.getJsonObject();
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public void poolAllExportExcel(BasePageRequest basePageRequest, HttpServletResponse response) throws IOException {
+        JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", 8);
-        //AdminSceneService adminSceneService = new AdminSceneService();
-        BasePageRequest basePageRequest = new BasePageRequest(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
-        basePageRequest.setJsonObject(jsonObject);
-        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("excel");
+        AdminSceneService adminSceneService = new AdminSceneService();
+        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
         export(recordList, response);
-        //renderNull();
     }
 
     @RequestMapping(value = "/export")

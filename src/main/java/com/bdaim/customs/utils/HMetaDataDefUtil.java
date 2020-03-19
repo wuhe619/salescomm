@@ -22,18 +22,18 @@ public class HMetaDataDefUtil {
     @PostConstruct
     private void init(){
        // JdbcTemplate jdbcTemplate = (JdbcTemplate) SpringContextHelper.getBean("jdbcTemplate");
-        try {
-            List<String> types = BusiTypeEnum.getTypeList();
-            for(String type:types){
-                String sql=" create table  if not exists  h_data_manager_"+type+" like h_data_manager";
-                jdbcTemplate.execute(sql);
-            }
-            log.info("create table finish");
-            log.info("init dic data");
-            hDicUtil.init();
-        } catch (Exception e) {
-            log.error("创建h_data_manager_异常",e);
-        }
+//        try {
+//            List<String> types = BusiTypeEnum.getTypeList();
+//            for(String type:types){
+//                String sql=" create table  if not exists  h_data_manager_"+type+" like h_data_manager";
+//                jdbcTemplate.execute(sql);
+//            }
+//            log.info("create table finish");
+//            log.info("init dic data");
+//            hDicUtil.init();
+//        } catch (Exception e) {
+//            log.error("创建h_data_manager_异常",e);
+//        }
 
     }
 }

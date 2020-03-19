@@ -407,13 +407,11 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions({"crm:leads:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody JSONObject jsonObject) {
-        BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
-        jsonObject.fluentPut("type", 1);
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryPageList(BasePageRequest basePageRequest) {
+        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
-        //resp.setData(adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
         return adminSceneService.filterConditionAndGetPageList(basePageRequest);
-        //return resp;
     }
 
     /**
