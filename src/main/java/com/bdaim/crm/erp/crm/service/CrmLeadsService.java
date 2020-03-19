@@ -558,11 +558,12 @@ public class CrmLeadsService {
      * @return
      */
     private int getCustomerSeaClueGetMode(String seaId) {
-        CustomerSeaProperty cp = customerSeaDao.getProperty(seaId, "clueGetMode");
+      /*  CustomerSeaProperty cp = customerSeaDao.getProperty(seaId, "clueGetMode");
         if (cp == null || StringUtil.isEmpty(cp.getPropertyValue())) {
             return 0;
         }
-        return NumberConvertUtil.parseInt(cp.getPropertyValue());
+        return NumberConvertUtil.parseInt(cp.getPropertyValue());*/
+        return 1;
     }
 
     /**
@@ -572,11 +573,33 @@ public class CrmLeadsService {
      * @return
      */
     private int getCustomerSeaGetRestrict(String seaId) {
-        CustomerSeaProperty cp = customerSeaDao.getProperty(seaId, "clueGetRestrict");
-        if (cp == null || StringUtil.isEmpty(cp.getPropertyValue())) {
-            return 0;
+        Map<String, Object> seaRule = crmLeadsDao.queryUniqueSql("SELECT * FROM lkcrm_admin_config WHERE `name` = 'seaRule' AND cust_id = ? ", BaseUtil.getCustId());
+        if (seaRule != null && seaRule.size() > 0) {
+            JSONObject value, receive;
+            value = JSON.parseObject(String.valueOf(seaRule.get("value")));
+            if (value != null && value.getJSONObject("receive") != null) {
+                receive = value.getJSONObject("receive");
+                if (receive.getBooleanValue("status")) {
+                    return 2;
+                }
+            }
         }
-        return NumberConvertUtil.parseInt(cp.getPropertyValue());
+        return 1;
+    }
+
+    private Long getCustomerSeaGetNum() {
+        Map<String, Object> seaRule = crmLeadsDao.queryUniqueSql("SELECT * FROM lkcrm_admin_config WHERE `name` = 'seaRule' AND cust_id = ? ", BaseUtil.getCustId());
+        if (seaRule != null && seaRule.size() > 0) {
+            JSONObject value, receive;
+            value = JSON.parseObject(String.valueOf(seaRule.get("value")));
+            if (value != null && value.getJSONObject("receive") != null) {
+                receive = value.getJSONObject("receive");
+                if (receive.getBooleanValue("status")) {
+                    return receive.getLong("num");
+                }
+            }
+        }
+        return 0L;
     }
 
     /**
@@ -592,11 +615,11 @@ public class CrmLeadsService {
         if (getMode == 1) {
             //限制数量
             if (getRestrict == 2) {
-                CustomerSeaProperty cp = customerSeaDao.getProperty(seaId, "clueGetRestrictValue");
+               /* CustomerSeaProperty cp = customerSeaDao.getProperty(seaId, "clueGetRestrictValue");
                 if (cp == null || StringUtil.isEmpty(cp.getPropertyValue())) {
                     return 0L;
-                }
-                long clueGetRestrictValue = NumberConvertUtil.parseLong(cp.getPropertyValue());
+                }*/
+                long clueGetRestrictValue = getCustomerSeaGetNum();
 
                 LocalDateTime min = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
                 LocalDateTime max = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
