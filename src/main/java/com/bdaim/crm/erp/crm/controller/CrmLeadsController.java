@@ -379,7 +379,7 @@ public class CrmLeadsController extends BasicAction {
         long data = 0;
         try {
             param.setUserId(BaseUtil.getUser().getId());
-            data = seaService.getUserReceivableQuantity(param.getSeaId(), String.valueOf(BaseUtil.getUser().getId()));
+            data = crmLeadsService.getUserReceivableQuantity(param.getSeaId(), String.valueOf(BaseUtil.getUser().getId()));
             responseJson.setCode(200);
         } catch (Exception e) {
             responseJson.setCode(0);
