@@ -155,18 +155,18 @@ public class CrmLeadsController extends BasicAction {
             int status = crmLeadsService.addClueData0(dto, jsonO);
             if (status == 1) {
                 responseJson.setCode(200);
-                responseJson.setMessage("添加成功");
+                responseJson.setMsg("添加成功");
             } else if (status == -1) {
                 responseJson.setCode(-1);
-                responseJson.setMessage("线索已经存在");
+                responseJson.setMsg("线索已经存在");
             } else {
                 responseJson.setCode(-1);
-                responseJson.setMessage("添加成功");
+                responseJson.setMsg("添加成功");
             }
         } catch (Exception e) {
             LOG.error("添加线索失败,", e);
             responseJson.setCode(-1);
-            responseJson.setMessage("添加线索失败");
+            responseJson.setMsg("添加线索失败");
         }
         return responseJson;
     }
@@ -216,7 +216,7 @@ public class CrmLeadsController extends BasicAction {
         } catch (Exception e) {
             LOG.error("更新个人信息失败,", e);
             responseJson.setCode(-1);
-            responseJson.setMessage("更新失败");
+            responseJson.setMsg("更新失败");
         }
         return responseJson;
     }
@@ -279,6 +279,7 @@ public class CrmLeadsController extends BasicAction {
         } catch (Exception e) {
             LOG.error("公海线索状态修改异常,", e);
             responseJson.setCode(-1);
+            responseJson.setMsg("公海线索状态修改异常");
         }
         responseJson.setData(data);
         return responseJson;
@@ -296,16 +297,19 @@ public class CrmLeadsController extends BasicAction {
         Integer operate = jsonObject.getInteger("operate");
         if (operate == null) {
             responseJson.setData("operate参数必填");
+            responseJson.setMsg("operate参数必填");
             responseJson.setCode(-1);
             return responseJson;
         }
         CustomerSeaSearch param = JSON.parseObject(jsonObject.toJSONString(), CustomerSeaSearch.class);
         if (StringUtil.isEmpty(param.getSeaId())) {
             responseJson.setData("seaId参数必填");
+            responseJson.setMsg("seaId参数必填");
             responseJson.setCode(-1);
         }
         if (param.getUserIds() == null || param.getUserIds().size() == 0) {
             responseJson.setData("userIds参数必填");
+            responseJson.setMsg("userIds参数必填");
             responseJson.setCode(-1);
         }
         // 员工和组长领取线索处理
@@ -335,7 +339,7 @@ public class CrmLeadsController extends BasicAction {
             responseJson.setCode(200);
         } catch (TouchException e) {
             responseJson.setCode(-1);
-            responseJson.setMessage(e.getMessage());
+            responseJson.setMsg(e.getMessage());
             LOG.error("线索分配异常,", e);
         }
         responseJson.setData(data);
@@ -375,11 +379,11 @@ public class CrmLeadsController extends BasicAction {
         long data = 0;
         try {
             param.setUserId(BaseUtil.getUser().getId());
-            data = seaService.getUserReceivableQuantity(param.getSeaId(), String.valueOf(BaseUtil.getUser().getId()));
+            data = crmLeadsService.getUserReceivableQuantity(param.getSeaId(), String.valueOf(BaseUtil.getUser().getId()));
             responseJson.setCode(200);
         } catch (Exception e) {
             responseJson.setCode(0);
-            responseJson.setMessage(e.getMessage());
+            responseJson.setMsg(e.getMessage());
             LOG.error("查询公海下坐席可领取线索量异常,", e);
         }
         responseJson.setData(data);

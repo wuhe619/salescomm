@@ -1,5 +1,6 @@
 package com.bdaim.common.controller.util;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -58,6 +59,8 @@ public class ResponseCommon {
 
     private String message;
     private int code;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String msg;
 
     @JsonProperty(value = "_message")
     public String getMessage() {
@@ -76,8 +79,21 @@ public class ResponseCommon {
         this.message = SUCCESS_MSG;
         this.code = SUCCESS_CODE;
     }
+
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
+
     @Override
     public String toString() {
-        return "ResponseCommon [message=" + message + ", code=" + code + "]";
+        return "ResponseCommon{" +
+                "message='" + message + '\'' +
+                ", code=" + code +
+                ", msg='" + msg + '\'' +
+                '}';
     }
 }

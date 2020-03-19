@@ -55,8 +55,8 @@ public class AdminFieldService {
     @Autowired
     private LkCrmSqlViewDao crmSqlViewDao;
 
-    private static String[] SHOW_PRI_SEA_FIELD = new String[]{"线索名称", "公司名称", "客户级别", "跟进状态", "当前负责人", "添加时间", "最新跟进时间", "下次联系时间", "手机", "电话", "微信", "备注", "线索来源"};
-    private static String[] SHOW_PUB_SEA_FIELD = new String[]{"线索名称", "公司名称", "部门名称", "职位", "客户级别", "前负责人", "进入公海时间", "退回原因", "手机", "电话", "微信", "备注", "线索来源"};
+    private static String[] SHOW_PRI_SEA_FIELD = new String[]{"线索名称", "公司名称", "客户级别", "跟进状态", "负责人", "添加时间", "最新跟进时间", "下次联系时间", "手机", "电话", "微信", "备注", "线索来源"};
+    private static String[] SHOW_PUB_SEA_FIELD = new String[]{"线索名称", "公司名称", "部门名称", "职位", "客户级别", "前负责人", "负责人", "进入公海时间", "退回原因", "手机", "电话", "微信", "备注", "线索来源"};
 
     /**
      * @author wyq
