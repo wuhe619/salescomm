@@ -315,7 +315,7 @@ public class LkAdminUserService {
         adminConfig.setDescription("合同到期提醒");
         crmAdminConfigDao.save(adminConfig);
         // 创建默认审批流程
-        LkCrmAdminExamineEntity  examineEntity  = new LkCrmAdminExamineEntity();
+        LkCrmAdminExamineEntity examineEntity = new LkCrmAdminExamineEntity();
         examineEntity.setCustId(custId);
         examineEntity.setExamineType(2);
         examineEntity.setCategoryType(2);
@@ -325,7 +325,7 @@ public class LkAdminUserService {
         examineEntity.setStatus(1);
         crmAdminConfigDao.saveOrUpdate(examineEntity);
         crmAdminConfigDao.getSession().clear();
-        examineEntity  = new LkCrmAdminExamineEntity();
+        examineEntity = new LkCrmAdminExamineEntity();
         examineEntity.setCustId(custId);
         examineEntity.setExamineType(2);
         examineEntity.setCategoryType(1);
@@ -342,15 +342,23 @@ public class LkAdminUserService {
     private void updateScene(LkCrmAdminUserEntity adminUser) {
         List<Long> ids = new ArrayList<>();
         if (adminUser.getUserId() == 0 && adminUser.getParentId() != null) {
+            //新客户，且有上级
             ids.add(adminUser.getParentId());
         } else if (adminUser.getUserId() != 0) {
+            //老客户
 //            AdminUser oldAdminUser = AdminUser.dao.findById(adminUser.getUserId());
             LkCrmAdminUserEntity oldAdminUser = crmAdminUserDao.get(adminUser.getUserId());
             if (oldAdminUser.getParentId() == null && adminUser.getParentId() != null) {
+                //原来没上级，现在有上级
                 ids.add(adminUser.getParentId());
             } else if (oldAdminUser.getParentId() != null && !oldAdminUser.getParentId().equals(adminUser.getParentId())) {
-                ids.add(oldAdminUser.getParentId());
-                ids.add(adminUser.getParentId());
+                //原来有上级，且现在跟原来的上级不一样了
+                if (!oldAdminUser.getParentId().equals(0L)) {
+                    ids.add(oldAdminUser.getParentId());
+                }
+                if (adminUser.getParentId() != null && !adminUser.getParentId().equals(0L)) {
+                    ids.add(adminUser.getParentId());
+                }
             }
         }
         if (ids.size() > 0) {
@@ -369,11 +377,13 @@ public class LkAdminUserService {
     private List<Long> queryTopUserId(Long userId, Integer deepness) {
         List<Long> arrUsers = new ArrayList<>();
         if (deepness-- > 0) {
-            LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(userId);
-            if (adminUser.getParentId() != null && !adminUser.getParentId().equals(0L)) {
-                arrUsers.addAll(queryTopUserId(adminUser.getParentId(), deepness));
+            if (userId != null && userId != 0) {
+                LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(userId);
+                if (adminUser.getParentId() != null && !adminUser.getParentId().equals(0L)) {
+                    arrUsers.addAll(queryTopUserId(adminUser.getParentId(), deepness));
+                }
+                arrUsers.add(adminUser.getUserId());
             }
-            arrUsers.add(adminUser.getUserId());
         }
         return arrUsers;
     }
