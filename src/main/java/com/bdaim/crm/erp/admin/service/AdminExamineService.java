@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.LkCrmAdminExamineDao;
 import com.bdaim.crm.dao.LkCrmAdminExamineStepDao;
@@ -104,8 +105,8 @@ public class AdminExamineService {
      * 查询所有启用审批流程
      */
     public R queryAllExamine(BasePageRequest<AdminExamine> basePageRequest) {
-        com.bdaim.common.dto.Page page = crmAdminExamineDao.queryExaminePage(basePageRequest.getPage(), basePageRequest.getLimit());
-        //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("admin.examine.queryExaminePage"));
+        Page page = crmAdminExamineDao.queryExaminePage(basePageRequest.getPage(), basePageRequest.getLimit());
+        List<Record> recordList = new ArrayList<>();
         page.getData().forEach(s -> {
             Record record = JavaBeanUtil.mapToRecord((Map<String, Object>) s);
             List<Map<String, Object>> data = new ArrayList();
@@ -126,10 +127,12 @@ public class AdminExamineService {
                 });
                 record.set("stepList", stepList);
             }
-            if (record.getStr("user_ids") != null && record.getStr("user_ids").split(",").length > 0) {
-                List<Record> userList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_user WHERE id IN (" + SqlAppendUtil.sqlAppendWhereIn(record.getStr("user_ids").split(",")) + ");"));
-                //List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", record.getStr("user_ids").split(","))));
-                record.set("userIds", userList);
+            if (record.getStr("user_ids") != null) {
+                int length = record.getStr("user_ids").split(",").length;
+                if (record.getStr("user_ids").split(",").length > 0) {
+                    List<Record> userList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_user WHERE id IN (" + SqlAppendUtil.sqlAppendWhereIn(record.getStr("user_ids").split(",")) + ");"));
+                    record.set("userIds", userList);
+                }
             } else {
                 record.set("userIds", new ArrayList<>());
             }
@@ -141,7 +144,9 @@ public class AdminExamineService {
             } else {
                 record.set("deptIds", new ArrayList<>());
             }
+            recordList.add(record);
         });
+        page.setData(recordList);
         return R.ok().put("data", BaseUtil.crmPage(page));
     }
 

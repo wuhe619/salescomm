@@ -26,6 +26,18 @@ public class LkCrmOaExamineEntity {
     private Timestamp createTime;
     private Timestamp updateTime;
     private String batchId;
+    private String custId;
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
+    }
+
 
     @Id
     @Column(name = "examine_id")
@@ -167,6 +179,7 @@ public class LkCrmOaExamineEntity {
                 categoryId == that.categoryId &&
                 createUserId == that.createUserId &&
                 Objects.equals(content, that.content) &&
+                Objects.equals(custId, that.custId) &&
                 Objects.equals(remark, that.remark) &&
                 Objects.equals(typeId, that.typeId) &&
                 Objects.equals(money, that.money) &&
@@ -180,6 +193,6 @@ public class LkCrmOaExamineEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(examineId, categoryId, content, remark, typeId, money, startTime, endTime, duration, createUserId, createTime, updateTime, batchId);
+        return Objects.hash(examineId, custId, categoryId, content, remark, typeId, money, startTime, endTime, duration, createUserId, createTime, updateTime, batchId);
     }
 }

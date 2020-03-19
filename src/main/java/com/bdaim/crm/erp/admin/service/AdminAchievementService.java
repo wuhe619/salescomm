@@ -94,7 +94,7 @@ public class AdminAchievementService {
                         info.put("january", 0);
                         info.put("december", 0);
                         info.put("october", 0);
-                        info.put("obj_id", deptId);
+                        info.put("obj_id", record1.get("dept_id"));
                         info.put("year", achievement.getYear());
                         info.put("type", achievement.getType());
                         info.put("status", achievement.getStatus());

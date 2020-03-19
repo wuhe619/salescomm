@@ -222,8 +222,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
 
-    @Permissions("crm:leads:read")
-    @NotNullValidate(value = "leadsId", message = "线索id不能为空")
     @RequestMapping(value = "/cluesea/queryById", method = RequestMethod.POST)
     public ResponseInfo clueSeaQueryById(@RequestBody JSONObject jsonO) {
         ResponseInfo responseInfo = new ResponseInfo();
@@ -391,8 +389,10 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "DELETE FROM lkcrm_admin_field_sort ";
+        String sql = "DELETE FROM lkcrm_admin_field WHERE `name` = '当前负责人' ";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
+        sql = "DELETE FROM lkcrm_admin_field_sort ";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
     }
@@ -403,17 +403,14 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions({"crm:leads:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody JSONObject jsonObject) {
-        BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
-        jsonObject.fluentPut("type", 1);
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryPageList(BasePageRequest basePageRequest) {
+        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
-        //resp.setData(adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
         return adminSceneService.filterConditionAndGetPageList(basePageRequest);
-        //return resp;
     }
 
     /**
-     * @author wyq
      * 全局搜索查询线索
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
@@ -492,7 +489,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 添加跟进记录
      */
     @NotNullValidate(value = "typesId", message = "线索id不能为空")
@@ -514,7 +510,7 @@ public class CrmLeadsController extends BasicAction {
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
         if (StringUtil.isNotEmpty(adminRecord.getNextTime())) {
-            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(),"yyyy-MM-dd HH:mm:ss"));
+            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(), "yyyy-MM-dd HH:mm:ss"));
         }
         return (crmLeadsService.addRecord(lkCrmAdminRecordEntity));
     }
@@ -566,10 +562,8 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 批量导出线索
      */
-    @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/cluesea/batchExportExcel", method = RequestMethod.POST)
     public void clueSeaBatchExportExcel(@RequestParam(name = "ids") String superIds, Long seaId, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmLeadsService.exportPublicSeaClues(seaId, superIds);
@@ -598,7 +592,6 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 导出公海全部线索
      */
-    @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/cluesea/allExportExcel", method = RequestMethod.POST)
     public void clueSeaAllExportExcel(Long seaId, String search, HttpServletResponse response) throws IOException, TouchException {
         JSONObject jsonObject = new JSONObject();
@@ -816,7 +809,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 获取线索导入模板
      */
     @LoginFormCookie
@@ -915,11 +907,8 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 线索导入
      */
-    @Permissions("crm:leads:excelimport")
-    @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
     @Before(Tx.class)
     @RequestMapping(value = "/cluesea/uploadExcel")
     public R clueSeaUploadExcel(Integer repeatHandling, Long ownerUserId, Long seaId) {

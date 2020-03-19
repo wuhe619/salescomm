@@ -33,9 +33,9 @@ public class CrmReceivablesController extends BasicAction {
      */
     @Permissions({"crm:receivables:index"})
     @RequestMapping(value = "queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody JSONObject jsonObject) {
-        BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"),jsonObject.getIntValue("limit"));
-        jsonObject.fluentPut("type", 7);
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R queryPageList(BasePageRequest basePageRequest) {
+        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 7);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }

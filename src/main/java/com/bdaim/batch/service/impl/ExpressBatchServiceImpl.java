@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ExpressBatchServiceImpl implements ExpressBatchService {
+    private static Logger logger = LoggerFactory.getLogger(ExpressBatchServiceImpl.class);
 
     protected static final Properties PROPERTIES = new Properties(System.getProperties());
 
@@ -47,8 +48,6 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     private ZipUtil zipUtil;
     @Autowired
     private FileUrlEntity fileUrlEntity;
-    @Autowired
-    private static Logger logger = LoggerFactory.getLogger(ExpressBatchServiceImpl.class);
 
     @Override
     public Map<String, Object> queryPathByBatchId(Map<String, Object> map) {

@@ -80,11 +80,12 @@ public class BiCustomerService {
         Integer finalTime = record.getInt("finalTime");
         String[] userIdsArr = userIds.split(",");
         StringBuffer sqlStringBuffer = new StringBuffer();
+        String custId = BaseUtil.getCustId();
         for (int i = 1; i <= userIdsArr.length; i++) {
             sqlStringBuffer.append("select (select realname from lkcrm_admin_user where user_id = ").append(userIdsArr[i - 1])
                     .append(") as realname,count(a.customer_id) as customerNum,IFNULL((select count(distinct b.customer_id) from " +
                             "lkcrm_crm_contract as b left join lkcrm_crm_customer as c on b.customer_id = c.customer_id where " +
-                            "b.cust_id='" + BaseUtil.getCustId() +
+                            "b.cust_id='" + custId +
                             "' and c.customer_id = a.customer_id and b.check_status = 2 ),0) as dealCustomerNum,(select IFNULL(SUM(money),0) " +
                             "from lkcrm_crm_contract where DATE_FORMAT(order_date,'").append(sqlDateFormat).append("') between '")
                     .append(beginTime).append("' and '").append(finalTime).append("' and owner_user_id = ").append(userIdsArr[i - 1])
@@ -93,7 +94,7 @@ public class BiCustomerService {
                     .append(beginTime).append("' and '").append(finalTime).append("' and e.owner_user_id = ").append(userIdsArr[i - 1])
                     .append(" ) as receivablesMoney from customerview as a where DATE_FORMAT(create_time,'").append(sqlDateFormat)
                     .append("') between '").append(beginTime).append("' and '").append(finalTime).append("' and cust_id='")
-                    .append(BaseUtil.getCustId())
+                    .append(custId)
                     .append("' and owner_user_id = ")
                     .append(userIdsArr[i - 1]);
             if (i != userIdsArr.length) {

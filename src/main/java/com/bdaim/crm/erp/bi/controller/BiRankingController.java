@@ -165,8 +165,8 @@ public class BiRankingController extends Controller {
      * @author Chacker
      */
     @RequestMapping(value = "/portraitLevel")
-    public R portraitLevel(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
-//        renderJson(service.portraitLevel(deptId,userId,type,startTime,endTime));
+    public R portraitLevel(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type,
+                           @Para("startTime") String startTime, @Para("endTime") String endTime) {
         return service.portraitLevel(deptId, userId, type, startTime, endTime);
     }
 

@@ -77,7 +77,7 @@ public class BiWorkService {
         Record record = new Record().set("deptId", deptId).set("userId", userId).set("type", type);
         biTimeUtil.analyzeType(record);
         String categoryListSql = "SELECT category_id,title FROM lkcrm_oa_examine_category WHERE 1=1 AND cust_id=?";
-        List<Map<String, Object>> categoryListMap = biDao.queryListBySql(categoryListSql, BaseUtil.getCustId());
+        List<Map<String, Object>> categoryListMap = biDao.queryMapsListBySql(categoryListSql, BaseUtil.getCustId());
         List<Record> categoryList = JavaBeanUtil.mapToRecords(categoryListMap);
         object.put("categoryList", categoryList);
         List<String> users = StrUtil.splitTrim(record.getStr("userIds"), ",");

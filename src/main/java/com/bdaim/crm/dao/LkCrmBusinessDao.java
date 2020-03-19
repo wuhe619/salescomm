@@ -14,7 +14,7 @@ import java.util.Map;
 @Component
 public class LkCrmBusinessDao extends SimpleHibernateDao<LkCrmBusinessEntity, Integer> {
     public List queryByIds(List deptIds) {
-        return super.queryListBySql("  select * from  72crm_crm_business\n" +
+        return super.queryListBySql("  select * from  crm_crm_business\n" +
                 "       where business_id in  (" + SqlAppendUtil.sqlAppendWhereIn(deptIds) + ")");
     }
 

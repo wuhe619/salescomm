@@ -13,6 +13,7 @@ public class LkCrmTaskRelationEntity {
     private String contactsIds;
     private String businessIds;
     private String contractIds;
+    private String leadsIds;
     private Integer status;
     private Timestamp createTime;
 
@@ -94,6 +95,16 @@ public class LkCrmTaskRelationEntity {
 
     public void setCreateTime(Timestamp createTime) {
         this.createTime = createTime;
+    }
+
+    @Basic
+    @Column(name = "leads_ids")
+    public String getLeadsIds() {
+        return leadsIds;
+    }
+
+    public void setLeadsIds(String leadsIds) {
+        this.leadsIds = leadsIds;
     }
 
     @Override

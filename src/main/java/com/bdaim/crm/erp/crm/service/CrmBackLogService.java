@@ -58,10 +58,10 @@ public class CrmBackLogService {
         }
         Kv kv = Kv.by("todayCustomer", todayCustomer).set("followLeads", followLeads).set("followCustomer", followCustomer)
                 .set("checkReceivables", checkReceivables).set("remindReceivablesPlan", remindReceivablesPlan).set("endContract", endContract);
-        if (config == 1) {
-            Integer checkContract = crmCustomerDao.checkContractNum(userId);
-            kv.set("checkContract", checkContract);
-        }
+        //if (config == 1) {
+        Integer checkContract = crmCustomerDao.checkContractNum(userId);
+        kv.set("checkContract", checkContract);
+        // }
         return R.ok().put("data", kv);
     }
 

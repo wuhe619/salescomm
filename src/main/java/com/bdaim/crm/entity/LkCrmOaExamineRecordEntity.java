@@ -17,6 +17,7 @@ public class LkCrmOaExamineRecordEntity {
 
     @Id
     @Column(name = "record_id")
+    @GeneratedValue
     public int getRecordId() {
         return recordId;
     }
