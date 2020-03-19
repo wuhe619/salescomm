@@ -328,7 +328,7 @@ public class B2BTcbService implements BusiService {
                     continue;
                 }
                 dto = new CustomSeaTouchInfoDTO("", custId, String.valueOf(userId), "", "",
-                        data.get(entId).getString("regCap") + (i + 1), "", "", pNumbers.getString(i),
+                        data.get(entId).getString("entName") + (i + 1), "", "", pNumbers.getString(i),
                         "", "", "",
                         seaId, superData, "", "", "", "",
                         "", "", data.get(entId).getString("entName"),
