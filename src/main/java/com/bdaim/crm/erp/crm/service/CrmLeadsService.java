@@ -838,6 +838,45 @@ public class CrmLeadsService {
         return 0;
     }
 
+    public int transferToPrivateSea(String seaId, String company, String userId, List<String> superIds,int index) {
+        //添加到线索私海数据
+        StringBuilder sql = new StringBuilder()
+                .append("SELECT * FROM  ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE id IN (")
+                .append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(" ) ");
+        List<Map<String, Object>> maps = customerSeaDao.sqlQuery(sql.toString());
+        int i = 0;
+        for (Map<String, Object> m : maps) {
+            JSONObject superData = JSON.parseObject(String.valueOf(m.get("super_data")));
+            LkCrmLeadsEntity crmLeads = BeanUtil.mapToBean(m, LkCrmLeadsEntity.class, true);
+            crmLeads.setLeadsName(company + index);
+            crmLeads.setCompany(company);
+            crmLeads.setIsTransform(0);
+            // 查询公海线索的标记信息
+            List<Map<String, Object>> fieldList = crmAdminFieldvDao.queryCustomField(String.valueOf(m.get("id")));
+            JSONArray jsonArray = new JSONArray();
+            for (Map<String, Object> field : fieldList) {
+                jsonArray.add(BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true));
+            }
+
+            String batchId = String.valueOf(m.get("id"));
+            crmLeads.setBatchId(batchId);
+            crmLeads.setCustId(BaseUtil.getUser().getCustId());
+            crmRecordService.updateRecord(jsonArray, batchId);
+            adminFieldService.save(jsonArray, batchId);
+            crmLeads.setCreateTime(DateUtil.date().toTimestamp());
+            crmLeads.setUpdateTime(DateUtil.date().toTimestamp());
+            crmLeads.setCreateUserId(BaseUtil.getUser().getUserId());
+            if (crmLeads.getOwnerUserId() == null) {
+                crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId());
+            }
+            crmLeads.setBatchId(batchId);
+            crmLeads.setSeaId(seaId);
+            int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
+            crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
+        }
+        return 0;
+    }
+
     /**
      * 根据检索条件批量给多人快速分配线索
      *

@@ -343,7 +343,7 @@ public class B2BTcbService implements BusiService {
                 if ("crm".equals(param.getString("source")) && status != -1) {
                     List<String> superIds = new ArrayList<>();
                     superIds.add(dto.getSuper_id());
-                    crmLeadsService.transferToPrivateSea(seaId, data.get(entId).getString("entName"), String.valueOf(userId), superIds);
+                    crmLeadsService.transferToPrivateSea(seaId, data.get(entId).getString("entName"), String.valueOf(userId), superIds, i + 1);
                 }
             }
             consumeNum++;
