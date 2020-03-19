@@ -39,9 +39,8 @@ public class OaLogController extends BasicAction {
      * @author zhangzhiwei
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
-    public R queryList(@RequestBody JSONObject jsonObject) {
-        BasePageRequest<OaLog> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"),jsonObject.getIntValue("limit"));
-        basePageRequest.setJsonObject(jsonObject);
+    @ClassTypeCheck(classType = OaLog.class)
+    public R queryList(BasePageRequest<OaLog> basePageRequest) {
         CrmPage recordList = oaLogService.queryList(basePageRequest);
         return (R.ok().put("data", recordList));
     }
