@@ -101,7 +101,7 @@ public class AdminExamineRecordService {
                     //如果是负责人主管审批 获取主管ID
                     Record r = JavaBeanUtil.mapToRecord(crmAdminExamineLogDao.queryUserByUserId(ownerUserId).get(0));
                     if (r == null || r.getLong("user_id") == null) {
-                        examineLog.setExamineUser(BaseConstant.SUPER_ADMIN_USER_ID);
+                        examineLog.setExamineUser(BaseUtil.getAdminUserId());
                     } else {
                         examineLog.setExamineUser(r.getLong("user_id"));
                     }
@@ -114,7 +114,7 @@ public class AdminExamineRecordService {
                     Record r = JavaBeanUtil.mapToRecord(crmAdminExamineLogDao.queryUserByUserId(JavaBeanUtil.mapToRecord(crmAdminExamineLogDao.queryUserByUserId(ownerUserId).get(0)).getLong("user_id")).get(0));
                     //Record r = Db.findFirst(Db.getSql("admin.examineLog.queryUserByUserId"), Db.findFirst(Db.getSql("admin.examineLog.queryUserByUserId"), ownerUserId).getLong("user_id"));
                     if (r == null || r.getLong("user_id") == null) {
-                        examineLog.setExamineUser(BaseConstant.SUPER_ADMIN_USER_ID);
+                        examineLog.setExamineUser(BaseUtil.getAdminUserId());
                     } else {
                         examineLog.setExamineUser(r.getLong("user_id"));
                     }
@@ -159,7 +159,7 @@ public class AdminExamineRecordService {
         //根据审核记录id查询审核记录
         LkCrmAdminExamineRecordEntity examineRecord = crmAdminExamineRecordDao.get(recordId);
         if (status == 4) {
-            if (!examineRecord.getCreateUser().equals(auditUserId) && !auditUserId.equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
+            if (!examineRecord.getCreateUser().equals(auditUserId) && !auditUserId.equals(BaseUtil.getAdminUserId())) {
                 return R.error("当前用户没有审批权限！");
             }
         } else {
@@ -338,7 +338,7 @@ public class AdminExamineRecordService {
                             Record r = JavaBeanUtil.mapToRecord(maps.size() > 0 ? maps.get(0) : null);
                             examineLog.setLogId(null);
                             if (r == null || r.getLong("user_id") == null) {
-                                examineLog.setExamineUser(BaseConstant.SUPER_ADMIN_USER_ID);
+                                examineLog.setExamineUser(BaseUtil.getAdminUserId());
                             } else {
                                 examineLog.setExamineUser(r.getLong("user_id"));
 
@@ -356,7 +356,7 @@ public class AdminExamineRecordService {
                             //Record r = Db.findFirst(Db.getSql("admin.examineLog.queryUserByUserId"), Db.findFirst(Db.getSql("admin.examineLog.queryUserByUserId"), ownerUserId).getLong("user_id"));
                             examineLog.setLogId(null);
                             if (r == null || r.getLong("user_id") == null) {
-                                examineLog.setExamineUser(BaseConstant.SUPER_ADMIN_USER_ID);
+                                examineLog.setExamineUser(BaseUtil.getAdminUserId());
                             } else {
                                 examineLog.setExamineUser(r.getLong("user_id"));
 
@@ -490,7 +490,7 @@ public class AdminExamineRecordService {
         Long auditUserId = BaseUtil.getUser().getUserId();
         //jsonObject.put("isRecheck",0);
         //判断是否有撤回权限
-        if ((auditUserId.equals(examineRecord.getLong("create_user")) || auditUserId.equals(BaseConstant.SUPER_ADMIN_USER_ID))
+        if ((auditUserId.equals(examineRecord.getLong("create_user")) || auditUserId.equals(BaseUtil.getAdminUserId()))
                 && (examineRecord.getInt("examine_status") == 0 || examineRecord.getInt("examine_status") == 3)) {
             jsonObject.put("isRecheck", 1);
         } else {
@@ -552,7 +552,7 @@ public class AdminExamineRecordService {
 
                         }
                         if (r == null || r.size() == 0) {
-                            r = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryUserByUserIdAnd(BaseConstant.SUPER_ADMIN_USER_ID));
+                            r = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryUserByUserIdAnd(BaseUtil.getAdminUserId()));
                             //r = Db.find(Db.getSql("admin.examineLog.queryUserByUserIdAnd"), BaseConstant.SUPER_ADMIN_USER_ID);
                         }
                         step.set("userList", r);
@@ -637,7 +637,7 @@ public class AdminExamineRecordService {
                             }
                         }
                         if (r == null) {
-                            r = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryUserByUserIdAnd(BaseConstant.SUPER_ADMIN_USER_ID));
+                            r = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryUserByUserIdAnd(BaseUtil.getAdminUserId()));
                         }
                         step.set("userList", r);
                     }

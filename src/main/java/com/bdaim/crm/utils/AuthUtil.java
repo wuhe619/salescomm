@@ -156,7 +156,7 @@ public class AuthUtil {
         List<Integer> roleIds = adminRoleService.queryRoleIdsByUserId(userId);
 
         //超级管理员角色拥有最高权限
-        if (roleIds.contains(BaseConstant.SUPER_ADMIN_ROLE_ID) || userId.equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
+        if (roleIds.contains(BaseConstant.SUPER_ADMIN_ROLE_ID) || userId.equals(BaseUtil.getAdminUserId())) {
             return false;
         }
         if (tablePara == null) {
@@ -225,7 +225,7 @@ public class AuthUtil {
         LoginUser user = BaseUtil.getUser();
         Integer roleId = crmAdminUserDao.queryForInt("select role_id from `lkcrm_work_user` where work_id = ? and user_id = ?", workId, user.getUserId());
         //判断是否是超级管理员、项目管理员
-        if (user.getUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID) || user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID) || user.getRoles().contains(BaseConstant.WORK_ADMIN_ROLE_ID) || (roleId != null && roleId.equals(BaseConstant.SMALL_WORK_ADMIN_ROLE_ID))) {
+        if (user.getUserId().equals(BaseUtil.getAdminUserId()) || user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID) || user.getRoles().contains(BaseConstant.WORK_ADMIN_ROLE_ID) || (roleId != null && roleId.equals(BaseConstant.SMALL_WORK_ADMIN_ROLE_ID))) {
             return true;
         } else {
             List<String> realmData = crmAdminMenuDao.queryRealmByRoleId(roleId);

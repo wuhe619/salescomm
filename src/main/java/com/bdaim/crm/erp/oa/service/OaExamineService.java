@@ -128,17 +128,18 @@ public class OaExamineService {
             Integer createUserId = record.getInt("create_user_id");
             Integer examineStatus = record.getInt("examine_status");
             Long userId = BaseUtil.getUser().getUserId();
-            if ((userId.equals(BaseConstant.SUPER_ADMIN_USER_ID) && (examineStatus == 4 || examineStatus == 2)) || (createUserId.equals(BaseUtil.getUser().getUserId().intValue()) && (examineStatus == 4 || examineStatus == 2))) {
+            Long adminUserId = BaseUtil.getAdminUserId();
+            if ((userId.equals(adminUserId) && (examineStatus == 4 || examineStatus == 2)) || (createUserId.equals(BaseUtil.getUser().getUserId().intValue()) && (examineStatus == 4 || examineStatus == 2))) {
                 permission.put("isUpdate", 1);
             } else {
                 permission.put("isUpdate", 0);
             }
-            if (roles.contains(BaseConstant.SUPER_ADMIN_ROLE_ID) && examineStatus != 1) {
+            if (roles.contains(adminUserId) && examineStatus != 1) {
                 permission.put("isDelete", 1);
             } else {
                 permission.put("isDelete", 0);
             }
-            if (((userId.equals(BaseConstant.SUPER_ADMIN_USER_ID) || userId.equals(record.getLong("create_user_id"))) && (examineStatus == 0 || examineStatus == 3)) && examineStatus != 4) {
+            if (((userId.equals(adminUserId) || userId.equals(record.getLong("create_user_id"))) && (examineStatus == 0 || examineStatus == 3)) && examineStatus != 4) {
                 permission.put("isChecked", 1);
             } else {
                 permission.put("isChecked", 0);
@@ -271,8 +272,9 @@ public class OaExamineService {
                 checkUserIds = oaExamineStep.getCheckUserId();
             }
         }
-        if ("0".equals(checkUserIds) && !oaExamine.getCreateUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID.intValue())) {
-            checkUserIds = BaseConstant.SUPER_ADMIN_USER_ID + "";
+        Long adminUserId = BaseUtil.getAdminUserId();
+        if ("0".equals(checkUserIds) && !oaExamine.getCreateUserId().equals(adminUserId)) {
+            checkUserIds = adminUserId + "";
         }
         if (StrUtil.isEmpty(checkUserIds)) {
             //没有审核人，审批结束
@@ -341,8 +343,9 @@ public class OaExamineService {
         //根据审核记录id查询审核记录
 //        OaExamineRecord examineRecord = OaExamineRecord.dao.findById(recordId);
         LkCrmOaExamineRecordEntity examineRecord = recordDao.get(recordId);
+        Long adminUserId = BaseUtil.getAdminUserId();
         if (status == 4) {
-            if (!examineRecord.getCreateUser().equals(auditUserId) && !auditUserId.equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
+            if (!examineRecord.getCreateUser().equals(auditUserId) && !auditUserId.equals(adminUserId)) {
                 return R.error("当前用户没有审批权限！");
             }
         } else {
@@ -477,8 +480,8 @@ public class OaExamineService {
                             checkUserIds = nextExamineStep.getCheckUserId();
                         }
                     }
-                    if ("0".equals(checkUserIds) && !createUserId.equals(BaseConstant.SUPER_ADMIN_USER_ID.intValue())) {
-                        checkUserIds = BaseConstant.SUPER_ADMIN_USER_ID + "";
+                    if ("0".equals(checkUserIds) && !createUserId.equals(adminUserId)) {
+                        checkUserIds = adminUserId + "";
                     }
                 }
             }
@@ -727,7 +730,8 @@ public class OaExamineService {
         Long auditUserId = BaseUtil.getUser().getUserId();
         //jsonObject.put("isRecheck",0);
         //判断是否有撤回权限
-        if ((auditUserId.equals(examineRecord.getLong("create_user")) || auditUserId.equals(BaseConstant.SUPER_ADMIN_USER_ID)) && (examineStatus == 0 || examineStatus == 3)) {
+        Long adminUserId = BaseUtil.getAdminUserId();
+        if ((auditUserId.equals(examineRecord.getLong("create_user")) || auditUserId.equals(adminUserId)) && (examineStatus == 0 || examineStatus == 3)) {
             jsonObject.put("isRecheck", 1);
         } else {
             jsonObject.put("isRecheck", 0);
@@ -771,7 +775,7 @@ public class OaExamineService {
                         //查询负责人主管
                         List<Record> r = Db.find(Db.getSql("oa.examine.queryUserByUserId"), oaExamine.getCreateUserId());
                         if (r == null || r.size() == 0) {
-                            r = Db.find(Db.getSql("oa.examine.queryUserByUserIdAnd"), BaseConstant.SUPER_ADMIN_USER_ID);
+                            r = Db.find(Db.getSql("oa.examine.queryUserByUserIdAnd"), adminUserId);
                         }
                         step.set("userList", r);
                     }
@@ -838,7 +842,7 @@ public class OaExamineService {
                             r = null;
                         }
                         if (r == null) {
-                            r = Db.findFirst(Db.getSql("admin.examineLog.queryUserByUserIdAnd"), BaseConstant.SUPER_ADMIN_USER_ID);
+                            r = Db.findFirst(Db.getSql("admin.examineLog.queryUserByUserIdAnd"), adminUserId);
                         }
                         step.set("userList", r);
                     }
