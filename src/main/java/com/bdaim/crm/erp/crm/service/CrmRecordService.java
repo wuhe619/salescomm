@@ -315,8 +315,9 @@ public class CrmRecordService<T> {
     public void addPutIntoTheOpenSeaRecord(Collection actionIds, String crmTypes) {
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
         crmActionRecord.setCustId(BaseUtil.getUser().getCustId());
+        Long adminUserId = BaseUtil.getAdminUserId();
         if (BaseUtil.getRequest() == null) {
-            crmActionRecord.setCreateUserId(BaseConstant.SUPER_ADMIN_USER_ID);
+            crmActionRecord.setCreateUserId(adminUserId);
         } else {
             crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
         }

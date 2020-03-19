@@ -5,6 +5,7 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.JfinalConfig;
+import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminRoleDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
 import com.bdaim.crm.dao.LkCrmSqlViewDao;
@@ -12,6 +13,7 @@ import com.bdaim.crm.entity.LkCrmAdminUserEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.LkAdminRoleService;
 import com.bdaim.crm.erp.admin.service.LkAdminUserService;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.kit.Prop;
@@ -24,6 +26,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class BaseUtil {
@@ -218,7 +221,36 @@ public class BaseUtil {
             user.setDeptId(userEntity.getDeptId());
             user.setRoles(adminRoleService.queryRoleIdsByUserId(user.getId()));
         }
+        //BaseConstant.SUPER_ADMIN_USER_ID = getAdminUserId(user);
         return user;
+    }
+
+    // 获取管理员ID
+    public static Long getAdminUserId(LoginUser user) {
+        // 管理员
+        if ("1".equals(user.getUserType())) {
+            return user.getId();
+        } else {
+            List<CustomerUser> objects = crmAdminUserDao.find(" FROM CustomerUser WHERE cust_id = ? AND userType = ? ", user.getCustId(), 1);
+            if (objects.size() > 0) {
+                return objects.get(0).getId();
+            }
+        }
+        return null;
+    }
+
+    public static Long getAdminUserId() {
+        LoginUser user = getUser();
+        // 管理员
+        if ("1".equals(user.getUserType())) {
+            return user.getId();
+        } else {
+            List<CustomerUser> objects = crmAdminUserDao.find(" FROM CustomerUser WHERE cust_id = ? AND userType = ? ", user.getCustId(), 1);
+            if (objects.size() > 0) {
+                return objects.get(0).getId();
+            }
+        }
+        return null;
     }
 
     public static Long getUserId() {

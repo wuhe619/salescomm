@@ -391,6 +391,8 @@ public class CrmLeadsController extends BasicAction {
         ResponseJson responseJson = new ResponseJson();
         String sql = "DELETE FROM lkcrm_admin_field WHERE `name` = '当前负责人' ";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
+        sql = "DELETE FROM lkcrm_admin_field_sort ";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
     }
@@ -489,7 +491,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 添加跟进记录
      */
     @NotNullValidate(value = "typesId", message = "线索id不能为空")
@@ -511,7 +512,7 @@ public class CrmLeadsController extends BasicAction {
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
         if (StringUtil.isNotEmpty(adminRecord.getNextTime())) {
-            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(),"yyyy-MM-dd HH:mm:ss"));
+            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(), "yyyy-MM-dd HH:mm:ss"));
         }
         return (crmLeadsService.addRecord(lkCrmAdminRecordEntity));
     }
@@ -563,10 +564,8 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 批量导出线索
      */
-    @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/cluesea/batchExportExcel", method = RequestMethod.POST)
     public void clueSeaBatchExportExcel(@RequestParam(name = "ids") String superIds, Long seaId, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmLeadsService.exportPublicSeaClues(seaId, superIds);
@@ -595,7 +594,6 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 导出公海全部线索
      */
-    @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/cluesea/allExportExcel", method = RequestMethod.POST)
     public void clueSeaAllExportExcel(Long seaId, String search, HttpServletResponse response) throws IOException, TouchException {
         JSONObject jsonObject = new JSONObject();
@@ -813,7 +811,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 获取线索导入模板
      */
     @LoginFormCookie
@@ -912,11 +909,8 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 线索导入
      */
-    @Permissions("crm:leads:excelimport")
-    @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
     @Before(Tx.class)
     @RequestMapping(value = "/cluesea/uploadExcel")
     public R clueSeaUploadExcel(Integer repeatHandling, Long ownerUserId, Long seaId) {

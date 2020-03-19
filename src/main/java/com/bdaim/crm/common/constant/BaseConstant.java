@@ -9,9 +9,9 @@ import java.io.Serializable;
  */
 public class BaseConstant implements Serializable {
 
-    public static final String NAME = "72CRM";
+    public static final String NAME = "CRM";
 
-    public static final String VERSION = "1.3.2";
+    public static final String VERSION = "1.0.0";
 
     private static final long serialVersionUID = 1L;
     /**
@@ -34,7 +34,7 @@ public class BaseConstant implements Serializable {
     /**
      * 最终的超级管理员ID，不可被删除
      */
-    public static final Long SUPER_ADMIN_USER_ID = 3L;
+    //public static Long SUPER_ADMIN_USER_ID = 3L;
     /**
      * 查询数据权限递归次数
      */

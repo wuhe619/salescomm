@@ -664,7 +664,7 @@ public class AdminSceneService {
             conditions.append(" and owner_user_id is null");
         }
         Long userId = BaseUtil.getUserId();
-        if (!type.equals(8) && !type.equals(4) && !BaseConstant.SUPER_ADMIN_USER_ID.equals(userId)) {
+        if (!type.equals(8) && !type.equals(4) && !BaseUtil.getAdminUserId().equals(userId)) {
             List<Long> longs = adminUserService.queryUserByAuth(userId, realm);
             if (longs != null && longs.size() > 0) {
                 conditions.append(" and owner_user_id in (").append(StrUtil.join(",", longs)).append(")");
