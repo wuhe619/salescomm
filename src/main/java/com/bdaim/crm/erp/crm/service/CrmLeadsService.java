@@ -490,9 +490,9 @@ public class CrmLeadsService {
         FieldUtil field = new FieldUtil(fieldList);
         JSONObject superData = JSON.parseObject(String.valueOf(crmLeads.get(0).get("super_data")));
 
-        field.set("线索名称", superData.getString("leads_name")).set("电话", String.valueOf(crmLeads.get(0).get("super_phone")))
-                .set("手机", String.valueOf(crmLeads.get(0).get("super_telphone"))).set("下次联系时间", DateUtil.formatDateTime(superData.getDate("next_time")))
-                .set("地址", String.valueOf(crmLeads.get(0).get("super_address_street"))).set("备注", superData.getString("remark"));
+//        field.set("线索名称", superData.getString("leads_name")).set("电话", String.valueOf(crmLeads.get(0).get("super_phone")))
+//                .set("手机", String.valueOf(crmLeads.get(0).get("super_telphone"))).set("下次联系时间", DateUtil.formatDateTime(superData.getDate("next_time")))
+//                .set("地址", String.valueOf(crmLeads.get(0).get("super_address_street"))).set("备注", superData.getString("remark"));
         List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.queryCustomField(id));
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
