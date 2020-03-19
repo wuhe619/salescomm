@@ -69,9 +69,7 @@ public class AdminUserController extends BasicAction {
     @RequestMapping(value = "/queryUserList", method = RequestMethod.POST)
     @ClassTypeCheck(classType = BasePageRequest.class)
     public R queryUserList(BasePageRequest basePageRequest, AdminUser adminUser, String roleId, String roleName) {
-        //String roleId = getPara("roleId");
         basePageRequest.setData(adminUser);
-//        renderJson(adminUserService.queryUserList(basePageRequest, roleId));
         return adminUserService.queryUserList(basePageRequest, roleId, roleName);
     }
 
