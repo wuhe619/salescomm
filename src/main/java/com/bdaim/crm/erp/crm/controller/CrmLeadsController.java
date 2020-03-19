@@ -391,6 +391,8 @@ public class CrmLeadsController extends BasicAction {
         ResponseJson responseJson = new ResponseJson();
         String sql = "DELETE FROM lkcrm_admin_field WHERE `name` = '当前负责人' ";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
+        sql = "DELETE FROM lkcrm_admin_field_sort ";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
     }
@@ -511,7 +513,7 @@ public class CrmLeadsController extends BasicAction {
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
         BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
         if (StringUtil.isNotEmpty(adminRecord.getNextTime())) {
-            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(),"yyyy-MM-dd HH:mm:ss"));
+            lkCrmAdminRecordEntity.setNextTime(DateUtil.parse(adminRecord.getNextTime(), "yyyy-MM-dd HH:mm:ss"));
         }
         return (crmLeadsService.addRecord(lkCrmAdminRecordEntity));
     }
