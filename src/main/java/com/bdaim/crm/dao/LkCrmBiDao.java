@@ -671,8 +671,11 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
     }
 
     public List<Record> portrait(String[] userIdsArr, Integer status, String startTime, String endTime) {
-        String sql = "          SELECT (SELECT COUNT(1) FROM customerview WHERE `客户行业` =ccc.`客户行业`) as allCustomer, " +
-                "        (SELECT COUNT(1) FROM customerview where deal_status = '已成交' and `客户行业` =ccc.`客户行业`) as dealCustomer, " +
+        String custId = BaseUtil.getCustId();
+        String sql = "          SELECT (SELECT COUNT(1) FROM customerview WHERE `客户行业` =ccc.`客户行业` and cust_id='" +
+                custId + "') as allCustomer, " +
+                "        (SELECT COUNT(1) FROM customerview where deal_status = '已成交' and `客户行业` =ccc.`客户行业` and cust_id='" +
+                custId + "') as dealCustomer, " +
                 "        CASE " +
                 "        when  ccc.`客户行业` = '' then  '未知' " +
                 "        ELSE ccc.`客户行业` end " +
