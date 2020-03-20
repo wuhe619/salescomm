@@ -18,13 +18,13 @@ public class LkCrmAdminExamineStepDao extends SimpleHibernateDao<LkCrmAdminExami
         return null;
     }
 
-    public LkCrmAdminExamineStepEntity queryExamineStepByExamineId(Integer examineId) {
+    public List<LkCrmAdminExamineStepEntity> queryExamineStepByExamineId(Integer examineId) {
         String hql = "from LkCrmAdminExamineStepEntity where examineId = ?";
         List<LkCrmAdminExamineStepEntity> objects = find(hql, examineId);
-        if (objects.size() > 0) {
+        /*if (objects.size() > 0) {
             return objects.get(0);
-        }
-        return null;
+        }*/
+        return objects;
     }
 
     public LkCrmAdminExamineStepEntity queryExamineStepByNextExamineIdOrderByStepId(Integer examineId, Long stepId) {

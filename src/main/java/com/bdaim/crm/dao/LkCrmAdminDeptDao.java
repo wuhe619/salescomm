@@ -14,7 +14,7 @@ public class LkCrmAdminDeptDao extends SimpleHibernateDao<LkCrmAdminDeptEntity, 
     public List queryByIds(List deptIds) {
 //        return super.sqlQuery(" select dept_id as id,name from lkcrm_admin_dept where dept_id in (" +
 //                SqlAppendUtil.sqlAppendWhereIn(deptIds) + ")");
-        String sql = "select dept_id as id,name from lkcrm_admin_dept where dept_id in (?) and cust_id=?";
-        return super.sqlQuery(sql, SqlAppendUtil.sqlAppendWhereIn(deptIds), BaseUtil.getCustId());
+        String sql = "select dept_id as id,name from lkcrm_admin_dept where dept_id in (" + SqlAppendUtil.sqlAppendWhereIn(deptIds) + ") and cust_id=?";
+        return super.sqlQuery(sql, BaseUtil.getCustId());
     }
 }

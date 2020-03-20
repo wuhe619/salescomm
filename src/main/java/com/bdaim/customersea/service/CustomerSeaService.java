@@ -4325,7 +4325,7 @@ public class CustomerSeaService {
             CustomerUser user = customerUserDao.get(NumberConvertUtil.parseLong(dto.getUser_id()));
             int dataStatus = 1;
             // 组长和员工数据状态为已分配
-            if (2 == user.getUserType()) {
+            if (2 == user.getUserType() && !"crm".equals(source)) {
                 dto.setUser_id(dto.getUser_id());
                 dataStatus = 0;
             } else {
