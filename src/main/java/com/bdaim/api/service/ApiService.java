@@ -382,11 +382,15 @@ public class ApiService {
 
     //有效调用次数
     public Map<String,Object> getCallSuccessNum(String SUBSCRIBER_ID,String callMonth,String apiId,String startDate,String endDate){
+        AmApplicationEntity entity = amApplicationDao.getByCustId(SUBSCRIBER_ID);
+        if(entity == null){
+            return null;
+        }
         List param = new ArrayList();
         StringBuffer monthcallSuccesNumSql = new StringBuffer("select count(0)callSuccessnum from am_charge_" + callMonth +
                 " charge where charge.api_id=? and charge.SUBSCRIBER_ID=? and charge.RESPONSE_MSG like  '%cost\":1,%'");
         param.add(apiId);
-        param.add(SUBSCRIBER_ID);
+        param.add(entity.getId());
         if(StringUtil.isNotEmpty(startDate)){
             monthcallSuccesNumSql.append(" and charge.event_time>=?");
             param.add(startDate);
@@ -404,12 +408,17 @@ public class ApiService {
     }
 
     private Map<String,Object> getApiSalePrice(String subscriber_id,String apiId){
+        AmApplicationEntity entity = amApplicationDao.getByCustId(subscriber_id);
+        if(entity == null){
+            return null;
+        }
+
         String salePriceSql = "SELECT b.unit_price /10000 salePrice FROM " +
                 " am_subscription a LEFT JOIN am_subscription_charge b ON b.SUBSCRIPTION_ID = a.SUBSCRIPTION_ID " +
                 " where a.APPLICATION_ID = ? "+
                 " and a.API_ID = ?";
-        List<String> param = new ArrayList<>();
-        param.add(subscriber_id);
+        List param = new ArrayList<>();
+        param.add(entity.getId());
         param.add(apiId);
         logger.info("getApiSalePrice.sql:{};{}",salePriceSql,param.toArray());
         List<Map<String,Object>> salePriceMapList = jdbcTemplate.queryForList(salePriceSql,param.toArray());
