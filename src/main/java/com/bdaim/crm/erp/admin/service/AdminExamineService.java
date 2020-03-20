@@ -49,11 +49,12 @@ public class AdminExamineService {
         adminExamine.setDeptIds(getIds(deptIds));
         List<Long> userIds = jsonObject.getJSONArray("userIds").toJavaList(Long.class);
         adminExamine.setUserIds(getIds(userIds));
+        String custId = BaseUtil.getCustId();
         Boolean flag;
 
         if (adminExamine.getExamineId() == null) {
             //添加
-            LkCrmAdminExamineEntity examine = crmAdminExamineDao.getExamineByCategoryType(adminExamine.getCategoryType());
+            LkCrmAdminExamineEntity examine = crmAdminExamineDao.getExamineByCategoryType(adminExamine.getCategoryType(), custId);
             if (examine != null) {
                 //判断有未删除的审批流程，不能添加
                 examine.setStatus(0);
@@ -66,6 +67,7 @@ public class AdminExamineService {
             adminExamine.setUpdateUserId(BaseUtil.getUser().getUserId());
             adminExamine.setUpdateTime(DateUtil.date().toTimestamp());
             adminExamine.setStatus(1);
+            adminExamine.setCustId(custId);
             flag = (int) crmAdminExamineDao.saveReturnPk(adminExamine) > 0;
 
         } else {
@@ -195,7 +197,9 @@ public class AdminExamineService {
      * 查询当前启用审核流程步骤
      */
     public R queryExaminStep(Integer categoryType) {
-        Record record = JavaBeanUtil.mapToRecord(BeanUtil.beanToMap(crmAdminExamineDao.getExamineByCategoryType(categoryType), true, true));
+        String custId = BaseUtil.getCustId();
+        Record record = JavaBeanUtil.mapToRecord(BeanUtil.beanToMap(crmAdminExamineDao.getExamineByCategoryType(categoryType, custId),
+                true, true));
         if (record != null) {
             if (record.getInt("examine_type") == 1) {
                 List data = new ArrayList();

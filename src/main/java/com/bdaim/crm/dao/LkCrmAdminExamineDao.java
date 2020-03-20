@@ -20,9 +20,9 @@ public class LkCrmAdminExamineDao extends SimpleHibernateDao<LkCrmAdminExamineEn
         return null;
     }*/
 
-    public LkCrmAdminExamineEntity getExamineByCategoryType(int category_type) {
-        String hql = " from LkCrmAdminExamineEntity where  categoryType = ? AND status = 1 order by updateTime desc  ";
-        List<LkCrmAdminExamineEntity> maps = find(hql, category_type);
+    public LkCrmAdminExamineEntity getExamineByCategoryType(int category_type,String custId) {
+        String hql = " from LkCrmAdminExamineEntity where  categoryType = ? AND status = 1 AND custId = ? order by updateTime desc  ";
+        List<LkCrmAdminExamineEntity> maps = find(hql, category_type,custId);
         if (maps.size() > 0) {
             return maps.get(0);
         }
