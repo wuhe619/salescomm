@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
@@ -663,7 +664,8 @@ public class AdminSceneService {
         } else if (8 == type) {
             conditions.append(" and owner_user_id is null");
         }
-        Long userId = BaseUtil.getUserId();
+        LoginUser loginUser = BaseUtil.getUser();
+        Long userId = loginUser.getUserId();
         if (!type.equals(8) && !type.equals(4) && !BaseUtil.getAdminUserId().equals(userId)) {
             List<Long> longs = adminUserService.queryUserByAuth(userId, realm);
             if (longs != null && longs.size() > 0) {
@@ -704,7 +706,8 @@ public class AdminSceneService {
         } else if (6 == type) {
             Record totalMoney = JavaBeanUtil.mapToRecord(crmAdminSceneDao.sqlQuery("select SUM(money) as contractMoney,GROUP_CONCAT(contract_id) as contractIds " + conditions.toString(), BaseUtil.getUser().getCustId()).get(0));
             String contractview = BaseUtil.getViewSql("contractview");
-            Page page = crmAdminSceneDao.sqlPageQuery("select * " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
+            Page page = crmAdminSceneDao.sqlPageQuery("select * " + conditions.toString(), basePageRequest.getPage(),
+                    basePageRequest.getLimit(), loginUser.getCustId());
             Map map = null;
             for (int i = 0; i < page.getData().size(); i++) {
                 map = (Map) page.getData().get(i);
@@ -718,7 +721,9 @@ public class AdminSceneService {
             result.put("money", new JSONObject().fluentPut("contractMoney", totalMoney.getStr("contractMoney") != null ? totalMoney.getStr("contractMoney") : "0").fluentPut("receivedMoney", StringUtil.isNotEmpty(receivedMoney) ? receivedMoney : "0"));
             return R.ok().put("data", result);
         }
-        com.bdaim.common.dto.Page recordPage = crmAdminSceneDao.sqlPageQuery("select *" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
+        String sql = "select *" + conditions.toString();
+        com.bdaim.common.dto.Page recordPage = crmAdminSceneDao.sqlPageQuery(sql, basePageRequest.getPage(),
+                basePageRequest.getLimit(), loginUser.getCustId());
         if (type == 5) {
             recordPage.getData().forEach(record -> {
                 Map map = (Map) record;

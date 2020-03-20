@@ -651,6 +651,12 @@ public class SendSmsService{
                 values.add(vCode);
                 values.add("30");
                 break;
+                //数客宝来客通知短信
+            case 12:
+                templateId = "2779";
+                values.add("");
+//                values.add("30");
+                break;
             default:
                 throw new RuntimeException("type match value！");
         }
