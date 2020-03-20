@@ -345,7 +345,7 @@ public class B2BTcbService implements BusiService {
                 saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));
                 // 判断是否为crm的线索领取
                 if ("crm".equals(param.getString("source")) && status != -1) {
-                    // 保存公海标记信息
+                    // 保存公海标记信息  seaType 1公海 2私海
                     JSONArray list = new JSONArray();
                     String[] values = new String[]{"手机", "线索名称", "公司名称", "线索来源"};
                     for (String v : values) {
