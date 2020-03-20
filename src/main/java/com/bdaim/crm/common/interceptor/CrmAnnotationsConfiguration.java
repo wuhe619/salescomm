@@ -139,11 +139,12 @@ public class CrmAnnotationsConfiguration {
         if (method.isAnnotationPresent(Permissions.class)) {
             Permissions permissions = method.getAnnotation(Permissions.class);
             if (permissions != null && permissions.value().length > 0) {
+                String[] permissionsValues = permissions.value();
                 JSONObject jsonObject = roleService.auth(BaseUtil.getUserId());
                 //组装应有权限列表
                 List<String> arr = queryAuth(jsonObject, "");
                 boolean isRelease = false;
-                for (String key : permissions.value()) {
+                for (String key : permissionsValues) {
                     if (!isRelease) {
                         if (arr.contains(key)) {
                             isRelease = true;
