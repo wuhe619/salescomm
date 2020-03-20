@@ -23,7 +23,7 @@ public class LkCrmWorkTaskLabelDao extends SimpleHibernateDao<LkCrmWorkTaskLabel
                 " AND find_in_set( ?, a.label_id )  " +
                 " AND a.ishidden = 0  " +
                 " AND ( a.main_user_id = ? OR a.owner_user_id LIKE concat( '%,', ?, ',%' ) )";
-        return super.queryListBySql(sql, labelId, userId, userId);
+        return super.sqlQuery(sql, labelId, userId, userId);
     }
 
     public List<Map<String, Object>> queryWorkList(Integer labelId, Long userId) {
@@ -36,6 +36,6 @@ public class LkCrmWorkTaskLabelDao extends SimpleHibernateDao<LkCrmWorkTaskLabel
                 " find_in_set( ?, b.label_id )  " +
                 " AND b.ishidden = 0  " +
                 " AND ( b.main_user_id = ? OR b.owner_user_id LIKE concat( '%,',?, ',%' ) )";
-        return super.queryListBySql(sql, labelId, userId, userId);
+        return super.sqlQuery(sql, labelId, userId, userId);
     }
 }

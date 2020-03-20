@@ -681,7 +681,7 @@ public class OaExamineService {
         if (examineType == 1) {
 //            List<Record> recordList = Db.find("select * from lkcrm_oa_examine_step where category_id = ?", categoryId);
             String sql2 = "select * from lkcrm_oa_examine_step where category_id = ?";
-            List<Record> recordList = JavaBeanUtil.mapToRecords(recordDao.queryListBySql(sql2, categoryId));
+            List<Record> recordList = JavaBeanUtil.mapToRecords(recordDao.sqlQuery(sql2, categoryId));
             recordList.forEach(step -> {
                 List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", step.getStr("check_user_id").split(","))));
                 step.set("userList", userList);

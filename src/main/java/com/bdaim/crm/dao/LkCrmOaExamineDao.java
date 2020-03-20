@@ -89,7 +89,7 @@ public class LkCrmOaExamineDao extends SimpleHibernateDao<LkCrmOaExamineEntity, 
         String sql = "select sael.order_id,ases.step_num as order_id , sau.user_id , sau.realname , sau.img ,sael.examine_status,sael.examine_time,sael.remarks " +
                 "    from lkcrm_oa_examine_log as sael LEFT JOIN lkcrm_admin_user as sau on sau.user_id = sael.examine_user LEFT JOIN lkcrm_oa_examine_step as ases on ases.step_id = sael.examine_step_id " +
                 "    where sael.record_id = ? AND sael.examine_status != 0 order by sael.create_time";
-        return super.queryListBySql(sql, recordId);
+        return super.sqlQuery(sql, recordId);
     }
 
     public List<Map<String, Object>> queryExamineLogByRecordIdByStep1(Integer recordId) {
@@ -102,7 +102,7 @@ public class LkCrmOaExamineDao extends SimpleHibernateDao<LkCrmOaExamineEntity, 
     public List<Map<String, Object>> queryRecordByUserIdAndStatus(Integer create_user, Date examineTime) {
         String sql = "    SELECT DISTINCT user_id, realname  ,img, 5 as examine_status, ? as examineTime from lkcrm_admin_user " +
                 "    WHERE user_id = ?";
-        return super.queryListBySql(sql, examineTime, create_user);
+        return super.sqlQuery(sql, examineTime, create_user);
     }
 
     public Page myOaExamine(Integer page, Integer limit, Long userId, Integer categoryId,

@@ -2,7 +2,6 @@ package com.bdaim.crm.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.crm.entity.LkCrmWorkUserEntity;
-import com.bdaim.crm.erp.work.entity.WorkUser;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -22,7 +21,7 @@ public class LkCrmWorkUserDao extends SimpleHibernateDao<LkCrmWorkUserEntity, In
                 "    from lkcrm_work a " +
                 "    where 1 = 1" +
                 "    and (owner_user_id like concat('%,',?,',%') and is_open = 0) or is_open = 1";
-        List<Map<String, Object>> result = super.queryListBySql(sql, userId);
+        List<Map<String, Object>> result = super.sqlQuery(sql, userId);
         return result;
     }
 }
