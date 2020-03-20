@@ -396,8 +396,11 @@ public class ApiService {
             param.add(startDate);
         }
         logger.info("getCallSuccessNum.sql:{};{}",monthcallSuccesNumSql.toString(),param.toArray());
-        Map<String,Object> callSuccessnumMap = jdbcTemplate.queryForMap(monthcallSuccesNumSql.toString(),param.toArray());
-        return callSuccessnumMap;
+        List<Map<String,Object>> callSuccessnumMapList = jdbcTemplate.queryForList(monthcallSuccesNumSql.toString(),param.toArray());
+        if(callSuccessnumMapList!=null && callSuccessnumMapList.size()>0){
+            return callSuccessnumMapList.get(0);
+        }
+        return null;
     }
 
     private Map<String,Object> getApiSalePrice(String subscriber_id,String apiId){
@@ -409,8 +412,11 @@ public class ApiService {
         param.add(subscriber_id);
         param.add(apiId);
         logger.info("getApiSalePrice.sql:{};{}",salePriceSql,param.toArray());
-        Map<String,Object> salePriceMap = jdbcTemplate.queryForMap(salePriceSql,param.toArray());
-        return salePriceMap;
+        List<Map<String,Object>> salePriceMapList = jdbcTemplate.queryForList(salePriceSql,param.toArray());
+        if(salePriceMapList!=null && salePriceMapList.size()>0){
+            return salePriceMapList.get(0);
+        }
+        return null;
     }
 
 
