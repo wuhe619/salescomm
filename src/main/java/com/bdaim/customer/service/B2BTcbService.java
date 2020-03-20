@@ -347,13 +347,14 @@ public class B2BTcbService implements BusiService {
                 if ("crm".equals(param.getString("source")) && status != -1) {
                     // 保存公海标记信息
                     JSONArray list = new JSONArray();
-                    String[] values = new String[]{"手机", "线索名称", "公司名称"};
+                    String[] values = new String[]{"手机", "线索名称", "公司名称", "线索来源"};
                     for (String v : values) {
-                        Map<String, Object> field = marketResourceDao.queryUniqueSql("SELECT * FROM lkcrm_admin_field WHERE name = ? AND cust_id = ? AND label =11", v, BaseUtil.getCustId());
+                        String label = seaType == 1 ? "11" : "1";
+                        Map<String, Object> field = marketResourceDao.queryUniqueSql("SELECT * FROM lkcrm_admin_field WHERE name = ? AND cust_id = ? AND label =" + label, v, custId);
                         if (field != null) {
                             LkCrmAdminFieldvEntity value = new LkCrmAdminFieldvEntity();
                             value.setFieldId(NumberConvertUtil.parseInt(field.get("field_id")));
-                            value.setCustId(BaseUtil.getCustId());
+                            value.setCustId(custId);
                             value.setName(String.valueOf(field.get("name")));
                             if ("手机".equals(v)) {
                                 value.setValue(dto.getSuper_telphone());
@@ -361,6 +362,8 @@ public class B2BTcbService implements BusiService {
                                 value.setValue(dto.getSuper_name());
                             } else if ("公司名称".equals(v)) {
                                 value.setValue(dto.getCompany());
+                            } else if ("线索来源".equals(v)) {
+                                value.setValue("发现线索");
                             }
                             list.add(value);
                         }

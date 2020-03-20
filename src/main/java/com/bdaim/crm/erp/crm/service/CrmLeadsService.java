@@ -838,7 +838,7 @@ public class CrmLeadsService {
         return 0;
     }
 
-    public int transferToPrivateSea(String seaId, String company, String userId, List<String> superIds,int index) {
+    public int transferToPrivateSea(String seaId, String company, String userId, List<String> superIds, int index) {
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
                 .append("SELECT * FROM  ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE id IN (")
@@ -871,6 +871,7 @@ public class CrmLeadsService {
             }
             crmLeads.setBatchId(batchId);
             crmLeads.setSeaId(seaId);
+            crmLeads.setMobile(String.valueOf(m.get("super_telphone")));
             int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
             crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
         }
