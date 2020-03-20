@@ -30,7 +30,7 @@ public class LkCrmWorkDao extends SimpleHibernateDao<LkCrmWorkEntity, Integer> {
                 " AND ishidden = 1  " +
                 "ORDER BY " +
                 " a.hidden_time DESC";
-        return super.queryListBySql(sql);
+        return super.queryMapsListBySql(sql);
     }
 
     public List<Map<String, Object>> queryTrashListByUserId(Long userId) {
@@ -48,7 +48,7 @@ public class LkCrmWorkDao extends SimpleHibernateDao<LkCrmWorkEntity, Integer> {
                 " AND ( a.main_user_id =? OR a.owner_user_id LIKE concat( '%,',?, ',%' ) )  " +
                 "ORDER BY " +
                 " a.hidden_time DESC";
-        return super.queryListBySql(sql, userId, userId);
+        return super.queryMapsListBySql(sql, userId, userId);
     }
 
     public Map<String, Object> workStatistics(Map<String, Object> params) {
