@@ -143,7 +143,7 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
     }
 
     public List<Map<String, Object>> queryByIds(List ids) {
-        String sql = "  select CAST(user_id AS CHAR) user_id, realname,img from lkcrm_admin_user where user_id in ("
+        String sql = "  select CAST(user_id AS CHAR) user_id, username, realname,img from lkcrm_admin_user where user_id in ("
                 + SqlAppendUtil.sqlAppendWhereIn(ids) + ") and cust_id = ?";
         return super.sqlQuery(sql, BaseUtil.getCustId());
     }
