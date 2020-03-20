@@ -1,5 +1,6 @@
 package com.bdaim.customer.service;
 
+import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -348,9 +349,10 @@ public class B2BTcbService implements BusiService {
                     JSONArray list = new JSONArray();
                     String[] values = new String[]{"手机", "电话", "线索名称", "公司名称", "线索来源"};
                     String telephone = "", mobile = "";
-                    if (pNumbers.getString(i).length() == 11
+                    if (pNumbers.getString(i).replaceAll(" ", "").trim().length() == 11
                             && pNumbers.getString(i).lastIndexOf("-") <= 0
-                            && !pNumbers.getString(i).startsWith("0")) {
+                            && !pNumbers.getString(i).startsWith("0")
+                            && NumberUtil.isLong(pNumbers.getString(i))) {
                         mobile = pNumbers.getString(i);
                     } else {
                         telephone = pNumbers.getString(i);
@@ -571,6 +573,5 @@ public class B2BTcbService implements BusiService {
         }
         return data;
     }
-
 
 }
