@@ -4304,7 +4304,7 @@ public class CustomerSeaService {
      * @param seaType 1-添加到公海 2-添加到私海
      * @return
      */
-    public int addClueData0(CustomSeaTouchInfoDTO dto, int seaType) {
+    public int addClueData0(CustomSeaTouchInfoDTO dto, int seaType, String source) {
         // 处理qq 微信等默认自建属性值
         handleDefaultLabelValue(dto);
         StringBuffer sql = new StringBuffer();
@@ -4355,14 +4355,15 @@ public class CustomerSeaService {
             this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
                     dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
                     dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), new Timestamp(System.currentTimeMillis()));
-
-            sql = new StringBuffer();
-            sql.append(" INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId())
-                    .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`, batch_id, data_source,create_time) ")
-                    .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
-            this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
-                    dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
-                    dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), dto.getCust_group_id(), 3, new Timestamp(System.currentTimeMillis()));
+            if (seaType == 1 && "crm".equals(source)) {
+                sql = new StringBuffer();
+                sql.append(" INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId())
+                        .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`, batch_id, data_source,create_time) ")
+                        .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
+                this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
+                        dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
+                        dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), dto.getCust_group_id(), 3, new Timestamp(System.currentTimeMillis()));
+            }
             // 保存标记信息到es中
             CustomerSeaESDTO esData = new CustomerSeaESDTO(dto);
             esData.setSuper_data(JSON.toJSONString(dto.getSuperData()));
