@@ -402,11 +402,14 @@ public class ApiService {
 
     private Map<String,Object> getApiSalePrice(String subscriber_id,String apiId){
         String salePriceSql = "SELECT b.unit_price /10000 salePrice FROM " +
-                " am_subscription a LEFT JOIN am_subscription_charge b ON b.SUBSCRIPTION_ID = a.SUBSCRIPTION_ID\n" +
-                " where a.APPLICATION_ID = " +subscriber_id+
-                " and a.API_ID = "+apiId;
-
-        Map<String,Object> salePriceMap = jdbcTemplate.queryForMap(salePriceSql);
+                " am_subscription a LEFT JOIN am_subscription_charge b ON b.SUBSCRIPTION_ID = a.SUBSCRIPTION_ID " +
+                " where a.APPLICATION_ID = ? "+
+                " and a.API_ID = ?";
+        List<String> param = new ArrayList<>();
+        param.add(subscriber_id);
+        param.add(apiId);
+        logger.info("getApiSalePrice.sql:{};{}",salePriceSql,param.toArray());
+        Map<String,Object> salePriceMap = jdbcTemplate.queryForMap(salePriceSql,param.toArray());
         return salePriceMap;
     }
 
