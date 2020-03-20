@@ -714,7 +714,7 @@ public class LkAdminUserService {
                 if (list.contains(5)) {
                     return null;
                 } else {
-                    AdminUser adminUser = AdminUser.dao.findById(userId);
+                    LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(userId);
                     if (list.contains(4)) {
                         List<Record> records = adminDeptService.queryDeptByParentDept(adminUser.getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
                         List<String> deptIds = new ArrayList<>();
