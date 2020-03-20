@@ -154,6 +154,7 @@ public class AdminFieldController extends BasicAction {
             }
         }
         if (1 == types) {
+            //线索私海
             recordList = crmLeadsService.information(NumberUtil.parseInt(id));
         } else if (2 == types) {
             recordList = crmCustomerService.information(NumberUtil.parseInt(id));
