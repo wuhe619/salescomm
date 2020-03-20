@@ -9,6 +9,8 @@ import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
+import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
+import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
@@ -67,6 +69,8 @@ public class B2BTcbService implements BusiService {
     private MarketResourceDao marketResourceDao;
     @Autowired
     private CrmLeadsService crmLeadsService;
+    @Autowired
+    private AdminFieldService adminFieldService;
 
     /**
      * 企业开通B2B套餐
@@ -341,6 +345,28 @@ public class B2BTcbService implements BusiService {
                 saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));
                 // 判断是否为crm的线索领取
                 if ("crm".equals(param.getString("source")) && status != -1) {
+                    // 保存公海标记信息
+                    JSONArray list = new JSONArray();
+                    String[] values = new String[]{"手机", "线索名称", "公司名称"};
+                    for (String v : values) {
+                        Map<String, Object> field = marketResourceDao.queryUniqueSql("SELECT * FROM lkcrm_admin_field WHERE name = ? AND cust_id = ? AND label =11", v, BaseUtil.getCustId());
+                        if (field != null) {
+                            LkCrmAdminFieldvEntity value = new LkCrmAdminFieldvEntity();
+                            value.setFieldId(NumberConvertUtil.parseInt(field.get("field_id")));
+                            value.setCustId(BaseUtil.getCustId());
+                            value.setName(String.valueOf(field.get("name")));
+                            if ("手机".equals(v)) {
+                                value.setValue(dto.getSuper_telphone());
+                            } else if ("线索名称".equals(v)) {
+                                value.setValue(dto.getSuper_name());
+                            } else if ("公司名称".equals(v)) {
+                                value.setValue(dto.getCompany());
+                            }
+                            list.add(value);
+                        }
+                    }
+                    adminFieldService.save(list, dto.getSuper_id());
+                    //领取到私海
                     List<String> superIds = new ArrayList<>();
                     superIds.add(dto.getSuper_id());
                     crmLeadsService.transferToPrivateSea(seaId, data.get(entId).getString("entName"), String.valueOf(userId), superIds, i + 1);
