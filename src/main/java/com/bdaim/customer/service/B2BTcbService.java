@@ -370,9 +370,11 @@ public class B2BTcbService implements BusiService {
                     }
                     adminFieldService.save(list, dto.getSuper_id());
                     //领取到私海
-                    List<String> superIds = new ArrayList<>();
-                    superIds.add(dto.getSuper_id());
-                    crmLeadsService.transferToPrivateSea(seaId, data.get(entId).getString("entName"), String.valueOf(userId), superIds, i + 1);
+                    if (seaType == 2) {
+                        List<String> superIds = new ArrayList<>();
+                        superIds.add(dto.getSuper_id());
+                        crmLeadsService.transferToPrivateSea(seaId, data.get(entId).getString("entName"), String.valueOf(userId), superIds, i + 1);
+                    }
                 }
             }
             consumeNum++;
