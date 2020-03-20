@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -243,6 +244,31 @@ public class ApiController extends BasicAction {
         page.setPageSize(!params.containsKey("pageSize") ? 10 : params.getIntValue("pageSize"));
         page.setPageNum(!params.containsKey("pageNum") ? 1 : params.getIntValue("pageNum"));
         resp.setData(apiService.apiCustomerLogs(page, params));
+        return resp;
+    }
+
+    /**
+     * api 某月调用次数
+     * @param apiId
+     * @param customerId
+     * @param callMonth
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    @PostMapping("/{apiId}/{customerId}/callsuccessnum")
+    public ResponseInfo apiCallSuccessNum(@PathVariable("apiId")String apiId,@PathVariable("customerId")String customerId,@RequestParam(required = true) String callMonth,@RequestParam(required = false) String startDate,@RequestParam(required = false) String endDate){
+        ResponseInfo resp = new ResponseInfo();
+        try {
+            Map<String, Object> map = apiService.getCallSuccessNum(customerId, callMonth, apiId, startDate, endDate);
+            if (map != null) {
+                resp.setData(map.get("callSuccessnum"));
+            }
+        }catch (Exception e){
+            resp.setCode(-1);
+            resp.setMessage("查询出错");
+            e.printStackTrace();
+        }
         return resp;
     }
 
