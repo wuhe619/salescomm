@@ -388,7 +388,7 @@ public class ApiService {
         }
         List param = new ArrayList();
         StringBuffer monthcallSuccesNumSql = new StringBuffer("select count(0)callSuccessnum from am_charge_" + callMonth +
-                " charge where charge.api_id=? and charge.SUBSCRIBER_ID=? and charge.RESPONSE_MSG like  '%cost\":1,%'");
+                " charge where charge.api_id=? and charge.application_id=? and charge.RESPONSE_MSG like  '%cost\":1,%'");
         param.add(apiId);
         param.add(entity.getId());
         if(StringUtil.isNotEmpty(startDate)){
