@@ -3,40 +3,33 @@ package com.bdaim.crm.erp.work.service;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.spring.DataConverter;
+import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmTaskDao;
 import com.bdaim.crm.dao.LkCrmWorkDao;
 import com.bdaim.crm.dao.LkCrmWorkTaskClassDao;
 import com.bdaim.crm.dao.LkCrmWorkUserDao;
 import com.bdaim.crm.entity.*;
+import com.bdaim.crm.erp.admin.service.AdminFileService;
+import com.bdaim.crm.erp.admin.service.AdminMenuService;
+import com.bdaim.crm.erp.work.entity.WorkUser;
 import com.bdaim.crm.utils.*;
 import com.bdaim.util.JavaBeanUtil;
-import com.fasterxml.jackson.annotation.JsonValue;
 import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
-import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.erp.admin.entity.AdminMenu;
-import com.bdaim.crm.erp.admin.entity.AdminUser;
-import com.bdaim.crm.erp.admin.service.AdminFileService;
-import com.bdaim.crm.erp.admin.service.AdminMenuService;
-import com.bdaim.crm.erp.work.entity.*;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
-import javax.xml.ws.Action;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -233,7 +226,7 @@ public class WorkService {
 //        List<Record> classList = Db.find("select class_id as classId, name as className from `lkcrm_work_task_class` where work_id = ? order by order_num", workId);
         String classListSql = "select class_id as classId, name as className from " +
                 "`lkcrm_work_task_class` where work_id = ? order by order_num";
-        List<Map<String, Object>> classListMap = userDao.queryListBySql(classListSql, workId);
+        List<Map<String, Object>> classListMap = userDao.sqlQuery(classListSql, workId);
         List<Record> classList = JavaBeanUtil.mapToRecords(classListMap);
         LinkedList<Record> linkedList = new LinkedList<>(classList);
         Record item = new Record();
@@ -323,7 +316,7 @@ public class WorkService {
                     String sql = "SELECT user_id,img,realname FROM `lkcrm_admin_user`  " +
                             "WHERE " +
                             " user_id IN ( SELECT main_user_id FROM `lkcrm_task` WHERE ishidden = 0 AND work_id IN ( ? ) )";
-                    memberTaskStatistics = JavaBeanUtil.mapToRecords(workDao.queryListBySql(sql,
+                    memberTaskStatistics = JavaBeanUtil.mapToRecords(workDao.sqlQuery(sql,
                             CollectionUtil.join(workIds, ",")));
                     memberTaskStatistics.forEach(record -> {
 //                        Record first = Db.findFirst(Db.getSqlPara("work.workStatistics", Kv.by("mainUserId",
@@ -368,7 +361,7 @@ public class WorkService {
         List<Record> labelStatistics = new ArrayList<>();
 //        List<Record> recordList = Db.find("select class_id classId,name className from lkcrm_work_task_class a  where a.work_id = ?", workId);
         String recordListSql = "select class_id classId,name className from lkcrm_work_task_class a  where a.work_id = ?";
-        List<Record> recordList = JavaBeanUtil.mapToRecords(userDao.queryListBySql(recordListSql, workId));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(userDao.sqlQuery(recordListSql, workId));
         Map<String, Object> classMap = new HashMap<>();
         recordList.forEach(record -> classMap.put(record.getStr("classId"), record.getStr("className")));
         classMap.forEach((classId, name) -> {
@@ -383,7 +376,7 @@ public class WorkService {
 //        List<Record> labelList = Db.find("select label_id,status from `lkcrm_task` where work_id  = ? and label_id is not null and ishidden = 0 and (is_archive = 0 or (is_archive = 1 and status = 5))", workId);
         String labelFirstSql = "select label_id,status from `lkcrm_task` where work_id  = ? and label_id is not null " +
                 "and ishidden = 0 and (is_archive = 0 or (is_archive = 1 and status = 5))";
-        List<Record> labelList = JavaBeanUtil.mapToRecords(userDao.queryListBySql(labelFirstSql, workId));
+        List<Record> labelList = JavaBeanUtil.mapToRecords(userDao.sqlQuery(labelFirstSql, workId));
         List<String> labelIdList = labelList.stream().map(record -> record.getStr("label_id")).collect(Collectors.toList());
         Set<Integer> labelIdSet = new HashSet<>(toList(labelIdList));
         Map<Integer, Record> labelMap = new HashMap<>();
@@ -443,7 +436,7 @@ public class WorkService {
 //            list = Db.find(Db.getSql("work.getTaskOwnerOnWork"), workId);
             String getTaskOwnerOnWork = "select user_id,img,realname from `lkcrm_admin_user` " +
                     "where user_id in (select main_user_id from `lkcrm_task` where ishidden = 0 and work_id in (?))";
-            list = workDao.queryListBySql(getTaskOwnerOnWork, workId);
+            list = JavaBeanUtil.mapToRecords(workDao.sqlQuery(getTaskOwnerOnWork, workId));
             list.forEach(record -> {
 //                Record first = Db.findFirst(Db.getSqlPara("work.workStatistics",
 //                        Kv.by("mainUserId", record.getInt("user_id")).set("workIds", workId)));

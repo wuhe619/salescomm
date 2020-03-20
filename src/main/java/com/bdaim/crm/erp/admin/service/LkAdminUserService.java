@@ -1,6 +1,5 @@
 package com.bdaim.crm.erp.admin.service;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
@@ -25,12 +24,7 @@ import com.bdaim.customersea.entity.CustomerSeaProperty;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.marketproject.dto.MarketProjectDTO;
 import com.bdaim.marketproject.service.MarketProjectService;
-import com.bdaim.rbac.dao.UserDao;
-import com.bdaim.rbac.entity.User;
-import com.bdaim.util.CipherUtil;
-import com.bdaim.util.IDHelper;
-import com.bdaim.util.JavaBeanUtil;
-import com.bdaim.util.StringUtil;
+import com.bdaim.util.*;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
@@ -767,7 +761,7 @@ public class LkAdminUserService {
     public Record queryByDeptIds(String deptIds, String userIds) {
         Record record = new Record();
         String sql = "select * from lkcrm_admin_dept where dept_id in ( ? )";
-        List<Map<String, Object>> recordListMaps = crmAdminUserDao.queryListBySql(sql, deptIds);
+        List<Map<String, Object>> recordListMaps = crmAdminUserDao.sqlQuery(sql, deptIds);
         List<Record> allDepts = JavaBeanUtil.mapToRecords(recordListMaps);
         deptIds = getDeptIds(null, allDepts);
 
@@ -785,8 +779,8 @@ public class LkAdminUserService {
         for (Record dept : allDepts) {
             Integer pid = dept.getInt("pid");
             if (pid != 0) {
-                String sql = "select * from lkcrm_admin_dept where dept_id in ( ? )";
-                List<Map<String, Object>> recordListMaps = crmAdminUserDao.queryListBySql(sql, pid);
+                String sql = "select * from lkcrm_admin_dept where dept_id = ? ";
+                List<Map<String, Object>> recordListMaps = crmAdminUserDao.sqlQuery(sql, pid);
                 List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMaps);
                 deptIds = getDeptIds(deptIds, recordList);
             } else {
@@ -841,8 +835,8 @@ public class LkAdminUserService {
     }
 
     private String getUserIds(String deptIds, String userIds) {
-        String sql = "select * from lkcrm_admin_user where dept_id   NOT in ( ? ) and user_id in (?)";
-        List<Map<String, Object>> mapList = crmAdminUserDao.queryListBySql(sql, deptIds, userIds);
+        String sql = "select * from lkcrm_admin_user where dept_id   NOT in ( " + SqlAppendUtil.sqlAppendWhereIn(deptIds.split(",")) + " ) and user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds.split(",")) + ")";
+        List<Map<String, Object>> mapList = crmAdminUserDao.sqlQuery(sql);
         List<Record> allUsers = JavaBeanUtil.mapToRecords(mapList);
         userIds = null;
         for (Record user : allUsers) {

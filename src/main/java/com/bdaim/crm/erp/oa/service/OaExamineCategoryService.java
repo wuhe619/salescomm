@@ -104,7 +104,7 @@ public class OaExamineCategoryService {
         paginate.getData().forEach(m -> {
                     Record record = JavaBeanUtil.mapToRecord((Map<String, Object>) m);
                     String stepListSql = "select * from lkcrm_oa_examine_step where category_id = ?";
-                    List<Record> stepList = JavaBeanUtil.mapToRecords(categoryDao.queryListBySql(stepListSql,
+                    List<Record> stepList = JavaBeanUtil.mapToRecords(categoryDao.sqlQuery(stepListSql,
                             record.getStr("category_id")));
                     stepList.forEach(step -> {
                         if (step.getStr("check_user_id") != null && step.getStr("check_user_id").split(",").length > 0) {
@@ -161,7 +161,7 @@ public class OaExamineCategoryService {
         String sql1 = "select * from lkcrm_oa_examine_category where category_id = ?";
         Record examineCategory = JavaBeanUtil.mapToRecord(categoryDao.queryUniqueSql(sql1, id));
         String sql2 = "select a.*,b.realname,b.img from lkcrm_oa_examine_step a left join lkcrm_admin_user b on a.user_id = b.user_id where category_id = ?";
-        List<Record> stepList = JavaBeanUtil.mapToRecords(categoryDao.queryListBySql(sql2, id));
+        List<Record> stepList = JavaBeanUtil.mapToRecords(categoryDao.sqlQuery(sql2, id));
         examineCategory.set("stepList", stepList);
         return R.ok().put("data", examineCategory);
     }

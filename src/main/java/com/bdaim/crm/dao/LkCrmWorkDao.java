@@ -7,10 +7,8 @@ import com.bdaim.crm.entity.LkCrmWorkEntity;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +28,7 @@ public class LkCrmWorkDao extends SimpleHibernateDao<LkCrmWorkEntity, Integer> {
                 " AND ishidden = 1  " +
                 "ORDER BY " +
                 " a.hidden_time DESC";
-        return super.queryListBySql(sql);
+        return super.queryMapsListBySql(sql);
     }
 
     public List<Map<String, Object>> queryTrashListByUserId(Long userId) {
@@ -48,7 +46,7 @@ public class LkCrmWorkDao extends SimpleHibernateDao<LkCrmWorkEntity, Integer> {
                 " AND ( a.main_user_id =? OR a.owner_user_id LIKE concat( '%,',?, ',%' ) )  " +
                 "ORDER BY " +
                 " a.hidden_time DESC";
-        return super.queryListBySql(sql, userId, userId);
+        return super.queryMapsListBySql(sql, userId, userId);
     }
 
     public Map<String, Object> workStatistics(Map<String, Object> params) {
@@ -129,7 +127,7 @@ public class LkCrmWorkDao extends SimpleHibernateDao<LkCrmWorkEntity, Integer> {
                 "      lkcrm_admin_role_menu as b " +
                 "        LEFT JOIN lkcrm_admin_menu as c on b.menu_id=c.menu_id " +
                 "    WHERE b.role_id = ?";
-        return super.queryListBySql(sql, roleId);
+        return super.sqlQuery(sql, roleId);
     }
 
     public List<Map<String, Object>> queryOwnerRoleList(Integer workId) {
@@ -137,7 +135,7 @@ public class LkCrmWorkDao extends SimpleHibernateDao<LkCrmWorkEntity, Integer> {
                 "  from lkcrm_work_user as a left join lkcrm_admin_user as b on a.user_id = b.user_id  " +
                 "  left join lkcrm_admin_role as c on a.role_id = c.role_id  " +
                 "  where a.work_id = ?";
-        return super.queryListBySql(sql, workId);
+        return super.sqlQuery(sql, workId);
     }
 
     public List<Map<String, Object>> archList(String workId) {
@@ -212,6 +210,6 @@ public class LkCrmWorkDao extends SimpleHibernateDao<LkCrmWorkEntity, Integer> {
         String sql = "SELECT a.work_id FROM lkcrm_work a WHERE 1 = 1  " +
                 "AND ( owner_user_id LIKE concat( '%,',?, ',%' ) AND is_open = 0 )  " +
                 " OR is_open = 1";
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, userId1));
+        return JavaBeanUtil.mapToRecords(super.sqlQuery(sql, userId1));
     }
 }

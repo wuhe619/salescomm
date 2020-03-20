@@ -102,7 +102,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
             params.add(endTime);
         }
         sql += "      group by status_id";
-        return super.queryListBySql(sql, params.toArray());
+        return super.sqlQuery(sql, params.toArray());
     }
 
     public List<Map<String, Object>> queryProductSell(Date startTime, Date endTime, Long userId, Integer deptId) {
@@ -164,7 +164,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
             params.add(deptId);
         }
 
-        return super.queryListBySql(sql, params.toArray());
+        return super.sqlQuery(sql, params.toArray());
     }
 
     public List<Map<String, Object>> queryContractByDeptId(String year, Integer deptId) {
@@ -570,7 +570,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "          (SELECT COUNT(1) FROM customerview where deal_status = '已成交' and `客户来源` =ccc.`客户来源` and cust_id='" +
                 custId + "') as dealCustomer, " +
                 "          CASE " +
-                "          when  ccc.`客户来源` = '' then  '未知' " +
+                "          when  ccc.`客户来源` = '' then  '未知' when ccc.`客户来源` is null then '未知' " +
                 "          ELSE ccc.`客户来源` end " +
                 "          as source " +
                 "           FROM customerview as ccc " +
@@ -625,7 +625,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
         String sql = "         SELECT (SELECT COUNT(1) FROM customerview WHERE `客户级别` =ccc.`客户级别` and cust_id='" + custId + "') as allCustomer, " +
                 "          (SELECT COUNT(1) FROM customerview where deal_status = '已成交' and `客户级别` =ccc.`客户级别` and cust_id='" + custId + "') as dealCustomer, " +
                 "          CASE " +
-                "          when  ccc.`客户级别` = '' then  '未知' " +
+                "          when  ccc.`客户级别` = '' then  '未知' when ccc.`客户级别` is null then '未知'" +
                 "          ELSE ccc.`客户级别` end " +
                 "          as level " +
                 "          FROM customerview as ccc " +
@@ -681,7 +681,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
                 "        (SELECT COUNT(1) FROM customerview where deal_status = '已成交' and `客户行业` =ccc.`客户行业` and cust_id='" +
                 custId + "') as dealCustomer, " +
                 "        CASE " +
-                "        when  ccc.`客户行业` = '' then  '未知' " +
+                "        when  ccc.`客户行业` = '' then  '未知' when ccc.`客户行业` is null then '未知'" +
                 "        ELSE ccc.`客户行业` end " +
                 "        as industry " +
                 "         FROM customerview as ccc " +
@@ -793,7 +793,7 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
             params.add(startTime);
             params.add(endTime);
         }
-        return JavaBeanUtil.mapToRecords(super.queryListBySql(sql, params.toArray()));
+        return JavaBeanUtil.mapToRecords(super.sqlQuery(sql, params.toArray()));
     }
 
     public List<Record> travelCountRanKing(String[] userIdsArr, Integer status, String startTime, String endTime) {
