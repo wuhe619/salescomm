@@ -350,20 +350,84 @@ public class ApiService {
             Map dataMap = (Map) m;
             List param =new ArrayList();
             dataMap.put("monthFee",0);
+            dataMap.put("monthCallSuccessNum",0);
+            dataMap.put("salePrice",0);
+
+            param.add(dataMap.get("apiId"));
+
+            Map<String,Object> callSuccessnumMap = getCallSuccessNum(dataMap.get("subscriberId").toString(),params.getString("callMonth"),dataMap.get("apiId").toString(),"","");
+            if(callSuccessnumMap!=null && callSuccessnumMap.containsKey("callSuccessnum")){
+                dataMap.put("monthCallSuccessNum",callSuccessnumMap.get("callSuccessnum"));
+            }
+
             String monCallFeeSql = "select sum(charge)monthCharge from am_charge_" + params.getString("callMonth") + " " +
                     " where api_id=? ";
-            param.add(dataMap.get("apiId"));
+
             Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
             if(monthCharge!=null) {
                 String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 2);
                 dataMap.put("monthFee", monChargeStr);
             }
+            Map<String,Object> salePriceMap = getApiSalePrice(dataMap.get("subscriberId").toString(),dataMap.get("apiId").toString());
+            if(salePriceMap!=null && salePriceMap.containsKey("salePrice")){
+                dataMap.put("salePrice",salePriceMap.get("salePrice"));
+            }
+
             return dataMap;
         }).collect(Collectors.toList());
         map.put("list", collect);
         map.put("total", list.getTotal());
         return map;
     }
+
+    //有效调用次数
+    public Map<String,Object> getCallSuccessNum(String SUBSCRIBER_ID,String callMonth,String apiId,String startDate,String endDate){
+        AmApplicationEntity entity = amApplicationDao.getByCustId(SUBSCRIBER_ID);
+        if(entity == null){
+            return null;
+        }
+        List param = new ArrayList();
+        StringBuffer monthcallSuccesNumSql = new StringBuffer("select count(0)callSuccessnum from am_charge_" + callMonth +
+                " charge where charge.api_id=? and charge.application_id=? and charge.RESPONSE_MSG like  '%cost\":1,%'");
+        param.add(apiId);
+        param.add(entity.getId());
+        if(StringUtil.isNotEmpty(startDate)){
+            monthcallSuccesNumSql.append(" and charge.event_time>=?");
+            param.add(startDate);
+        }
+        if(StringUtil.isNotEmpty(endDate)){
+            monthcallSuccesNumSql.append(" and charge.event_time<=?");
+            param.add(startDate);
+        }
+        logger.info("getCallSuccessNum.sql:{};{}",monthcallSuccesNumSql.toString(),param.toArray());
+        List<Map<String,Object>> callSuccessnumMapList = jdbcTemplate.queryForList(monthcallSuccesNumSql.toString(),param.toArray());
+        if(callSuccessnumMapList!=null && callSuccessnumMapList.size()>0){
+            return callSuccessnumMapList.get(0);
+        }
+        return null;
+    }
+
+    private Map<String,Object> getApiSalePrice(String subscriber_id,String apiId){
+        AmApplicationEntity entity = amApplicationDao.getByCustId(subscriber_id);
+        if(entity == null){
+            return null;
+        }
+
+        String salePriceSql = "SELECT b.unit_price /10000 salePrice FROM " +
+                " am_subscription a LEFT JOIN am_subscription_charge b ON b.SUBSCRIPTION_ID = a.SUBSCRIPTION_ID " +
+                " where a.APPLICATION_ID = ? "+
+                " and a.API_ID = ?";
+        List param = new ArrayList<>();
+        param.add(entity.getId());
+        param.add(apiId);
+        logger.info("getApiSalePrice.sql:{};{}",salePriceSql,param.toArray());
+        List<Map<String,Object>> salePriceMapList = jdbcTemplate.queryForList(salePriceSql,param.toArray());
+        if(salePriceMapList!=null && salePriceMapList.size()>0){
+            return salePriceMapList.get(0);
+        }
+        return null;
+    }
+
 
     public Map<String, Object> apiCustomerLogs(PageParam page, JSONObject params) {
         List<Object> arr = new ArrayList<>();

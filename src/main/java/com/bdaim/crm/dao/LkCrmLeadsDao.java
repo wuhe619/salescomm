@@ -95,6 +95,7 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         }
         //conditions.append(" GROUP By custType ORDER BY custG.create_time DESC ");
         LOG.info("公海sql:" + conditions);
+        conditions.append(" ORDER BY custG.create_time DESC, custG.update_time DESC");
         return sqlPageQuery(conditions.toString(), pageNum, pageSize, param.toArray());
     }
 

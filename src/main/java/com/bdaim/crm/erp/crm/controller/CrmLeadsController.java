@@ -393,7 +393,7 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "DELETE FROM lkcrm_admin_field WHERE `name` = '当前负责人' ";
+        String sql = "update lkcrm_admin_field SET `options`='促销,搜索引擎,广告,转介绍,线上注册,线上询价,预约上门,电话咨询,邮件咨询,发现线索'   WHERE field_name ='线索来源';";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
         sql = "DELETE FROM lkcrm_admin_field_sort ";
         data = crmAdminFieldDao.executeUpdateSQL(sql);

@@ -4304,7 +4304,7 @@ public class CustomerSeaService {
      * @param seaType 1-添加到公海 2-添加到私海
      * @return
      */
-    public int addClueData0(CustomSeaTouchInfoDTO dto, int seaType) {
+    public int addClueData0(CustomSeaTouchInfoDTO dto, int seaType, String source) {
         // 处理qq 微信等默认自建属性值
         handleDefaultLabelValue(dto);
         StringBuffer sql = new StringBuffer();
@@ -4325,7 +4325,7 @@ public class CustomerSeaService {
             CustomerUser user = customerUserDao.get(NumberConvertUtil.parseLong(dto.getUser_id()));
             int dataStatus = 1;
             // 组长和员工数据状态为已分配
-            if (2 == user.getUserType()) {
+            if (2 == user.getUserType() && !"crm".equals(source)) {
                 dto.setUser_id(dto.getUser_id());
                 dataStatus = 0;
             } else {
@@ -4343,10 +4343,12 @@ public class CustomerSeaService {
             } catch (HibernateException e) {
                 LOG.error("创建用户群表失败,id:" + dto.getCust_group_id(), e);
             }
-            List<Map<String, Object>> list = customerDao.sqlQuery("SELECT id FROM " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + " WHERE id= ?", superId);
+            List<Map<String, Object>> list = customerDao.sqlQuery("SELECT id FROM " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX
+                    + dto.getCust_group_id() + " WHERE id= ?", superId);
             if (list.size() > 0) {
                 LOG.warn("客群ID:[" + dto.getCust_group_id() + "]添加线索ID:[" + superId + "]已经存在");
                 //return -1;
+                throw new TouchException("客群ID:[" + dto.getCust_group_id() + "]添加线索ID:[" + superId + "]已经存在");
             }
 
             sql.append(" INSERT INTO " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id())
@@ -4355,14 +4357,15 @@ public class CustomerSeaService {
             this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
                     dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
                     dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), new Timestamp(System.currentTimeMillis()));
-
-            sql = new StringBuffer();
-            sql.append(" INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId())
-                    .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`, batch_id, data_source,create_time) ")
-                    .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
-            this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
-                    dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
-                    dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), dto.getCust_group_id(), 3, new Timestamp(System.currentTimeMillis()));
+            if ((seaType == 1 && "crm".equals(source)) || StringUtil.isEmpty(source)) {
+                sql = new StringBuffer();
+                sql.append(" INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId())
+                        .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`, batch_id, data_source,create_time) ")
+                        .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
+                this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
+                        dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
+                        dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), dto.getCust_group_id(), 3, new Timestamp(System.currentTimeMillis()));
+            }
             // 保存标记信息到es中
             CustomerSeaESDTO esData = new CustomerSeaESDTO(dto);
             esData.setSuper_data(JSON.toJSONString(dto.getSuperData()));

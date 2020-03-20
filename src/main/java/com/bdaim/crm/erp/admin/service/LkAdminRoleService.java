@@ -149,20 +149,30 @@ public class LkAdminRoleService {
         jsonObject = new JSONObject();
         List<Map<String, Object>> menuRecords;
         List<Integer> roleIds = queryRoleIdsByUserId(userId);
+        //menuRecords 该用户拥有的所有的权限菜单
         if (roleIds.contains(BaseConstant.SUPER_ADMIN_ROLE_ID)) {
             menuRecords = adminMenuService.queryAllMenu();
         } else {
             menuRecords = adminMenuService.queryMenuByUserId(userId);
         }
+        //adminMenus 系统所有权限的顶级菜单
         List<LkCrmAdminMenuEntity> adminMenus = adminMenuService.queryMenuByParentId(0);
         for (LkCrmAdminMenuEntity adminMenu : adminMenus) {
             JSONObject object = new JSONObject();
+            //adminMenuList 根据顶级菜单查询出来的二级菜单项
             List<LkCrmAdminMenuEntity> adminMenuList = adminMenuService.queryMenuByParentId(adminMenu.getMenuId());
+            //menu 二级菜单项
             for (LkCrmAdminMenuEntity menu : adminMenuList) {
                 JSONObject authObject = new JSONObject();
+                //遍历用户拥有的权限菜单项，如果父级ID和二级菜单项相等，则任务有权限
                 for (Map<String, Object> record : menuRecords) {
                     if (menu.getMenuId().equals(NumberConvertUtil.everythingToInt(record.get("parent_id")))) {
                         authObject.put(String.valueOf(record.get("realm")), true);
+                    }
+                    if (menu.getMenuId().equals(NumberConvertUtil.everythingToInt(record.get("menu_id")))) {
+                        if (menu.getParentId().equals(3)) {
+                            object.put(String.valueOf(record.get("realm")), true);
+                        }
                     }
                 }
                 if (!authObject.isEmpty()) {
