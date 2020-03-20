@@ -19,6 +19,7 @@ import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.SqlAppendUtil;
 import com.jfinal.plugin.activerecord.Record;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -51,7 +52,7 @@ public class AdminExamineService {
         adminExamine.setUserIds(getIds(userIds));
         String custId = BaseUtil.getCustId();
         Boolean flag;
-
+        adminExamine.setCustId(BaseUtil.getCustId());
         if (adminExamine.getExamineId() == null) {
             //添加
             LkCrmAdminExamineEntity examine = crmAdminExamineDao.getExamineByCategoryType(adminExamine.getCategoryType(), custId);
@@ -168,12 +169,14 @@ public class AdminExamineService {
      * 停用或删除审批流程
      */
     public R updateStatus(LkCrmAdminExamineEntity adminExamine) {
+        LkCrmAdminExamineEntity dbEntity = crmAdminExamineDao.get(adminExamine.getExamineId());
         adminExamine.setUpdateUserId(BaseUtil.getUser().getUserId());
         adminExamine.setUpdateTime(DateUtil.date().toTimestamp());
         if (adminExamine.getStatus() == null) {
             adminExamine.setStatus(2);
         }
-        crmAdminExamineDao.saveOrUpdate(adminExamine);
+        BeanUtils.copyProperties(adminExamine, dbEntity, JavaBeanUtil.getNullPropertyNames(adminExamine));
+        crmAdminExamineDao.update(dbEntity);
         return R.ok();
     }
 
