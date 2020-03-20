@@ -269,20 +269,25 @@ public class ApiService {
                     dataMap.put("monthFee",monChargeStr);
                 }
             }
-            String sql2 = " select  property_value from am_api_property  where api_id = ? and property_name='rsIds'";
-            String  propertyList = jdbcTemplate.queryForObject(sql2,param.toArray(),String.class);
-            if(propertyList!=null) {
-                JSONArray ar = JSON.parseArray(propertyList);
-                String rsids = "";
-                for (int i = 0; i < ar.size(); i++) {
-                    JSONObject obj = ar.getJSONObject(i);
-                    if (obj.containsKey("rsId")) {
-                        rsids += "," + obj.getString("rsId");
+            try {
+                String sql2 = " select  property_value from am_api_property  where api_id = ? and property_name='rsIds'";
+                Map<String,Object>  propertyMap = jdbcTemplate.queryForMap(sql2,param.toArray());
+                logger.info("propertyMap:{} ",propertyMap);
+                if(propertyMap!=null && propertyMap.containsKey("property_value")){
+                    JSONArray ar = JSON.parseArray((String) propertyMap.get("property_value"));
+                    String rsids = "";
+                    for (int i = 0; i < ar.size(); i++) {
+                        JSONObject obj = ar.getJSONObject(i);
+                        if (obj.containsKey("rsId")) {
+                            rsids += "," + obj.getString("rsId");
+                        }
+                    }
+                    if (StringUtil.isNotEmpty(rsids)) {
+                        dataMap.put("rsIds", rsids.substring(1));
                     }
                 }
-                if (StringUtil.isNotEmpty(rsids)) {
-                    dataMap.put("rsIds", rsids.substring(1));
-                }
+            }catch (Exception e){
+                e.printStackTrace();
             }
             return dataMap;
         }).collect(Collectors.toList());
