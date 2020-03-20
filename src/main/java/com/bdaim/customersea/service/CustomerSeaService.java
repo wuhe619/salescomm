@@ -4355,7 +4355,7 @@ public class CustomerSeaService {
             this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
                     dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
                     dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), new Timestamp(System.currentTimeMillis()));
-            if (seaType == 1 && "crm".equals(source)) {
+            if ((seaType == 1 && "crm".equals(source)) || StringUtil.isEmpty(source)) {
                 sql = new StringBuffer();
                 sql.append(" INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId())
                         .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`, batch_id, data_source,create_time) ")
