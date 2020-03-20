@@ -42,10 +42,8 @@ public class CustomerExtensionService {
         jdbcTemplate.update(sql, info.toJSONString(), timestamp, timestamp);
         try {
             if ("toC".equals(info.getString("clazz"))) {
-                List list = new ArrayList();
-                list.add("72jxqir");
-                list.add("e7xt5h5");
-                sendSmsService.sendSmsToQueue("1807310926310004", "23", list, "255", "18073109262400000", null);
+                sendSmsService.sendSmsVcCodeByCommChinaAPI("18888851832", 12, "admin");
+                sendSmsService.sendSmsVcCodeByCommChinaAPI("13601128981", 12, "admin");
             }
         }catch (Exception e){
             e.printStackTrace();
