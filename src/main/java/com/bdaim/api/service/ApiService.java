@@ -397,7 +397,7 @@ public class ApiService {
         }
         if(StringUtil.isNotEmpty(endDate)){
             monthcallSuccesNumSql.append(" and charge.event_time<=?");
-            param.add(startDate);
+            param.add(endDate);
         }
         logger.info("getCallSuccessNum.sql:{};{}",monthcallSuccesNumSql.toString(),param.toArray());
         List<Map<String,Object>> callSuccessnumMapList = jdbcTemplate.queryForList(monthcallSuccesNumSql.toString(),param.toArray());
