@@ -12,7 +12,6 @@ import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
-import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customs.entity.BusiTypeEnum;
@@ -347,7 +346,13 @@ public class B2BTcbService implements BusiService {
                 if ("crm".equals(param.getString("source")) && status != -1) {
                     // 保存公海标记信息  seaType 1公海 2私海
                     JSONArray list = new JSONArray();
-                    String[] values = new String[]{"手机", "线索名称", "公司名称", "线索来源"};
+                    String[] values = new String[]{"手机", "电话", "线索名称", "公司名称", "线索来源"};
+                    String telephone = "", mobile = "";
+                    if (pNumbers.getString(i).length() == 11) {
+                        mobile = pNumbers.getString(i);
+                    } else {
+                        telephone = pNumbers.getString(i);
+                    }
                     for (String v : values) {
                         String label = seaType == 1 ? "11" : "1";
                         Map<String, Object> field = marketResourceDao.queryUniqueSql("SELECT * FROM lkcrm_admin_field WHERE name = ? AND cust_id = ? AND label =" + label, v, custId);
@@ -357,24 +362,26 @@ public class B2BTcbService implements BusiService {
                             value.setCustId(custId);
                             value.setName(String.valueOf(field.get("name")));
                             if ("手机".equals(v)) {
-                                value.setValue(dto.getSuper_telphone());
+                                value.setValue(mobile);
                             } else if ("线索名称".equals(v)) {
                                 value.setValue(dto.getSuper_name());
                             } else if ("公司名称".equals(v)) {
                                 value.setValue(dto.getCompany());
                             } else if ("线索来源".equals(v)) {
                                 value.setValue("发现线索");
+                            } else if ("电话".equals(v)) {
+                                value.setValue(telephone);
                             }
                             list.add(value);
                         }
                     }
-                    adminFieldService.save(list, dto.getSuper_id());
+                    String id = dto.getSuper_id();
                     //领取到私海
                     if (seaType == 2) {
-                        List<String> superIds = new ArrayList<>();
-                        superIds.add(dto.getSuper_id());
-                        crmLeadsService.transferToPrivateSea(seaId, data.get(entId).getString("entName"), String.valueOf(userId), superIds, i + 1);
+                        id = crmLeadsService.transferToPrivateSea(seaId, data.get(entId).getString("entName"), mobile, telephone, i + 1);
                     }
+                    adminFieldService.save(list, id);
+
                 }
             }
             consumeNum++;
@@ -414,6 +421,7 @@ public class B2BTcbService implements BusiService {
         JSONObject log = new JSONObject();
         // B2B数据企业ID
         log.put("ext_1", entId);
+        log.put("entId", entId);
         // 套餐包ID 扩展字段2
         log.put("tcbId", tcbId);
         // 领取批次ID 扩展字段3

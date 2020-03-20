@@ -25,19 +25,17 @@ import com.bdaim.crm.erp.crm.entity.CrmLeads;
 import com.bdaim.crm.utils.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customer.entity.CustomerUser;
-import com.bdaim.customer.entity.CustomerUserGroup;
 import com.bdaim.customer.service.CustomerLabelService;
 import com.bdaim.customersea.dao.CustomerSeaDao;
-import com.bdaim.customersea.dto.*;
+import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
+import com.bdaim.customersea.dto.CustomerSeaESDTO;
+import com.bdaim.customersea.dto.CustomerSeaParam;
+import com.bdaim.customersea.dto.CustomerSeaSearch;
 import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.customersea.entity.CustomerSeaProperty;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customgroup.dao.CustomGroupDao;
-import com.bdaim.marketproject.entity.MarketProject;
-import com.bdaim.marketproject.entity.MarketProjectProperty;
-import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.util.*;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
@@ -58,7 +56,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
-import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -876,6 +873,40 @@ public class CrmLeadsService {
             crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
         }
         return 0;
+    }
+
+    /**
+     *
+     * @param seaId
+     * @param company
+     * @param mobile
+     * @param telephone
+     * @param index
+     * @return
+     */
+    public String transferToPrivateSea(String seaId, String company, String mobile, String telephone, int index) {
+        //添加到线索私海数据
+        LkCrmLeadsEntity crmLeads = new LkCrmLeadsEntity();
+        crmLeads.setLeadsName(company + index);
+        crmLeads.setCompany(company);
+        crmLeads.setIsTransform(0);
+        crmLeads.setMobile(mobile);
+        crmLeads.setTelephone(telephone);
+        // 查询公海线索的标记信息
+        String batchId = MD5Util.encode32Bit(mobile);
+        crmLeads.setBatchId(batchId);
+        crmLeads.setCustId(BaseUtil.getUser().getCustId());
+        crmLeads.setCreateTime(DateUtil.date().toTimestamp());
+        crmLeads.setUpdateTime(DateUtil.date().toTimestamp());
+        crmLeads.setCreateUserId(BaseUtil.getUser().getUserId());
+        if (crmLeads.getOwnerUserId() == null) {
+            crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId());
+        }
+        crmLeads.setBatchId(batchId);
+        crmLeads.setSeaId(seaId);
+        int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
+        crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
+        return batchId;
     }
 
     /**
