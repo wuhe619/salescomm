@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmWorkEntity;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import java.util.Map;
 @Component
 public class LkCrmWorkDao extends SimpleHibernateDao<LkCrmWorkEntity, Integer> {
     public List<Map<String, Object>> queryTrashList() {
+        String custId = BaseUtil.getCustId();
         String sql = "SELECT " +
                 " a.task_id,a.name,a.stop_time,a.priority,a.status, " +
                 " ( SELECT count( * ) FROM lkcrm_admin_file WHERE batch_id = a.batch_id ) AS file_num, " +
@@ -24,8 +26,8 @@ public class LkCrmWorkDao extends SimpleHibernateDao<LkCrmWorkEntity, Integer> {
                 "FROM " +
                 " lkcrm_task AS a  " +
                 "WHERE " +
-                " pid = 0  " +
-                " AND ishidden = 1  " +
+                " pid = 0  and cust_id='" + custId +
+                "' AND ishidden = 1  " +
                 "ORDER BY " +
                 " a.hidden_time DESC";
         return super.queryMapsListBySql(sql);
