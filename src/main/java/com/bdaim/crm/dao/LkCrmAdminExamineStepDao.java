@@ -10,7 +10,7 @@ import java.util.List;
 public class LkCrmAdminExamineStepDao extends SimpleHibernateDao<LkCrmAdminExamineStepEntity, Long> {
 
     public LkCrmAdminExamineStepEntity queryExamineStepByExamineIdOrderByStepNum(Integer examineId) {
-        String sql = " from LkCrmAdminExamineStepEntity WHERE examineId = ? ORDER BY step_num ";
+        String sql = " from LkCrmAdminExamineStepEntity WHERE examineId = ? ORDER BY stepNum ";
         List<LkCrmAdminExamineStepEntity> objects = find(sql, examineId);
         if (objects.size() > 0) {
             return objects.get(0);
