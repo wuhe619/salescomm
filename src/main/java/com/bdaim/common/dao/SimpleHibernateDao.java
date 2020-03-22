@@ -1169,15 +1169,13 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
                 query.setParameter(i, values[i]);
             }
         List rs = query.list();
+        List<Long> result = new ArrayList<>();
         if (!CollectionUtils.isEmpty(rs)) {
-            List<Long> result = new ArrayList<>();
             for (Object obj : rs) {
-                result.add(Long.valueOf(String.valueOf(obj)));
+                result.add(NumberConvertUtil.parseLong(String.valueOf(obj)));
             }
-            return result;
-        } else {
-            return null;
         }
+        return result;
     }
 
     public List<Integer> queryListForInteger(String sql, final Object... values) {

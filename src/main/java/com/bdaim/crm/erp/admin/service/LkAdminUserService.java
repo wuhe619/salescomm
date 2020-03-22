@@ -738,7 +738,9 @@ public class LkAdminUserService {
         List<Long> recordList = new ArrayList<>();
         if (deepness > 0) {
             List<Long> records = crmAdminDeptDao.queryListForLong("SELECT b.user_id FROM lkcrm_admin_user AS b WHERE b.parent_id = ?", userId);
-            recordList.addAll(records);
+            if (records != null && records.size() > 0) {
+                recordList.addAll(records);
+            }
             int size = recordList.size();
             for (int i = 0; i < size; i++) {
                 recordList.addAll(queryUserByParentUser(recordList.get(i), deepness - 1));
