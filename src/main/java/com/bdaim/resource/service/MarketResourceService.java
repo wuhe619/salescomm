@@ -5008,6 +5008,7 @@ public class MarketResourceService {
             sb.append(" order by voicLog.create_time DESC");
             log.info("queryRecordVoiceLogV4:{};param:{}",sb.toString(),params.toArray());
             page = this.marketResourceDao.sqlPageQuery0(sb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize(), params.toArray());
+            log.info("queryRecordVoiceLogV4.data:{}",page.getData());
             CustomerUser customerUser;
             if (page.getData() != null && page.getData().size() > 0) {
                 //处理用户信息和录音文件
