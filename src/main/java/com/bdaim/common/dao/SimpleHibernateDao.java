@@ -970,6 +970,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         if (values != null) {
             for (int i = 0; i < values.length; i++) {
                 query.setParameter(i, values[i]);
+//                query.setParameterList(i,);
             }
         }
         List rs = query.list();
