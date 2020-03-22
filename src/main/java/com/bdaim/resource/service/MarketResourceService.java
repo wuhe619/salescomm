@@ -5006,6 +5006,7 @@ public class MarketResourceService {
                 params.add(seaId);
             }
             sb.append(" order by voicLog.create_time DESC");
+            log.info("queryRecordVoiceLogV4:{};param:{}",sb.toString(),params.toArray());
             page = this.marketResourceDao.sqlPageQuery0(sb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize(), params.toArray());
             CustomerUser customerUser;
             if (page.getData() != null && page.getData().size() > 0) {
