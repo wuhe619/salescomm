@@ -4972,12 +4972,19 @@ public class MarketResourceService {
                             userIds.add(customerUserDTO.getId());
                         }
                         if (userIds.size() > 0) {
+                            String uids = "";
+                            for(String s:userIds){
+                                uids+=","+s;
+                            }
+                            if(uids.length()>0){
+                                uids = uids.substring(1);
+                            }
                             if (3 == taskType) {
-                                sb.append(" AND (voicLog.user_id IN(?) OR voicLog.call_data LIKE '%level%')");
-                                params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
+                                sb.append(" AND (voicLog.user_id IN("+uids+") OR voicLog.call_data LIKE '%level%')");
+//                                params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
                             } else {
-                                sb.append(" AND voicLog.user_id IN(?)");
-                                params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
+                                sb.append(" AND voicLog.user_id IN("+uids+")");
+//                                params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
                             }
                         }
                     } else {
