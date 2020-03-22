@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -259,11 +260,19 @@ public class ApiController extends BasicAction {
     @PostMapping("/{apiId}/{customerId}/callsuccessnum")
     public ResponseInfo apiCallSuccessNum(@PathVariable("apiId")String apiId,@PathVariable("customerId")String customerId,@RequestParam(required = true) String callMonth,@RequestParam(required = false) String startDate,@RequestParam(required = false) String endDate){
         ResponseInfo resp = new ResponseInfo();
+        Map res = new HashMap();
+        res.put("callSuccessnum",0);
+        res.put("totalCharge",0);
         try {
             Map<String, Object> map = apiService.getCallSuccessNum(customerId, callMonth, apiId, startDate, endDate);
             if (map != null) {
-                resp.setData(map.get("callSuccessnum"));
+                res.put("callSuccessnum",map.get("callSuccessnum"));
             }
+            map = apiService.getTotalFee(customerId, callMonth, apiId, startDate, endDate);
+            if(map!=null){
+                res.put("totalCharge",map.get("totalCharge"));
+            }
+            resp.setData(res);
         }catch (Exception e){
             resp.setCode(-1);
             resp.setMessage("查询出错");

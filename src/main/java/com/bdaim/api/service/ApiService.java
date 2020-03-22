@@ -321,8 +321,9 @@ public class ApiService {
             List param =new ArrayList();
             dataMap.put("monthFee",0);
             String monCallFeeSql = "select sum(charge)monthCharge from am_charge_" + params.getString("callMonth") + " " +
-                    " where SUBSCRIBER_ID=? ";
+                    " where SUBSCRIBER_ID=? and app_id=?";
             param.add(dataMap.get("SUBSCRIBERID"));
+            param.add(params.getString("apiId"));
             Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
             String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(),"10000",2);
             dataMap.put("monthFee",monChargeStr);
@@ -344,6 +345,7 @@ public class ApiService {
         arr.add(params.getString("customerId"));
         sql.append("group by charge.api_id ");
         sql.append(" order by charge.event_TIME desc");
+        logger.info("customerApiLogs.sql:{}",sql.toString());
         PageList list = new Pagination().getPageData(sql.toString(), arr.toArray(), page, jdbcTemplate);
         Map<String, Object> map = new HashMap<>();
         Object collect = list.getList().stream().map(m -> {
@@ -361,8 +363,8 @@ public class ApiService {
             }
 
             String monCallFeeSql = "select sum(charge)monthCharge from am_charge_" + params.getString("callMonth") + " " +
-                    " where api_id=? ";
-
+                    " where api_id=? and SUBSCRIBER_ID =?";
+            param.add(dataMap.get("subscriberId"));
             Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
             if(monthCharge!=null) {
                 String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 2);
@@ -378,6 +380,42 @@ public class ApiService {
         map.put("list", collect);
         map.put("total", list.getTotal());
         return map;
+    }
+
+    /**
+     * 费用统计
+     * @param SUBSCRIBER_ID
+     * @param callMonth
+     * @param apiId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    public Map<String,Object>getTotalFee(String SUBSCRIBER_ID,String callMonth,String apiId,String startDate,String endDate){
+        AmApplicationEntity entity = amApplicationDao.getByCustId(SUBSCRIBER_ID);
+        if(entity == null){
+            return null;
+        }
+        List param = new ArrayList();
+        StringBuffer totalFeeSql = new StringBuffer("select sum(charge) /10000 totalCharge from am_charge_" + callMonth +
+                " charge where charge.api_id=? and charge.application_id=? and charge.RESPONSE_MSG like  '%cost\":1,%'");
+        param.add(apiId);
+        param.add(entity.getId());
+        if(StringUtil.isNotEmpty(startDate)){
+            totalFeeSql.append(" and charge.event_time>=?");
+            param.add(startDate);
+        }
+        if(StringUtil.isNotEmpty(endDate)){
+            totalFeeSql.append(" and charge.event_time<=?");
+            param.add(endDate);
+        }
+        logger.info("totalFeeSql.sql:{};{}",totalFeeSql.toString(),param.toArray());
+        List<Map<String,Object>> callSuccessnumMapList = jdbcTemplate.queryForList(totalFeeSql.toString(),param.toArray());
+        if(callSuccessnumMapList!=null && callSuccessnumMapList.size()>0){
+            return callSuccessnumMapList.get(0);
+        }
+        return null;
+
     }
 
     //有效调用次数
