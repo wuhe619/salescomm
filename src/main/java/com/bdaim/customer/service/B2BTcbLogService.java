@@ -49,7 +49,7 @@ public class B2BTcbLogService implements BusiService {
 
     @Override
     public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
-        StringBuffer sqlstr = new StringBuffer("select t.id , t.cust_id, t.create_id, t.create_date,t.ext_1, t.ext_2, t.ext_3, t.ext_4, count( t.create_date ) as ext_5 , u.realname,update_date from "
+        StringBuffer sqlstr = new StringBuffer("select t.id , t.cust_id, t.create_id, t.create_date,t.ext_1, t.ext_2, t.ext_3, t.ext_4, count(distinct ext_1 ) as ext_5, u.realname,update_date from "
                 + HMetaDataDef.getTable(busiType, "") + " t left join t_customer_user u on t.cust_user_id= u.id  where type='").append(busiType).append("'");
         String userName = params.getString("userName");
         String create_date = params.getString("create_date");
@@ -85,7 +85,7 @@ public class B2BTcbLogService implements BusiService {
             sqlstr.append(" and t.create_date between ? and ? ");
         }
         //sqlstr.append("group by create_date  order by  create_date desc");
-        sqlstr.append("group by ext_3 ");
+        sqlstr.append("group by create_date ");
         return sqlstr.toString();
     }
 
