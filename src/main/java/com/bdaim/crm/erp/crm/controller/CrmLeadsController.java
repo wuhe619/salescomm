@@ -393,9 +393,9 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "update lkcrm_admin_field SET `options`='促销,搜索引擎,广告,转介绍,线上注册,线上询价,预约上门,电话咨询,邮件咨询,发现线索'   WHERE field_name ='线索来源';";
+        String sql = "INSERT INTO `lkcrm_admin_field` (`field_name`, `cust_id`, `name`, `type`, `label`, `remark`, `input_tips`, `max_length`, `default_value`, `is_unique`, `is_null`, `sorting`, `options`, `operating`, `update_time`, `examine_category_id`, `field_type`, `relevant`, `add_sort`, `add_hidden`) VALUES ( '跟进状态', NULL, '跟进状态', '3', '2', NULL, '', NULL, '', '0', '0', '3', '有意向,无意向,待跟进', '0', '2020-03-12 11:33:51', NULL, '0', NULL, '12', NULL);";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
-        sql = "DELETE FROM lkcrm_admin_field_sort ";
+        sql = "INSERT INTO `lkcrm_admin_field` ( `field_name`, `cust_id`, `name`, `type`, `label`, `remark`, `input_tips`, `max_length`, `default_value`, `is_unique`, `is_null`, `sorting`, `options`, `operating`, `update_time`, `examine_category_id`, `field_type`, `relevant`, `add_sort`, `add_hidden`) VALUES ( '跟进状态', NULL, '跟进状态', '3', '1', NULL, '', NULL, '', '0', '0', '3', '有意向,无意向,待跟进', '0', '2020-03-13 09:57:15', NULL, '0', NULL, '12', NULL); ";
         data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
