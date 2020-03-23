@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -225,6 +226,11 @@ public class CustomerUserService {
 
         if(!checker.check(value.getPassword())){
             throw new Exception("密码不符合要求");
+        }
+        //用户是否已存在
+        List<CustomerUser> customerUsers = customerUserDao.findBy("account",value.getUserName());
+        if(!CollectionUtils.isEmpty(customerUsers)){
+            throw new Exception("该账号已存在");
         }
         //创建客户信息
         customer.setCustId(customerId);
