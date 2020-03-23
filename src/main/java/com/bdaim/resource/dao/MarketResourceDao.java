@@ -507,7 +507,7 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
                 .append(" WHERE t.type_code = 8 AND t.`status` = 1 ")
                 .append(" AND t2.property_value->>'$.type' = ? ")
                 .append(" ORDER BY t2.property_value->>'$.showSort' ASC ");
-        param.add(4);
+        param.add(map.get("type"));
         List list;
         if (pageNum == null && pageSize == null) {
             Page page = this.sqlPageQuery(sql.toString(), pageNum, pageSize, param.toArray());
