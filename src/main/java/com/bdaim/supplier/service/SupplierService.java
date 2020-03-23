@@ -18,6 +18,7 @@ import com.bdaim.callcenter.dto.CustomCallConfigDTO;
 import com.bdaim.common.dto.Deposit;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
@@ -788,7 +789,7 @@ public class SupplierService {
      * @param supplierDTO
      * @return
      */
-    public int saveResConfig(SupplierDTO supplierDTO) {
+    public int saveResConfig(SupplierDTO supplierDTO) throws TouchException {
         // 处理资源
         if (supplierDTO.getResourceConfig() != null) {
             Iterator keys = supplierDTO.getResourceConfig().keySet().iterator();
@@ -809,6 +810,28 @@ public class SupplierService {
                             marketResourceId = jsonArray.getJSONObject(index).getIntValue("resourceId");
                             if (marketResourceId > 0) {
                                 marketResource = marketResourceDao.get(marketResourceId);
+                            } else {
+                                // 推广售卖套餐编辑时判断排序
+                                if (jsonArray.getJSONObject(index).getIntValue("type") == 4) {
+                                    Integer num = jsonArray.getJSONObject(index).getInteger("num");
+                                    if (num != null) {
+                                        int count = marketResourceDao.queryForInt("SELECT COUNT(0) count FROM t_market_resource t JOIN t_market_resource_property t2 " +
+                                                        " ON t.resource_id = t2.resource_id WHERE t.type_code = 8 AND t.`status` = 1 " +
+                                                        " AND t2.property_value->>'$.type' = ? "
+                                                , jsonArray.getJSONObject(index).getIntValue("showSort"), jsonArray.getJSONObject(index).getIntValue("type"));
+                                        if (count >= num) {
+                                            throw new TouchException("推广套餐包数量已到达上限");
+                                        }
+                                    }
+                                    int i = marketResourceDao.queryForInt("SELECT COUNT(0) count FROM t_market_resource t JOIN t_market_resource_property t2 " +
+                                                    " ON t.resource_id = t2.resource_id WHERE t.type_code = 8 AND t.`status` = 1 " +
+                                                    " AND t2.property_value->>'$.showSort' = ? AND t2.property_value->>'$.type' = ? "
+                                            , jsonArray.getJSONObject(index).getIntValue("showSort"), jsonArray.getJSONObject(index).getIntValue("type"));
+                                    if (i > 0) {
+                                        throw new TouchException("套餐包排序已存在");
+                                    }
+
+                                }
                             }
                             marketResource.setSupplierId(String.valueOf(supplierDTO.getSupplierId()));
                             marketResource.setResname(jsonArray.getJSONObject(index).getString("name"));

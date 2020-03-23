@@ -9,6 +9,7 @@ import com.bdaim.common.dto.Deposit;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.ParamException;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.customgroup.dto.CustomerGrpOrdParam;
@@ -272,6 +273,9 @@ public class SupplierAction extends BasicAction {
         }
         try {
             code = supplierService.saveResConfig(supplierDTO);
+        } catch (TouchException e) {
+            LOG.error("保存供应商失败,", e);
+            return returnError(e.getMessage());
         } catch (Exception e) {
             LOG.error("保存供应商失败,", e);
         }
