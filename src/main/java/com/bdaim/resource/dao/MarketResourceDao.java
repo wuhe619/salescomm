@@ -500,7 +500,7 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
      * @param pageSize
      * @return
      */
-    public List pageShowTgtb(Map map, Integer pageNum, Integer pageSize) {
+    public List pageShowExtension(Map map, Integer pageNum, Integer pageSize) {
         StringBuilder sql = new StringBuilder();
         List<Object> param = new ArrayList<>();
         sql.append(" SELECT t.resource_id resourceId, t.resname, t.create_time createTime, t2.property_value propertyValue FROM t_market_resource t JOIN t_market_resource_property t2 ON t.resource_id = t2.resource_id ")

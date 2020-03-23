@@ -817,8 +817,7 @@ public class SupplierService {
                                     if (num != null) {
                                         int count = marketResourceDao.queryForInt("SELECT COUNT(0) count FROM t_market_resource t JOIN t_market_resource_property t2 " +
                                                         " ON t.resource_id = t2.resource_id WHERE t.type_code = 8 AND t.`status` = 1 " +
-                                                        " AND t2.property_value->>'$.type' = ? "
-                                                , jsonArray.getJSONObject(index).getIntValue("showSort"), jsonArray.getJSONObject(index).getIntValue("type"));
+                                                        " AND t2.property_value->>'$.type' = ? ",  jsonArray.getJSONObject(index).getIntValue("type"));
                                         if (count >= num) {
                                             throw new TouchException("推广套餐包数量已到达上限");
                                         }
@@ -1259,6 +1258,11 @@ public class SupplierService {
             }
         }
         return page;
+    }
+
+    public List pageShowExtension(Map param, Integer pageNum, Integer pageSize) {
+        List list = marketResourceDao.pageShowExtension(param, pageNum, pageSize);
+        return list;
     }
 
     public JSONObject listVoiceResourceByType(String type) throws Exception {

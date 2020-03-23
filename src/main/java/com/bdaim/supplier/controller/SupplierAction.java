@@ -371,6 +371,18 @@ public class SupplierAction extends BasicAction {
         return returnJsonData(getPageData(pageData));
     }
 
+    @PostMapping(value = "/pageShowExtension")
+    @ResponseBody
+    public String pageShowExtension(PageParam page, @RequestParam Map param) {
+        List pageData = null;
+        try {
+            pageData = supplierService.pageShowExtension(param, page.getPageNum(), page.getPageSize());
+        } catch (Exception e) {
+            LOG.error("查询推广套餐列表失败,", e);
+        }
+        return returnJsonData(pageData);
+    }
+
     @RequestMapping(value = "/page", method = RequestMethod.POST)
     @ResponseBody
     @ValidatePermission(role = "admin,ROLE_USER")
