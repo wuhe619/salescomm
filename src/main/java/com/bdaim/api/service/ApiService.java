@@ -362,13 +362,13 @@ public class ApiService {
                 dataMap.put("monthCallSuccessNum",callSuccessnumMap.get("callSuccessnum"));
             }
 
-            String monCallFeeSql = "select sum(charge)monthCharge from am_charge_" + params.getString("callMonth") + " " +
-                    " where api_id=? and SUBSCRIBER_ID =?";
+            String monCallFeeSql = "select sum(charge)/10000 monthCharge from am_charge_" + params.getString("callMonth") + " " +
+                    " where api_id=? and SUBSCRIBER_ID =? and RESPONSE_MSG like  '%cost\":1,%' ";
             param.add(dataMap.get("subscriberId"));
             Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
             if(monthCharge!=null) {
-                String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 2);
-                dataMap.put("monthFee", monChargeStr);
+                //String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 2);
+                dataMap.put("monthFee", monthCharge.toString());
             }
             Map<String,Object> salePriceMap = getApiSalePrice(dataMap.get("subscriberId").toString(),dataMap.get("apiId").toString());
             if(salePriceMap!=null && salePriceMap.containsKey("salePrice")){
