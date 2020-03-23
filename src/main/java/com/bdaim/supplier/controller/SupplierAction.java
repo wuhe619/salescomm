@@ -9,6 +9,7 @@ import com.bdaim.common.dto.Deposit;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.ParamException;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.customgroup.dto.CustomerGrpOrdParam;
@@ -272,6 +273,9 @@ public class SupplierAction extends BasicAction {
         }
         try {
             code = supplierService.saveResConfig(supplierDTO);
+        } catch (TouchException e) {
+            LOG.error("保存供应商失败,", e);
+            return returnError(e.getMessage());
         } catch (Exception e) {
             LOG.error("保存供应商失败,", e);
         }
@@ -354,17 +358,29 @@ public class SupplierAction extends BasicAction {
     @PostMapping(value = "/pageResource")
     @ResponseBody
     @ValidatePermission(role = "admin,ROLE_USER")
-    public String pageResource(@Valid PageParam page, BindingResult error, String type) {
+    public String pageResource(@Valid PageParam page, BindingResult error, @RequestParam Map param) {
         if (error.hasFieldErrors()) {
             return getErrors(error);
         }
         Page pageData = null;
         try {
-            pageData = supplierService.pageResource(type, page.getPageNum(), page.getPageSize());
+            pageData = supplierService.pageResource(param, page.getPageNum(), page.getPageSize());
         } catch (Exception e) {
             LOG.error("查询资源列表失败,", e);
         }
         return returnJsonData(getPageData(pageData));
+    }
+
+    @PostMapping(value = "/pageShowExtension")
+    @ResponseBody
+    public String pageShowExtension(PageParam page, @RequestParam Map param) {
+        List pageData = null;
+        try {
+            pageData = supplierService.pageShowExtension(param, page.getPageNum(), page.getPageSize());
+        } catch (Exception e) {
+            LOG.error("查询推广套餐列表失败,", e);
+        }
+        return returnJsonData(pageData);
     }
 
     @RequestMapping(value = "/page", method = RequestMethod.POST)

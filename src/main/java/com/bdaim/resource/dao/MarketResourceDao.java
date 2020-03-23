@@ -457,6 +457,67 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
         return page;
     }
 
+    public Page pageMarketResource(Map map, int pageNum, int pageSize) {
+        StringBuilder hql = new StringBuilder();
+        List<Object> param = new ArrayList<>();
+        hql.append(" from MarketResourceEntity m where 1=1");
+        if (StringUtil.isNotEmpty(String.valueOf(map.get("type")))) {
+            hql.append(" AND m.typeCode = ? ");
+            param.add(NumberConvertUtil.parseInt(map.get("type")));
+        }
+        // 套餐类型
+        if (StringUtil.isNotEmpty(String.valueOf(map.get("tcType")))) {
+            hql.append(" AND m.resourceId IN(SELECT resourceId FROM ResourcePropertyEntity WHERE propertyName = 'price_config' AND propertyValue LIKE ? ) ");
+            param.add("%\"type\":\"" + map.get("tcType") + "%");
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(map.get("resName")))) {
+            hql.append(" AND m.resname = ? ");
+            param.add(map.get("resName"));
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(map.get("status")))) {
+            hql.append(" AND m.status = ? ");
+            param.add(NumberConvertUtil.parseInt(map.get("status")));
+        }
+        hql.append(" ORDER BY create_time ASC");
+        Page page = this.page(hql.toString(), param, pageNum, pageSize);
+        List<MarketResourceDTO> result = new ArrayList<>();
+        if (page != null) {
+            MarketResourceDTO marketResourceDTO;
+            for (int i = 0; i < page.getData().size(); i++) {
+                marketResourceDTO = new MarketResourceDTO((MarketResourceEntity) page.getData().get(i));
+                result.add(marketResourceDTO);
+            }
+        }
+        page.setData(result);
+        return page;
+    }
+
+    /**
+     * 推广套餐包列表
+     *
+     * @param map
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    public List pageShowExtension(Map map, Integer pageNum, Integer pageSize) {
+        StringBuilder sql = new StringBuilder();
+        List<Object> param = new ArrayList<>();
+        sql.append(" SELECT t.resource_id resourceId, t.resname, t.create_time createTime, t2.property_value propertyValue FROM t_market_resource t JOIN t_market_resource_property t2 ON t.resource_id = t2.resource_id ")
+                .append(" WHERE t.type_code = 8 AND t.`status` = 1 ")
+                .append(" AND t2.property_value->>'$.type' = ? ")
+                .append(" ORDER BY t2.property_value->>'$.showSort' ASC ");
+        param.add(4);
+        List list;
+        if (pageNum == null && pageSize == null) {
+            Page page = this.sqlPageQuery(sql.toString(), pageNum, pageSize, param.toArray());
+            list = page.getData();
+        } else {
+            list = sqlQuery(sql.toString(), param.toArray());
+        }
+        return list;
+    }
+
     /**
      * 检查通话记录月表是否存在,不存在则创建月表
      *
