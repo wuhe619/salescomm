@@ -230,7 +230,7 @@ public class CustomerUserService {
         //用户是否已存在
         List<CustomerUser> customerUsers = customerUserDao.findBy("account",value.getUserName());
         if(!CollectionUtils.isEmpty(customerUsers)){
-            throw new Exception("该账号已存在");
+            throw new Exception("该手机号已被注册");
         }
         //创建客户信息
         customer.setCustId(customerId);
