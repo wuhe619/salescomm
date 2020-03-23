@@ -358,13 +358,13 @@ public class SupplierAction extends BasicAction {
     @PostMapping(value = "/pageResource")
     @ResponseBody
     @ValidatePermission(role = "admin,ROLE_USER")
-    public String pageResource(@Valid PageParam page, BindingResult error, String type) {
+    public String pageResource(@Valid PageParam page, BindingResult error, @RequestParam Map param) {
         if (error.hasFieldErrors()) {
             return getErrors(error);
         }
         Page pageData = null;
         try {
-            pageData = supplierService.pageResource(type, page.getPageNum(), page.getPageSize());
+            pageData = supplierService.pageResource(param, page.getPageNum(), page.getPageSize());
         } catch (Exception e) {
             LOG.error("查询资源列表失败,", e);
         }
