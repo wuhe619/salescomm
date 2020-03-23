@@ -36,7 +36,7 @@ public class CustomerExtensionService {
     public String saveExtension(JSONObject info) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         if(!info.containsKey("clazz")){
-            info.put("calzz","toB");
+            info.put("clazz","toB");
         }
         String sql = "insert into op_crm_clue_log(content,create_time,update_time) values (?, ?, ?)";
         jdbcTemplate.update(sql, info.toJSONString(), timestamp, timestamp);
@@ -54,7 +54,7 @@ public class CustomerExtensionService {
     public String updateExtension(long id, JSONObject info) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         if(!info.containsKey("clazz")){
-            info.put("calzz","toB");
+            info.put("clazz","toB");
         }
         String sql = "update op_crm_clue_log set content = ? ,update_time = ? where id = ? ";
         jdbcTemplate.update(sql, info.toJSONString(), timestamp, id);
