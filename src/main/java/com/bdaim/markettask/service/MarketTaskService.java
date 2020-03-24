@@ -2335,9 +2335,22 @@ public class MarketTaskService {
         if (callCount != null) {
             ccn = callCount.getPropertyValue();
         }
+        String ringingdurationStr = null;
+        MarketTaskProperty ringingduration = marketTaskDao.getProperty(marketTaskId, "ringingduration");
+        if (ringingduration != null) {
+            ringingdurationStr = ringingduration.getPropertyValue();
+        }
+        String timeruleidStr = null;
+        MarketTaskProperty timeruleid = marketTaskDao.getProperty(marketTaskId, "timeruleid");
+        if (timeruleid != null) {
+            timeruleidStr = timeruleid.getPropertyValue();
+        }
         MarketTaskDTO dto = new MarketTaskDTO(marketTask, apparentNum,
                 StringUtil.isNotEmpty(csp) ? NumberConvertUtil.parseInt(csp) : null,
-                StringUtil.isNotEmpty(ccn) ? NumberConvertUtil.parseInt(ccn) : null);
+                StringUtil.isNotEmpty(ccn) ? NumberConvertUtil.parseInt(ccn) : null,
+                StringUtil.isNotEmpty(ringingdurationStr)? ringingdurationStr : null,
+                StringUtil.isNotEmpty(timeruleidStr)? timeruleidStr : null
+                );
 
         // 查询呼叫渠道
         MarketTaskProperty cChannel = marketTaskDao.getProperty(marketTaskId, "callChannel");
