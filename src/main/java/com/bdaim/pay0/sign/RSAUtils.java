@@ -1,4 +1,4 @@
-package com.bdaim.pay.sign;
+package com.bdaim.pay0.sign;
 
 import org.apache.axiom.util.base64.Base64Utils;
 

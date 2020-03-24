@@ -1,7 +1,7 @@
-package com.bdaim.pay.util;
+package com.bdaim.pay0.util;
 
-import com.bdaim.pay.config.AlipayConfig;
-import com.bdaim.pay.sign.MD5;
+import com.bdaim.pay0.config.AlipayConfig0;
+import com.bdaim.pay0.sign.MD5;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
@@ -40,8 +40,8 @@ public class AlipaySubmit {
 	public static String buildRequestMysign(Map<String, String> sPara) {
     	String prestr = AlipayCore.createLinkString(sPara); //把数组所有元素，按照“参数=参数值”的模式用“&”字符拼接成字符串
         String mysign = "";
-        if(AlipayConfig.sign_type.equals("MD5") ) {
-        	mysign = MD5.sign(prestr, AlipayConfig.key, AlipayConfig.input_charset);
+        if(AlipayConfig0.sign_type.equals("MD5") ) {
+        	mysign = MD5.sign(prestr, AlipayConfig0.key, AlipayConfig0.input_charset);
         }
         return mysign;
     }
@@ -59,7 +59,7 @@ public class AlipaySubmit {
 
         //签名结果与签名方式加入请求提交参数组中
         sPara.put("sign", mysign);
-        sPara.put("sign_type", AlipayConfig.sign_type);
+        sPara.put("sign_type", AlipayConfig0.sign_type);
 
         return sPara;
     }
@@ -79,7 +79,7 @@ public class AlipaySubmit {
         StringBuffer sbHtml = new StringBuffer();
 
         sbHtml.append("<form id=\"alipaysubmit\" name=\"alipaysubmit\" action=\"" + ALIPAY_GATEWAY_NEW
-                      + "_input_charset=" + AlipayConfig.input_charset + "\" method=\"" + strMethod
+                      + "_input_charset=" + AlipayConfig0.input_charset + "\" method=\"" + strMethod
                       + "\">");
 
         for (int i = 0; i < keys.size(); i++) {
@@ -110,7 +110,7 @@ public class AlipaySubmit {
             DocumentException, IOException {
 
         //构造访问query_timestamp接口的URL串
-        String strUrl = ALIPAY_GATEWAY_NEW + "service=query_timestamp&partner=" + AlipayConfig.partner + "&_input_charset" +AlipayConfig.input_charset;
+        String strUrl = ALIPAY_GATEWAY_NEW + "service=query_timestamp&partner=" + AlipayConfig0.partner + "&_input_charset" + AlipayConfig0.input_charset;
         StringBuffer result = new StringBuffer();
 
         SAXReader reader = new SAXReader();

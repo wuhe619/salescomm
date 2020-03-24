@@ -1,7 +1,7 @@
-package com.bdaim.pay.util;
+package com.bdaim.pay0.util;
 
-import com.bdaim.pay.config.AlipayConfig;
-import com.bdaim.pay.sign.MD5;
+import com.bdaim.pay0.config.AlipayConfig0;
+import com.bdaim.pay0.sign.MD5;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -76,8 +76,8 @@ public class AlipayNotify {
         String preSignStr = AlipayCore.createLinkString(sParaNew);
         //获得签名验证结果
         boolean isSign = false;
-        if(AlipayConfig.sign_type.equals("MD5") ) {
-        	isSign = MD5.verify(preSignStr, sign, AlipayConfig.key, AlipayConfig.input_charset);
+        if(AlipayConfig0.sign_type.equals("MD5") ) {
+        	isSign = MD5.verify(preSignStr, sign, AlipayConfig0.key, AlipayConfig0.input_charset);
         }
         return isSign;
     }
@@ -94,7 +94,7 @@ public class AlipayNotify {
     private static String verifyResponse(String notify_id) {
         //获取远程服务器ATN结果，验证是否是支付宝服务器发来的请求
 
-        String partner = AlipayConfig.partner;
+        String partner = AlipayConfig0.partner;
         String veryfy_url = HTTPS_VERIFY_URL + "partner=" + partner + "&notify_id=" + notify_id;
 
         return checkUrl(veryfy_url);

@@ -1,4 +1,4 @@
-package com.bdaim.pay.dao;
+package com.bdaim.pay0.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
 import org.springframework.jdbc.core.JdbcTemplate;
