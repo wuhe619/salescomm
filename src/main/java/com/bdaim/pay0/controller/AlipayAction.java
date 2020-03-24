@@ -1,11 +1,11 @@
-package com.bdaim.pay.controller;
+package com.bdaim.pay0.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.pay.config.AlipayConfig;
-import com.bdaim.pay.service.AlipayService;
-import com.bdaim.pay.util.AlipaySubmit;
+import com.bdaim.pay0.config.AlipayConfig0;
+import com.bdaim.pay0.service.AlipayService;
+import com.bdaim.pay0.util.AlipaySubmit;
 import com.bdaim.util.IDHelper;
 
 import net.sf.json.JSONObject;
@@ -100,15 +100,15 @@ public class AlipayAction extends BasicAction {
 			
 			//把请求参数打包成数组
 			Map<String, String> sParaTemp = new HashMap<String, String>();
-			sParaTemp.put("service", AlipayConfig.service);
-	        sParaTemp.put("partner", AlipayConfig.partner);
-	        sParaTemp.put("seller_id", AlipayConfig.seller_id);
-	        sParaTemp.put("_input_charset", AlipayConfig.input_charset);
-			sParaTemp.put("payment_type", AlipayConfig.payment_type);
-			sParaTemp.put("notify_url", AlipayConfig.notify_url);
-			sParaTemp.put("return_url", AlipayConfig.return_url);
-			sParaTemp.put("anti_phishing_key", AlipayConfig.anti_phishing_key);
-			sParaTemp.put("exter_invoke_ip", AlipayConfig.exter_invoke_ip);
+			sParaTemp.put("service", AlipayConfig0.service);
+	        sParaTemp.put("partner", AlipayConfig0.partner);
+	        sParaTemp.put("seller_id", AlipayConfig0.seller_id);
+	        sParaTemp.put("_input_charset", AlipayConfig0.input_charset);
+			sParaTemp.put("payment_type", AlipayConfig0.payment_type);
+			sParaTemp.put("notify_url", AlipayConfig0.notify_url);
+			sParaTemp.put("return_url", AlipayConfig0.return_url);
+			sParaTemp.put("anti_phishing_key", AlipayConfig0.anti_phishing_key);
+			sParaTemp.put("exter_invoke_ip", AlipayConfig0.exter_invoke_ip);
 			sParaTemp.put("out_trade_no", outTradeNo);
 			sParaTemp.put("subject", orderName);
 			sParaTemp.put("total_fee", total_fee);
