@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.crm.controller;
 
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.crm.erp.crm.service.CrmPackagesService;
@@ -42,16 +43,39 @@ public class CrmPackagesController {
             return new ResponseInfoAssemble().failure(401, "请选择套餐后进行购买[resourceId]");
         }
 
-        packagesService.payForAPackage(resourceId,response);
+        packagesService.payForAPackage(resourceId, response);
         return new ResponseInfoAssemble().success(resourceId);
     }
 
+    /**
+     * 支付宝异步通知的支付结果
+     *
+     * @author Chacker
+     * @date 2020/3/24
+     */
     @RequestMapping(value = "/getAliPayResult")
     public String getAliPayResult(@RequestParam Map<String, Object> map) {
         logger.info("这里是支付宝返回的支付结果>>>>>>>>>");
         logger.info(map.toString());
-
+        String tradeStatus = String.valueOf(map.get("trade_status"));
+        if (map != null && "TRADE_SUCCESS".equals(tradeStatus)) {
+            //修改订单状态
+            String orderId = String.valueOf(map.get("out_trade_no"));
+            packagesService.updateOrderStatus(orderId);
+        }
         return "success";
+    }
+
+    /**
+     * 根据订单ID查询订单状态
+     *
+     * @param orderId
+     * @return
+     */
+    @RequestMapping(value = "/getOrderState")
+    public ResponseInfo getOrderState(String orderId) throws TouchException {
+        boolean state = packagesService.getOrderState(orderId);
+        return new ResponseInfoAssemble().success(state);
     }
 
 }

@@ -30,11 +30,9 @@ public class AlipayConstants {
     //支付完成的跳转链接地址 正式环境
     public static final String RETURN_URL_PRO = "";
 
-    //
-    public static final String NOTIFY_URL_DEV  ="http://localhost:8081/packages/getAliPayResult";
-    public static final String NOTIFY_URL_PRO  ="";
-
-
+    //支付结果异步通知地址(必须是外网可以访问的地址)
+    public static final String NOTIFY_URL_DEV = "http://bp.online.datau.top/packages/getAliPayResult";
+    public static final String NOTIFY_URL_PRO = "";
 
 
 }

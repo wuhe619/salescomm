@@ -6,8 +6,10 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.crm.erp.crm.controller.CrmPackagesController;
 import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.order.dao.OrderDao;
 import com.bdaim.order.entity.OrderDO;
 import com.bdaim.pay.config.AlipayConstants;
 import com.bdaim.resource.dao.MarketResourceDao;
@@ -38,6 +40,8 @@ public class CrmPackagesService {
     private MarketResourceDao resourceDao;
     @Autowired
     private ResourcePropertyDao resourceProDao;
+    @Autowired
+    private OrderDao orderDao;
 
     /**
      * 购买套餐
@@ -70,6 +74,9 @@ public class CrmPackagesService {
 
         //保存订单信息
         order.setProductName(jsonObject.getString("name"));
+        order.setCostPrice(jsonObject.getInteger("price"));
+        orderDao.save(order);
+
         //支付宝支付接口调用
         aliPayPc(order, jsonObject, response);
 
@@ -118,5 +125,21 @@ public class CrmPackagesService {
         response.getWriter().write(form);
         response.getWriter().flush();
         response.getWriter().close();
+    }
+
+    public void updateOrderStatus(String orderId) {
+        OrderDO orderDO = orderDao.get(orderId);
+        //修改订单状态为已支付
+        orderDO.setOrderState(2);
+        orderDao.update(orderDO);
+    }
+
+    public boolean getOrderState(String orderId) throws TouchException {
+        OrderDO orderDO = orderDao.get(orderId);
+        if (orderDO == null) {
+            throw new TouchException("订单信息不存在");
+        }
+        int orderState = orderDO.getOrderState();
+        return orderState == 1 ? false : true;
     }
 }
