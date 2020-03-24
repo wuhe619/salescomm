@@ -622,6 +622,21 @@ public class MarketTaskService {
     }
 
     /**
+     * 获取时间规则id
+     * @param callCenterId
+     */
+    public JSONArray getCallTimeRuleList(String callCenterId){
+        try {
+            JSONObject json = XzCallCenterUtil.callOutTimeRuleList(callCenterId);
+            if("0".equals(json.getString("code"))){
+                return json.getJSONArray("data");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    /**
      * 异步导入营销任务详情表数据
      *
      * @param marketTaskId
