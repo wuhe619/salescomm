@@ -401,7 +401,7 @@ public class CustomerAction extends BasicAction {
     @ResponseBody
     @RequestMapping(value = "/token", method = RequestMethod.POST)
     @CacheAnnotation
-    public String token(String username, String password, String code) throws Exception{
+    public String token(String username, String password, String code) throws Exception {
         ResponseResult responseResult = new ResponseResult();
         responseResult.setStateCode("401");  //login fail
         if (username == null || password == null || "".equals(username) || "".equals(password)) {
@@ -425,14 +425,14 @@ public class CustomerAction extends BasicAction {
             }
 
             if (1 == u.getStatus()) {
-            	userdetail.addAuth("USER_FREEZE");
+                userdetail.addAuth("USER_FREEZE");
             } else if (3 == u.getStatus()) {
-            	userdetail.addAuth("USER_NOT_EXIST");
+                userdetail.addAuth("USER_NOT_EXIST");
             } else if (0 == u.getStatus()) {
                 //user_type: 1=管理员 2=普通员工 3=项目管理员
-            	userdetail.addAuth("ROLE_CUSTOMER");
+                userdetail.addAuth("ROLE_CUSTOMER");
             }
-            
+
             userdetail.setCustId(u.getCust_id());
             userdetail.setId(u.getId());
             userdetail.setUserType(String.valueOf(u.getUserType()));
@@ -456,7 +456,7 @@ public class CustomerAction extends BasicAction {
             responseResult.setStatus(u.getStatus().toString());
             responseResult.setStateCode("200");
             responseResult.setMsg("SUCCESS");
-            responseResult.setAuth(userdetail.getAuths().size()>0 ? userdetail.getAuths().get(0):"");
+            responseResult.setAuth(userdetail.getAuths().size() > 0 ? userdetail.getAuths().get(0) : "");
             responseResult.setUserName(userdetail.getUsername());
             responseResult.setCustId(userdetail.getCustId());
             responseResult.setUserType(userdetail.getUserType());
@@ -482,7 +482,7 @@ public class CustomerAction extends BasicAction {
     @RequestMapping(value = "/m/login", method = RequestMethod.POST)
     @CacheAnnotation
     public String login(String username, String password, String realName, String code, String type,
-                        String client, String area, String channel, String registerSource, String touchType) throws Exception{
+                        String client, String area, String channel, String registerSource, String touchType) throws Exception {
         ResponseResult responseResult = new ResponseResult();
         responseResult.setStateCode("401");
         if (StringUtil.isEmpty(username) || StringUtil.isEmpty(code) || StringUtil.isEmpty(type)) {
@@ -515,19 +515,19 @@ public class CustomerAction extends BasicAction {
             if (tokenid != null && !"".equals(tokenid)) {
                 userDetail = tokenCacheService.getToken(tokenid, LoginUser.class);
             }
-            
+
             if (userDetail == null) {
                 name2token.remove(username);
                 userDetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()));
             }
             if (1 == u.getStatus()) {
-            	userDetail.addAuth("USER_FREEZE");
+                userDetail.addAuth("USER_FREEZE");
             } else if (3 == u.getStatus()) {
-            	userDetail.addAuth("USER_NOT_EXIST");
+                userDetail.addAuth("USER_NOT_EXIST");
             } else if (0 == u.getStatus()) {
-            	userDetail.addAuth("ROLE_CUSTOMER");
+                userDetail.addAuth("ROLE_CUSTOMER");
             }
-            
+
             userDetail.setCustId(u.getCust_id());
             userDetail.setId(u.getId());
             userDetail.setUserType(String.valueOf(u.getUserType()));
@@ -550,7 +550,7 @@ public class CustomerAction extends BasicAction {
             responseResult.setStatus(u.getStatus().toString());
             responseResult.setStateCode("200");
             responseResult.setMsg("SUCCESS");
-            responseResult.setAuth(userDetail.getAuths().size()>0 ? userDetail.getAuths().get(0):"");
+            responseResult.setAuth(userDetail.getAuths().size() > 0 ? userDetail.getAuths().get(0) : "");
             responseResult.setUserName(userDetail.getUsername());
             responseResult.setCustId(userDetail.getCustId());
             responseResult.setUserType(userDetail.getUserType());
@@ -628,7 +628,7 @@ public class CustomerAction extends BasicAction {
             resultMap.put("code", "0");
             resultMap.put("_message", "客户创建成功");
             resultMap.put("data", new JSONArray());
-        }catch (Exception e){
+        } catch (Exception e) {
             resultMap.put("code", "-1");
             resultMap.put("_message", e.getMessage());
             resultMap.put("data", new JSONArray());
@@ -2022,6 +2022,24 @@ public class CustomerAction extends BasicAction {
 
     }
 
+    @ResponseBody
+    @GetMapping(value = "/b2b/search/config")
+    public String getB2BSearchConfig(String custId) {
+        ResponseInfo responseJson = new ResponseInfo();
+        try {
+            if (!isBackendUser()) {
+                custId = opUser().getCustId();
+            }
+            Map config = b2BTcbService.getB2BSearchConfig(custId);
+            responseJson.setData(config);
+        } catch (Exception e) {
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return JSON.toJSONString(responseJson);
+
+    }
+
     /**
      * @param param
      * @return
@@ -2041,7 +2059,7 @@ public class CustomerAction extends BasicAction {
             responseJson.setCode(-1);
             responseJson.setMessage(e.getMessage());
             responseJson.setMsg(e.getMessage());
-        }catch (Exception e) {
+        } catch (Exception e) {
             logger.error("企业B2B套餐领取至公海/私海失败,", e);
             responseJson.setCode(-1);
             responseJson.setMessage("企业B2B套餐领取至公海/私海失败");

@@ -13,6 +13,7 @@ import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
+import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customs.entity.BusiTypeEnum;
@@ -71,6 +72,8 @@ public class B2BTcbService implements BusiService {
     private CrmLeadsService crmLeadsService;
     @Autowired
     private AdminFieldService adminFieldService;
+    @Autowired
+    private CustomerDao customerDao;
 
     /**
      * 企业开通B2B套餐
@@ -240,6 +243,29 @@ public class B2BTcbService implements BusiService {
     }
 
     /**
+     * 查询企业检索的数据来源
+     * @param custId
+     * @return
+     */
+    public Map getB2BSearchConfig(String custId) {
+        Map data = new HashMap();
+        data.put("type", 1);
+        String sql = "select id,content from " + HMetaDataDef.getTable(BusiTypeEnum.B2B_TC.getType(), "") + " where type=? and cust_id = ? and ext_4 = 1 ";
+        List<Map<String, Object>> list = customerDao.sqlQuery(sql, BusiTypeEnum.B2B_TC.getType(), custId);
+        if (list != null && list.size() > 0) {
+            Map<String, Object> result = list.get(0);
+            JSONObject content = JSON.parseObject(String.valueOf(result.get("content")));
+            int resourceId = content.getIntValue("resource_id");
+            MarketResourceEntity marketResourceEntity = marketResourceDao.get(resourceId);
+            String[] suppliers = new String[]{"86", "51", "39"};
+            if (marketResourceEntity != null && Arrays.asList(suppliers).contains(marketResourceEntity.getSupplierId())) {
+                data.put("type", 2);
+            }
+        }
+        return data;
+    }
+
+    /**
      * 获取企业再用的套餐包
      *
      * @param custId
@@ -339,7 +365,7 @@ public class B2BTcbService implements BusiService {
                         entId, data.get(entId).getString("regLocation"), data.get(entId).getString("regCap"),
                         data.get(entId).getString("entStatus"), data.get(entId).getString("estiblishTime"), pNumbers.size());
                 // 保存线索
-                int status = seaService.addClueData0(dto, seaType,param.getString("source"));
+                int status = seaService.addClueData0(dto, seaType, param.getString("source"));
                 LOG.info("B2B套餐领取线索状态:{},seaType:{},data:{}", status, seaType, JSON.toJSONString(dto));
                 // 保存领取记录
                 saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));

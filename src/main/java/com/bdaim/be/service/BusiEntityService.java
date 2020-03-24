@@ -289,10 +289,12 @@ public class BusiEntityService {
                     jo = new JSONObject();
                     jo.put("id", m.get("id"));
                 } else {
-                    //查询场站和报关单位
-                    serviceUtils.getStationCustName(jo);
-                    // 查询字典数据
-                    serviceUtils.getHDicData(jo);
+                    if(busiType.startsWith("sbd") || busiType.startsWith("bgd") || busiType.startsWith("cd") || busiType.startsWith("hg")) {
+                        //查询场站和报关单位
+                        serviceUtils.getStationCustName(jo);
+                        // 查询字典数据
+                        serviceUtils.getHDicData(jo);
+                    }
                 }
                 stopwatch.split();
                 logger.info("查询耗时2:" + stopwatch.getSplitTime() + "," + stopwatch.toSplitString());

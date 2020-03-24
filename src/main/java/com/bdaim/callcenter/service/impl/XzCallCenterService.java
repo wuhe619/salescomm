@@ -69,7 +69,7 @@ public class XzCallCenterService {
      * @param pullPhoneUrl   取号接口
      * @return
      */
-    public JSONObject addXzAutoTask(String callCenterId, String name, String apparentNumber, int callSpeed, int callCount, long startTime, long endTime, String pullPhoneUrl) {
+    public JSONObject addXzAutoTask(String callCenterId, String name, String apparentNumber, String callSpeed, int callCount, long startTime, long endTime, String pullPhoneUrl,String ringingduration,String timeruleid) {
         JSONObject xzTaskConfig = null;
         // 添加讯众自动外呼任务
         LocalDateTime taskStartTime = LocalDateTime.ofEpochSecond(startTime, 0, ZoneOffset.ofHours(8));
@@ -78,7 +78,7 @@ public class XzCallCenterService {
         int maxConcurrentNumber = 50;
         LOG.info("讯众企业ID:" + callCenterId + ",最大并发数:" + maxConcurrentNumber);
         Map<String, Object> result = addAutoTask(name, taskStartTime, taskEndTime, apparentNumber,
-                callSpeed, callCount, callCenterId, maxConcurrentNumber);
+                callSpeed, callCount, callCenterId, maxConcurrentNumber,ringingduration,timeruleid);
         if (result != null && "0".equals(String.valueOf(result.get("code")))) {
             JSONObject jsonObject = JSON.parseObject(JSON.toJSONString(result));
             xzTaskConfig = JSON.parseObject(jsonObject.getString("data"));
@@ -100,24 +100,29 @@ public class XzCallCenterService {
      * @param countType           外呼次数 1-3
      * @param callCenterId        企业ID
      * @param maxConcurrentNumber 外呼并发数 最大并发数。最大并发数，值范围为1-企业最大并发数
+     * @param timeruleid          时间规则id
+     * @param ringingduration     振铃时长
      * @return
      */
     public Map<String, Object> addAutoTask(String taskName, LocalDateTime expireStartTime, LocalDateTime expireEndTime, String showNum,
-                                           int callSpeed, int countType, String callCenterId, int maxConcurrentNumber) {
+                                           String callSpeed, int countType, String callCenterId, int maxConcurrentNumber,String ringingduration,String timeruleid) {
         XzAddAutoTask map = new XzAddAutoTask();
         map.setTaskname(taskName);
         map.setExpirdatebegin(DATE_TIME_FORMATTER.format(expireStartTime));
         map.setExpirdateend(DATE_TIME_FORMATTER.format(expireEndTime));
         map.setShownum(showNum);
-        map.setCalloutspeed(String.valueOf(callSpeed));
+        map.setCalloutspeed(callSpeed);
         map.setCounttype(String.valueOf(countType));
         map.setCompid(callCenterId);
         map.setNoticeurl(NOTICE_URL);
-
         map.setDailmodel("3");
         map.setCallinterval("30");
-        map.setRingingduration("60");
-        map.setTimeruleid("");
+        if(StringUtil.isNotEmpty(ringingduration)) {
+            map.setRingingduration(ringingduration);
+        }else{
+            map.setRingingduration("60");
+        }
+        map.setTimeruleid(timeruleid);
         map.setWaitvoiceid("");
         map.setSeatallocationmodel("1");
         map.setMaxconcurrentnumber(String.valueOf(maxConcurrentNumber));
@@ -146,10 +151,12 @@ public class XzCallCenterService {
      * @param callSpeed     呼叫速度,范围1-9
      * @param countType     外呼次数 1-3
      * @param callCenterId  企业ID
+     *
      * @return
      */
     public Map<String, Object> editAutoTask(String taskId, LocalDateTime expireEndTime, String showNum,
-                                            int callSpeed, int countType, String callCenterId) {
+                                            String callSpeed, int countType, String callCenterId,
+                                            String ringingduration,String timeruleid) {
         Map<String, Object> map = null;
         XzEditAutoTask param = new XzEditAutoTask();
         try {
@@ -167,8 +174,10 @@ public class XzCallCenterService {
             param = JSON.parseObject(jsonObject.getString("data"), XzEditAutoTask.class);
             param.setExpirdateend(DATE_TIME_FORMATTER.format(expireEndTime));
             param.setShownum(showNum);
-            param.setCalloutspeed(String.valueOf(callSpeed));
+            param.setCalloutspeed(callSpeed);
             param.setCounttype(String.valueOf(countType));
+            param.setRingingduration(ringingduration);
+            param.setTimeruleid(timeruleid);
         }
         param.setCompid(callCenterId);
         param.setModifier("admin");

@@ -114,6 +114,11 @@ public class XzCallCenterUtil {
     private final static String GET_AUTO_MONITOR_URL = "/api/CallOut/GetAutoMonitor";
 
     /**
+     * 时间规则列表
+     */
+    private final static String GET_CALLOUT_TIMERULE_LIST = "/api/CallOut/GetCallOutTimeRuleList";
+
+    /**
      * 添加讯众自动外呼任务
      *
      * @param param
@@ -398,10 +403,29 @@ public class XzCallCenterUtil {
         return JSON.parseObject(result);
     }
 
+    /**
+     * 呼叫中心时间规则列表
+     * @param compid
+     * @param
+     * @return
+     * @throws Exception
+     */
+    public static JSONObject callOutTimeRuleList(String compid) throws Exception {
+        Map<String, Object> map = new HashMap<>();
+        map.put("compid", compid);
+        map.put("ispage", "0");
+        map.put("page","1");
+        map.put("rows","200");
+        LOG.info("讯众时间规则列表请求参数:" + map);
+        String result = SaleApiUtil.callAgentCallOut(GET_CALLOUT_TIMERULE_LIST, map, SaleApiUtil.getCallCenterToken(compid));
+        LOG.info("讯众时间规则列表返回结果:" + result);
+        return JSON.parseObject(result);
+    }
 
     public static void main(String[] args) throws Exception {
-        JSONObject jsonObject = stopAutoTask("933333", "2019081220343134315");
-        System.out.println(jsonObject);
+//        JSONObject jsonObject = stopAutoTask("933333", "2019081220343134315");
+        JSONObject jsonObject1 = callOutTimeRuleList("933333");
+        System.out.println(jsonObject1);
     }
 
     public void testQueryCompanyInfo() throws Exception {

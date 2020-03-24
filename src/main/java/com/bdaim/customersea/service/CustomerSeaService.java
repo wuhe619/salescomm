@@ -701,8 +701,8 @@ public class CustomerSeaService {
                                 xzCallCenterId = callCenterConfig.getJSONObject("call_center_config").getString("callCenterId");
                                 param.setId(customerSea.getId());
                                 JSONObject jsonObject = xzCallCenterService.addXzAutoTask(xzCallCenterId, param.getName() + IDHelper.getID(), param.getApparentNumber(),
-                                        param.getCallSpeed(), param.getCallCount(), LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8")),
-                                        LocalDateTime.now().plusMonths(360).toEpochSecond(ZoneOffset.of("+8")), ConstantsUtil.XZ_SEA_AUTO_TASK_PHONE_URL);
+                                        param.getCallSpeed().toString(), param.getCallCount(), LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8")),
+                                        LocalDateTime.now().plusMonths(360).toEpochSecond(ZoneOffset.of("+8")), ConstantsUtil.XZ_SEA_AUTO_TASK_PHONE_URL,"60","");
                                 if (jsonObject != null) {
                                     customerSea.setTaskId(jsonObject.getString("taskidentity"));
                                     customerSeaDao.update(customerSea);

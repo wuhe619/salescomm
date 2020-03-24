@@ -31,6 +31,9 @@ public enum BusiTypeEnum {
     BATCH_TEST_TASK("BATCH_TEST_TASK", "批量测试任务", "b_test_task"),
     BATCH_TEST_TASK_Z("BATCH_TEST_TASK_Z", "批量测试任务-主批次信息", "b_test_task_z"),
     BATCH_TEST_TASK_X("BATCH_TEST_TASK_X", "批量测试任务-批次详情", "b_test_task_x"),
+    PATROL_TASK("PATROL_TASK","巡检任务","patrol_task"),
+    PATROL_TASK_APIS("PATROL_TASK_APIS","巡检任务API","patrol_task_apis"),
+    PATROL_TASK_CALLAPI_HISTORY("PATROL_TASK_CALLAPI_HISTORY","巡检任务调用api历史","patrol_task_callapi_history"),
 
     //HY_PIC_X("HY_PIC_X", "行业画像-批次详情", "hy_pic_x"),
 
