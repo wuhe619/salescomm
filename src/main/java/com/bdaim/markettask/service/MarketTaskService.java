@@ -307,6 +307,17 @@ public class MarketTaskService {
             MarketTaskProperty callCount = new MarketTaskProperty(marketTask.getId(), "callCount", param.getCallCount(), new Timestamp(System.currentTimeMillis()));
             marketTaskDao.saveOrUpdate(callCount);
         }
+        //振铃时长
+        if(StringUtil.isNotEmpty(param.getRingingduration())){
+            MarketTaskProperty callCount = new MarketTaskProperty(marketTask.getId(), "ringingduration", param.getRingingduration(), new Timestamp(System.currentTimeMillis()));
+            marketTaskDao.saveOrUpdate(callCount);
+        }
+        //时间规则id
+        if(StringUtil.isNotEmpty(param.getTimeruleid())){
+            MarketTaskProperty callCount = new MarketTaskProperty(marketTask.getId(), "timeruleid", param.getTimeruleid(), new Timestamp(System.currentTimeMillis()));
+            marketTaskDao.saveOrUpdate(callCount);
+        }
+
         int code = 0;
         marketTaskDao.save(marketTask);
         String xzCallCenterId = null;
@@ -372,7 +383,7 @@ public class MarketTaskService {
                     LOG.warn("用户:" + userId + ",未配置坐席ID");
                 }
             }
-            // 向讯众自动外呼添加成功
+            // 向讯众自动外呼添加成员
             xzCallCenterService.addTaskMembers(marketTask.getTaskId(), addSeatIds, xzCallCenterId);
             // 通过接口开启自动外呼任务
             try {
@@ -403,7 +414,7 @@ public class MarketTaskService {
         int maxConcurrentNumber = 50;
         LOG.info("讯众企业ID:" + callCenterId + ",最大并发数:" + maxConcurrentNumber);
         Map<String, Object> result = xzCallCenterService.addAutoTask(param.getName() + param.getId(), taskStartTime, taskEndTime, param.getApparentNumber(),
-                NumberConvertUtil.parseInt(param.getCallSpeed()), NumberConvertUtil.parseInt(param.getCallCount()), callCenterId, maxConcurrentNumber);
+                param.getCallSpeed(), NumberConvertUtil.parseInt(param.getCallCount()), callCenterId, maxConcurrentNumber,param.getRingingduration(),param.getTimeruleid());
         if (result != null && "0".equals(String.valueOf(result.get("code")))) {
             JSONObject jsonObject = JSON.parseObject(JSON.toJSONString(result));
             xzTaskConfig = JSON.parseObject(jsonObject.getString("data"));
@@ -457,6 +468,25 @@ public class MarketTaskService {
             callCount.setPropertyValue(param.getCallCount());
             marketTaskDao.saveOrUpdate(callCount);
         }
+        //更新时间规则id
+        if (StringUtil.isNotEmpty(param.getTimeruleid())) {
+            MarketTaskProperty timeruleid = marketTaskDao.getProperty(param.getId(), "timeruleid");
+            if (timeruleid == null) {
+                timeruleid = new MarketTaskProperty(marketTask.getId(), "timeruleid", param.getTimeruleid(), new Timestamp(System.currentTimeMillis()));
+            }
+            timeruleid.setPropertyValue(param.getCallCount());
+            marketTaskDao.saveOrUpdate(timeruleid);
+        }
+        //更新振铃时长
+        if (StringUtil.isNotEmpty(param.getRingingduration())) {
+            MarketTaskProperty ringingduration = marketTaskDao.getProperty(param.getId(), "ringingduration");
+            if (ringingduration == null) {
+                ringingduration = new MarketTaskProperty(marketTask.getId(), "ringingduration", param.getRingingduration(), new Timestamp(System.currentTimeMillis()));
+            }
+            ringingduration.setPropertyValue(param.getRingingduration());
+            marketTaskDao.saveOrUpdate(ringingduration);
+        }
+
         if (StringUtil.isNotEmpty(param.getTaskId())) {
             marketTask.setTaskId(param.getTaskId());
         }
@@ -578,7 +608,7 @@ public class MarketTaskService {
                     String taskId = jsonObject.getString("taskid");
                     LocalDateTime taskEndTime = LocalDateTime.ofEpochSecond(param.getTaskEndTime() / 1000, 0, ZoneOffset.ofHours(8));
                     xzCallCenterService.editAutoTask(taskId, taskEndTime, param.getApparentNumber(),
-                            NumberConvertUtil.parseInt(param.getCallSpeed()), NumberConvertUtil.parseInt(param.getCallCount()), xzCallCenterId);
+                            param.getCallSpeed(), NumberConvertUtil.parseInt(param.getCallCount()), xzCallCenterId,param.getRingingduration(),param.getTimeruleid());
                 } else {
                     LOG.warn("营销任务:" + marketTask.getId() + ",未查询到xzTaskConfig配置信息");
                 }
