@@ -1,8 +1,8 @@
-package com.bdaim.pay.config;
+package com.bdaim.pay0.config;
 
 import com.bdaim.AppConfig;
 
-public class AlipayConfig {
+public class AlipayConfig0 {
 	
 //↓↓↓↓↓↓↓↓↓↓请在这里配置您的基本信息↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 

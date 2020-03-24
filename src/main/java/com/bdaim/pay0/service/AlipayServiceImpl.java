@@ -1,7 +1,7 @@
-package com.bdaim.pay.service;
+package com.bdaim.pay0.service;
 
 import com.bdaim.order.entity.OrderDO;
-import com.bdaim.pay.dao.AlipayDao;
+import com.bdaim.pay0.dao.AlipayDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.util.RegularUtil;
 

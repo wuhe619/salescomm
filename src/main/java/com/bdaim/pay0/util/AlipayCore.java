@@ -1,6 +1,6 @@
-package com.bdaim.pay.util;
+package com.bdaim.pay0.util;
 
-import com.bdaim.pay.config.AlipayConfig;
+import com.bdaim.pay0.config.AlipayConfig0;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.httpclient.methods.multipart.FilePartSource;
 import org.apache.commons.httpclient.methods.multipart.PartSource;
@@ -81,7 +81,7 @@ public class AlipayCore {
     public static void logResult1(String sWord) {
         FileWriter writer = null;
         try {
-            writer = new FileWriter(AlipayConfig.log_path + "alipay_log_" + System.currentTimeMillis()+".txt");
+            writer = new FileWriter(AlipayConfig0.log_path + "alipay_log_" + System.currentTimeMillis()+".txt");
             writer.write(sWord);
         } catch (Exception e) {
             e.printStackTrace();
