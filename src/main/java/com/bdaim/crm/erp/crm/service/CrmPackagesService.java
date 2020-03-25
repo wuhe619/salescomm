@@ -92,7 +92,7 @@ public class CrmPackagesService {
         //设置请求参数
         AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();
 //        alipayRequest.setReturnUrl(AlipayConstants.RETURN_URL_PRO);
-        alipayRequest.setNotifyUrl(config.get("alipay_notify_url_pro")+"/packages/getAliPayResult");
+        alipayRequest.setNotifyUrl(config.get("alipay_notify_url_pro") + "/packages/getAliPayResult");
 
         //订单号
         String out_trade_no = order.getOrderId();
@@ -124,6 +124,7 @@ public class CrmPackagesService {
         }
         response.setContentType("text/html;charset=" + "utf-8");
         //直接将完整的表单html输出到页面
+        form = out_trade_no + "{{split}}" + form;
         response.getWriter().write(form);
         response.getWriter().flush();
         response.getWriter().close();
