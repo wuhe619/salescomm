@@ -149,11 +149,12 @@ public class CrmPackagesService {
         info.put("resource_id", orderDO.getRemarks());
         info.put("type", 4);
         info.put("status", 1);
+        String custId = orderDO.getCustId();
         try {
-            logger.info("通过crm官网购买套餐包开通custId:{},userId:{},resource_id:{}", BaseUtil.getCustId(), BaseUtil.getUserId(), orderDO.getRemarks());
-            b2BTcbService.saveTcbData(BaseUtil.getCustId(), BaseUtil.getUserId(), LocalDateTime.now(), info);
+            logger.info("通过crm官网购买套餐包开通custId:{},userId:{},resource_id:{}", custId, BaseUtil.getUserId(), orderDO.getRemarks());
+            b2BTcbService.saveTcbData(custId, BaseUtil.getUserId(), LocalDateTime.now(), info);
         } catch (Exception e) {
-            logger.error("通过crm官网购买套餐包开通失败:custId:{},userId:{}", BaseUtil.getCustId(), BaseUtil.getUserId(), e);
+            logger.error("通过crm官网购买套餐包开通失败:custId:{},userId:{}", custId, BaseUtil.getUserId(), e);
         }
     }
 

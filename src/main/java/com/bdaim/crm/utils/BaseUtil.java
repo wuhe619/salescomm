@@ -215,7 +215,14 @@ public class BaseUtil {
 
 
     public static LoginUser getUser() {
-        LoginUser user = tokenCacheService.getToken(getToken(), LoginUser.class);
+        String token = getToken();
+        if (StringUtil.isEmpty(token)) {
+            return new LoginUser(0L, "", "");
+        }
+        LoginUser user = tokenCacheService.getToken(token, LoginUser.class);
+        if (user == null) {
+            return new LoginUser(0L, "", "");
+        }
         LkCrmAdminUserEntity userEntity = crmAdminUserDao.get(user.getId());
         if (userEntity != null) {
             user.setDeptId(userEntity.getDeptId());

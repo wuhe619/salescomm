@@ -14,7 +14,6 @@ import com.bdaim.common.service.SequenceService;
 import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
-import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
@@ -625,9 +624,9 @@ public class B2BTcbService implements BusiService {
             String busiType = "b2b_tcb";
             long id = sequenceService.getSeq(busiType);
             String sql = "insert into " + HMetaDataDef.getTable(busiType, "") + "(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1, ext_2, ext_3, ext_4, ext_5 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?, ?, ?)";
-            LOG.info("套餐包[{}]开通custId:{},userId:{},参数:{}", id, BaseUtil.getCustId(), BaseUtil.getUserId(), info);
+            LOG.info("套餐包[{}]开通custId:{},userId:{},参数:{}", id, custId, userId, info);
             return marketResourceDao.executeUpdateSQL(sql, id, busiType, info.toJSONString(), custId, null, userId,
-                    BaseUtil.getUserId(), "", info.getString("ext_2"), info.getString("ext_3"), info.getString("ext_4"), "");
+                    userId, "", info.getString("ext_2"), info.getString("ext_3"), info.getString("ext_4"), "");
         }
         return 0;
     }
