@@ -610,7 +610,7 @@ public class B2BTcbService implements BusiService {
         ResourcePropertyEntity m = marketResourceDao.getProperty(info.getString("resource_id"), "price_config");
         if (m != null && StringUtil.isNotEmpty(m.getPropertyValue())) {
             JSONObject tcbConfig = JSON.parseObject(m.getPropertyValue());
-
+            info.put("name", tcbConfig.getString("name"));
             info.put("price", tcbConfig.getString("price"));
             info.put("effective_month", tcbConfig.getIntValue("expire"));
             info.put("remain_num", tcbConfig.getLong("total"));
@@ -629,6 +629,29 @@ public class B2BTcbService implements BusiService {
                     userId, "", info.getString("ext_2"), info.getString("ext_3"), info.getString("ext_4"), "");
         }
         return 0;
+    }
+
+    /**
+     * 查询当前客户可用的套餐
+     *
+     * @param custId
+     * @return
+     * @throws TouchException
+     */
+    public int countCustomerTcb(String custId) {
+        int code = 0;
+        String busiType = "b2b_tcb";
+        String sql = "select id,content from " + HMetaDataDef.getTable(busiType, "") + " where type=? and cust_id = ? and ext_4 = 1 ";
+        List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql, busiType, custId);
+        if (countList != null && countList.size() > 0) {
+            JSONObject jsonObject = JSON.parseObject(String.valueOf(countList.get(0).get("content")));
+            LocalDateTime eTime = LocalDateTime.parse(jsonObject.getString("e_time"), DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+            if (eTime.isBefore(LocalDateTime.now()) && jsonObject.getLongValue("remain_num") > 0L) {
+                LOG.warn("当前套餐:{}不能再开通新的套餐", countList.get(0).get("id"));
+                code = 1;
+            }
+        }
+        return code;
     }
 
 }
