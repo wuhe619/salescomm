@@ -39,7 +39,7 @@ public class MarketTaskDTO {
     private String callChannel;
     private String callChannelName;
     private String apparentNumber;
-    private Integer callSpeed;
+    private String callSpeed;
     private Integer callCount;
     private Timestamp taskCreateTime;
     private Timestamp taskEndTime;
@@ -50,7 +50,7 @@ public class MarketTaskDTO {
     public MarketTaskDTO() {
     }
 
-    public MarketTaskDTO(MarketTask m, String apparentNumber, Integer callSpeed, Integer callCount,String ringingduration,String timeruleid) {
+    public MarketTaskDTO(MarketTask m, String apparentNumber, String callSpeed, Integer callCount,String ringingduration,String timeruleid) {
         this.id = m.getId();
         this.custId = m.getCustId();
         this.name = m.getName();
@@ -164,11 +164,11 @@ public class MarketTaskDTO {
         this.apparentNumber = apparentNumber;
     }
 
-    public Integer getCallSpeed() {
+    public String getCallSpeed() {
         return callSpeed;
     }
 
-    public void setCallSpeed(Integer callSpeed) {
+    public void setCallSpeed(String callSpeed) {
         this.callSpeed = callSpeed;
     }
 
