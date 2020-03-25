@@ -131,10 +131,16 @@ public class CrmPackagesService {
         response.getWriter().close();
     }
 
-    public void updateOrderStatus(String orderId) {
+    public void updateOrderStatus(String orderId,String totalAmount) {
         OrderDO orderDO = orderDao.get(orderId);
         //修改订单状态为已支付
         orderDO.setOrderState(2);
+        //支付时间
+        orderDO.setPayTime(new Date());
+        //支付金额
+        BigDecimal payAmount = new BigDecimal(totalAmount);
+        payAmount = payAmount.multiply(new BigDecimal("100"));
+        orderDO.setPayAmount(payAmount.intValue());
         orderDao.update(orderDO);
     }
 

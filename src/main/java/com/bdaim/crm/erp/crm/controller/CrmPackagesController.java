@@ -61,7 +61,8 @@ public class CrmPackagesController {
         if (map != null && "TRADE_SUCCESS".equals(tradeStatus)) {
             //修改订单状态
             String orderId = String.valueOf(map.get("out_trade_no"));
-            packagesService.updateOrderStatus(orderId);
+            String totalAmount = String.valueOf(map.get("total_amount"));
+            packagesService.updateOrderStatus(orderId,totalAmount);
         }
         return "success";
     }
