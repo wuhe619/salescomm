@@ -10,9 +10,11 @@ import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
+import com.bdaim.common.service.SequenceService;
 import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
@@ -74,6 +76,8 @@ public class B2BTcbService implements BusiService {
     private AdminFieldService adminFieldService;
     @Autowired
     private CustomerDao customerDao;
+    @Autowired
+    private SequenceService sequenceService;
 
     /**
      * 企业开通B2B套餐
@@ -244,6 +248,7 @@ public class B2BTcbService implements BusiService {
 
     /**
      * 查询企业检索的数据来源
+     *
      * @param custId
      * @return
      */
@@ -598,6 +603,33 @@ public class B2BTcbService implements BusiService {
             }
         }
         return data;
+    }
+
+    public int saveTcbData(String custId, Long userId, LocalDateTime startTime, JSONObject info) throws Exception {
+        info.put("consume_num", 0);
+        info.put("cust_id", custId);
+        ResourcePropertyEntity m = marketResourceDao.getProperty(info.getString("resource_id"), "price_config");
+        if (m != null && StringUtil.isNotEmpty(m.getPropertyValue())) {
+            JSONObject tcbConfig = JSON.parseObject(m.getPropertyValue());
+
+            info.put("price", tcbConfig.getString("price"));
+            info.put("effective_month", tcbConfig.getIntValue("expire"));
+            info.put("remain_num", tcbConfig.getLong("total"));
+            info.put("total", tcbConfig.getLong("total"));
+            info.put("ext_2", tcbConfig.getString("name"));
+            info.put("ext_3", tcbConfig.getString("type"));
+            info.put("ext_4", 1);
+            LocalDateTime eTime = startTime.plusMonths(info.getLongValue("effective_month"));
+            info.put("s_time", startTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")));
+            info.put("e_time", eTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")));
+            String busiType = "b2b_tcb";
+            long id = sequenceService.getSeq(busiType);
+            String sql = "insert into " + HMetaDataDef.getTable(busiType, "") + "(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1, ext_2, ext_3, ext_4, ext_5 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?, ?, ?)";
+            LOG.info("套餐包[{}]开通custId:{},userId:{},参数:{}", id, BaseUtil.getCustId(), BaseUtil.getUserId(), info);
+            return marketResourceDao.executeUpdateSQL(sql, id, busiType, info.toJSONString(), custId, null, userId,
+                    BaseUtil.getUserId(), "", info.getString("ext_2"), info.getString("ext_3"), info.getString("ext_4"), "");
+        }
+        return 0;
     }
 
 }

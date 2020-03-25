@@ -4,17 +4,27 @@ import cn.hutool.core.date.DateException;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.crm.*;
+import com.bdaim.customer.service.B2BTcbLogService;
+import com.bdaim.customs.dto.QueryDataParams;
+import com.bdaim.online.zhianxin.dto.BaseResult;
 import com.bdaim.util.ExcelUtil;
 import com.bdaim.util.MD5Util;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
+import com.bdaim.util.http.HttpUtil;
+import io.searchbox.core.SearchResult;
+import org.elasticsearch.index.query.*;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -27,9 +37,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Transactional
@@ -43,6 +51,8 @@ public class EntDataService {
     private ElasticSearchService elasticSearchService;
     @Resource
     private SequenceService sequenceService;
+    @Autowired
+    private B2BTcbLogService b2BTcbLogService;
 
     /**
      * 导入企查查数据
@@ -629,4 +639,189 @@ public class EntDataService {
             }
         }
     }
+
+    public SearchSourceBuilder queryCondition(JSONObject param) {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        if (param.getInteger("pageNum") != null && param.getInteger("pageSize") != null) {
+            searchSourceBuilder.from(param.getIntValue("pageNum")).size(param.getIntValue("pageSize"));
+        }
+        BoolQueryBuilder qb = QueryBuilders.boolQuery();
+        if (param.getString("id") != null) {
+            qb.must(QueryBuilders.idsQuery().ids(param.getString("id")));
+        }
+        // 支持多个行业
+        if (param.getJSONArray("industry") != null && param.getJSONArray("industry").size() > 0) {
+            BoolQueryBuilder temp = QueryBuilders.boolQuery();
+            JSONArray jsonArray = param.getJSONArray("industry");
+            for (int i = 0; i < jsonArray.size(); i++) {
+                MatchQueryBuilder mpq = QueryBuilders
+                        .matchQuery("industry", jsonArray.getJSONObject(i).getString("value"));
+                temp.should(mpq);
+            }
+            qb.must(temp);
+        }
+        // 企业名称 支持多个
+        if (param.getJSONArray("entName") != null && param.getJSONArray("entName").size() > 0) {
+            JSONArray jsonArray = param.getJSONArray("entName");
+            BoolQueryBuilder temp = QueryBuilders.boolQuery();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
+                int typeName = jsonArray.getJSONObject(i).getInteger("typeName");
+                if (typeName == 1) {
+                    for (String text : jsonArray.getJSONObject(i).getString("value").split("")) {
+                        MatchQueryBuilder mpq = QueryBuilders
+                                .matchQuery("entName", text);
+                        temp.should(mpq);
+                    }
+                } else if (typeName == 2) {
+                    TermQueryBuilder mpq = QueryBuilders
+                            .termQuery("entName", jsonArray.getJSONObject(i).getString("value"));
+                    temp.should(mpq);
+                } else if (typeName == 3) {
+                    MultiMatchQueryBuilder mpq = QueryBuilders
+                            .multiMatchQuery("entName", jsonArray.getJSONObject(i).getString("value").split(""));
+                    temp.mustNot(mpq);
+                } else if (typeName == 4) {
+                    TermQueryBuilder mpq = QueryBuilders
+                            .termQuery("entName", jsonArray.getJSONObject(i).getString("value"));
+                    temp.mustNot(mpq);
+                }
+            }
+            qb.must(temp);
+        }
+
+        // 经营范围 支持多个
+        if (param.getJSONArray("compayScope") != null && param.getJSONArray("compayScope").size() > 0) {
+            JSONArray jsonArray = param.getJSONArray("compayScope");
+            BoolQueryBuilder temp = QueryBuilders.boolQuery();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
+                int typeScope = jsonArray.getJSONObject(i).getInteger("typeScope");
+                if (typeScope == 1) {
+                    MultiMatchQueryBuilder mpq = QueryBuilders
+                            .multiMatchQuery("opScope", jsonArray.getJSONObject(i).getString("value").split(""));
+                    temp.should(mpq);
+                } else if (typeScope == 2) {
+                    TermQueryBuilder mpq = QueryBuilders
+                            .termQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
+                    temp.should(mpq);
+                } else if (typeScope == 3) {
+                    MultiMatchQueryBuilder mpq = QueryBuilders
+                            .multiMatchQuery("opScope", jsonArray.getJSONObject(i).getString("value").split(""));
+                    temp.mustNot(mpq);
+                } else if (typeScope == 4) {
+                    TermQueryBuilder mpq = QueryBuilders
+                            .termQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
+                    temp.mustNot(mpq);
+                }
+            }
+            qb.must(temp);
+        }
+        // 经营状态
+        if (param.getJSONArray("regStatus") != null && param.getJSONArray("regStatus").size() > 0) {
+            JSONArray jsonArray = param.getJSONArray("regStatus");
+            BoolQueryBuilder temp = QueryBuilders.boolQuery();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                MatchQueryBuilder mpq = QueryBuilders
+                        .matchQuery("entStatus", jsonArray.getJSONObject(i).getString("value"));
+                temp.should(mpq);
+            }
+            qb.must(temp);
+        }
+
+        // 注册地址
+        if (param.getJSONArray("regLocation") != null && param.getJSONArray("regLocation").size() > 0) {
+            JSONArray jsonArray = param.getJSONArray("regLocation");
+            JSONObject regLocation;
+            BoolQueryBuilder temp = QueryBuilders.boolQuery();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                BoolQueryBuilder address = QueryBuilders.boolQuery();
+                regLocation = jsonArray.getJSONObject(i);
+                if (StringUtil.isNotEmpty(regLocation.getString("regarea"))) {
+                    address.must(QueryBuilders.termQuery("regarea", regLocation.getString("regarea")));
+                }
+                if (StringUtil.isNotEmpty(regLocation.getString("regcity"))) {
+                    address.must(QueryBuilders.termQuery("regcity", regLocation.getString("regcity")));
+                }
+                if (StringUtil.isNotEmpty(regLocation.getString("address"))) {
+                    address.must(QueryBuilders.wildcardQuery("address", "*" + regLocation.getString("address") + "*"));
+                }
+                temp.should(address);
+            }
+            qb.must(temp);
+        }
+        // 注册时间
+        if (param.getString("startTime") != null && param.getString("endTime") != null) {
+            qb.must(QueryBuilders.rangeQuery("estabTime").from(param.getDate("startTime").getTime()).to(param.getDate("endTime").getTime()));
+        } else if (param.getString("startTime") != null) {
+            qb.must(QueryBuilders.rangeQuery("estabTime").from(param.getDate("startTime").getTime()));
+        } else if (param.getString("endTime") != null) {
+            qb.must(QueryBuilders.rangeQuery("estabTime").to(param.getDate("endTime").getTime()));
+        }
+
+        // 注册资金
+        if (param.getString("regCapital") != null && param.getString("regCapital2") != null) {
+            qb.must(QueryBuilders.rangeQuery("regCap").from(param.getDate("regCapital").getTime()).to(param.getDate("regCapital2").getTime()));
+        } else if (param.getString("regCapital") != null) {
+            qb.must(QueryBuilders.rangeQuery("regCap").from(param.getDate("regCapital").getTime()));
+        } else if (param.getString("regCapital2") != null) {
+            qb.must(QueryBuilders.rangeQuery("regCap").to(param.getDate("regCapital2").getTime()));
+        }
+
+        //来源
+        if (param.getString("src") != null) {
+            qb.must(QueryBuilders.matchPhraseQuery("src", param.getString("src")));
+        }
+        // 联系电话
+        if (param.getString("phoneStatus") != null) {
+            qb.must(QueryBuilders.matchPhraseQuery("src", param.getString("src")));
+        }
+        // 邮箱
+        if (param.getString("emailStatus") != null) {
+            qb.must(QueryBuilders.matchPhraseQuery("src", param.getString("src")));
+        }
+        // 其他标签
+        if (param.getString("tag") != null) {
+            qb.must(QueryBuilders.matchPhraseQuery("src", param.getString("src")));
+        }
+        searchSourceBuilder.query(qb);
+        return searchSourceBuilder;
+    }
+
+    public Page pageSearch(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params) throws Exception {
+        Page page = new Page();
+        LOG.info("企业列表查询参数:{}", params);
+        // 构造DSL语句
+        SearchSourceBuilder searchSourceBuilder = queryCondition(params);
+        System.out.println(searchSourceBuilder.toString());
+        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), "ent_data_test", "tag");
+        LOG.info("企业列表查询接口返回:{}", result);
+
+        if (result != null && result.getHits(JSONObject.class) != null) {
+            List list = new ArrayList<>();
+            JSONObject t;
+            int sum;
+            for (SearchResult.Hit<JSONObject, Void> hit : result.getHits(JSONObject.class)) {
+                t = hit.source;
+                t.put("id", hit.id);
+                // 处理企业领取标志
+                t.put("_receivingStatus", b2BTcbLogService.checkClueGetStatus(custId, t.getString("id")));
+                sum = 0;
+                if (StringUtil.isNotEmpty(t.getString("phone"))) {
+                    for (String p : t.getString("phone").split(",")) {
+                        if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
+                                && !"-".equals(p)) {
+                            sum++;
+                        }
+                    }
+                }
+                t.put("sum", sum);
+                list.add(t);
+            }
+            page.setData(list);
+            page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
+        }
+        return page;
+    }
+
 }

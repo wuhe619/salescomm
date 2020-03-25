@@ -7,16 +7,15 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.crm.erp.crm.controller.CrmPackagesController;
 import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.customer.service.B2BTcbService;
 import com.bdaim.order.dao.OrderDao;
 import com.bdaim.order.entity.OrderDO;
-import com.bdaim.pay.config.AlipayConstants;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.ResourcePropertyDao;
-import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyDOPK;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
+import com.bdaim.util.ConfigUtil;
 import com.bdaim.util.IDHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +42,8 @@ public class CrmPackagesService {
     private ResourcePropertyDao resourceProDao;
     @Autowired
     private OrderDao orderDao;
+    @Autowired
+    private B2BTcbService b2BTcbService;
 
     /**
      * 购买套餐
@@ -74,7 +76,9 @@ public class CrmPackagesService {
 
         //保存订单信息
         order.setProductName(jsonObject.getString("name"));
-        order.setCostPrice(jsonObject.getInteger("price"));
+        order.setRemarks(resourceId.toString());
+        BigDecimal price = new BigDecimal(jsonObject.getString("price"));
+        order.setCostPrice(price.multiply(new BigDecimal("100")).intValue());
         orderDao.save(order);
 
         //支付宝支付接口调用
@@ -83,14 +87,15 @@ public class CrmPackagesService {
     }
 
     private void aliPayPc(OrderDO order, JSONObject jsonObject, HttpServletResponse response) throws IOException {
+        ConfigUtil config = ConfigUtil.getInstance();
         //初始化请求客户端
-        AlipayClient alipayClient = new DefaultAlipayClient(AlipayConstants.SERVER_URL_DEV,
-                AlipayConstants.APP_ID_DEV, AlipayConstants.APP_PRIVATE_KEY_DEV, "json",
-                "utf-8", AlipayConstants.PUBLIC_KEY_DEV, "RSA2");
+        AlipayClient alipayClient = new DefaultAlipayClient(config.get("alipay_server_url_pro"),
+                config.get("alipay_app_id_pro"), config.get("alipay_app_private_key_pro"), "json",
+                "utf-8", config.get("alipay_public_key_pro"), "RSA2");
         //设置请求参数
         AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();
-        alipayRequest.setReturnUrl(AlipayConstants.RETURN_URL_DEV);
-        alipayRequest.setNotifyUrl(AlipayConstants.NOTIFY_URL_DEV);
+//        alipayRequest.setReturnUrl(AlipayConstants.RETURN_URL_PRO);
+        alipayRequest.setNotifyUrl(config.get("alipay_notify_url_pro") + "/packages/getAliPayResult");
 
         //订单号
         String out_trade_no = order.getOrderId();
@@ -122,16 +127,34 @@ public class CrmPackagesService {
         }
         response.setContentType("text/html;charset=" + "utf-8");
         //直接将完整的表单html输出到页面
+        form = out_trade_no + "{{split}}" + form;
         response.getWriter().write(form);
         response.getWriter().flush();
         response.getWriter().close();
     }
 
-    public void updateOrderStatus(String orderId) {
+    public void updateOrderStatus(String orderId, String totalAmount) {
         OrderDO orderDO = orderDao.get(orderId);
         //修改订单状态为已支付
         orderDO.setOrderState(2);
+        //支付时间
+        orderDO.setPayTime(new Date());
+        //支付金额
+        BigDecimal payAmount = new BigDecimal(totalAmount);
+        payAmount = payAmount.multiply(new BigDecimal("100"));
+        orderDO.setPayAmount(payAmount.intValue());
         orderDao.update(orderDO);
+        // 开通套餐包
+        JSONObject info = new JSONObject();
+        info.put("resource_id", orderDO.getRemarks());
+        info.put("type", 4);
+        info.put("status", 1);
+        try {
+            logger.info("通过crm官网购买套餐包开通custId:{},userId:{},resource_id:{}", BaseUtil.getCustId(), BaseUtil.getUserId(), orderDO.getRemarks());
+            b2BTcbService.saveTcbData(BaseUtil.getCustId(), BaseUtil.getUserId(), LocalDateTime.now(), info);
+        } catch (Exception e) {
+            logger.error("通过crm官网购买套餐包开通失败:custId:{},userId:{}", BaseUtil.getCustId(), BaseUtil.getUserId(), e);
+        }
     }
 
     public boolean getOrderState(String orderId) throws TouchException {
