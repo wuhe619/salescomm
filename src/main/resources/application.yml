@@ -118,3 +118,13 @@ data:
   key_type: imei14
   value_type: msisdn_md5
   save_path: E:\\test\\image\\
+
+
+alipay_server_url_pro: 1
+alipay_app_id_pro: 1
+  #正式环境私钥
+alipay_app_private_key_pro: 1
+  #支付宝公钥
+alipay_public_key_pro: 1
+  #支付结果异步通知地址
+alipay_notify_url_pro: 1

@@ -11,12 +11,12 @@ import com.bdaim.crm.erp.crm.controller.CrmPackagesController;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.order.dao.OrderDao;
 import com.bdaim.order.entity.OrderDO;
-import com.bdaim.pay.config.AlipayConstants;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.ResourcePropertyDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyDOPK;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
+import com.bdaim.util.ConfigUtil;
 import com.bdaim.util.IDHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,14 +84,15 @@ public class CrmPackagesService {
     }
 
     private void aliPayPc(OrderDO order, JSONObject jsonObject, HttpServletResponse response) throws IOException {
+        ConfigUtil config = ConfigUtil.getInstance();
         //初始化请求客户端
-        AlipayClient alipayClient = new DefaultAlipayClient(AlipayConstants.SERVER_URL_PRO,
-                AlipayConstants.APP_ID_PRO, AlipayConstants.APP_PRIVATE_KEY_PRO, "json",
-                "utf-8", AlipayConstants.PUBLIC_KEY_PRO, "RSA2");
+        AlipayClient alipayClient = new DefaultAlipayClient(config.get("alipay_server_url_pro"),
+                config.get("alipay_app_id_pro"), config.get("alipay_app_private_key_pro"), "json",
+                "utf-8", config.get("alipay_public_key_pro"), "RSA2");
         //设置请求参数
         AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();
-        alipayRequest.setReturnUrl(AlipayConstants.RETURN_URL_PRO);
-        alipayRequest.setNotifyUrl(AlipayConstants.NOTIFY_URL_PRO);
+//        alipayRequest.setReturnUrl(AlipayConstants.RETURN_URL_PRO);
+        alipayRequest.setNotifyUrl(config.get("alipay_notify_url_pro"));
 
         //订单号
         String out_trade_no = order.getOrderId();
