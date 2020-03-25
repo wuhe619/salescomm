@@ -646,8 +646,8 @@ public class B2BTcbService implements BusiService {
         if (countList != null && countList.size() > 0) {
             JSONObject jsonObject = JSON.parseObject(String.valueOf(countList.get(0).get("content")));
             LocalDateTime eTime = LocalDateTime.parse(jsonObject.getString("e_time"), DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
-            if (eTime.isBefore(LocalDateTime.now()) && jsonObject.getLongValue("remain_num") > 0L) {
-                LOG.warn("当前套餐:{}不能再开通新的套餐", countList.get(0).get("id"));
+            if (eTime.isAfter(LocalDateTime.now()) && jsonObject.getLongValue("remain_num") > 0L) {
+                LOG.warn("当前套餐:{}不能有效再开通新的套餐", countList.get(0).get("id"));
                 code = 1;
             }
         }
