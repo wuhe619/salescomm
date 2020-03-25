@@ -2368,6 +2368,7 @@ public class MarketTaskService {
                 StringUtil.isNotEmpty(timeruleidStr)? timeruleidStr : null
                 );
 
+
         // 查询呼叫渠道
         MarketTaskProperty cChannel = marketTaskDao.getProperty(marketTaskId, "callChannel");
         if (cChannel != null && StringUtil.isNotEmpty(cChannel.getPropertyValue())) {
