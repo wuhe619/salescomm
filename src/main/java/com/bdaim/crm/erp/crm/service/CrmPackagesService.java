@@ -74,7 +74,8 @@ public class CrmPackagesService {
 
         //保存订单信息
         order.setProductName(jsonObject.getString("name"));
-        order.setCostPrice(jsonObject.getInteger("price"));
+        BigDecimal price = new BigDecimal(jsonObject.getString("price"));
+        order.setCostPrice(price.multiply(new BigDecimal("100")).intValue());
         orderDao.save(order);
 
         //支付宝支付接口调用
@@ -84,13 +85,13 @@ public class CrmPackagesService {
 
     private void aliPayPc(OrderDO order, JSONObject jsonObject, HttpServletResponse response) throws IOException {
         //初始化请求客户端
-        AlipayClient alipayClient = new DefaultAlipayClient(AlipayConstants.SERVER_URL_DEV,
-                AlipayConstants.APP_ID_DEV, AlipayConstants.APP_PRIVATE_KEY_DEV, "json",
-                "utf-8", AlipayConstants.PUBLIC_KEY_DEV, "RSA2");
+        AlipayClient alipayClient = new DefaultAlipayClient(AlipayConstants.SERVER_URL_PRO,
+                AlipayConstants.APP_ID_PRO, AlipayConstants.APP_PRIVATE_KEY_PRO, "json",
+                "utf-8", AlipayConstants.PUBLIC_KEY_PRO, "RSA2");
         //设置请求参数
         AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();
-        alipayRequest.setReturnUrl(AlipayConstants.RETURN_URL_DEV);
-        alipayRequest.setNotifyUrl(AlipayConstants.NOTIFY_URL_DEV);
+        alipayRequest.setReturnUrl(AlipayConstants.RETURN_URL_PRO);
+        alipayRequest.setNotifyUrl(AlipayConstants.NOTIFY_URL_PRO);
 
         //订单号
         String out_trade_no = order.getOrderId();
