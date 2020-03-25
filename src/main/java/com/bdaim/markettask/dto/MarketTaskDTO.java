@@ -228,6 +228,22 @@ public class MarketTaskDTO {
         this.callCenterType = callCenterType;
     }
 
+    public String getTimeruleid() {
+        return timeruleid;
+    }
+
+    public void setTimeruleid(String timeruleid) {
+        this.timeruleid = timeruleid;
+    }
+
+    public String getRingingduration() {
+        return ringingduration;
+    }
+
+    public void setRingingduration(String ringingduration) {
+        this.ringingduration = ringingduration;
+    }
+
     @Override
     public String toString() {
         return "MarketTaskDTO{" +
@@ -240,6 +256,7 @@ public class MarketTaskDTO {
                 ", touchMode='" + touchMode + '\'' +
                 ", taskType=" + taskType +
                 ", callType=" + callType +
+                ", callCenterConfig='" + callCenterConfig + '\'' +
                 ", callCenterType=" + callCenterType +
                 ", smsType=" + smsType +
                 ", callChannel='" + callChannel + '\'' +
@@ -250,6 +267,8 @@ public class MarketTaskDTO {
                 ", taskCreateTime=" + taskCreateTime +
                 ", taskEndTime=" + taskEndTime +
                 ", status=" + status +
+                ", timeruleid='" + timeruleid + '\'' +
+                ", ringingduration='" + ringingduration + '\'' +
                 '}';
     }
 }
