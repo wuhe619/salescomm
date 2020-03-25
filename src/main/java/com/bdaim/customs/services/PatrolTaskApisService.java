@@ -48,6 +48,9 @@ public class PatrolTaskApisService implements BusiService {
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         String apiId = info.getString("apiId");
         info.put("ext_1",apiId);
+        String taskId = info.getString("taskId");
+        info.put("ext_2",taskId);
+
     }
 
     @Override

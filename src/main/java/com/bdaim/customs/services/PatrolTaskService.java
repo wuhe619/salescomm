@@ -65,10 +65,10 @@ public class PatrolTaskService implements BusiService {
         info.put("ext_1",1); //状态 0:暂停 1：运行 -1：删除
 
         //入到api资源库
-        String apisStr = info.getString("apis");
-        if(StringUtil.isNotEmpty(apisStr)){
-            saveDetail(apisStr,id.toString(),cust_id,cust_user_id);
-        }
+//        String apisStr = info.getString("apis");
+//        if(StringUtil.isNotEmpty(apisStr)){
+//            saveDetail(apisStr,id.toString(),cust_id,cust_user_id);
+//        }
     }
 
     @Override
@@ -102,25 +102,25 @@ public class PatrolTaskService implements BusiService {
     @Override
     public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
         //查询主列表
-        if ("main".equals(params.getString("_rule_"))) {
             sqlParams.clear();
-            StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
-            if (!"all".equals(cust_id)){
+            StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,update_id,update_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
+            sqlParams.add(busiType);
+            /*if (!"all".equals(cust_id)){
                 sqlParams.add(cust_id);
                 sqlstr.append(" and cust_id=? ");
-            }
-            sqlParams.add(busiType);
+            }*/
 
             Iterator keys = params.keySet().iterator();
             while (keys.hasNext()) {
                 String key = (String) keys.next();
-                if (StringUtil.isNotEmpty(String.valueOf(params.get(key)))) continue;
-                if ("pageNum".equals(key) || "pageSize".equals(key) || "pid1".equals(key) || "pid2".equals(key) || "_sort_".equals(key) || "_orderby_".equals(key))
+                if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
+                if ("pageNum".equals(key) || "pageSize".equals(key) || "_sort_".equals(key) || "_orderby_".equals(key))
                     continue;
-                if ("cust_id".equals(key)) {
+                if ("cust_id".equals(key) && !"all".equals(cust_id)) {
                     sqlstr.append(" and cust_id=?");
-                } else if (key.endsWith(".c")) {
-                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(0, key.length() - 2) + "') like '%?%'");
+                }else if (key.endsWith(".c")) {
+                    String v=params.getString(key);
+                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(0, key.length() - 2) + "') like '%"+v+"%'");
                 } else if (key.endsWith(".start")) {
                     sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(0, key.length() - 6) + "') >= ?");
                 } else if (key.endsWith(".end")) {
@@ -128,19 +128,37 @@ public class PatrolTaskService implements BusiService {
                 } else {
                     sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
                 }
-                sqlParams.add(params.get(key));
+                if(!key.endsWith(".c")){
+                    sqlParams.add(params.get(key));
+                }
             }
             sqlstr.append(" and ext_1 in('0','1') ");
-
             return sqlstr.toString();
-        }
-        return null;
     }
 
     @Override
     public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
-        // TODO Auto-generated method stub
-
+        info.put("createUser","");
+        info.put("updateUser","");
+        info.put("resNum",0);
+        try {
+            String sql = "select name from t_user where id=?";
+            Map map = jdbcTemplate.queryForMap(sql, info.getString("create_id"));
+            if (map != null && map.get("name") != null) {
+                info.put("createUser", map.get("name"));
+            }
+            if (info.containsKey("update_id") && StringUtil.isNotEmpty(info.getString("update_id"))) {
+                map = jdbcTemplate.queryForMap(sql, info.getString("update_id"));
+                info.put("updateUser", map.get("name"));
+            }
+            sql = "select count(0) num from " + HMetaDataDef.getTable(BusiTypeEnum.PATROL_TASK_APIS.getType(), "") + " where type='" + BusiTypeEnum.PATROL_TASK_APIS.getType() + "' and ext_2=?";
+            Map numMap = jdbcTemplate.queryForMap(sql, info.get("id"));
+            if (numMap != null && numMap.containsKey("num")) {
+                info.put("resNum", numMap.get("num"));
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     /**
