@@ -2040,6 +2040,24 @@ public class CustomerAction extends BasicAction {
 
     }
 
+    @ResponseBody
+    @GetMapping(value = "/b2b/counttcb")
+    public String countCustomerTcb(String custId) {
+        ResponseInfo responseJson = new ResponseInfo();
+        try {
+            if (!isBackendUser()) {
+                custId = opUser().getCustId();
+            }
+            int status = b2BTcbService.countCustomerTcb(custId);
+            responseJson.setData(status);
+        } catch (Exception e) {
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return JSON.toJSONString(responseJson);
+
+    }
+
     /**
      * @param param
      * @return
