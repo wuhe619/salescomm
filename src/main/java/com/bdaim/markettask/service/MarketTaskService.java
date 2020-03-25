@@ -622,11 +622,27 @@ public class MarketTaskService {
     }
 
     /**
-     * 获取时间规则id
-     * @param callCenterId
+     * 获取时间规则列表
+     * @param resId
      */
-    public JSONArray getCallTimeRuleList(String callCenterId){
+    public JSONArray getCallTimeRuleList(String resId){
         try {
+            String callCenterId = "";
+            MarketResourceDTO dto = marketResourceDao.getInfoProperty(Integer.valueOf(resId),"price_config");
+            String propertyv = dto.getResourceProperty();
+            if(StringUtil.isEmpty(propertyv)){
+                return null;
+            }
+            JSONObject priceConfig = JSON.parseObject(propertyv);
+            if(!priceConfig.containsKey("call_center_config")){
+                return null;
+            }
+            JSONObject call_center_config = priceConfig.getJSONObject("call_center_config");
+            if(call_center_config!=null && call_center_config.containsKey("callCenterId")){
+                callCenterId = call_center_config.getString("callCenterId");
+            }else{
+                return null;
+            }
             JSONObject json = XzCallCenterUtil.callOutTimeRuleList(callCenterId);
             if("0".equals(json.getString("code"))){
                 return json.getJSONArray("data");
@@ -2335,9 +2351,22 @@ public class MarketTaskService {
         if (callCount != null) {
             ccn = callCount.getPropertyValue();
         }
+        String ringingdurationStr = null;
+        MarketTaskProperty ringingduration = marketTaskDao.getProperty(marketTaskId, "ringingduration");
+        if (ringingduration != null) {
+            ringingdurationStr = ringingduration.getPropertyValue();
+        }
+        String timeruleidStr = null;
+        MarketTaskProperty timeruleid = marketTaskDao.getProperty(marketTaskId, "timeruleid");
+        if (timeruleid != null) {
+            timeruleidStr = timeruleid.getPropertyValue();
+        }
         MarketTaskDTO dto = new MarketTaskDTO(marketTask, apparentNum,
                 StringUtil.isNotEmpty(csp) ? NumberConvertUtil.parseInt(csp) : null,
-                StringUtil.isNotEmpty(ccn) ? NumberConvertUtil.parseInt(ccn) : null);
+                StringUtil.isNotEmpty(ccn) ? NumberConvertUtil.parseInt(ccn) : null,
+                StringUtil.isNotEmpty(ringingdurationStr)? ringingdurationStr : null,
+                StringUtil.isNotEmpty(timeruleidStr)? timeruleidStr : null
+                );
 
         // 查询呼叫渠道
         MarketTaskProperty cChannel = marketTaskDao.getProperty(marketTaskId, "callChannel");

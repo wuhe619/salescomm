@@ -44,11 +44,13 @@ public class MarketTaskDTO {
     private Timestamp taskCreateTime;
     private Timestamp taskEndTime;
     private Integer status;
+    private String timeruleid;
+    private String ringingduration;
 
     public MarketTaskDTO() {
     }
 
-    public MarketTaskDTO(MarketTask m, String apparentNumber, Integer callSpeed, Integer callCount) {
+    public MarketTaskDTO(MarketTask m, String apparentNumber, Integer callSpeed, Integer callCount,String ringingduration,String timeruleid) {
         this.id = m.getId();
         this.custId = m.getCustId();
         this.name = m.getName();
@@ -62,6 +64,8 @@ public class MarketTaskDTO {
         this.taskCreateTime = m.getTaskCreateTime();
         this.taskEndTime = m.getTaskEndTime();
         this.status = m.getStatus();
+        this.ringingduration = ringingduration;
+        this.timeruleid = timeruleid;
     }
 
     public String getId() {
