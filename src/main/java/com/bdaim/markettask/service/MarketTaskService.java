@@ -2351,18 +2351,20 @@ public class MarketTaskService {
         if (callCount != null) {
             ccn = callCount.getPropertyValue();
         }
+        //查询振铃时长
         String ringingdurationStr = null;
         MarketTaskProperty ringingduration = marketTaskDao.getProperty(marketTaskId, "ringingduration");
         if (ringingduration != null) {
             ringingdurationStr = ringingduration.getPropertyValue();
         }
+        //查询时间规则id
         String timeruleidStr = null;
         MarketTaskProperty timeruleid = marketTaskDao.getProperty(marketTaskId, "timeruleid");
         if (timeruleid != null) {
             timeruleidStr = timeruleid.getPropertyValue();
         }
         MarketTaskDTO dto = new MarketTaskDTO(marketTask, apparentNum,
-                StringUtil.isNotEmpty(csp) ? NumberConvertUtil.parseInt(csp) : null,
+                StringUtil.isNotEmpty(csp) ? csp : null,
                 StringUtil.isNotEmpty(ccn) ? NumberConvertUtil.parseInt(ccn) : null,
                 StringUtil.isNotEmpty(ringingdurationStr)? ringingdurationStr : null,
                 StringUtil.isNotEmpty(timeruleidStr)? timeruleidStr : null
