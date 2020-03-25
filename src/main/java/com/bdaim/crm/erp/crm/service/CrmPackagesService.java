@@ -7,13 +7,12 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.crm.erp.crm.controller.CrmPackagesController;
 import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.customer.service.B2BTcbService;
 import com.bdaim.order.dao.OrderDao;
 import com.bdaim.order.entity.OrderDO;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.ResourcePropertyDao;
-import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyDOPK;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.util.ConfigUtil;
@@ -27,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +42,8 @@ public class CrmPackagesService {
     private ResourcePropertyDao resourceProDao;
     @Autowired
     private OrderDao orderDao;
+    @Autowired
+    private B2BTcbService b2BTcbService;
 
     /**
      * 购买套餐
@@ -131,7 +133,7 @@ public class CrmPackagesService {
         response.getWriter().close();
     }
 
-    public void updateOrderStatus(String orderId,String totalAmount) {
+    public void updateOrderStatus(String orderId, String totalAmount) {
         OrderDO orderDO = orderDao.get(orderId);
         //修改订单状态为已支付
         orderDO.setOrderState(2);
@@ -142,6 +144,17 @@ public class CrmPackagesService {
         payAmount = payAmount.multiply(new BigDecimal("100"));
         orderDO.setPayAmount(payAmount.intValue());
         orderDao.update(orderDO);
+        // 开通套餐包
+        JSONObject info = new JSONObject();
+        info.put("resource_id", orderDO.getRemarks());
+        info.put("type", 4);
+        info.put("status", 1);
+        try {
+            logger.info("通过crm官网购买套餐包开通custId:{},userId:{},resource_id:{}", BaseUtil.getCustId(), BaseUtil.getUserId(), orderDO.getRemarks());
+            b2BTcbService.saveTcbData(BaseUtil.getCustId(), BaseUtil.getUserId(), LocalDateTime.now(), info);
+        } catch (Exception e) {
+            logger.error("通过crm官网购买套餐包开通失败:custId:{},userId:{}", BaseUtil.getCustId(), BaseUtil.getUserId(), e);
+        }
     }
 
     public boolean getOrderState(String orderId) throws TouchException {
