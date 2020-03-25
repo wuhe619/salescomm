@@ -74,6 +74,7 @@ public class CrmPackagesService {
 
         //保存订单信息
         order.setProductName(jsonObject.getString("name"));
+        order.setRemarks(resourceId.toString());
         BigDecimal price = new BigDecimal(jsonObject.getString("price"));
         order.setCostPrice(price.multiply(new BigDecimal("100")).intValue());
         orderDao.save(order);
