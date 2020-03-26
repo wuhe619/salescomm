@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.ElasticSearchService;
+import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.crm.*;
 import com.bdaim.customer.service.B2BTcbLogService;
@@ -53,6 +54,8 @@ public class EntDataService {
     private SequenceService sequenceService;
     @Autowired
     private B2BTcbLogService b2BTcbLogService;
+    @Autowired
+    private PhoneService phoneService;
 
     /**
      * 导入企查查数据
@@ -788,13 +791,16 @@ public class EntDataService {
         return searchSourceBuilder;
     }
 
+    private final static String INDEX = "ent_data_test";
+    private final static String INDEX_TYPE = "tag";
+
     public Page pageSearch(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params) throws Exception {
         Page page = new Page();
         LOG.info("企业列表查询参数:{}", params);
         // 构造DSL语句
         SearchSourceBuilder searchSourceBuilder = queryCondition(params);
         System.out.println(searchSourceBuilder.toString());
-        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), "ent_data_test", "tag");
+        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), INDEX, INDEX_TYPE);
         LOG.info("企业列表查询接口返回:{}", result);
 
         if (result != null && result.getHits(JSONObject.class) != null) {
@@ -822,6 +828,55 @@ public class EntDataService {
             page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
         }
         return page;
+    }
+
+    public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) throws Exception {
+        JSONObject baseResult = elasticSearchService.getDocument(INDEX, INDEX_TYPE, companyId);
+        if (baseResult != null) {
+            if (baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone"))) {
+                List phones = new ArrayList();
+                for (String p : baseResult.getString("phone").split(",")) {
+                    if (StringUtil.isEmpty(p) || "-".equals(p)) {
+                        continue;
+                    }
+                    phones.add(p);
+                }
+                baseResult.put("phones", phones);
+                if (seaId > 0) {
+                    //处理公司联系方式是否有意向
+                    handleClueFollowStatus(seaId, baseResult);
+                }
+            }
+        }
+        return baseResult;
+    }
+
+    /**
+     * 处理公司联系方式是否有意向
+     *
+     * @param seaId
+     * @param data
+     */
+    private void handleClueFollowStatus(long seaId, JSONObject data) {
+        if (data.containsKey("phone") && StringUtil.isNotEmpty(data.getString("phone"))) {
+            String sql = "SELECT id from t_customer_sea_list_" + seaId + " WHERE JSON_EXTRACT(super_data, '$.SYS007') = ? AND id = ?";
+            JSONArray clueFollowStatus = new JSONArray();
+            JSONObject jsonObject = null;
+            String uid = "";
+            List<Map<String, Object>> id = null;
+            for (String p : data.getString("phone").split(",")) {
+                if (StringUtil.isEmpty(p) || "-".equals(p)) {
+                    continue;
+                }
+                jsonObject = new JSONObject();
+                uid = phoneService.savePhoneToAPI(p);
+                id = jdbcTemplate.queryForList(sql, "意向线索", uid);
+                jsonObject.put("phone", p);
+                jsonObject.put("status", id == null || id.size() == 0 ? false : true);
+                clueFollowStatus.add(jsonObject);
+            }
+            data.put("clueFollowStatus", clueFollowStatus);
+        }
     }
 
 }

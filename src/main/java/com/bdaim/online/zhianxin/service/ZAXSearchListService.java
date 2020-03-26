@@ -219,7 +219,7 @@ public class ZAXSearchListService {
         if (data.containsKey("phoneNumber") && data.getJSONArray("phoneNumber") != null
                 && data.getJSONArray("phoneNumber").size() > 0) {
             JSONArray phoneNumber = data.getJSONArray("phoneNumber");
-            String sql = "SELECT id from t_customer_sea_list_11 WHERE JSON_EXTRACT(super_data, '$.SYS007') = ? AND id = ?";
+            String sql = "SELECT id from t_customer_sea_list_" + seaId + " WHERE JSON_EXTRACT(super_data, '$.SYS007') = ? AND id = ?";
             JSONArray clueFollowStatus = new JSONArray();
             JSONObject jsonObject = null;
             String uid = "";
