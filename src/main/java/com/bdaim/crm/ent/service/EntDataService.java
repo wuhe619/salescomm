@@ -818,8 +818,8 @@ public class EntDataService {
         return searchSourceBuilder;
     }
 
-    private final static String INDEX = "ent_data_test1";
-    private final static String INDEX_TYPE = "";
+    private final static String INDEX = "ent_data_test";
+    private final static String INDEX_TYPE = "tag";
 
     public Page pageSearch(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params) throws Exception {
         Page page = new Page();
