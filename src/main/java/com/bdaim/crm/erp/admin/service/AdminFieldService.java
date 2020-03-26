@@ -869,7 +869,7 @@ public class AdminFieldService {
                 if (sortEntity != null && sortEntity.getFieldId() != null) {
                     LkCrmAdminFieldEntity fieldEntity = crmAdminFieldDao.get(sortEntity.getFieldId());
                     if (fieldEntity != null) {
-                        crmAdminFieldDao.executeUpdateSQL("  update lkcrm_admin_field_sort set is_hide = 1,sort = 0,field_name=?,name=?  where id =? and label = ? and user_id = ?", fieldEntity.getFieldName(), fieldEntity.getName(), hideIdsArr[i], adminFieldSort.getLabel(), userId);
+                        crmAdminFieldDao.executeUpdateSQL("  update lkcrm_admin_field_sort set is_hide = 1,sort = 0, name=?  where id =? and label = ? and user_id = ?",  fieldEntity.getName(), hideIdsArr[i], adminFieldSort.getLabel(), userId);
                     }
                 } else {
                     crmAdminFieldDao.executeUpdateSQL("  update lkcrm_admin_field_sort set is_hide = 1,sort = 0 where id =? and label = ? and user_id = ?", hideIdsArr[i], adminFieldSort.getLabel(), userId);
@@ -885,7 +885,7 @@ public class AdminFieldService {
                 if (sortEntity != null && sortEntity.getFieldId() != null) {
                     LkCrmAdminFieldEntity fieldEntity = crmAdminFieldDao.get(sortEntity.getFieldId());
                     if (fieldEntity != null) {
-                        crmAdminFieldDao.executeUpdateSQL(" update lkcrm_admin_field_sort set field_name=?,name=?  where id =? and label = ? and user_id = ?", fieldEntity.getFieldName(), fieldEntity.getName(), hideIdsArr[i], adminFieldSort.getLabel(), userId);
+                        crmAdminFieldDao.executeUpdateSQL(" update lkcrm_admin_field_sort set name=?  where id =? and label = ? and user_id = ?", fieldEntity.getName(), hideIdsArr[i], adminFieldSort.getLabel(), userId);
                     }
                 }
             }
