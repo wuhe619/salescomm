@@ -20,10 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /***
  * 巡检任务api资源
@@ -71,46 +68,55 @@ public class PatrolTaskApisService implements BusiService {
     @Override
     public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
         //查询列表
-        if ("main".equals(params.getString("_rule_"))) {
-            sqlParams.clear();
-            StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
-            if (!"all".equals(cust_id)){
-                sqlParams.add(cust_id);
-                sqlstr.append(" and cust_id=? ");
-            }
-            sqlParams.add(busiType);
+        sqlParams.clear();
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
 
-            Iterator keys = params.keySet().iterator();
-            while (keys.hasNext()) {
-                String key = (String) keys.next();
-                if (StringUtil.isNotEmpty(String.valueOf(params.get(key)))) continue;
-                if ("pageNum".equals(key) || "pageSize".equals(key)  || "_sort_".equals(key) || "_orderby_".equals(key))
-                    continue;
-                if ("cust_id".equals(key)) {
-                    sqlstr.append(" and cust_id=?");
-                }else if("taskId".equals(key)){
-                    sqlstr.append(" and ext_1 =? ");
-                } else if (key.endsWith(".c")) {
-                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(0, key.length() - 2) + "') like '%?%'");
-                } else if (key.endsWith(".start")) {
-                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(0, key.length() - 6) + "') >= ?");
-                } else if (key.endsWith(".end")) {
-                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(0, key.length() - 6) + "') <= ?");
-                } else {
-                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
-                }
-                sqlParams.add(params.get(key));
-            }
+        sqlParams.add(busiType);
 
-            return sqlstr.toString();
+        Iterator keys = params.keySet().iterator();
+        while(keys.hasNext()) {
+            String key = (String) keys.next();
+            if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key)  || "_sort_".equals(key) || "_orderby_".equals(key))
+                continue;
+            if ("cust_id".equals(key) && !"all".equals(cust_id)) {
+                sqlstr.append(" and cust_id=?");
+            }else if("taskId".equals(key)){
+                sqlstr.append(" and ext_2 =? ");
+            } else if (key.endsWith(".c")) {
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(0, key.length() - 2) + "') like '%?%'");
+            } else if (key.endsWith(".start")) {
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(0, key.length() - 6) + "') >= ?");
+            } else if (key.endsWith(".end")) {
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(0, key.length() - 6) + "') <= ?");
+            } else {
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
+            }
+            sqlParams.add(params.get(key));
         }
-        return null;
+
+        return sqlstr.toString();
+
     }
 
     @Override
     public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
-        // TODO Auto-generated method stub
-
+        String apiId=info.getString("apiId");
+        info.put("apiName","");
+        try {
+            if (StringUtil.isNotEmpty(apiId)) {
+                String sql = "select name from am_api where id=?";
+                List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, apiId);
+                if (list != null && list.size() > 0) {
+                    Map<String, Object> map = list.get(0);
+                    if (map != null && map.containsKey("name")) {
+                        info.put("apiName", map.get("name"));
+                    }
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     /**
