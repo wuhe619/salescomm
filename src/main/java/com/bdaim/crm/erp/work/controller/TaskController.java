@@ -120,13 +120,15 @@ public class TaskController extends BasicAction {
         String contactsIds = getPara("contactsIds");
         String businessIds = getPara("businessIds");
         String contractIds = getPara("contractIds");
+        String leadsIds = getPara("leadsIds");
         LkCrmTaskRelationEntity taskRelation = new LkCrmTaskRelationEntity();
-        if (customerIds != null || contactsIds != null || businessIds != null || contractIds != null) {
+        if (customerIds != null || contactsIds != null || businessIds != null || contractIds != null|| leadsIds != null ) {
 
             taskRelation.setBusinessIds(TagUtil.fromString(businessIds));
             taskRelation.setContactsIds(TagUtil.fromString(contactsIds));
             taskRelation.setContractIds(TagUtil.fromString(contractIds));
             taskRelation.setCustomerIds(TagUtil.fromString(customerIds));
+            taskRelation.setLeadsIds(TagUtil.fromString(leadsIds));
         }
         return (taskService.setTask(task, taskRelation));
     }
