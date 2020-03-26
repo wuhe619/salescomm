@@ -652,6 +652,14 @@ public class EntDataService {
         if (param.getString("id") != null) {
             qb.must(QueryBuilders.idsQuery().ids(param.getString("id")));
         }
+        // 企业子类型
+        if (StringUtil.isNotEmpty(param.getString("entType1"))) {
+            qb.must(QueryBuilders.matchQuery("entType", param.getString("entType1")));
+        }
+        // 投资控股
+        if (StringUtil.isNotEmpty(param.getString("Investment"))) {
+            qb.must(QueryBuilders.matchQuery("entType", param.getString("Investment")));
+        }
         // 支持多个行业
         if (param.getJSONArray("industry") != null && param.getJSONArray("industry").size() > 0) {
             BoolQueryBuilder temp = QueryBuilders.boolQuery();
@@ -773,26 +781,45 @@ public class EntDataService {
 
         //来源
         if (param.getString("src") != null) {
-            qb.must(QueryBuilders.matchPhraseQuery("src", param.getString("src")));
+            qb.must(QueryBuilders.termQuery("src", param.getString("src")));
         }
         // 联系电话
-        if (param.getString("phoneStatus") != null) {
-            qb.must(QueryBuilders.matchPhraseQuery("src", param.getString("src")));
+        if (StringUtil.isNotEmpty(param.getString("phoneStatus"))) {
+            String phoneStatus = param.getString("phoneStatus");
+            // 有固话
+            if ("1".equals(phoneStatus)) {
+                qb.must(QueryBuilders.regexpQuery("phone", "^(\\(\\d{3,4}\\)|\\d{3,4}-|\\s)?\\d{7,14}$"));
+            } else if ("2".equals(phoneStatus)) {
+                // 有手机
+                qb.must(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
+            } else if ("3".equals(phoneStatus)) {
+                // 无联系方式
+                BoolQueryBuilder temp = QueryBuilders.boolQuery();
+                temp.mustNot(QueryBuilders.regexpQuery("phone", "^(\\+?0?86\\-?)?1[345789]\\d{9}$"));
+                temp.mustNot(QueryBuilders.regexpQuery("phone", "^(\\(\\d{3,4}\\)|\\d{3,4}-|\\s)?\\d{7,14}$"));
+                qb.must(temp);
+            }
         }
         // 邮箱
-        if (param.getString("emailStatus") != null) {
-            qb.must(QueryBuilders.matchPhraseQuery("src", param.getString("src")));
+        if (StringUtil.isNotEmpty(param.getString("emailStatus"))) {
+            // 有邮箱
+            if ("1".equals(param.getString("emailStatus"))) {
+                qb.must(QueryBuilders.regexpQuery("email", "[\\@]"));
+            } else if ("2".equals(param.getString("emailStatus"))) {
+                // 无邮箱
+                qb.mustNot(QueryBuilders.regexpQuery("email", "[\\@]"));
+            }
         }
         // 其他标签
         if (param.getString("tag") != null) {
-            qb.must(QueryBuilders.matchPhraseQuery("src", param.getString("src")));
+            qb.must(QueryBuilders.matchQuery("tag", param.getString("src")));
         }
         searchSourceBuilder.query(qb);
         return searchSourceBuilder;
     }
 
-    private final static String INDEX = "ent_data_test";
-    private final static String INDEX_TYPE = "tag";
+    private final static String INDEX = "ent_data_test1";
+    private final static String INDEX_TYPE = "";
 
     public Page pageSearch(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params) throws Exception {
         Page page = new Page();
