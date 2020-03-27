@@ -232,7 +232,9 @@ public class TaskService {
 //                    Record ownerUser = Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?", ownerUserId);
                     String findOwnerUserSql = "select user_id,realname,img from lkcrm_admin_user where user_id = ?";
                     Record ownerUser = JavaBeanUtil.mapToRecord(taskClassDao.queryUniqueSql(findOwnerUserSql, ownerUserId));
-                    ownerUserList.add(ownerUser);
+                    if (ownerUser != null && ownerUser.getColumns() != null && ownerUser.getColumns().size() > 0) {
+                        ownerUserList.add(ownerUser);
+                    }
                 }
             }
         }
