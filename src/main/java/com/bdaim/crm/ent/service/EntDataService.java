@@ -12,15 +12,15 @@ import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.crm.*;
 import com.bdaim.customer.service.B2BTcbLogService;
-import com.bdaim.customs.dto.QueryDataParams;
-import com.bdaim.online.zhianxin.dto.BaseResult;
 import com.bdaim.util.ExcelUtil;
 import com.bdaim.util.MD5Util;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
-import com.bdaim.util.http.HttpUtil;
 import io.searchbox.core.SearchResult;
-import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MatchQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +38,9 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -758,7 +760,7 @@ public class EntDataService {
                     address.must(QueryBuilders.matchQuery("regcity", regLocation.getString("regcity")));
                 }
                 if (StringUtil.isNotEmpty(regLocation.getString("address"))) {
-                    address.must(QueryBuilders.wildcardQuery("address", "*" + regLocation.getString("address") + "*"));
+                    address.must(QueryBuilders.matchQuery("address", regLocation.getString("address")));
                 }
                 temp.should(address);
             }
@@ -789,18 +791,20 @@ public class EntDataService {
         // 联系电话
         if (StringUtil.isNotEmpty(param.getString("phoneStatus"))) {
             String phoneStatus = param.getString("phoneStatus");
-            // 有固话
+            // 有联系电话
             if ("1".equals(phoneStatus)) {
-                qb.must(QueryBuilders.regexpQuery("phone", "^(\\(\\d{3,4}\\)|\\d{3,4}-|\\s)?\\d{7,14}$"));
-            } else if ("2".equals(phoneStatus)) {
+                qb.mustNot(QueryBuilders.matchQuery("phone", "-"));
+                qb.mustNot(QueryBuilders.matchQuery("phone", ","));
+            }/* else if ("2".equals(phoneStatus)) {
                 // 有手机
                 qb.must(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
-            } else if ("3".equals(phoneStatus)) {
+            } */ else if ("2".equals(phoneStatus)) {
                 // 无联系方式
                 BoolQueryBuilder temp = QueryBuilders.boolQuery();
-                temp.mustNot(QueryBuilders.regexpQuery("phone", "^(\\+?0?86\\-?)?1[345789]\\d{9}$"));
-                temp.mustNot(QueryBuilders.regexpQuery("phone", "^(\\(\\d{3,4}\\)|\\d{3,4}-|\\s)?\\d{7,14}$"));
-                qb.must(temp);
+                qb.should(QueryBuilders.matchQuery("phone", ","));
+                qb.should(QueryBuilders.matchQuery("phone", "-"));
+                qb.should(QueryBuilders.matchQuery("phone", ""));
+                //qb.must(temp);
             }
         }
         // 邮箱
@@ -821,7 +825,7 @@ public class EntDataService {
         return searchSourceBuilder;
     }
 
-    private final static String INDEX = "ent_data_test";
+    private final static String INDEX = "ent_data";
     private final static String INDEX_TYPE = "tag";
 
     public Page pageSearch(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params) throws Exception {
