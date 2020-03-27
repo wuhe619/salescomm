@@ -463,7 +463,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 线索转移
      */
     @Permissions("crm:leads:transfer")
@@ -475,7 +474,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 线索转客户
      */
     @Permissions("crm:leads:transform")

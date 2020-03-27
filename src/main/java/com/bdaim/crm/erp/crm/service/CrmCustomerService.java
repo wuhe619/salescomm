@@ -117,6 +117,9 @@ public class CrmCustomerService {
     @Autowired
     private LkCrmActionRecordDao crmActionRecordDao;
 
+    @Autowired
+    private CrmLeadsService crmLeadsService;
+
     /**
      * @return
      * @author wyq
@@ -138,10 +141,11 @@ public class CrmCustomerService {
     }
 
     /**
-     * @author wyq
      * 新增或更新客户
      */
     public R addOrUpdate(JSONObject jsonObject, String type) {
+        Integer leadsId = jsonObject.getJSONObject("entity").getInteger("leadsId");
+
         CrmCustomer entity = jsonObject.getObject("entity", CrmCustomer.class);
         LkCrmCustomerEntity crmCustomer = new LkCrmCustomerEntity();
         BeanUtils.copyProperties(entity, crmCustomer);
@@ -173,6 +177,10 @@ public class CrmCustomerService {
             }
             int id = (int) crmCustomerDao.saveReturnPk(crmCustomer);
             crmRecordService.addRecord(crmCustomer.getCustomerId(), CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
+            if (leadsId != null) {
+                // 转移线索的信息到客户
+                crmLeadsService.leadsTranslateCustomer(String.valueOf(leadsId), crmCustomer);
+            }
             //批量添加联系人
             JSONArray contacts = jsonObject.getJSONArray("contacts");
             if (contacts != null && contacts.size() > 0) {
@@ -547,7 +555,7 @@ public class CrmCustomerService {
      */
     public List<Record> queryField(Integer customerId) {
         String customerview = BaseUtil.getViewSql("customerview");
-        LOG.info("Sql is {}","select * from " + customerview + " where customer_id = ?");
+        LOG.info("Sql is {}", "select * from " + customerview + " where customer_id = ?");
         Record customer = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from " + customerview + " where customer_id = ?", customerId).get(0));
         //Record customer = Db.findFirst("select * from customerview where customer_id = ?",customerId);
         List<Record> fieldList = adminFieldService.queryUpdateField(2, customer);
@@ -598,7 +606,7 @@ public class CrmCustomerService {
             if (adminRecord.getContactsIds() != null) {
                 String[] idsArr = adminRecord.getContactsIds().split(",");
                 for (String id : idsArr) {
-                    if(StringUtil.isNotEmpty(id)){
+                    if (StringUtil.isNotEmpty(id)) {
                         LkCrmContactsEntity crmContacts = new LkCrmContactsEntity();
                         crmContacts.setContactsId(Integer.valueOf(id));
                         crmContacts.setNextTime(new Timestamp(nextTime.getTime()));
@@ -609,7 +617,7 @@ public class CrmCustomerService {
             if (adminRecord.getBusinessIds() != null) {
                 String[] idsArr = adminRecord.getBusinessIds().split(",");
                 for (String id : idsArr) {
-                    if(StringUtil.isNotEmpty(id)){
+                    if (StringUtil.isNotEmpty(id)) {
                         LkCrmBusinessEntity crmBusiness = new LkCrmBusinessEntity();
                         crmBusiness.setBusinessId(Integer.valueOf(id));
                         crmBusiness.setNextTime(new Timestamp(nextTime.getTime()));
