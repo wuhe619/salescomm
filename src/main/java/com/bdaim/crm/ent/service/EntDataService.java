@@ -679,18 +679,21 @@ public class EntDataService {
                 // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
                 int typeName = jsonArray.getJSONObject(i).getInteger("typeName");
                 if (typeName == 1) {
-                    for (String text : jsonArray.getJSONObject(i).getString("value").split("")) {
+                   /* for (String text : jsonArray.getJSONObject(i).getString("value").split("")) {
                         MatchQueryBuilder mpq = QueryBuilders
                                 .matchQuery("entName", text);
                         temp.should(mpq);
-                    }
+                    }*/
+                    MatchQueryBuilder mpq = QueryBuilders
+                            .matchQuery("entName", jsonArray.getJSONObject(i).getString("value"));
+                    temp.should(mpq);
                 } else if (typeName == 2) {
                     TermQueryBuilder mpq = QueryBuilders
                             .termQuery("entName", jsonArray.getJSONObject(i).getString("value"));
                     temp.should(mpq);
                 } else if (typeName == 3) {
-                    MultiMatchQueryBuilder mpq = QueryBuilders
-                            .multiMatchQuery("entName", jsonArray.getJSONObject(i).getString("value").split(""));
+                    MatchQueryBuilder mpq = QueryBuilders
+                            .matchQuery("entName", jsonArray.getJSONObject(i).getString("value"));
                     temp.mustNot(mpq);
                 } else if (typeName == 4) {
                     TermQueryBuilder mpq = QueryBuilders
@@ -709,16 +712,16 @@ public class EntDataService {
                 // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
                 int typeScope = jsonArray.getJSONObject(i).getInteger("typeScope");
                 if (typeScope == 1) {
-                    MultiMatchQueryBuilder mpq = QueryBuilders
-                            .multiMatchQuery("opScope", jsonArray.getJSONObject(i).getString("value").split(""));
+                    MatchQueryBuilder mpq = QueryBuilders
+                            .matchQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
                     temp.should(mpq);
                 } else if (typeScope == 2) {
                     TermQueryBuilder mpq = QueryBuilders
                             .termQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
                     temp.should(mpq);
                 } else if (typeScope == 3) {
-                    MultiMatchQueryBuilder mpq = QueryBuilders
-                            .multiMatchQuery("opScope", jsonArray.getJSONObject(i).getString("value").split(""));
+                    MatchQueryBuilder mpq = QueryBuilders
+                            .matchQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
                     temp.mustNot(mpq);
                 } else if (typeScope == 4) {
                     TermQueryBuilder mpq = QueryBuilders
