@@ -442,7 +442,7 @@ public class XzCallCenterUtil {
         map.setShownum("01053182579");
         map.setDailmodel("3");
 
-        map.setCalloutspeed("5.5");
+        map.setCalloutspeed("1.5");
         map.setCounttype("1");
         map.setCallinterval("30");
         map.setRingingduration("30");
