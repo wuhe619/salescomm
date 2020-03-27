@@ -657,7 +657,11 @@ public class EntDataService {
         }
         // 企业子类型
         if (StringUtil.isNotEmpty(param.getString("entType1"))) {
-            qb.must(QueryBuilders.matchQuery("entType", param.getString("entType1")));
+            BoolQueryBuilder temp = QueryBuilders.boolQuery();
+            for (int i = 0; i < param.getJSONArray("entType1").size(); i++) {
+                temp.should(QueryBuilders.matchQuery("entType", param.getJSONArray("entType1").getString(i)));
+            }
+            qb.must(temp);
         }
         // 投资控股
         if (StringUtil.isNotEmpty(param.getString("Investment"))) {
@@ -778,7 +782,7 @@ public class EntDataService {
 
         // 注册资金
         if (StringUtil.isNotEmpty(param.getString("regCapital")) && StringUtil.isNotEmpty(param.getString("regCapital2"))) {
-            qb.must(QueryBuilders.rangeQuery("regCapNum").from(param.getIntValue("regCapital")).to(param.getIntValue("regCapital2")));
+            qb.must(QueryBuilders.rangeQuery("regCapNum").gt(param.getIntValue("regCapital")).lt(param.getIntValue("regCapital2")));
         } else if (StringUtil.isNotEmpty(param.getString("regCapital"))) {
             qb.must(QueryBuilders.rangeQuery("regCapNum").from(param.getIntValue("regCapital")));
         } else if (StringUtil.isNotEmpty(param.getString("regCapital2"))) {
