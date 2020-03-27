@@ -36,6 +36,7 @@ public class ResponseInfoAssemble {
         ResponseInfo<T> rb = new ResponseInfo<T>();
         rb.setCode(code);
         rb.setMessage(message);
+        rb.setMsg(message);
         return rb;
     }
 }

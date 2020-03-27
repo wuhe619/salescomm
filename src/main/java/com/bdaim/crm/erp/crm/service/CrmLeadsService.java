@@ -715,33 +715,91 @@ public class CrmLeadsService {
      *
      * @param seaId
      * @param userId
-     * @param superId
+     * @param batchId
      * @return
      */
-    public int transferToPublicSea(String seaId, String userId, String superId) {
+    public int transferToPublicSea(String seaId, String userId, String batchId) {
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
                 .append("SELECT * FROM lkcrm_crm_leads  WHERE batch_id =? ");
-        List<Map<String, Object>> maps = customerSeaDao.sqlQuery(sql.toString(), superId);
+        List<Map<String, Object>> maps = customerSeaDao.sqlQuery(sql.toString(), batchId);
         int i = 0;
         String insertSql = "REPLACE INTO " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " (`id`, `user_id`, `update_time`, `status`, " +
                 "super_name,super_telphone,super_phone,super_data,create_time,batch_id) VALUES(?,?,?,?,?,?,?,?,?,?)";
         for (Map<String, Object> m : maps) {
             JSONObject superData = new JSONObject();
             superData.put("SYS005", m.get("company"));
+            String superId = MD5Util.encode32Bit(m.get("leads_id") + "" + m.get("super_telphone"));
+
             //查询默认客群
             CustomerSeaProperty csp = customerSeaDao.getProperty(String.valueOf(seaId), "defaultClueCgId");
-            customerSeaDao.executeUpdateSQL(insertSql, m.get("leads_id"), null, new Date(), 1, m.get("leads_name")
+            customerSeaDao.executeUpdateSQL(insertSql, superId, null, new Date(), 1, m.get("leads_name")
                     , m.get("mobile"), m.get("telephone"), superData.toJSONString(), m.get("create_time"), csp.getPropertyValue());
             // 退回到公海线索
-            List<Map<String, Object>> fieldList = crmAdminFieldvDao.queryCustomField(String.valueOf(m.get("leads_id")));
-            JSONArray jsonArray = new JSONArray();
-            for (Map<String, Object> field : fieldList) {
-                jsonArray.add(BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true));
+            String leadsview = BaseUtil.getViewSql("leadsview");
+            List<Map<String, Object>> list = crmLeadsDao.sqlQuery("select * from " + leadsview + " where batch_id = ?", batchId);
+            Record crmLeads = JavaBeanUtil.mapToRecord(list.get(0));
+            List<Record> leadsFields = adminFieldService.list("1");
+            List<LkCrmAdminFieldEntity> seaFields = crmLeadsDao.find("from LkCrmAdminFieldEntity where label = '11' AND custId = ? ", BaseUtil.getCustId());
+            List<LkCrmAdminFieldvEntity> adminFieldvList = new ArrayList<>();
+            for (Record leadsFIeld : leadsFields) {
+                for (LkCrmAdminFieldEntity seaField : seaFields) {
+                    if (!seaField.getFieldType().equals(0)) {
+                        continue;
+                    }
+                    if (StringUtil.isNotEmpty(crmLeads.get(leadsFIeld.get("name"))) && leadsFIeld.getStr("name").equals(seaField.getName())) {
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
+                        adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
+                        adminFieldv.setFieldId(seaField.getFieldId());
+                        adminFieldv.setName(seaField.getName());
+                        adminFieldv.setCustId(BaseUtil.getCustId());
+                        adminFieldv.setBatchId(superId);
+                        adminFieldvList.add(adminFieldv);
+                    }
+                    if ("客户来源".equals(seaField.getName()) && "线索来源".equals(leadsFIeld.getStr("name"))) {
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
+                        adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
+                        adminFieldv.setFieldId(seaField.getFieldId());
+                        adminFieldv.setName(seaField.getName());
+                        adminFieldv.setCustId(BaseUtil.getCustId());
+                        adminFieldv.setBatchId(superId);
+                        adminFieldvList.add(adminFieldv);
+                    }
+                    if ("客户行业".equals(seaField.getName()) && "客户行业".equals(leadsFIeld.getStr("name"))) {
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
+                        adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
+                        adminFieldv.setFieldId(seaField.getFieldId());
+                        adminFieldv.setName(seaField.getName());
+                        adminFieldv.setCustId(BaseUtil.getCustId());
+                        adminFieldv.setBatchId(superId);
+                        adminFieldvList.add(adminFieldv);
+                    }
+                    if ("客户级别".equals(seaField.getName()) && "客户级别".equals(leadsFIeld.getStr("name"))) {
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
+                        adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
+                        adminFieldv.setFieldId(seaField.getFieldId());
+                        adminFieldv.setName(seaField.getName());
+                        adminFieldv.setCustId(BaseUtil.getCustId());
+                        adminFieldv.setBatchId(superId);
+                        adminFieldvList.add(adminFieldv);
+                    }
+                }
             }
-            String batchId = String.valueOf(m.get("leads_id"));
-            crmRecordService.updateRecord(jsonArray, batchId);
-            adminFieldService.save(jsonArray, batchId);
+
+            crmLeadsDao.getSession().clear();
+            crmLeadsDao.batchSaveOrUpdate(adminFieldvList);
+
+            List<Map<String, Object>> fieldList = crmAdminFieldvDao.queryCustomField(String.valueOf(m.get("batch_id")));
+            JSONArray jsonArray = new JSONArray();
+            LkCrmAdminFieldvEntity fieldvEntity;
+            for (Map<String, Object> field : fieldList) {
+                fieldvEntity = BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true);
+                fieldvEntity.setBatchId(superId);
+                jsonArray.add(fieldvEntity);
+            }
+            //String batchId = String.valueOf(m.get("leads_id"));
+            crmRecordService.updateRecord(jsonArray, superId);
+            //adminFieldService.save(jsonArray, superId);
         }
         return 0;
     }

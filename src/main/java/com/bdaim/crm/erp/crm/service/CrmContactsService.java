@@ -33,6 +33,7 @@ import com.jfinal.upload.UploadFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -85,6 +86,8 @@ public class CrmContactsService {
     private LkCrmAdminFieldDao crmAdminFieldDao;
     @Resource
     private LkCrmTaskDao crmTaskDao;
+    @Autowired
+    private LkCrmLeadsDao crmLeadsDao;
 
     /**
      * @return
@@ -256,6 +259,12 @@ public class CrmContactsService {
                 count++;
 
                 if (leadsId != null) {
+                    LkCrmLeadsEntity lkCrmLeads = crmLeadsDao.get(leadsId);
+                    crmContacts.setMobile(lkCrmLeads.getMobile());
+                    crmContacts.setTelephone(lkCrmLeads.getTelephone());
+                    crmContacts.setName(lkCrmLeads.getLeadsName());
+                    crmContactsDao.update(crmContacts);
+
                     Integer customer_id = objects.getJSONObject(i).getInteger("customer_id");
                     crmContactsDao.executeUpdateSQL("update lkcrm_crm_leads set is_transform = 1,update_time = ?,customer_id = ? where leads_id = ?",
                             DateUtil.date().toTimestamp(), customer_id, leadsId);
