@@ -259,7 +259,7 @@ public class CrmContactsService {
                     Integer customer_id = objects.getJSONObject(i).getInteger("customer_id");
                     crmContactsDao.executeUpdateSQL("update lkcrm_crm_leads set is_transform = 1,update_time = ?,customer_id = ? where leads_id = ?",
                             DateUtil.date().toTimestamp(), customer_id, leadsId);
-                    List<LkCrmAdminRecordEntity> adminRecordList = crmAdminUserDao.find(" from LkCrmAdminRecordEntity where types = 'crm_leads' and typesId = ?", leadsId);
+                    List<LkCrmAdminRecordEntity> adminRecordList = crmAdminUserDao.find(" from LkCrmAdminRecordEntity where types = 'crm_leads' and typesId = ?", leadsId.toString());
                     List<LkCrmAdminFileEntity> adminFileList = new ArrayList<>();
                     if (adminRecordList.size() != 0) {
                         adminRecordList.forEach(adminRecord -> {
