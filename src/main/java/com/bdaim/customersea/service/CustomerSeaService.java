@@ -639,10 +639,12 @@ public class CustomerSeaService {
             }
             customerSea.setUpdateTime(time);
             // 修改公海状态
+            //operation 1:开启/关闭 2:编辑公海 3：保存回收规则
             if (1 == param.getOperation()) {
                 customerSea.setStatus(param.getStatus());
                 customerSeaDao.update(customerSea);
                 status = 1;
+                //taskType 1:自动 2：手动 3：机器人
                 if (customerSea.getTaskType() != null && customerSea.getTaskType() == 1) {
                     // 如果编辑的呼叫渠道和上次呼叫渠道不相同,或者任务ID为空则创建讯众自动外呼任务
                     CustomerSeaProperty csp = customerSeaDao.getProperty(String.valueOf(customerSea.getId()), "callChannel");
