@@ -18,6 +18,7 @@ public class LkCrmWorkTaskLabelEntity {
     private Long createUserId;
     private Integer status;
     private String color;
+    private String custId;
 
     @Id
     @Column(name = "label_id")
@@ -78,6 +79,15 @@ public class LkCrmWorkTaskLabelEntity {
 
     public void setColor(String color) {
         this.color = color;
+    }
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Override

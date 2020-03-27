@@ -29,6 +29,7 @@ public class LabelService {
 
     public R setLabel(LkCrmWorkTaskLabelEntity taskLabel) {
 //        boolean bol;
+        taskLabel.setCustId(BaseUtil.getCustId());
         if (taskLabel.getLabelId() == null) {
             taskLabel.setCreateTime(new Timestamp(System.currentTimeMillis()));
             taskLabel.setCreateUserId(BaseUtil.getUser().getUserId());
@@ -57,7 +58,7 @@ public class LabelService {
 
     public R getLabelList() {
 //        List<WorkTaskLabel> all = new WorkTaskLabel().dao().findAll();
-        List<LkCrmWorkTaskLabelEntity> all = crmWorkTaskLabelDao.getAll();
+        List<LkCrmWorkTaskLabelEntity> all = crmWorkTaskLabelDao.find(" FROM LkCrmWorkTaskLabelEntity WHERE custId = ?", BaseUtil.getCustId());
         return R.ok().put("data", all);
     }
 
