@@ -6,6 +6,7 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.common.annotation.ClassTypeCheck;
+import com.bdaim.crm.dao.LkCrmWorkDao;
 import com.bdaim.crm.entity.LkCrmTaskEntity;
 import com.bdaim.crm.entity.LkCrmTaskRelationEntity;
 import com.bdaim.crm.entity.LkCrmWorkTaskClassEntity;
@@ -20,6 +21,7 @@ import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
 import com.jfinal.core.paragetter.Para;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -37,6 +39,8 @@ public class TaskController extends BasicAction {
     private TaskService taskService;
     @Resource
     private LkAdminUserService adminUserService;
+    @Autowired
+    private LkCrmWorkDao crmWorkDao;
 
     /**
      * @param taskClass 任务类别对象
@@ -101,7 +105,7 @@ public class TaskController extends BasicAction {
     @RequestMapping(value = "/setWorkTask", method = RequestMethod.POST)
     public R setWorkTask(LkCrmTaskEntity task) {
         if (task.getWorkId() != null) {
-            Integer isOpen = new Work().findById(task.getWorkId()).getIsOpen();
+            Integer isOpen = crmWorkDao.get(task.getWorkId()).getIsOpen();
             if (isOpen == 0 && !AuthUtil.isWorkAuth(task.getWorkId().toString(), "task:save")) {
                 return (R.noAuth());
                 //return;
