@@ -778,11 +778,11 @@ public class EntDataService {
 
         // 注册资金
         if (StringUtil.isNotEmpty(param.getString("regCapital")) && StringUtil.isNotEmpty(param.getString("regCapital2"))) {
-            qb.must(QueryBuilders.rangeQuery("regCap").from(param.getIntValue("regCapital")).to(param.getIntValue("regCapital2")));
+            qb.must(QueryBuilders.rangeQuery("regCapNum").from(param.getIntValue("regCapital")).to(param.getIntValue("regCapital2")));
         } else if (StringUtil.isNotEmpty(param.getString("regCapital"))) {
-            qb.must(QueryBuilders.rangeQuery("regCap").from(param.getIntValue("regCapital")));
+            qb.must(QueryBuilders.rangeQuery("regCapNum").from(param.getIntValue("regCapital")));
         } else if (StringUtil.isNotEmpty(param.getString("regCapital2"))) {
-            qb.must(QueryBuilders.rangeQuery("regCap").to(param.getIntValue("regCapital2")));
+            qb.must(QueryBuilders.rangeQuery("regCapNum").to(param.getIntValue("regCapital2")));
         }
 
         //来源
@@ -794,28 +794,24 @@ public class EntDataService {
             String phoneStatus = param.getString("phoneStatus");
             // 有联系电话
             if ("1".equals(phoneStatus)) {
-                qb.mustNot(QueryBuilders.matchQuery("phone", "-"));
-                qb.mustNot(QueryBuilders.matchQuery("phone", ","));
+                qb.must(QueryBuilders.regexpQuery("phone", "[0-9].+"));
+                //qb.mustNot(QueryBuilders.matchQuery("phone", ","));
             }/* else if ("2".equals(phoneStatus)) {
                 // 有手机
                 qb.must(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
             } */ else if ("2".equals(phoneStatus)) {
                 // 无联系方式
-                BoolQueryBuilder temp = QueryBuilders.boolQuery();
-                qb.should(QueryBuilders.matchQuery("phone", ","));
-                qb.should(QueryBuilders.matchQuery("phone", "-"));
-                qb.should(QueryBuilders.matchQuery("phone", ""));
-                //qb.must(temp);
+                qb.mustNot(QueryBuilders.regexpQuery("phone", "[0-9].+"));
             }
         }
         // 邮箱
         if (StringUtil.isNotEmpty(param.getString("emailStatus"))) {
             // 有邮箱
             if ("1".equals(param.getString("emailStatus"))) {
-                qb.must(QueryBuilders.regexpQuery("email", "[\\@]"));
+                qb.must(QueryBuilders.regexpQuery("email", "[0-9|a-z|A-Z]@.+"));
             } else if ("2".equals(param.getString("emailStatus"))) {
                 // 无邮箱
-                qb.mustNot(QueryBuilders.regexpQuery("email", "[\\@]"));
+                qb.mustNot(QueryBuilders.regexpQuery("email", "[0-9|a-z|A-Z]@.+"));
             }
         }
         // 其他标签
