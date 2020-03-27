@@ -38,6 +38,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -236,6 +237,7 @@ public class CrmContactsService {
     public R batchAddContacts(JSONArray objects) {
         int count = 0;
         for (int i = 0; i < objects.size(); i++) {
+            Integer leadsId = objects.getJSONObject(i).getInteger("leadsId");
             LkCrmContactsEntity crmContacts = objects.getObject(i, LkCrmContactsEntity.class);
             crmContacts.setCustomerId(objects.getJSONObject(i).getInteger("customer_id"));
             String batchId = StrUtil.isNotEmpty(crmContacts.getBatchId()) ? crmContacts.getBatchId() : IdUtil.simpleUUID();
@@ -252,6 +254,35 @@ public class CrmContactsService {
             if ((int) crmContactsDao.saveReturnPk(crmContacts) > 0) {
                 crmRecordService.addRecord(crmContacts.getContactsId(), CrmEnum.CONTACTS_TYPE_KEY.getTypes());
                 count++;
+
+                if (leadsId != null) {
+                    Integer customer_id = objects.getJSONObject(i).getInteger("customer_id");
+                    crmContactsDao.executeUpdateSQL("update lkcrm_crm_leads set is_transform = 1,update_time = ?,customer_id = ? where leads_id = ?",
+                            DateUtil.date().toTimestamp(), customer_id, leadsId);
+                    List<LkCrmAdminRecordEntity> adminRecordList = crmAdminUserDao.find(" from LkCrmAdminRecordEntity where types = 'crm_leads' and typesId = ?", leadsId.toString());
+                    List<LkCrmAdminFileEntity> adminFileList = new ArrayList<>();
+                    if (adminRecordList.size() != 0) {
+                        adminRecordList.forEach(adminRecord -> {
+                            List<LkCrmAdminFileEntity> leadsRecordFiles = crmAdminUserDao.find(" from LkCrmAdminFileEntity where batchId = ?", adminRecord.getBatchId());
+                            leadsRecordFiles.forEach(adminFile -> {
+                                adminFile.setBatchId(crmContacts.getBatchId());
+                                adminFile.setFileId(null);
+                            });
+                            adminFileList.addAll(leadsRecordFiles);
+                            adminRecord.setBatchId(crmContacts.getBatchId());
+                            adminRecord.setRecordId(null);
+                            adminRecord.setCustId(BaseUtil.getCustId());
+                            adminRecord.setTypes("crm_contacts");
+                            adminRecord.setTypesId(crmContacts.getContactsId().toString());
+                            adminRecord.setUpdateTime(new Timestamp(System.currentTimeMillis()));
+                        });
+                        //Db.batchSave(adminRecordList, 100);
+                        crmContactsDao.getSession().clear();
+                        crmContactsDao.batchSaveOrUpdate(adminRecordList);
+                        crmContactsDao.getSession().clear();
+                        crmContactsDao.batchSaveOrUpdate(adminFileList);
+                    }
+                }
             }
         }
         return count == objects.size() ? R.ok() : R.error();
