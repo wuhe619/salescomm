@@ -659,7 +659,13 @@ public class EntDataService {
         if (StringUtil.isNotEmpty(param.getString("entType1"))) {
             BoolQueryBuilder temp = QueryBuilders.boolQuery();
             for (int i = 0; i < param.getJSONArray("entType1").size(); i++) {
-                temp.should(QueryBuilders.matchQuery("entType", param.getJSONArray("entType1").getString(i)));
+                if ("外商".equals(param.getJSONArray("entType1").getString(i))) {
+                    temp.should(QueryBuilders.matchQuery("entType", "外商"));
+                    temp.should(QueryBuilders.matchQuery("entType", "外国"));
+                    temp.should(QueryBuilders.matchQuery("entType", "中外"));
+                } else {
+                    temp.should(QueryBuilders.matchQuery("entType", param.getJSONArray("entType1").getString(i)));
+                }
             }
             qb.must(temp);
         }
