@@ -424,8 +424,9 @@ public class XzCallCenterUtil {
 
     public static void main(String[] args) throws Exception {
 //        JSONObject jsonObject = stopAutoTask("933333", "2019081220343134315");
-        JSONObject jsonObject1 = callOutTimeRuleList("933333");
-        System.out.println(jsonObject1);
+//        JSONObject jsonObject1 = callOutTimeRuleList("933333");
+//        System.out.println(jsonObject1);
+        new XzCallCenterUtil().testAddAutoTask();
     }
 
     public void testQueryCompanyInfo() throws Exception {
@@ -435,13 +436,13 @@ public class XzCallCenterUtil {
 
     public void testAddAutoTask() throws Exception {
         XzAddAutoTask map = new XzAddAutoTask();
-        map.setTaskname("huoke10005");
-        map.setExpirdatebegin("2018-12-05 15:47:32");
-        map.setExpirdateend("2019-12-05 15:47:32");
+        map.setTaskname("huoke10006");
+        map.setExpirdatebegin("2020-03-28 15:47:32");
+        map.setExpirdateend("2020-12-29 15:47:32");
         map.setShownum("01053182579");
         map.setDailmodel("3");
 
-        map.setCalloutspeed("1");
+        map.setCalloutspeed("5.5");
         map.setCounttype("1");
         map.setCallinterval("30");
         map.setRingingduration("30");
@@ -449,7 +450,7 @@ public class XzCallCenterUtil {
         map.setTimeruleid("");
         map.setWaitvoiceid("");
         map.setSeatallocationmodel("1");
-        map.setMaxconcurrentnumber("10000");
+        map.setMaxconcurrentnumber("25");
         map.setIntelligence_num("");
 
         map.setCreator("admin");
