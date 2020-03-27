@@ -826,7 +826,12 @@ public class EntDataService {
         }
         // 其他标签
         if (StringUtil.isNotEmpty(param.getString("tag"))) {
-            qb.must(QueryBuilders.matchQuery("tag", param.getString("src")));
+            if ("tag1".equals(param.getString("tag"))) {
+                qb.must(QueryBuilders.matchQuery("tag", "高新企业"));
+            } else {
+                qb.must(QueryBuilders.matchQuery("tag", param.getString("tag")));
+            }
+
         }
         searchSourceBuilder.query(qb);
         return searchSourceBuilder;
@@ -868,7 +873,7 @@ public class EntDataService {
         return page;
     }
 
-    public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId)  {
+    public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) {
         JSONObject baseResult = elasticSearchService.getDocument(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
         if (baseResult != null) {
             if (baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone"))) {
