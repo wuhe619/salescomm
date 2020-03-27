@@ -33,6 +33,24 @@ public class CustomerSeaDTO {
     private String smsTemplateId;
     private String projectUserId;
     private String projectUserName;
+    private String timeruleid;
+    private String ringingduration;
+
+    public String getTimeruleid() {
+        return timeruleid;
+    }
+
+    public void setTimeruleid(String timeruleid) {
+        this.timeruleid = timeruleid;
+    }
+
+    public String getRingingduration() {
+        return ringingduration;
+    }
+
+    public void setRingingduration(String ringingduration) {
+        this.ringingduration = ringingduration;
+    }
 
     /**
      * 线索剩余量
