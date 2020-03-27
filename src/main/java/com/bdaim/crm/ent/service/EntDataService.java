@@ -749,10 +749,10 @@ public class EntDataService {
                 BoolQueryBuilder address = QueryBuilders.boolQuery();
                 regLocation = jsonArray.getJSONObject(i);
                 if (StringUtil.isNotEmpty(regLocation.getString("regarea"))) {
-                    address.must(QueryBuilders.termQuery("regarea", regLocation.getString("regarea")));
+                    address.must(QueryBuilders.matchQuery("regarea", regLocation.getString("regarea")));
                 }
                 if (StringUtil.isNotEmpty(regLocation.getString("regcity"))) {
-                    address.must(QueryBuilders.termQuery("regcity", regLocation.getString("regcity")));
+                    address.must(QueryBuilders.matchQuery("regcity", regLocation.getString("regcity")));
                 }
                 if (StringUtil.isNotEmpty(regLocation.getString("address"))) {
                     address.must(QueryBuilders.wildcardQuery("address", "*" + regLocation.getString("address") + "*"));
@@ -772,11 +772,11 @@ public class EntDataService {
 
         // 注册资金
         if (StringUtil.isNotEmpty(param.getString("regCapital")) && StringUtil.isNotEmpty(param.getString("regCapital2"))) {
-            qb.must(QueryBuilders.rangeQuery("regCap").from(param.getDate("regCapital").getTime()).to(param.getDate("regCapital2").getTime()));
+            qb.must(QueryBuilders.rangeQuery("regCap").from(param.getIntValue("regCapital")).to(param.getIntValue("regCapital2")));
         } else if (StringUtil.isNotEmpty(param.getString("regCapital"))) {
-            qb.must(QueryBuilders.rangeQuery("regCap").from(param.getDate("regCapital").getTime()));
+            qb.must(QueryBuilders.rangeQuery("regCap").from(param.getIntValue("regCapital")));
         } else if (StringUtil.isNotEmpty(param.getString("regCapital2"))) {
-            qb.must(QueryBuilders.rangeQuery("regCap").to(param.getDate("regCapital2").getTime()));
+            qb.must(QueryBuilders.rangeQuery("regCap").to(param.getIntValue("regCapital2")));
         }
 
         //来源
