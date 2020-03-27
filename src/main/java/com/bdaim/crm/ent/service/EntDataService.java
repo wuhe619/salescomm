@@ -6,6 +6,7 @@ import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.PhoneService;
@@ -652,7 +653,7 @@ public class EntDataService {
         }
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
         if (StringUtil.isNotEmpty(param.getString("id"))) {
-            qb.must(QueryBuilders.idsQuery().ids(param.getString("id")));
+            qb.must(QueryBuilders.idsQuery().addIds(param.getString("id")));
         }
         // 企业子类型
         if (StringUtil.isNotEmpty(param.getString("entType1"))) {
@@ -825,19 +826,16 @@ public class EntDataService {
         return searchSourceBuilder;
     }
 
-    private final static String INDEX = "ent_data";
-    private final static String INDEX_TYPE = "tag";
-
     public Page pageSearch(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params) throws Exception {
         Page page = new Page();
         LOG.info("企业列表查询参数:{}", params);
         // 构造DSL语句
         SearchSourceBuilder searchSourceBuilder = queryCondition(params);
         System.out.println(searchSourceBuilder.toString());
-        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), INDEX, INDEX_TYPE);
+        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         LOG.info("企业列表查询接口返回:{}", result);
 
-        if (result != null && result.getHits(JSONObject.class) != null) {
+        if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             List list = new ArrayList<>();
             JSONObject t;
             int sum;
@@ -865,7 +863,7 @@ public class EntDataService {
     }
 
     public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) throws Exception {
-        JSONObject baseResult = elasticSearchService.getDocument(INDEX, INDEX_TYPE, companyId);
+        JSONObject baseResult = elasticSearchService.getDocument(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
         if (baseResult != null) {
             if (baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone"))) {
                 List phones = new ArrayList();
