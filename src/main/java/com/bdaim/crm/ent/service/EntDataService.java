@@ -649,7 +649,7 @@ public class EntDataService {
             searchSourceBuilder.from(param.getIntValue("pageNum")).size(param.getIntValue("pageSize"));
         }
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
-        if (param.getString("id") != null) {
+        if (StringUtil.isNotEmpty(param.getString("id"))) {
             qb.must(QueryBuilders.idsQuery().ids(param.getString("id")));
         }
         // 企业子类型
@@ -762,25 +762,25 @@ public class EntDataService {
             qb.must(temp);
         }
         // 注册时间
-        if (param.getString("startTime") != null && param.getString("endTime") != null) {
+        if (StringUtil.isNotEmpty(param.getString("startTime")) && StringUtil.isNotEmpty(param.getString("endTime"))) {
             qb.must(QueryBuilders.rangeQuery("estabTime").from(param.getDate("startTime").getTime()).to(param.getDate("endTime").getTime()));
-        } else if (param.getString("startTime") != null) {
+        } else if (StringUtil.isNotEmpty(param.getString("startTime"))) {
             qb.must(QueryBuilders.rangeQuery("estabTime").from(param.getDate("startTime").getTime()));
-        } else if (param.getString("endTime") != null) {
+        } else if (StringUtil.isNotEmpty(param.getString("endTime"))) {
             qb.must(QueryBuilders.rangeQuery("estabTime").to(param.getDate("endTime").getTime()));
         }
 
         // 注册资金
-        if (param.getString("regCapital") != null && param.getString("regCapital2") != null) {
+        if (StringUtil.isNotEmpty(param.getString("regCapital")) && StringUtil.isNotEmpty(param.getString("regCapital2"))) {
             qb.must(QueryBuilders.rangeQuery("regCap").from(param.getDate("regCapital").getTime()).to(param.getDate("regCapital2").getTime()));
-        } else if (param.getString("regCapital") != null) {
+        } else if (StringUtil.isNotEmpty(param.getString("regCapital"))) {
             qb.must(QueryBuilders.rangeQuery("regCap").from(param.getDate("regCapital").getTime()));
-        } else if (param.getString("regCapital2") != null) {
+        } else if (StringUtil.isNotEmpty(param.getString("regCapital2"))) {
             qb.must(QueryBuilders.rangeQuery("regCap").to(param.getDate("regCapital2").getTime()));
         }
 
         //来源
-        if (param.getString("src") != null) {
+        if (StringUtil.isNotEmpty(param.getString("src"))) {
             qb.must(QueryBuilders.termQuery("src", param.getString("src")));
         }
         // 联系电话
@@ -811,7 +811,7 @@ public class EntDataService {
             }
         }
         // 其他标签
-        if (param.getString("tag") != null) {
+        if (StringUtil.isNotEmpty(param.getString("tag"))) {
             qb.must(QueryBuilders.matchQuery("tag", param.getString("src")));
         }
         searchSourceBuilder.query(qb);
