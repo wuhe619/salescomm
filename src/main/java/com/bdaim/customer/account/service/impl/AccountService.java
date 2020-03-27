@@ -783,7 +783,7 @@ public class AccountService {
         }
         Map<String, Object> resultMap = new HashMap<>();
 
-        //余额查询分
+        //余额查询厘
         Double remainAmout = 0.0;
         CustomerProperty ra = customerDao.getProperty(customerId, "remain_amount");
         try {
@@ -793,7 +793,7 @@ public class AccountService {
             logger.error("get balance error", e);
         }
         DecimalFormat df = new DecimalFormat("######0.00");
-        resultMap.put("balance", df.format(remainAmout / 100));
+        resultMap.put("balance", df.format(remainAmout / 1000));
 
         CustomerProperty ps = customerDao.getProperty(customerId, "pwd_status");
         resultMap.put("pwdStatus", ps == null ? "" : ps.getPropertyValue());
