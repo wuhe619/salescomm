@@ -23,6 +23,7 @@ import com.bdaim.customs.utils.ServiceUtils;
 import com.bdaim.util.*;
 
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MatchPhrasePrefixQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -1143,7 +1144,7 @@ public class CustomsService {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
         if (queryDataParams.getId() != null) {
-            MatchQueryBuilder mpq = QueryBuilders
+            MatchPhrasePrefixQueryBuilder mpq = QueryBuilders
                     .matchPhrasePrefixQuery("_id", queryDataParams.getId());
             qb.must(mpq);
         }

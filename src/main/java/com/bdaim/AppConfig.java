@@ -44,6 +44,9 @@ public class AppConfig {
     private static Integer oper_log_insert_timeout = 1000;
 	private static String xz_call_api = "http://api.salescomm.net:8017";
 
+	private static String ent_data_index = null;
+	private static String ent_data_type = null;
+
 	public static String getApp() {
 		return app;
 	}
@@ -265,5 +268,21 @@ public class AppConfig {
 	@Value("${xz_call_api:http://api.salescomm.net:8017}")
 	public void setXz_call_api(String xz_call_api) {
 		AppConfig.xz_call_api = xz_call_api;
+	}
+
+	public static String getEnt_data_index() {
+		return ent_data_index;
+	}
+	@Value("${ent_data_index:ent_data_test}")
+	public void setEnt_data_index(String ent_data_index) {
+		AppConfig.ent_data_index = ent_data_index;
+	}
+
+	public static String getEnt_data_type() {
+		return ent_data_type;
+	}
+	@Value("${ent_data_type:tag}")
+	public void setEnt_data_type(String ent_data_type) {
+		AppConfig.ent_data_type = ent_data_type;
 	}
 }

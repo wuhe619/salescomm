@@ -232,7 +232,9 @@ public class TaskService {
 //                    Record ownerUser = Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?", ownerUserId);
                     String findOwnerUserSql = "select user_id,realname,img from lkcrm_admin_user where user_id = ?";
                     Record ownerUser = JavaBeanUtil.mapToRecord(taskClassDao.queryUniqueSql(findOwnerUserSql, ownerUserId));
-                    ownerUserList.add(ownerUser);
+                    if (ownerUser != null && ownerUser.getColumns() != null && ownerUser.getColumns().size() > 0) {
+                        ownerUserList.add(ownerUser);
+                    }
                 }
             }
         }
@@ -441,10 +443,10 @@ public class TaskService {
         LkCrmWorkTaskLogEntity workTaskLog = new LkCrmWorkTaskLogEntity();
         workTaskLog.setUserId(userId);
         workTaskLog.setTaskId(task.getTaskId());
-
         LkCrmTaskEntity auldTask = taskDao.get(task.getTaskId());
-        BeanUtils.copyProperties(task, auldTask, JavaBeanUtil.getNullPropertyNames(task));
-        taskDao.update(auldTask);
+
+        Set<Map.Entry<String, Object>> newEntries = BeanUtil.beanToMap(task, true, true).entrySet();
+        Set<Map.Entry<String, Object>> oldEntries = BeanUtil.beanToMap(auldTask, true, false).entrySet();
 
         //判断描述是否修改
        /* if (task.getDescription() != null){
@@ -455,8 +457,7 @@ public class TaskService {
             }
            saveWorkTaskLog(workTaskLog);
         }*/
-        Set<Map.Entry<String, Object>> newEntries = BeanUtil.beanToMap(task).entrySet();
-        Set<Map.Entry<String, Object>> oldEntries = BeanUtil.beanToMap(auldTask).entrySet();
+
         newEntries.forEach(x -> {
             oldEntries.forEach(y -> {
                 Object oldValue = y.getValue();
@@ -495,6 +496,10 @@ public class TaskService {
                 }
             });
         });
+
+        BeanUtils.copyProperties(task, auldTask, JavaBeanUtil.getNullPropertyNames(task));
+        taskDao.update(auldTask);
+
         //判断是否修改了标签
         if (task.getLabelId() != null) {
             LkCrmWorkTaskLabelEntity workTaskLabel;

@@ -175,6 +175,10 @@ public class CustomerUserService {
         return customerUserDao.findUniqueBy("account", account);
     }
 
+    public CustomerUser getUserById(long userId) {
+        return customerUserDao.get(userId);
+    }
+
     public CustomerUserPropertyDO getUserBymobileNum(String mobileNum) {
         String hql = "from CustomerUserPropertyDO m where m.propertyName='mobile_num' and propertyValue=?";
         List<CustomerUserPropertyDO> list = this.customerUserDao.find(hql, mobileNum);

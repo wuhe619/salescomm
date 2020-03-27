@@ -6,7 +6,6 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.crm.ent.service.EntDataService;
-import com.bdaim.online.zhianxin.dto.BaseResult;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +49,7 @@ public class EntSearchController extends BasicAction {
     @PostMapping(value = "/{id}")
     public ResponseInfo getInfo(@PathVariable(name = "id") String id, @PathVariable(name = "busiType") String busiType, @RequestBody(required = false) String body) {
         ResponseInfo resp = new ResponseInfo();
-        BaseResult baseResult = null;
+        JSONObject baseResult = null;
         JSONObject param = null;
         try {
             if (body == null || "".equals(body))
@@ -64,13 +63,12 @@ public class EntSearchController extends BasicAction {
             if (StringUtil.isNotEmpty(param.getString("seaId"))) {
                 sId = param.getLongValue("seaId");
             }
-            //baseResult = searchListService.getCompanyDetail(id, param, busiType, sId);
+            baseResult = entDataService.getCompanyDetail(id, param, busiType, sId);
         } catch (Exception e) {
             logger.error("查询记录异常,", e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
         }
-        resp.setData(baseResult.getData());
-        resp.setMessage(baseResult.getMessage());
+        resp.setData(baseResult);
         return resp;
     }
 }

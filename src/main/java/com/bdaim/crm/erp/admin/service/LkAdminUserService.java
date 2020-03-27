@@ -577,14 +577,29 @@ public class LkAdminUserService {
         }
         LkCrmAdminUserEntity lkCrmAdminUserEntity = crmAdminUserDao.queryByUserName(adminUser.getUsername());
         adminUser.setUserId(BaseUtil.getUserId());
+        CustomerUser customerUser = customerUserDao.get(adminUser.getUserId());
         if (StrUtil.isNotEmpty(adminUser.getPassword())) {
             adminUser.setSalt(IdUtil.simpleUUID());
             adminUser.setPassword(CipherUtil.generatePassword(adminUser.getPassword()));
+            customerUser.setPassword(adminUser.getPassword());
             //adminUser.setPassword(BaseUtil.sign((adminUser.getUsername().trim() + adminUser.getPassword().trim()), adminUser.getSalt()));
         }
 //        return adminUser.update();
         BeanUtils.copyProperties(adminUser, lkCrmAdminUserEntity, JavaBeanUtil.getNullPropertyNames(adminUser));
         crmAdminUserDao.update(lkCrmAdminUserEntity);
+        if (StringUtil.isNotEmpty(adminUser.getRealname())) {
+            customerUser.setRealname(adminUser.getRealname());
+        }
+        if (adminUser.getStatus() != null) {
+            // 禁用
+            if (adminUser.getStatus() == 0) {
+                customerUser.setStatus(1);
+            } else if (adminUser.getStatus() == 1) {
+                // 启用
+                customerUser.setStatus(0);
+            }
+        }
+        customerUserDao.update(customerUser);
         return true;
     }
 
@@ -849,5 +864,9 @@ public class LkAdminUserService {
             }
         }
         return userIds;
+    }
+
+    public LkCrmAdminUserEntity getUserById(long userId) {
+        return crmAdminUserDao.get(userId);
     }
 }

@@ -14,11 +14,6 @@ import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.*;
 import io.searchbox.indices.mapping.GetMapping;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -33,7 +28,6 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -52,7 +46,7 @@ public class ElasticSearchService {
 
     public static final String CUSTOMER_SEA_TYPE = "data";
 
-    TransportClient client;
+    //TransportClient client;
 
     @Resource
     private RestTemplate restTemplate;
@@ -606,7 +600,7 @@ public class ElasticSearchService {
         return searchSourceBuilder;
     }
 
-    private TransportClient getClient() {
+    /*private TransportClient getClient() {
         if (client != null) {
             return client;
         }
@@ -622,9 +616,9 @@ public class ElasticSearchService {
             return null;
         }
     }
-
+*/
     public boolean bulkInsertDocument0(String index, String type, List<JSONObject> list) {
-        if (!isExistIndex(index, type)) {
+        /*if (!isExistIndex(index, type)) {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             JSONObject settings = JSON.parseObject("{\"settings\":{\"index.analysis.analyzer.default.type\":\"whitespace\"}}");
@@ -652,7 +646,7 @@ public class ElasticSearchService {
             System.out.println("erros->"+bulkResponse.buildFailureMessage());
         } else {
             return true;
-        }
+        }*/
         return false;
     }
 
