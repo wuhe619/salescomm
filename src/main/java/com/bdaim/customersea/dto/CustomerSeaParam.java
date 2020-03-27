@@ -97,6 +97,8 @@ public class CustomerSeaParam {
     private String remark;
     private Integer taskSmsIndex;
     private String smsTemplateId;
+    private String ringingduration;
+    private String timeruleid;
 
     /**
      * 线索回收规则 1-不启用 2-启用
@@ -473,5 +475,21 @@ public class CustomerSeaParam {
 
     public void setUserGroupId(String userGroupId) {
         this.userGroupId = userGroupId;
+    }
+
+    public String getRingingduration() {
+        return ringingduration;
+    }
+
+    public void setRingingduration(String ringingduration) {
+        this.ringingduration = ringingduration;
+    }
+
+    public String getTimeruleid() {
+        return timeruleid;
+    }
+
+    public void setTimeruleid(String timeruleid) {
+        this.timeruleid = timeruleid;
     }
 }

@@ -26,10 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -358,5 +355,34 @@ public class MarketTaskAction extends BasicAction {
         }
         return returnJsonData(data);
     }
+
+
+    /**
+     * 查询讯众工作时间规则列表
+     *
+     * @param resId
+     * @return
+     */
+    @RequestMapping(value = "/getCallTimeRuleList/{resId}", method = RequestMethod.GET)
+    @ResponseBody
+    public String getXzCallTimeRuleList(@PathVariable("resId")String resId) {
+        if (StringUtil.isEmpty(resId)) {
+            throw new ParamException("resId必填");
+        }
+        // 普通员工无权限
+        if ("2".equals(opUser().getUserType()) && RoleEnum.ROLE_CUSTOMER.equals(opUser().getRole())) {
+            return returnError("权限不足");
+        }
+        JSONArray result = null;
+        try {
+              result = marketTaskService.getCallTimeRuleList(resId);
+        } catch (Exception e) {
+            LOG.error("营销任务查询讯众自动外呼监控信息异常,", e);
+        }
+        return returnJsonData(result);
+    }
+
+
+
 
 }

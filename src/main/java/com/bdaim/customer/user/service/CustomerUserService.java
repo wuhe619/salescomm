@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -174,6 +175,10 @@ public class CustomerUserService {
         return customerUserDao.findUniqueBy("account", account);
     }
 
+    public CustomerUser getUserById(long userId) {
+        return customerUserDao.get(userId);
+    }
+
     public CustomerUserPropertyDO getUserBymobileNum(String mobileNum) {
         String hql = "from CustomerUserPropertyDO m where m.propertyName='mobile_num' and propertyValue=?";
         List<CustomerUserPropertyDO> list = this.customerUserDao.find(hql, mobileNum);
@@ -225,6 +230,11 @@ public class CustomerUserService {
 
         if(!checker.check(value.getPassword())){
             throw new Exception("密码不符合要求");
+        }
+        //用户是否已存在
+        List<CustomerUser> customerUsers = customerUserDao.findBy("account",value.getUserName());
+        if(!CollectionUtils.isEmpty(customerUsers)){
+            throw new Exception("该手机号已被注册");
         }
         //创建客户信息
         customer.setCustId(customerId);

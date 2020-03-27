@@ -393,10 +393,8 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "INSERT INTO `lkcrm_admin_field` (`field_name`, `cust_id`, `name`, `type`, `label`, `remark`, `input_tips`, `max_length`, `default_value`, `is_unique`, `is_null`, `sorting`, `options`, `operating`, `update_time`, `examine_category_id`, `field_type`, `relevant`, `add_sort`, `add_hidden`) VALUES ( '跟进状态', NULL, '跟进状态', '3', '2', NULL, '', NULL, '', '0', '0', '3', '有意向,无意向,待跟进', '0', '2020-03-12 11:33:51', NULL, '0', NULL, '12', NULL);";
+        String sql = "update h_dic SET p_code = 0 WHERE type = 'INDUSTRY_CODE_1';";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
-        sql = "INSERT INTO `lkcrm_admin_field` ( `field_name`, `cust_id`, `name`, `type`, `label`, `remark`, `input_tips`, `max_length`, `default_value`, `is_unique`, `is_null`, `sorting`, `options`, `operating`, `update_time`, `examine_category_id`, `field_type`, `relevant`, `add_sort`, `add_hidden`) VALUES ( '跟进状态', NULL, '跟进状态', '3', '1', NULL, '', NULL, '', '0', '0', '3', '有意向,无意向,待跟进', '0', '2020-03-13 09:57:15', NULL, '0', NULL, '12', NULL); ";
-        data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
     }
@@ -465,7 +463,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 线索转移
      */
     @Permissions("crm:leads:transfer")
@@ -477,7 +474,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 线索转客户
      */
     @Permissions("crm:leads:transform")

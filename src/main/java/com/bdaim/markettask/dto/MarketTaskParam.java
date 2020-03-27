@@ -33,6 +33,8 @@ public class MarketTaskParam {
     private Long updateUid;
     private Long updateTime;
     private Integer status;
+    private String ringingduration;
+    private String timeruleid;
     /**
      * 1-历史任务Id
      */
@@ -286,5 +288,21 @@ public class MarketTaskParam {
 
     public void setSendTime(String sendTime) {
         this.sendTime = sendTime;
+    }
+
+    public String getRingingduration() {
+        return ringingduration;
+    }
+
+    public void setRingingduration(String ringingduration) {
+        this.ringingduration = ringingduration;
+    }
+
+    public String getTimeruleid() {
+        return timeruleid;
+    }
+
+    public void setTimeruleid(String timeruleid) {
+        this.timeruleid = timeruleid;
     }
 }

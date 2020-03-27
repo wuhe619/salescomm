@@ -3,24 +3,26 @@ package com.bdaim.crm.erp.admin.controller;
 import cn.hutool.core.bean.BeanUtil;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.entity.LkCrmAdminUserEntity;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.user.service.CustomerUserService;
+import com.bdaim.util.CipherUtil;
 import com.jfinal.core.paragetter.Para;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Chacker
@@ -34,6 +36,9 @@ public class AdminUserController extends BasicAction {
 
     @Resource
     private AdminFileService adminFileService;
+
+    @Autowired
+    private CustomerUserService customerUserService;
 
     /**
      * @param adminUser
@@ -164,22 +169,25 @@ public class AdminUserController extends BasicAction {
 //        renderJson(R.error("修改头像失败"));
         return R.error("修改头像失败");
     }
-    /*public void updatePassword(){
-        String oldPass=getPara("oldPwd");
-        String newPass=getPara("newPwd");
-        LoginUser adminUser=BaseUtil.getUser();
-        if(!BaseUtil.verify(adminUser.getUsername()+oldPass,adminUser.getSalt(),adminUser.getPassword())){
-            renderJson(R.error("密码输入错误"));
-            return;
+
+    @PostMapping("/updatePassword")
+    public R updatePassword() {
+        String oldPass = getPara("oldPwd");
+        String newPass = getPara("newPwd");
+        CustomerUser customerUser = customerUserService.getUserById(BaseUtil.getUserId());
+        if (customerUser == null) {
+            return (R.error("用户不存在"));
         }
+
+        if (!Objects.equals(customerUser.getPassword(), CipherUtil.generatePassword(oldPass))) {
+            return (R.error("原密码输入错误"));
+            //return;
+        }
+        LkCrmAdminUserEntity adminUser = adminUserService.getUserById(BaseUtil.getUserId());
         adminUser.setPassword(newPass);
-        boolean b=adminUserService.updateUser(adminUser);
-        if(b){
-            RedisManager.getRedis().del(BaseUtil.getToken());
-            removeCookie("Admin-Token");
-        }
-        renderJson(R.isSuccess(b));
-    }*/
+        boolean b = adminUserService.updateUser(adminUser);
+        return (R.isSuccess(b));
+    }
 
     @NotNullValidate(value = "realname", message = "姓名不能为空")
     @NotNullValidate(value = "username", message = "用户名不能为空")

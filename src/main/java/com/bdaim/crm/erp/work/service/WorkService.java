@@ -624,8 +624,8 @@ public class WorkService {
         Integer isOpen = workDao.queryForInt(isOpenSql, workId);
         if (workId == 0 || isOpen == 1) {
 //            return R.ok().put("data", Db.find("select user_id,realname from lkcrm_admin_user"));
-            String recordListSql = "select user_id,realname from lkcrm_admin_user";
-            List<Map<String, Object>> recordList = workDao.queryListBySql(recordListSql);
+            String recordListSql = "select user_id,realname from lkcrm_admin_user WHERE cust_id = ? AND status =1 ";
+            List<Map<String, Object>> recordList = workDao.sqlQuery(recordListSql, BaseUtil.getCustId());
             return R.ok().put("data", JavaBeanUtil.mapToRecords(recordList));
         }
 //        return R.ok().put("data", Db.find(Db.getSql("work.queryOwnerRoleList"), workId));
