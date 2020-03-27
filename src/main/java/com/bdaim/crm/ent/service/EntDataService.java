@@ -868,7 +868,7 @@ public class EntDataService {
         return page;
     }
 
-    public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) throws Exception {
+    public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId)  {
         JSONObject baseResult = elasticSearchService.getDocument(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
         if (baseResult != null) {
             if (baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone"))) {
