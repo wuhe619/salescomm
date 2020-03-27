@@ -317,6 +317,16 @@ public class CustomerSeaService {
             CustomerSeaProperty callCount = new CustomerSeaProperty(param.getId(), "callCount", String.valueOf(param.getCallCount()), createTime);
             customerSeaDao.saveOrUpdate(callCount);
         }
+        //振铃时长
+        if(StringUtil.isNotEmpty(param.getRingingduration())){
+            CustomerSeaProperty ringingduration = new CustomerSeaProperty(param.getId(), "ringingduration", param.getRingingduration(), createTime);
+            customerSeaDao.saveOrUpdate(ringingduration);
+        }
+        //时间规则id
+        if(StringUtil.isNotEmpty(param.getTimeruleid())){
+            CustomerSeaProperty timeruleid = new CustomerSeaProperty(param.getId(), "timeruleid", param.getTimeruleid(), createTime);
+            customerSeaDao.saveOrUpdate(timeruleid);
+        }
         code = 1;
         return code;
     }
@@ -700,9 +710,11 @@ public class CustomerSeaService {
                             if ("1".equals(callCenterConfig.getString("type")) && "2".equals(callCenterConfig.getString("call_center_type"))) {
                                 xzCallCenterId = callCenterConfig.getJSONObject("call_center_config").getString("callCenterId");
                                 param.setId(customerSea.getId());
+
                                 JSONObject jsonObject = xzCallCenterService.addXzAutoTask(xzCallCenterId, param.getName() + IDHelper.getID(), param.getApparentNumber(),
                                         param.getCallSpeed().toString(), param.getCallCount(), LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8")),
-                                        LocalDateTime.now().plusMonths(360).toEpochSecond(ZoneOffset.of("+8")), ConstantsUtil.XZ_SEA_AUTO_TASK_PHONE_URL,"60","");
+                                        LocalDateTime.now().plusMonths(360).toEpochSecond(ZoneOffset.of("+8")), ConstantsUtil.XZ_SEA_AUTO_TASK_PHONE_URL,param.getRingingduration(),param.getTimeruleid());
+
                                 if (jsonObject != null) {
                                     customerSea.setTaskId(jsonObject.getString("taskidentity"));
                                     customerSeaDao.update(customerSea);
@@ -3043,10 +3055,23 @@ public class CustomerSeaService {
         if (callCount != null) {
             ccn = callCount.getPropertyValue();
         }
+
+        String ringingdurationStr = null;
+        CustomerSeaProperty ringingduration = customerSeaDao.getProperty(seaId, "ringingduration");
+        if (ringingduration != null) {
+            ringingdurationStr = ringingduration.getPropertyValue();
+        }
+        String timeruleidStr = null;
+        CustomerSeaProperty  timeruleid= customerSeaDao.getProperty(seaId, "timeruleid");
+        if (timeruleid != null) {
+            timeruleidStr = timeruleid.getPropertyValue();
+        }
         CustomerSeaDTO dto = new CustomerSeaDTO(customerSea);
         dto.setApparentNumber(apparentNum);
         dto.setCallSpeed(NumberConvertUtil.parseInt(csp));
         dto.setCallCount(NumberConvertUtil.parseInt(ccn));
+        dto.setRingingduration(ringingdurationStr);
+        dto.setTimeruleid(timeruleidStr);
 
         // 查询呼叫渠道
         CustomerSeaProperty cChannel = customerSeaDao.getProperty(seaId, "callChannel");
