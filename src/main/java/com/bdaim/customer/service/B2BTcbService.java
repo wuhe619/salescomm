@@ -371,6 +371,11 @@ public class B2BTcbService implements BusiService {
             if (pNumbers == null || pNumbers.size() == 0) {
                 continue;
             }
+            String email = "";
+            if (StringUtil.isNotEmpty(data.get(entId).getString("email"))
+                    && !"-".equals(data.get(entId).getString("email"))) {
+                email = data.get(entId).getString("email");
+            }
             for (int i = 0; i < pNumbers.size(); i++) {
                 if (StringUtil.isEmpty(pNumbers.getString(i))) {
                     LOG.info("B2B企业ID:{}手机号为空:{}", entId, pNumbers.getString(i));
@@ -379,7 +384,7 @@ public class B2BTcbService implements BusiService {
                 dto = new CustomSeaTouchInfoDTO("", custId, String.valueOf(userId), "", "",
                         data.get(entId).getString("entName") + (i + 1), "", "", pNumbers.getString(i),
                         "", "", "",
-                        seaId, superData, "", "", "", "",
+                        seaId, superData, "", email, "", "",
                         "", "", data.get(entId).getString("entName"),
                         entId, data.get(entId).getString("regLocation"), data.get(entId).getString("regCap"),
                         data.get(entId).getString("entStatus"), data.get(entId).getString("estiblishTime"), pNumbers.size());
@@ -392,7 +397,7 @@ public class B2BTcbService implements BusiService {
                 if ("crm".equals(param.getString("source")) && status != -1) {
                     // 保存公海标记信息  seaType 1公海 2私海
                     JSONArray list = new JSONArray();
-                    String[] values = new String[]{"手机", "电话", "线索名称", "公司名称", "线索来源"};
+                    String[] values = new String[]{"手机", "电话", "线索名称", "公司名称", "线索来源", "邮箱"};
                     String telephone = "", mobile = "";
                     if (pNumbers.getString(i).replaceAll(" ", "").trim().length() == 11
                             && pNumbers.getString(i).lastIndexOf("-") <= 0
@@ -420,10 +425,13 @@ public class B2BTcbService implements BusiService {
                                 value.setValue("发现线索");
                             } else if ("电话".equals(v)) {
                                 value.setValue(telephone);
+                            } else if ("邮箱".equals(v)) {
+                                value.setValue(email);
                             }
                             list.add(value);
                         }
                     }
+                    email = "";
                     String id = dto.getSuper_id();
                     //领取到私海
                     if (seaType == 2) {
