@@ -719,9 +719,10 @@ public class CrmCustomerService {
      */
     @Before(Tx.class)
     public R updateRulesSetting(Integer dealDay, Integer followupDay, Integer type) {
-        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set value = ? where name = 'customerPoolSettingDealDays' AND cust_id = ?", dealDay, BaseUtil.getCustId());
-        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set value = ? where name = 'customerPoolSettingFollowupDays' AND cust_id = ?", followupDay, BaseUtil.getCustId());
-        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set status = ? where name = 'customerPoolSetting' AND cust_id = ?", type, BaseUtil.getCustId());
+        String custId = BaseUtil.getCustId();
+        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set value = ? where name = 'customerPoolSettingDealDays' AND cust_id = ?", dealDay, custId);
+        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set value = ? where name = 'customerPoolSettingFollowupDays' AND cust_id = ?", followupDay, custId);
+        crmCustomerDao.executeUpdateSQL("update lkcrm_admin_config set status = ? where name = 'customerPoolSetting' AND cust_id = ?", type, custId);
         return R.ok();
     }
 
@@ -731,13 +732,14 @@ public class CrmCustomerService {
      */
     @Before(Tx.class)
     public R getRulesSetting() {
-        String dealDay = crmAdminConfigDao.queryForObject("select value from lkcrm_admin_config where name = 'customerPoolSettingDealDays' AND cust_id = ?", BaseUtil.getCustId());
-        String followupDay = crmAdminConfigDao.queryForObject("select value from lkcrm_admin_config where name = 'customerPoolSettingFollowupDays' AND cust_id = ?", BaseUtil.getCustId());
-        Integer type = crmAdminConfigDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting' AND cust_id = ?", BaseUtil.getCustId());
+        String custId = BaseUtil.getCustId();
+        String dealDay = crmAdminConfigDao.queryForObject("select value from lkcrm_admin_config where name = 'customerPoolSettingDealDays' AND cust_id = ?", custId);
+        String followupDay = crmAdminConfigDao.queryForObject("select value from lkcrm_admin_config where name = 'customerPoolSettingFollowupDays' AND cust_id = ?", custId);
+        Integer type = crmAdminConfigDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting' AND cust_id = ?", custId);
         if (StringUtil.isEmpty(dealDay) || StringUtil.isEmpty(followupDay) || type == null || type == 0) {
             if (StringUtil.isEmpty(dealDay)) {
                 LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
-                adminConfig.setCustId(BaseUtil.getCustId());
+                adminConfig.setCustId(custId);
                 adminConfig.setName("customerPoolSettingDealDays");
                 adminConfig.setValue("3");
                 crmAdminConfigDao.save(adminConfig);
@@ -745,7 +747,7 @@ public class CrmCustomerService {
             }
             if (StringUtil.isEmpty(followupDay)) {
                 LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
-                adminConfig.setCustId(BaseUtil.getCustId());
+                adminConfig.setCustId(custId);
                 adminConfig.setName("customerPoolSettingFollowupDays");
                 adminConfig.setValue("7");
                 crmAdminConfigDao.save(adminConfig);
@@ -753,7 +755,7 @@ public class CrmCustomerService {
             }
             if (type == null || type == 0) {
                 LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
-                adminConfig.setCustId(BaseUtil.getCustId());
+                adminConfig.setCustId(custId);
                 adminConfig.setName("customerPoolSetting");
                 adminConfig.setStatus(0);
                 crmAdminConfigDao.save(adminConfig);
@@ -1130,11 +1132,12 @@ public class CrmCustomerService {
     }
 
     public R setRecordOptions(List<String> list) {
-        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'customerFollowRecordOption' AND cust_id = ? AND is_system <> 1   ", BaseUtil.getCustId());
+        String custId = BaseUtil.getCustId();
+        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'customerFollowRecordOption' AND cust_id = ? AND is_system <> 1   ", custId);
         List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
-            adminConfig.setCustId(BaseUtil.getCustId());
+            adminConfig.setCustId(custId);
             adminConfig.setName("customerFollowRecordOption");
             adminConfig.setValue(list.get(i));
             adminConfig.setDescription("客户跟进记录选项");
