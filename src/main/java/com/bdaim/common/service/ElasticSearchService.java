@@ -67,7 +67,8 @@ public class ElasticSearchService {
             LOG.info("向es查询记录:index[" + index + "],type[" + type + "],id:[" + id + "]");
             String httpResult = HttpUtil.httpGet(ESUtil.getUrl(index, type) + id, null, null);
             JSONObject jsonObject = JSON.parseObject(httpResult);
-            if (jsonObject == null || !jsonObject.getBoolean("found")) {
+            LOG.info("向es查询记录:index[" + index + "],type[" + type + "],id:[" + id + "]返回数据:{}", jsonObject);
+            if (jsonObject == null || (jsonObject != null && !jsonObject.getBoolean("found"))) {
                 return new JSONObject();
             }
             result = jsonObject.getJSONObject("_source");
