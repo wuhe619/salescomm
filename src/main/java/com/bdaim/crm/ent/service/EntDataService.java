@@ -646,7 +646,15 @@ public class EntDataService {
     public SearchSourceBuilder queryCondition(JSONObject param) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         if (param.getInteger("pageNum") != null && param.getInteger("pageSize") != null) {
-            searchSourceBuilder.from(param.getIntValue("pageNum")).size(param.getIntValue("pageSize"));
+            int pageNum = param.getIntValue("pageNum");
+            int pageSize = param.getIntValue("pageNum");
+            if (pageNum < 0 || pageNum == 1) {
+                pageNum = 0;
+            }
+            if (pageSize < 0 || pageSize > 100) {
+                pageSize = 100;
+            }
+            searchSourceBuilder.from(pageNum).size(pageSize);
         }
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
         if (StringUtil.isNotEmpty(param.getString("id"))) {
