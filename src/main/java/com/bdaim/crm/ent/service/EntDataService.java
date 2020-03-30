@@ -689,12 +689,13 @@ public class EntDataService {
                 // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
                 int typeName = jsonArray.getJSONObject(i).getInteger("typeName");
                 if (typeName == 1) {
-                    for (String text : jsonArray.getJSONObject(i).getString("value").split("")) {
+                    JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
+                    for (int j = 0; j < texts.size(); j++) {
                        /* MatchQueryBuilder mpq = QueryBuilders
                                 .matchQuery("entName", text);
                         temp.should(mpq);*/
                         WildcardQueryBuilder mpq = QueryBuilders
-                                .wildcardQuery("entName", "*" + text + "*");
+                                .wildcardQuery("entName", "*" + texts.getString(j) + "*");
                         temp.should(mpq);
                     }
                 } else if (typeName == 2) {
@@ -702,12 +703,13 @@ public class EntDataService {
                             .termQuery("entName", jsonArray.getJSONObject(i).getString("value"));
                     temp.should(mpq);
                 } else if (typeName == 3) {
-                    for (String text : jsonArray.getJSONObject(i).getString("value").split("")) {
+                    JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
+                    for (int j = 0; j < texts.size(); j++) {
                        /* MatchQueryBuilder mpq = QueryBuilders
                                 .matchQuery("entName", text);
                         temp.should(mpq);*/
                         WildcardQueryBuilder mpq = QueryBuilders
-                                .wildcardQuery("entName", "*" + text + "*");
+                                .wildcardQuery("entName", "*" + texts.getString(j) + "*");
                         temp.mustNot(mpq);
                     }
                 } else if (typeName == 4) {
