@@ -67,7 +67,8 @@ public class ElasticSearchService {
             LOG.info("向es查询记录:index[" + index + "],type[" + type + "],id:[" + id + "]");
             String httpResult = HttpUtil.httpGet(ESUtil.getUrl(index, type) + id, null, null);
             JSONObject jsonObject = JSON.parseObject(httpResult);
-            if (jsonObject == null || !jsonObject.getBoolean("found")) {
+            LOG.info("向es查询记录:index[" + index + "],type[" + type + "],id:[" + id + "]返回数据:{}", jsonObject);
+            if (jsonObject == null || (jsonObject != null && !jsonObject.getBoolean("found"))) {
                 return new JSONObject();
             }
             result = jsonObject.getJSONObject("_source");
@@ -239,6 +240,23 @@ public class ElasticSearchService {
             LOG.info("从es查询记录返回结果:[" + httpResult + "]");
         } catch (Exception e) {
             LOG.error("从es查询记录异常:", e);
+        }
+        return result;
+    }
+
+    public JSONObject getDocumentById0(String index, String type, String id) {
+        JSONObject result = null;
+        try {
+            LOG.info("向es查询记录:index[" + index + "],type[" + type + "],id:[" + id + "]");
+            Get get = new Get.Builder(index, id).type(type).build();
+            DocumentResult response = jestClient.execute(get);
+            LOG.info("向es查询记录:index[" + index + "],type[" + type + "],id:[" + id + "]返回数据:{}", response.getJsonObject());
+            if (response.isSucceeded()) {
+                result = JSONObject.parseObject(response.getSourceAsString());
+            }
+            LOG.info("向es查询记录返回结果:[" + result + "]");
+        } catch (Exception e) {
+            LOG.error("向es查询记录异常:", e);
         }
         return result;
     }
@@ -524,7 +542,7 @@ public class ElasticSearchService {
      * @return
      */
     public SearchResult search(String dsl, String index, String indexType) {
-        LOG.info("ES检索语句:\n{}", dsl);
+        LOG.info("index:{},indexType:{},ES检索语句:\n{}", index, indexType, dsl);
         SearchResult result = null;
         try {
             Search search = new Search.Builder(dsl)

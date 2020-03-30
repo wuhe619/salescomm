@@ -18,10 +18,7 @@ import com.bdaim.util.MD5Util;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import io.searchbox.core.SearchResult;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -649,7 +646,15 @@ public class EntDataService {
     public SearchSourceBuilder queryCondition(JSONObject param) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         if (param.getInteger("pageNum") != null && param.getInteger("pageSize") != null) {
-            searchSourceBuilder.from(param.getIntValue("pageNum")).size(param.getIntValue("pageSize"));
+            int pageNum = param.getIntValue("pageNum");
+            int pageSize = param.getIntValue("pageSize");
+            if (pageNum < 0 || pageNum == 1) {
+                pageNum = 0;
+            }
+            if (pageSize < 0 || pageSize > 100) {
+                pageSize = 100;
+            }
+            searchSourceBuilder.from(pageNum).size(pageSize);
         }
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
         if (StringUtil.isNotEmpty(param.getString("id"))) {
@@ -660,11 +665,11 @@ public class EntDataService {
             BoolQueryBuilder temp = QueryBuilders.boolQuery();
             for (int i = 0; i < param.getJSONArray("entType1").size(); i++) {
                 if ("外商".equals(param.getJSONArray("entType1").getString(i))) {
-                    temp.should(QueryBuilders.matchQuery("entType", "外商"));
-                    temp.should(QueryBuilders.matchQuery("entType", "外国"));
-                    temp.should(QueryBuilders.matchQuery("entType", "中外"));
+                    temp.should(QueryBuilders.wildcardQuery("entType", "*外商*"));
+                    temp.should(QueryBuilders.wildcardQuery("entType", "*外国*"));
+                    temp.should(QueryBuilders.wildcardQuery("entType", "*中外*"));
                 } else {
-                    temp.should(QueryBuilders.matchQuery("entType", param.getJSONArray("entType1").getString(i)));
+                    temp.should(QueryBuilders.wildcardQuery("entType", "*" + param.getJSONArray("entType1").getString(i) + "*"));
                 }
             }
             qb.must(temp);
@@ -691,27 +696,37 @@ public class EntDataService {
             for (int i = 0; i < jsonArray.size(); i++) {
                 // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
                 int typeName = jsonArray.getJSONObject(i).getInteger("typeName");
+                JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
                 if (typeName == 1) {
-                   /* for (String text : jsonArray.getJSONObject(i).getString("value").split("")) {
-                        MatchQueryBuilder mpq = QueryBuilders
+                    for (int j = 0; j < texts.size(); j++) {
+                       /* MatchQueryBuilder mpq = QueryBuilders
                                 .matchQuery("entName", text);
+                        temp.should(mpq);*/
+                        WildcardQueryBuilder mpq = QueryBuilders
+                                .wildcardQuery("entName", "*" + texts.getString(j) + "*");
                         temp.should(mpq);
-                    }*/
-                    MatchQueryBuilder mpq = QueryBuilders
-                            .matchQuery("entName", jsonArray.getJSONObject(i).getString("value"));
-                    temp.should(mpq);
+                    }
                 } else if (typeName == 2) {
-                    TermQueryBuilder mpq = QueryBuilders
-                            .termQuery("entName", jsonArray.getJSONObject(i).getString("value"));
-                    temp.should(mpq);
+                    for (int j = 0; j < texts.size(); j++) {
+                        TermQueryBuilder mpq = QueryBuilders
+                                .termQuery("entName", texts.getString(j));
+                        temp.should(mpq);
+                    }
                 } else if (typeName == 3) {
-                    MatchQueryBuilder mpq = QueryBuilders
-                            .matchQuery("entName", jsonArray.getJSONObject(i).getString("value"));
-                    temp.mustNot(mpq);
+                    for (int j = 0; j < texts.size(); j++) {
+                       /* MatchQueryBuilder mpq = QueryBuilders
+                                .matchQuery("entName", text);
+                        temp.should(mpq);*/
+                        WildcardQueryBuilder mpq = QueryBuilders
+                                .wildcardQuery("entName", "*" + texts.getString(j) + "*");
+                        temp.mustNot(mpq);
+                    }
                 } else if (typeName == 4) {
-                    TermQueryBuilder mpq = QueryBuilders
-                            .termQuery("entName", jsonArray.getJSONObject(i).getString("value"));
-                    temp.mustNot(mpq);
+                    for (int j = 0; j < texts.size(); j++) {
+                        TermQueryBuilder mpq = QueryBuilders
+                                .termQuery("entName", texts.getString(j));
+                        temp.mustNot(mpq);
+                    }
                 }
             }
             qb.must(temp);
@@ -724,22 +739,31 @@ public class EntDataService {
             for (int i = 0; i < jsonArray.size(); i++) {
                 // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
                 int typeScope = jsonArray.getJSONObject(i).getInteger("typeScope");
+                JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
                 if (typeScope == 1) {
-                    MatchQueryBuilder mpq = QueryBuilders
-                            .matchQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
-                    temp.should(mpq);
+                    for (int j = 0; j < texts.size(); j++) {
+                        WildcardQueryBuilder mpq = QueryBuilders
+                                .wildcardQuery("opScope", "*" + texts.getString(j) + "*");
+                        temp.should(mpq);
+                    }
                 } else if (typeScope == 2) {
-                    TermQueryBuilder mpq = QueryBuilders
-                            .termQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
-                    temp.should(mpq);
+                    for (int j = 0; j < texts.size(); j++) {
+                        TermQueryBuilder mpq = QueryBuilders
+                                .termQuery("opScope", texts.getString(j));
+                        temp.should(mpq);
+                    }
                 } else if (typeScope == 3) {
-                    MatchQueryBuilder mpq = QueryBuilders
-                            .matchQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
-                    temp.mustNot(mpq);
+                    for (int j = 0; j < texts.size(); j++) {
+                        WildcardQueryBuilder mpq = QueryBuilders
+                                .wildcardQuery("opScope", "*" + texts.getString(j) + "*");
+                        temp.mustNot(mpq);
+                    }
                 } else if (typeScope == 4) {
-                    TermQueryBuilder mpq = QueryBuilders
-                            .termQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
-                    temp.mustNot(mpq);
+                    for (int j = 0; j < texts.size(); j++) {
+                        TermQueryBuilder mpq = QueryBuilders
+                                .termQuery("opScope", texts.getString(j));
+                        temp.mustNot(mpq);
+                    }
                 }
             }
             qb.must(temp);
@@ -842,9 +866,9 @@ public class EntDataService {
         LOG.info("企业列表查询参数:{}", params);
         // 构造DSL语句
         SearchSourceBuilder searchSourceBuilder = queryCondition(params);
+
         System.out.println(searchSourceBuilder.toString());
         SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
-        LOG.info("企业列表查询接口返回:{}", result);
 
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             List list = new ArrayList<>();
@@ -874,7 +898,7 @@ public class EntDataService {
     }
 
     public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) {
-        JSONObject baseResult = elasticSearchService.getDocument(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
+        JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
         if (baseResult != null) {
             if (baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone"))) {
                 List phones = new ArrayList();
