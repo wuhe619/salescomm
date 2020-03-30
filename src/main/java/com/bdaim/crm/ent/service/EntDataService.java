@@ -696,8 +696,8 @@ public class EntDataService {
             for (int i = 0; i < jsonArray.size(); i++) {
                 // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
                 int typeName = jsonArray.getJSONObject(i).getInteger("typeName");
+                JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
                 if (typeName == 1) {
-                    JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
                     for (int j = 0; j < texts.size(); j++) {
                        /* MatchQueryBuilder mpq = QueryBuilders
                                 .matchQuery("entName", text);
@@ -707,11 +707,12 @@ public class EntDataService {
                         temp.should(mpq);
                     }
                 } else if (typeName == 2) {
-                    TermQueryBuilder mpq = QueryBuilders
-                            .termQuery("entName", jsonArray.getJSONObject(i).getString("value"));
-                    temp.should(mpq);
+                    for (int j = 0; j < texts.size(); j++) {
+                        TermQueryBuilder mpq = QueryBuilders
+                                .termQuery("entName", texts.getString(j));
+                        temp.should(mpq);
+                    }
                 } else if (typeName == 3) {
-                    JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
                     for (int j = 0; j < texts.size(); j++) {
                        /* MatchQueryBuilder mpq = QueryBuilders
                                 .matchQuery("entName", text);
@@ -721,9 +722,11 @@ public class EntDataService {
                         temp.mustNot(mpq);
                     }
                 } else if (typeName == 4) {
-                    TermQueryBuilder mpq = QueryBuilders
-                            .termQuery("entName", jsonArray.getJSONObject(i).getString("value"));
-                    temp.mustNot(mpq);
+                    for (int j = 0; j < texts.size(); j++) {
+                        TermQueryBuilder mpq = QueryBuilders
+                                .termQuery("entName", texts.getString(j));
+                        temp.mustNot(mpq);
+                    }
                 }
             }
             qb.must(temp);
@@ -736,29 +739,31 @@ public class EntDataService {
             for (int i = 0; i < jsonArray.size(); i++) {
                 // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
                 int typeScope = jsonArray.getJSONObject(i).getInteger("typeScope");
+                JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
                 if (typeScope == 1) {
-                    JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
                     for (int j = 0; j < texts.size(); j++) {
                         WildcardQueryBuilder mpq = QueryBuilders
                                 .wildcardQuery("opScope", "*" + texts.getString(j) + "*");
                         temp.should(mpq);
                     }
-
                 } else if (typeScope == 2) {
-                    TermQueryBuilder mpq = QueryBuilders
-                            .termQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
-                    temp.should(mpq);
+                    for (int j = 0; j < texts.size(); j++) {
+                        TermQueryBuilder mpq = QueryBuilders
+                                .termQuery("opScope", texts.getString(j));
+                        temp.should(mpq);
+                    }
                 } else if (typeScope == 3) {
-                    JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
                     for (int j = 0; j < texts.size(); j++) {
                         WildcardQueryBuilder mpq = QueryBuilders
                                 .wildcardQuery("opScope", "*" + texts.getString(j) + "*");
                         temp.mustNot(mpq);
                     }
                 } else if (typeScope == 4) {
-                    TermQueryBuilder mpq = QueryBuilders
-                            .termQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
-                    temp.mustNot(mpq);
+                    for (int j = 0; j < texts.size(); j++) {
+                        TermQueryBuilder mpq = QueryBuilders
+                                .termQuery("opScope", texts.getString(j));
+                        temp.mustNot(mpq);
+                    }
                 }
             }
             qb.must(temp);
