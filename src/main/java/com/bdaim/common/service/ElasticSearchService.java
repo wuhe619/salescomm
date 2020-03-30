@@ -244,6 +244,23 @@ public class ElasticSearchService {
         return result;
     }
 
+    public JSONObject getDocumentById0(String index, String type, String id) {
+        JSONObject result = null;
+        try {
+            LOG.info("向es查询记录:index[" + index + "],type[" + type + "],id:[" + id + "]");
+            Get get = new Get.Builder(index, id).type(type).build();
+            DocumentResult response = jestClient.execute(get);
+            LOG.info("向es查询记录:index[" + index + "],type[" + type + "],id:[" + id + "]返回数据:{}", response.getJsonObject());
+            if (response.isSucceeded()) {
+                result = JSONObject.parseObject(response.getSourceAsString());
+            }
+            LOG.info("向es查询记录返回结果:[" + result + "]");
+        } catch (Exception e) {
+            LOG.error("向es查询记录异常:", e);
+        }
+        return result;
+    }
+
 
     /**
      * 修改记录
