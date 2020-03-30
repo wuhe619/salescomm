@@ -26,10 +26,11 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
 
     public int deleteByChooseId(List<Integer> field_ids, int label, Integer categoryId) {
         List param = new ArrayList();
+        param.add(BaseUtil.getCustId());
         param.add(label);
-        String sql = "DELETE FROM lkcrm_admin_field WHERE field_id not in(" + SqlAppendUtil.sqlAppendWhereIn(field_ids.toArray()) + ") and (operating = '0' or operating = '2') and label= ?  ";
+        String sql = "DELETE FROM lkcrm_admin_field WHERE cust_id = ? AND field_id not in(" + SqlAppendUtil.sqlAppendWhereIn(field_ids.toArray()) + ") and (operating = '0' or operating = '2') and label= ?  ";
         if (10 == label) {
-            sql += " and examine_category_id=？";
+            sql += " and examine_category_id=?";
             param.add(categoryId);
         }
         return executeUpdateSQL(sql, param.toArray());
@@ -37,20 +38,22 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
 
     public int deleteByFieldValue(List<Integer> field_ids, int label, Integer categoryId) {
         List param = new ArrayList();
+        param.add(BaseUtil.getCustId());
+        param.add(BaseUtil.getCustId());
         param.add(label);
-        String sql = "DELETE FROM lkcrm_admin_fieldv WHERE field_id in( SELECT field_id FROM lkcrm_admin_field WHERE field_id not in(" + SqlAppendUtil.sqlAppendWhereIn(field_ids.toArray()) + ") and (operating = '0' or operating = '2') and label=? ";
+        String sql = "DELETE FROM lkcrm_admin_fieldv WHERE cust_id = ? AND field_id in( SELECT field_id FROM lkcrm_admin_field WHERE field_id not in(" + SqlAppendUtil.sqlAppendWhereIn(field_ids.toArray()) + " AND cust_id = ?  ) and (operating = '0' or operating = '2') and label=? ";
         if (10 == label) {
-            sql += " and examine_category_id=？ ";
+            sql += " and examine_category_id=? ";
             param.add(categoryId);
         }
         sql += " ) ";
         return executeUpdateSQL(sql, param.toArray());
     }
 
-    public int deleteFieldSort(List<String> names, int label) {
+    public int deleteFieldSort(List<Integer> fieldIds, int label) {
         List param = new ArrayList();
         param.add(label);
-        String sql = " delete from lkcrm_admin_field_sort where label = ? and name in(" + SqlAppendUtil.sqlAppendWhereIn(names) + ") ";
+        String sql = " delete from lkcrm_admin_field_sort where label = ? and field_id in(" + SqlAppendUtil.sqlAppendWhereIn(fieldIds) + ") ";
         return executeUpdateSQL(sql, param.toArray());
     }
 
