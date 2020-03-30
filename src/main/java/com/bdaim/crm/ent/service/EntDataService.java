@@ -647,7 +647,7 @@ public class EntDataService {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         if (param.getInteger("pageNum") != null && param.getInteger("pageSize") != null) {
             int pageNum = param.getIntValue("pageNum");
-            int pageSize = param.getIntValue("pageNum");
+            int pageSize = param.getIntValue("pageSize");
             if (pageNum < 0 || pageNum == 1) {
                 pageNum = 0;
             }
