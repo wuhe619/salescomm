@@ -689,22 +689,27 @@ public class EntDataService {
                 // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
                 int typeName = jsonArray.getJSONObject(i).getInteger("typeName");
                 if (typeName == 1) {
-                   /* for (String text : jsonArray.getJSONObject(i).getString("value").split("")) {
-                        MatchQueryBuilder mpq = QueryBuilders
+                    for (String text : jsonArray.getJSONObject(i).getString("value").split("")) {
+                       /* MatchQueryBuilder mpq = QueryBuilders
                                 .matchQuery("entName", text);
+                        temp.should(mpq);*/
+                        WildcardQueryBuilder mpq = QueryBuilders
+                                .wildcardQuery("entName", "*" + text + "*");
                         temp.should(mpq);
-                    }*/
-                    WildcardQueryBuilder mpq = QueryBuilders
-                            .wildcardQuery("entName", "*" + jsonArray.getJSONObject(i).getString("value") + "*");
-                    temp.should(mpq);
+                    }
                 } else if (typeName == 2) {
                     TermQueryBuilder mpq = QueryBuilders
                             .termQuery("entName", jsonArray.getJSONObject(i).getString("value"));
                     temp.should(mpq);
                 } else if (typeName == 3) {
-                    WildcardQueryBuilder mpq = QueryBuilders
-                            .wildcardQuery("entName", "*" + jsonArray.getJSONObject(i).getString("value") + "*");
-                    temp.mustNot(mpq);
+                    for (String text : jsonArray.getJSONObject(i).getString("value").split("")) {
+                       /* MatchQueryBuilder mpq = QueryBuilders
+                                .matchQuery("entName", text);
+                        temp.should(mpq);*/
+                        WildcardQueryBuilder mpq = QueryBuilders
+                                .wildcardQuery("entName", "*" + text + "*");
+                        temp.mustNot(mpq);
+                    }
                 } else if (typeName == 4) {
                     TermQueryBuilder mpq = QueryBuilders
                             .termQuery("entName", jsonArray.getJSONObject(i).getString("value"));
