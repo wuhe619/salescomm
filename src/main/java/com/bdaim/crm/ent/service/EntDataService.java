@@ -18,10 +18,7 @@ import com.bdaim.util.MD5Util;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import io.searchbox.core.SearchResult;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -660,11 +657,11 @@ public class EntDataService {
             BoolQueryBuilder temp = QueryBuilders.boolQuery();
             for (int i = 0; i < param.getJSONArray("entType1").size(); i++) {
                 if ("外商".equals(param.getJSONArray("entType1").getString(i))) {
-                    temp.should(QueryBuilders.matchQuery("entType", "外商"));
-                    temp.should(QueryBuilders.matchQuery("entType", "外国"));
-                    temp.should(QueryBuilders.matchQuery("entType", "中外"));
+                    temp.should(QueryBuilders.wildcardQuery("entType", "*外商*"));
+                    temp.should(QueryBuilders.wildcardQuery("entType", "*外国*"));
+                    temp.should(QueryBuilders.wildcardQuery("entType", "*中外*"));
                 } else {
-                    temp.should(QueryBuilders.matchQuery("entType", param.getJSONArray("entType1").getString(i)));
+                    temp.should(QueryBuilders.wildcardQuery("entType", "*" + param.getJSONArray("entType1").getString(i) + "*"));
                 }
             }
             qb.must(temp);
@@ -697,16 +694,16 @@ public class EntDataService {
                                 .matchQuery("entName", text);
                         temp.should(mpq);
                     }*/
-                    MatchQueryBuilder mpq = QueryBuilders
-                            .matchQuery("entName", jsonArray.getJSONObject(i).getString("value"));
+                    WildcardQueryBuilder mpq = QueryBuilders
+                            .wildcardQuery("entName", "*" + jsonArray.getJSONObject(i).getString("value") + "*");
                     temp.should(mpq);
                 } else if (typeName == 2) {
                     TermQueryBuilder mpq = QueryBuilders
                             .termQuery("entName", jsonArray.getJSONObject(i).getString("value"));
                     temp.should(mpq);
                 } else if (typeName == 3) {
-                    MatchQueryBuilder mpq = QueryBuilders
-                            .matchQuery("entName", jsonArray.getJSONObject(i).getString("value"));
+                    WildcardQueryBuilder mpq = QueryBuilders
+                            .wildcardQuery("entName", "*" + jsonArray.getJSONObject(i).getString("value") + "*");
                     temp.mustNot(mpq);
                 } else if (typeName == 4) {
                     TermQueryBuilder mpq = QueryBuilders
@@ -725,16 +722,16 @@ public class EntDataService {
                 // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
                 int typeScope = jsonArray.getJSONObject(i).getInteger("typeScope");
                 if (typeScope == 1) {
-                    MatchQueryBuilder mpq = QueryBuilders
-                            .matchQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
+                    WildcardQueryBuilder mpq = QueryBuilders
+                            .wildcardQuery("opScope", "*" + jsonArray.getJSONObject(i).getString("value") + "*");
                     temp.should(mpq);
                 } else if (typeScope == 2) {
                     TermQueryBuilder mpq = QueryBuilders
                             .termQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
                     temp.should(mpq);
                 } else if (typeScope == 3) {
-                    MatchQueryBuilder mpq = QueryBuilders
-                            .matchQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
+                    WildcardQueryBuilder mpq = QueryBuilders
+                            .wildcardQuery("opScope", "*" + jsonArray.getJSONObject(i).getString("value") + "*");
                     temp.mustNot(mpq);
                 } else if (typeScope == 4) {
                     TermQueryBuilder mpq = QueryBuilders
@@ -843,7 +840,7 @@ public class EntDataService {
         // 构造DSL语句
         SearchSourceBuilder searchSourceBuilder = queryCondition(params);
         System.out.println(searchSourceBuilder.toString());
-        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
+        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), "ent_data_test3", AppConfig.getEnt_data_type());
         LOG.info("企业列表查询接口返回:{}", result);
 
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {

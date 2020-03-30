@@ -524,7 +524,7 @@ public class ElasticSearchService {
      * @return
      */
     public SearchResult search(String dsl, String index, String indexType) {
-        LOG.info("ES检索语句:\n{}", dsl);
+        LOG.info("index:{},indexType:{},ES检索语句:\n{}", index, indexType, dsl);
         SearchResult result = null;
         try {
             Search search = new Search.Builder(dsl)
