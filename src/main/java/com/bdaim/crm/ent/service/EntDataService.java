@@ -729,17 +729,24 @@ public class EntDataService {
                 // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
                 int typeScope = jsonArray.getJSONObject(i).getInteger("typeScope");
                 if (typeScope == 1) {
-                    WildcardQueryBuilder mpq = QueryBuilders
-                            .wildcardQuery("opScope", "*" + jsonArray.getJSONObject(i).getString("value") + "*");
-                    temp.should(mpq);
+                    JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
+                    for (int j = 0; j < texts.size(); j++) {
+                        WildcardQueryBuilder mpq = QueryBuilders
+                                .wildcardQuery("opScope", "*" + texts.getString(j) + "*");
+                        temp.should(mpq);
+                    }
+
                 } else if (typeScope == 2) {
                     TermQueryBuilder mpq = QueryBuilders
                             .termQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
                     temp.should(mpq);
                 } else if (typeScope == 3) {
-                    WildcardQueryBuilder mpq = QueryBuilders
-                            .wildcardQuery("opScope", "*" + jsonArray.getJSONObject(i).getString("value") + "*");
-                    temp.mustNot(mpq);
+                    JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
+                    for (int j = 0; j < texts.size(); j++) {
+                        WildcardQueryBuilder mpq = QueryBuilders
+                                .wildcardQuery("opScope", "*" + texts.getString(j) + "*");
+                        temp.mustNot(mpq);
+                    }
                 } else if (typeScope == 4) {
                     TermQueryBuilder mpq = QueryBuilders
                             .termQuery("opScope", jsonArray.getJSONObject(i).getString("value"));
@@ -848,7 +855,6 @@ public class EntDataService {
         SearchSourceBuilder searchSourceBuilder = queryCondition(params);
         System.out.println(searchSourceBuilder.toString());
         SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), "ent_data_test3", AppConfig.getEnt_data_type());
-        LOG.info("企业列表查询接口返回:{}", result);
 
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             List list = new ArrayList<>();

@@ -258,7 +258,7 @@ public class AppConfig {
 		return oper_log_insert_timeout;
 	}
 	@Value("${oper_log_insert_timeout:1000}")
-	public static void setOper_log_insert_timeout(Integer oper_log_insert_timeout) {
+	public void setOper_log_insert_timeout(Integer oper_log_insert_timeout) {
 		AppConfig.oper_log_insert_timeout = oper_log_insert_timeout;
 	}
 
