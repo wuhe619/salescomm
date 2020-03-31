@@ -53,12 +53,20 @@ public class SysAction extends BasicAction {
     @ResponseBody
     @RequestMapping("/xzagentconfig")
     public String xzAgentConfig(@RequestParam Map map) {
-        String url = "http://api.salescomm.net:8200/Handler/agent.ashx?action={action}&compid={compid}&agentid={agentid}&serverid={serverid}&wstype={wstype}&_=1585645347517";
+        int port = 8200;
+        String http = "http";
+        if ("wss".equals(String.valueOf(map.get("wstype")))) {
+            port = 8201;
+            http = "https";
+        }
+        String url = "{http}://api.salescomm.net:{port}/Handler/agent.ashx?action={action}&compid={compid}&agentid={agentid}&serverid={serverid}&wstype={wstype}&_=1585645347517";
         String jsonp = HttpUtil.httpGet(url.replace("{action}", String.valueOf(map.get("action")))
                 .replace("{compid}", String.valueOf(map.get("compid")))
                 .replace("{agentid}", String.valueOf(map.get("agentid")))
                 .replace("{wstype}", String.valueOf(map.get("wstype")))
-                .replace("{serverid}", String.valueOf(map.get("serverid"))), null, null);
+                .replace("{serverid}", String.valueOf(map.get("serverid")))
+                .replace("{port}", String.valueOf(port))
+                .replace("{http}", http), null, null);
         if (StringUtil.isNotEmpty(jsonp)) {
             return StringUtil.parseJSONP(jsonp).toJSONString();
         } else {
