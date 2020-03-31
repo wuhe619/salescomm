@@ -1436,6 +1436,74 @@ public class MarketResourceAction extends BasicAction {
         return json.toJSONString();
     }
 
+
+    @RequestMapping(value = "/saveVoiceLog", method = RequestMethod.POST)
+    @ResponseBody
+    public String saveVoiceLog(@RequestBody JSONObject param) {
+        Map<Object, Object> map = new HashMap<>();
+        JSONObject json = new JSONObject();
+        Long userId = opUser().getId();
+        String customerId = opUser().getCustId();
+
+        String superId = param.getString("superId");
+        String customerGroupId = param.getString("customerGroupId");
+        String marketTaskId = param.getString("marketTaskId");
+        String seaId = param.getString("seaId");
+        String objType = param.getString("objType");
+
+        String callId = param.getString("callId");
+        Integer callStatus = param.getInteger("callStatus");
+
+        String code = "1";
+        String message = "成功";
+        String touchId = opUser().getId() + IDHelper.getTouchId().toString();
+        try {
+            if (StringUtil.isNotEmpty(superId)) {
+                // 插入外呼日志表
+                MarketResourceLogDTO dto = new MarketResourceLogDTO();
+                dto.setTouch_id(touchId);
+                dto.setType_code("1");
+                dto.setResname("voice");
+                dto.setUser_id(userId);
+                dto.setCust_id(customerId);
+                dto.setSuperId(superId);
+                // 查询公海线索所属的客群ID
+                if (StringUtil.isEmpty(customerGroupId) && StringUtil.isNotEmpty(seaId)) {
+                    Map<String, Object> clueData = customerSeaService.selectClueInfo(seaId, superId, 1);
+                    if (clueData != null) {
+                        customerGroupId = String.valueOf(clueData.get("batch_id"));
+                    }
+                }
+                if(StringUtil.isNotEmpty(customerGroupId)){
+                    dto.setCustomerGroupId(NumberConvertUtil.parseInt(customerGroupId));
+                }
+                // 判断是否管理员进行的外呼
+                if ("1".equals(opUser().getUserType())) {
+                    dto.setCallOwner(2);
+                } else {
+                    dto.setCallOwner(1);
+                }
+                // 当前登录人所属的职场ID
+                dto.setCugId(opUser().getJobMarketId());
+                dto.setMarketTaskId(StringUtil.isNotEmpty(marketTaskId) ? marketTaskId : "");
+                dto.setCustomerSeaId(StringUtil.isNotEmpty(seaId) ? seaId : "");
+                dto.setObjType(objType);
+                dto.setCallSid(callId);
+                dto.setStatus(callStatus);
+                marketResourceService.insertLogV3(dto);
+
+            }
+        } catch (Exception e) {
+            LOG.error("保存手动外呼通话记录异常,", e);
+        }
+
+        map.put("tranOrderId", touchId);
+        map.put("code", code);
+        map.put("message", message);
+        json.put("data", map);
+        return json.toJSONString();
+    }
+
     /**
      * @param type
      * @param templateId
@@ -2894,7 +2962,7 @@ public class MarketResourceAction extends BasicAction {
                 json.put("data", map);
             }
             message = json.toJSONString();
-        }else if (5 == type) {
+        } else if (5 == type) {
             JSONArray peopleAssignedList = jsonO.getJSONArray("assignedlist");
             Integer custGroupId = jsonO.getInteger("custGroupId");
             String intentLevel = jsonO.getString("intentLevel");
@@ -3577,7 +3645,7 @@ public class MarketResourceAction extends BasicAction {
     @CacheAnnotation
     public String queryRecordVoicelogV3(@Valid PageParam pageParam, BindingResult error, String superId, String customerGroupId, String realName, String createTimeStart,
                                         String createTimeEnd, String remark, String callStatus, String intentLevel, String auditingStatus,
-                                        String marketTaskId, String calledDuration, String labelProperty, String seaId, String group_id,String custName) {
+                                        String marketTaskId, String calledDuration, String labelProperty, String seaId, String group_id, String custName) {
         if (error.hasErrors()) {
             return getErrors(error);
         }
@@ -3597,7 +3665,7 @@ public class MarketResourceAction extends BasicAction {
         }
         try {
             page = marketResourceService.queryRecordVoiceLogV3(userQueryParam, customerGroupId, superId, realName, createTimeStart,
-                    createTimeEnd, remark, callStatus, intentLevel, auditingStatus, marketTaskId, duration, labelProperty, seaId,custName);
+                    createTimeEnd, remark, callStatus, intentLevel, auditingStatus, marketTaskId, duration, labelProperty, seaId, custName);
         } catch (Exception e) {
             page = new Page();
             LOG.error("查询通话记录分页失败,", e);
