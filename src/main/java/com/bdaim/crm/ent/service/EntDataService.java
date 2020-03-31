@@ -18,7 +18,10 @@ import com.bdaim.util.MD5Util;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import io.searchbox.core.SearchResult;
-import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.query.WildcardQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -676,16 +679,19 @@ public class EntDataService {
         }
         // 投资控股
         if (StringUtil.isNotEmpty(param.getString("Investment"))) {
-            qb.must(QueryBuilders.matchQuery("entType", param.getString("Investment")));
+            qb.must(QueryBuilders.wildcardQuery("entType", "*" + param.getString("Investment") + "*"));
         }
         // 支持多个行业
         if (param.getJSONArray("industry") != null && param.getJSONArray("industry").size() > 0) {
             BoolQueryBuilder temp = QueryBuilders.boolQuery();
             JSONArray jsonArray = param.getJSONArray("industry");
             for (int i = 0; i < jsonArray.size(); i++) {
-                MatchQueryBuilder mpq = QueryBuilders
-                        .matchQuery("industry", jsonArray.getJSONObject(i).getString("value"));
-                temp.should(mpq);
+                JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
+                for (int j = 0; j < texts.size(); j++) {
+                    temp.should(QueryBuilders
+                            .wildcardQuery("industry", "*" + texts.getString(j) + "*"));
+                }
+
             }
             qb.must(temp);
         }
@@ -773,8 +779,10 @@ public class EntDataService {
             JSONArray jsonArray = param.getJSONArray("regStatus");
             BoolQueryBuilder temp = QueryBuilders.boolQuery();
             for (int i = 0; i < jsonArray.size(); i++) {
-                MatchQueryBuilder mpq = QueryBuilders
-                        .matchQuery("entStatus", jsonArray.getJSONObject(i).getString("value"));
+                /*WildcardQueryBuilder mpq = QueryBuilders
+                        .wildcardQuery("entStatus", "*" + jsonArray.getJSONObject(i).getString("value") + "*");*/
+                WildcardQueryBuilder mpq = QueryBuilders
+                        .wildcardQuery("entStatus", "*" + jsonArray.getJSONObject(i).getString("value") + "*");
                 temp.should(mpq);
             }
             qb.must(temp);
@@ -789,13 +797,13 @@ public class EntDataService {
                 BoolQueryBuilder address = QueryBuilders.boolQuery();
                 regLocation = jsonArray.getJSONObject(i);
                 if (StringUtil.isNotEmpty(regLocation.getString("regarea"))) {
-                    address.must(QueryBuilders.matchQuery("regarea", regLocation.getString("regarea")));
+                    address.must(QueryBuilders.wildcardQuery("regarea", "*" + regLocation.getString("regarea") + "*"));
                 }
                 if (StringUtil.isNotEmpty(regLocation.getString("regcity"))) {
-                    address.must(QueryBuilders.matchQuery("regcity", regLocation.getString("regcity")));
+                    address.must(QueryBuilders.wildcardQuery("regcity", "*" + regLocation.getString("regcity") + "*"));
                 }
                 if (StringUtil.isNotEmpty(regLocation.getString("address"))) {
-                    address.must(QueryBuilders.matchQuery("address", regLocation.getString("address")));
+                    address.must(QueryBuilders.wildcardQuery("address", "*" + regLocation.getString("address") + "*"));
                 }
                 temp.should(address);
             }
@@ -851,9 +859,9 @@ public class EntDataService {
         // 其他标签
         if (StringUtil.isNotEmpty(param.getString("tag"))) {
             if ("tag1".equals(param.getString("tag"))) {
-                qb.must(QueryBuilders.matchQuery("tag", "高新企业"));
+                qb.must(QueryBuilders.wildcardQuery("tag", "*高新企业*"));
             } else {
-                qb.must(QueryBuilders.matchQuery("tag", param.getString("tag")));
+                qb.must(QueryBuilders.wildcardQuery("tag", "*" + param.getString("tag") + "*"));
             }
 
         }

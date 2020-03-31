@@ -474,7 +474,7 @@ public class MarketTaskService {
             if (timeruleid == null) {
                 timeruleid = new MarketTaskProperty(marketTask.getId(), "timeruleid", param.getTimeruleid(), new Timestamp(System.currentTimeMillis()));
             }
-            timeruleid.setPropertyValue(param.getCallCount());
+            timeruleid.setPropertyValue(param.getTimeruleid());
             marketTaskDao.saveOrUpdate(timeruleid);
         }
         //更新振铃时长

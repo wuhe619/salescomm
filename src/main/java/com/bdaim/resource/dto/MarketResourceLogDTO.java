@@ -152,6 +152,11 @@ public class MarketResourceLogDTO implements Serializable {
      */
     private Integer sendStatus;
 
+    /**
+     * 关联对象类型
+     */
+    private String objType;
+
     public Integer getSendStatus() {
         return sendStatus;
     }
@@ -560,6 +565,14 @@ public class MarketResourceLogDTO implements Serializable {
         this.customerSeaId = customerSeaId;
     }
 
+    public String getObjType() {
+        return objType;
+    }
+
+    public void setObjType(String objType) {
+        this.objType = objType;
+    }
+
     @Override
     public String toString() {
         return "MarketResourceLogDTO{" +
@@ -600,7 +613,10 @@ public class MarketResourceLogDTO implements Serializable {
                 ", resourceProperty='" + resourceProperty + '\'' +
                 ", cugId='" + cugId + '\'' +
                 ", marketTaskId='" + marketTaskId + '\'' +
+                ", sendStatus=" + sendStatus +
+                ", objType='" + objType + '\'' +
                 ", customerSeaId='" + customerSeaId + '\'' +
+                ", requestId='" + requestId + '\'' +
                 '}';
     }
 }

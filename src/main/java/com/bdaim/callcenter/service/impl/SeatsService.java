@@ -1950,6 +1950,7 @@ public class SeatsService {
         // 穿透读取之前的呼叫中心配置
         Map<String, Object> oldConfig = customerService.getCustomerCallCenterType_V1(custId, userId);
         SeatCallCenterConfig seatConfig = JSON.parseObject(JSON.toJSONString(oldConfig), SeatCallCenterConfig.class);
+        seatConfig.setOpenStatus(2);
         return seatConfig;
     }
 }
