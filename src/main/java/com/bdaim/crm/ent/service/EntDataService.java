@@ -773,8 +773,10 @@ public class EntDataService {
             JSONArray jsonArray = param.getJSONArray("regStatus");
             BoolQueryBuilder temp = QueryBuilders.boolQuery();
             for (int i = 0; i < jsonArray.size(); i++) {
-                TermQueryBuilder mpq = QueryBuilders
-                        .termQuery("entStatus", jsonArray.getJSONObject(i).getString("value"));
+                /*WildcardQueryBuilder mpq = QueryBuilders
+                        .wildcardQuery("entStatus", "*" + jsonArray.getJSONObject(i).getString("value") + "*");*/
+                MatchQueryBuilder mpq = QueryBuilders
+                        .matchQuery("entStatus", jsonArray.getJSONObject(i).getString("value"));
                 temp.should(mpq);
             }
             qb.must(temp);
