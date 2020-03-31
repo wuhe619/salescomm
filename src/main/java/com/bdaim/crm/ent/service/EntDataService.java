@@ -795,7 +795,7 @@ public class EntDataService {
                     address.must(QueryBuilders.matchQuery("regcity", regLocation.getString("regcity")));
                 }
                 if (StringUtil.isNotEmpty(regLocation.getString("address"))) {
-                    address.must(QueryBuilders.matchQuery("address", regLocation.getString("address")));
+                    address.must(QueryBuilders.wildcardQuery("address", "*" + regLocation.getString("address") + "*"));
                 }
                 temp.should(address);
             }
