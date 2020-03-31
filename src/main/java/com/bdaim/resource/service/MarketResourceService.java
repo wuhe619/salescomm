@@ -3905,14 +3905,14 @@ public class MarketResourceService {
 
             sql.setLength(0);
             sql.append(
-                    "insert  into " + ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + nowYearMonth + " (touch_id,cust_id,user_id,remark,create_time,status,superId,callSid,customer_group_id, cug_id, market_task_id, customer_sea_id, obj_type) values ( ");
+                    "insert  into " + ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + nowYearMonth + " (touch_id,cust_id,user_id,remark,create_time,status,superId,callSid,customer_group_id, cug_id, market_task_id, customer_sea_id) values ( ");
             sql.append("?,?,?,?,");
             params.add(dto.getTouch_id());
             params.add(dto.getCust_id());
             params.add(dto.getUser_id());
             params.add(dto.getRemark());
             sql.append("now(),");
-            sql.append("?,?,?,?,?,?,?,?)");
+            sql.append("?,?,?,?,?,?,?)");
             params.add(dto.getStatus());
             params.add(dto.getSuperId());
             params.add(dto.getCallSid());
@@ -3920,21 +3920,19 @@ public class MarketResourceService {
             params.add(dto.getCugId());
             params.add(dto.getMarketTaskId());
             params.add(dto.getCustomerSeaId());
-            params.add(dto.getObjType());
         }
         if (type_code.equals("2")) {
             sql.append(
-                    "insert  into t_touch_sms_log (cust_id,user_id,remark,create_time,status,sms_content,superId, obj_type) values ( ");
+                    "insert  into t_touch_sms_log (cust_id,user_id,remark,create_time,status,sms_content,superId) values ( ");
             sql.append("?,?,?,");
             params.add(dto.getCust_id());
             params.add(dto.getUser_id());
             params.add(dto.getRemark());
             sql.append("now(),");
-            sql.append("?,?,?,?)");
+            sql.append("?,?,?)");
             params.add(dto.getStatus());
             params.add(dto.getSms_content());
             params.add(dto.getSuperId());
-            params.add(dto.getObjType());
         }
         if (type_code.equals("3")) {
             sql.append(
