@@ -871,7 +871,7 @@ public class EntDataService {
         SearchSourceBuilder searchSourceBuilder = queryCondition(params);
 
         System.out.println(searchSourceBuilder.toString());
-        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
+        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), "ent_data_test3", AppConfig.getEnt_data_type());
 
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             List list = new ArrayList<>();
