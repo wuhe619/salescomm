@@ -686,8 +686,12 @@ public class EntDataService {
             BoolQueryBuilder temp = QueryBuilders.boolQuery();
             JSONArray jsonArray = param.getJSONArray("industry");
             for (int i = 0; i < jsonArray.size(); i++) {
-                temp.should(QueryBuilders
-                        .wildcardQuery("industry", "*" + jsonArray.getJSONObject(i).getString("value") + "*"));
+                JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
+                for (int j = 0; j < texts.size(); j++) {
+                    temp.should(QueryBuilders
+                            .wildcardQuery("industry", "*" + texts.getString(j) + "*"));
+                }
+
             }
             qb.must(temp);
         }
