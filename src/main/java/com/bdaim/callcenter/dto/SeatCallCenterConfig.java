@@ -39,6 +39,11 @@ public class SeatCallCenterConfig {
 
     private String workNum;
 
+    /**
+     * 坐席开通状态
+     */
+    private Integer openStatus;
+
     public SeatCallCenterConfig() {
     }
 
@@ -185,5 +190,13 @@ public class SeatCallCenterConfig {
 
     public void setResourceId(String resourceId) {
         this.resourceId = resourceId;
+    }
+
+    public Integer getOpenStatus() {
+        return openStatus;
+    }
+
+    public void setOpenStatus(Integer openStatus) {
+        this.openStatus = openStatus;
     }
 }
