@@ -222,11 +222,49 @@ public class PhoneService {
     }
 
     /**
+     * 保存固话或手机号
+     * @param phone
+     * @return
+     */
+    public String pnu(String phone) {
+        if (StringUtil.isEmpty(phone)) {
+            LOG.warn("保存手机号至API服务手机号不能为空:{}", phone);
+            return null;
+        }
+        String uid = null;
+        if (PhoneUtil.isCellPhone(phone)) {
+            uid = savePhoneToAPI(phone);
+        } else {
+            uid = saveTelPhoneToAPI(phone);
+        }
+        return uid;
+    }
+
+    /**
+     * 获取固话或手机号
+     * @param uid
+     * @return
+     */
+    public String upn(String uid) {
+        if (StringUtil.isEmpty(uid)) {
+            LOG.warn("获取手机号API服务uid不能为空:{}", uid);
+            return null;
+        }
+        String phone = null;
+        if (PhoneUtil.isCellPhone(phone)) {
+            phone = getPhoneFromAPI(phone);
+        } else {
+            phone = getTelPhoneFromAPI(phone);
+        }
+        return phone;
+    }
+
+    /**
      * 保存固话至API服务
      *
      * @param phone
      */
-    public String saveTelPhoneToAPI(String phone) {
+    private String saveTelPhoneToAPI(String phone) {
         if (StringUtil.isEmpty(phone)) {
             LOG.warn("保存手机号至API服务手机号不能为空:{}", phone);
             return null;
@@ -248,7 +286,7 @@ public class PhoneService {
      * @param uid
      * @return
      */
-    public String getTelPhoneFromAPI(String uid) {
+    private String getTelPhoneFromAPI(String uid) {
         if (StringUtil.isEmpty(uid)) {
             LOG.warn("获取手机号API服务uid不能为空:{}", uid);
             return null;
@@ -505,23 +543,18 @@ public class PhoneService {
      * 保存手机号对应关系
      *
      * @param objId
-     * @param u
+     * @param phone
      * @param type
      * @param custId
      */
-    public void saveObjU(String objId, String u, int type, String custId) {
+    public void saveObjU(String objId, String phone, int type, String custId) {
         if (StringUtil.isEmpty(custId)) {
             return;
         }
-        if (StringUtil.isEmpty(u)) {
+        if (StringUtil.isEmpty(phone)) {
             return;
         }
-        String uid;
-        if (PhoneUtil.isCellPhone(u)) {
-            uid = savePhoneToAPI(u);
-        } else {
-            uid = saveTelPhoneToAPI(u);
-        }
+        String uid = pnu(phone);
         int count = marketTaskDao.queryForInt("SELECT COUNT(0) FROM obj_u_" + custId.substring(custId.length() - 1) + " WHERE obj_id=? AND u_id = ? AND type= ?", objId, uid, type);
         if (count > 0) {
             return;
