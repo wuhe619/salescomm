@@ -420,7 +420,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 新增或更新线索
      */
     @Permissions({"crm:leads:save", "crm:leads:update"})
@@ -431,7 +430,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据线索id查询
      */
     @Permissions("crm:leads:read")
@@ -442,7 +440,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据线索名称查询
      */
     @RequestMapping(value = "/queryByName")
@@ -451,7 +448,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据id 删除线索
      */
     @Permissions("crm:leads:delete")
@@ -515,7 +511,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 查看跟进记录
      */
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
@@ -549,7 +544,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 批量导出线索
      */
     @Permissions("crm:leads:excelexport")
@@ -571,7 +565,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 导出全部线索
      */
     @Permissions("crm:leads:excelexport")
@@ -741,7 +734,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 获取线索导入模板
      */
     @LoginFormCookie
@@ -876,7 +868,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 线索导入
      */
     @Permissions("crm:leads:excelimport")
