@@ -12,6 +12,7 @@ import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
@@ -216,10 +217,7 @@ public class CrmLeadsService {
                 map.remove("super_data");
             }
         }
-        Page finalPage = new Page();
-        finalPage.setList(page.getData());
-        finalPage.setTotalRow(page.getTotal());
-        return R.ok().put("data", finalPage);
+        return R.ok().put("data", BaseUtil.crmPage(page));
     }
 
     /**
@@ -834,22 +832,25 @@ public class CrmLeadsService {
             for (Map<String, Object> field : fieldList) {
                 jsonArray.add(BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true));
             }
-
+            LoginUser user = BaseUtil.getUser();
             String batchId = String.valueOf(m.get("id"));
             crmLeads.setBatchId(batchId);
-            crmLeads.setCustId(BaseUtil.getUser().getCustId());
+            crmLeads.setCustId(user.getCustId());
             crmRecordService.updateRecord(jsonArray, batchId);
             adminFieldService.save(jsonArray, batchId);
             crmLeads.setCreateTime(DateUtil.date().toTimestamp());
             crmLeads.setUpdateTime(DateUtil.date().toTimestamp());
-            crmLeads.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmLeads.setCreateUserId(user.getUserId());
             if (crmLeads.getOwnerUserId() == null) {
-                crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId());
+                crmLeads.setOwnerUserId(user.getUserId());
             }
             crmLeads.setBatchId(batchId);
             crmLeads.setSeaId(seaId);
             int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
             crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
+            // 保存uid对应关系
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getMobile(), 1, user.getCustId());
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getTelephone(), 1, user.getCustId());
         }
         return 0;
     }
@@ -942,6 +943,7 @@ public class CrmLeadsService {
      * @return
      */
     public String transferToPrivateSea(String seaId, String company, String mobile, String telephone, int index) {
+        LoginUser user = BaseUtil.getUser();
         //添加到线索私海数据
         LkCrmLeadsEntity crmLeads = new LkCrmLeadsEntity();
         crmLeads.setLeadsName(company + index);
@@ -952,17 +954,20 @@ public class CrmLeadsService {
         // 查询公海线索的标记信息
         String batchId = MD5Util.encode32Bit(mobile);
         crmLeads.setBatchId(batchId);
-        crmLeads.setCustId(BaseUtil.getUser().getCustId());
+        crmLeads.setCustId(user.getCustId());
         crmLeads.setCreateTime(DateUtil.date().toTimestamp());
         crmLeads.setUpdateTime(DateUtil.date().toTimestamp());
-        crmLeads.setCreateUserId(BaseUtil.getUser().getUserId());
+        crmLeads.setCreateUserId(user.getUserId());
         if (crmLeads.getOwnerUserId() == null) {
-            crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId());
+            crmLeads.setOwnerUserId(user.getUserId());
         }
         crmLeads.setBatchId(batchId);
         crmLeads.setSeaId(seaId);
         int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
         crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
+        // 保存uid对应关系
+        phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getMobile(), 1, user.getCustId());
+        phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getTelephone(), 1, user.getCustId());
         return batchId;
     }
 
@@ -1141,9 +1146,10 @@ public class CrmLeadsService {
         }
 
         crmLeads.setCompany(object.getJSONObject("entity").getString("company"));
-        crmLeads.setCustId(BaseUtil.getUser().getCustId());
+        String custId = BaseUtil.getUser().getCustId();
+        crmLeads.setCustId(custId);
         // 查询客户默认公海
-        List<CustomerSea> publicSeaList = crmLeadsDao.find(" FROM CustomerSea WHERE custId = ? ", BaseUtil.getCustId());
+        List<CustomerSea> publicSeaList = crmLeadsDao.find(" FROM CustomerSea WHERE custId = ? ", custId);
         if (publicSeaList.size() > 0) {
             crmLeads.setSeaId(publicSeaList.get(0).getId().toString());
         }
@@ -1160,6 +1166,9 @@ public class CrmLeadsService {
             LkCrmLeadsEntity crmLeadsDb = crmLeadsDao.get(crmLeads.getLeadsId());
             BeanUtils.copyProperties(crmLeads, crmLeadsDb, JavaBeanUtil.getNullPropertyNames(crmLeads));
             crmLeadsDao.update(crmLeadsDb);
+            // 保存uid对应关系
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getMobile(), 1, custId);
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getTelephone(), 1, custId);
             return R.ok();
         } else {
             crmLeads.setCreateTime(new Timestamp(System.currentTimeMillis()));
@@ -1172,6 +1181,9 @@ public class CrmLeadsService {
             //boolean save = crmLeads.save();
             int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
             crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
+            // 保存uid对应关系
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getMobile(), 1, custId);
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getTelephone(), 1, custId);
             return id > 0 ? R.ok() : R.error();
         }
     }

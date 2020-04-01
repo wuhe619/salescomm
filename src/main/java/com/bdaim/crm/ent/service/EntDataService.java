@@ -871,7 +871,43 @@ public class EntDataService {
         return searchSourceBuilder;
     }
 
-    public Page pageSearch(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params)  {
+    public Page pageSearch(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params) throws Exception {
+        Page page = new Page();
+        LOG.info("企业列表查询参数:{}", params);
+        // 构造DSL语句
+        SearchSourceBuilder searchSourceBuilder = queryCondition(params);
+
+        System.out.println(searchSourceBuilder.toString());
+        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
+
+        if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
+            List list = new ArrayList<>();
+            JSONObject t;
+            int sum;
+            for (SearchResult.Hit<JSONObject, Void> hit : result.getHits(JSONObject.class)) {
+                t = hit.source;
+                t.put("id", hit.id);
+                // 处理企业领取标志
+                t.put("_receivingStatus", b2BTcbLogService.checkClueGetStatus(custId, t.getString("id")));
+                sum = 0;
+                if (StringUtil.isNotEmpty(t.getString("phone"))) {
+                    for (String p : t.getString("phone").split(",")) {
+                        if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
+                                && !"-".equals(p)) {
+                            sum++;
+                        }
+                    }
+                }
+                t.put("sum", sum);
+                list.add(t);
+            }
+            page.setData(list);
+            page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
+        }
+        return page;
+    }
+
+    /*public Page pageSearch0(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params)  {
         Page page = new Page();
         LOG.info("企业列表查询参数:{}", params);
         // 构造DSL语句
@@ -902,7 +938,7 @@ public class EntDataService {
             page.setTotal(JSON.parseObject(result.toString()).getJSONObject("hits").getIntValue("total"));
         }
         return page;
-    }
+    }*/
 
     public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) {
         JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);

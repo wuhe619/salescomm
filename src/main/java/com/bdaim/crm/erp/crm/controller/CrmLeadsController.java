@@ -231,7 +231,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 查看跟进记录
      */
     @RequestMapping(value = "/cluesea/getRecord", method = RequestMethod.POST)
