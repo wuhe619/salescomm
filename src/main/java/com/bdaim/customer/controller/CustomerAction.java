@@ -893,7 +893,14 @@ public class CustomerAction extends BasicAction {
             if (userDTO.getId() == null) {
                 throw new ParamException("id参数不能为空");
             }
-            code = customerUserService.updateuser(userDTO);
+            try {
+                code = customerUserService.updateuser(userDTO);
+            } catch (Exception e) {
+                logger.error("更新用户异常:", e);
+                resultMap.put("code", "1");
+                resultMap.put("_message", e.getMessage());
+                return JSONObject.toJSONString(resultMap);
+            }
         } else if ("3".equals(opcode)) { //updatestatus
             if (StringUtil.isEmpty(userDTO.getUserName())) {
                 throw new ParamException("userName参数不能为空");
