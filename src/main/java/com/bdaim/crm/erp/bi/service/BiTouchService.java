@@ -47,7 +47,7 @@ public class BiTouchService {
 
             BigDecimal phoneNumD = new BigDecimal(phoneNum);
             BigDecimal phoneEndD = new BigDecimal(phoneEnd);
-            BigDecimal proportionD = phoneEndD.divide(phoneNumD,4,BigDecimal.ROUND_HALF_UP);
+            BigDecimal proportionD = phoneEndD.divide(phoneNumD, 4, BigDecimal.ROUND_HALF_UP);
             resultMap.put("proportion", String.valueOf(proportionD));
             resultList.add(resultMap);
         }
