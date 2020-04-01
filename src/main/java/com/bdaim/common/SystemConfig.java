@@ -60,10 +60,10 @@ public class SystemConfig {
     }
 
 
-    @Bean(name = "transportClient")
+    //@Bean(name = "transportClient")
     public TransportClient transportClient() {
         // http://localhost:9201
-        String cluster = "hkes";
+        String cluster = "elasticsearch";
         String host = AppConfig.getEs_rest();
         host = host.substring(host.lastIndexOf("/") + 1, host.lastIndexOf(":"));
         LOGGER.info("开始初始化transportClient,host:{},port:{},cluster:{}", host, 9300, cluster);
