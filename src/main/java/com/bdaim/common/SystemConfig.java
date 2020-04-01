@@ -62,7 +62,6 @@ public class SystemConfig {
 
     //@Bean(name = "transportClient")
     public TransportClient transportClient() {
-        // http://localhost:9201
         String cluster = "elasticsearch";
         String host = AppConfig.getEs_rest();
         host = host.substring(host.lastIndexOf("/") + 1, host.lastIndexOf(":"));

@@ -48,7 +48,7 @@ public class ElasticSearchService {
 
     public static final String CUSTOMER_SEA_TYPE = "data";
 
-    @Autowired
+    //@Autowired
     private TransportClient transportClient;
 
     @Resource
