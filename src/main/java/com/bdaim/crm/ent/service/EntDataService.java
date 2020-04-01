@@ -18,10 +18,12 @@ import com.bdaim.util.MD5Util;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import io.searchbox.core.SearchResult;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.index.query.WildcardQueryBuilder;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -869,22 +871,19 @@ public class EntDataService {
         return searchSourceBuilder;
     }
 
-    public Page pageSearch(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params) throws Exception {
+    public Page pageSearch(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params)  {
         Page page = new Page();
         LOG.info("企业列表查询参数:{}", params);
         // 构造DSL语句
         SearchSourceBuilder searchSourceBuilder = queryCondition(params);
-
         System.out.println(searchSourceBuilder.toString());
-        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
-
-        if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
+        SearchResponse result = elasticSearchService.searchByClient(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
+        if (result != null  && result.getHits() != null) {
             List list = new ArrayList<>();
             JSONObject t;
             int sum;
-            for (SearchResult.Hit<JSONObject, Void> hit : result.getHits(JSONObject.class)) {
-                t = hit.source;
-                t.put("id", hit.id);
+            for (SearchHit hit : result.getHits()) {
+                t = JSON.parseObject(hit.getSourceAsString());
                 // 处理企业领取标志
                 t.put("_receivingStatus", b2BTcbLogService.checkClueGetStatus(custId, t.getString("id")));
                 sum = 0;
@@ -900,7 +899,7 @@ public class EntDataService {
                 list.add(t);
             }
             page.setData(list);
-            page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
+            page.setTotal(JSON.parseObject(result.toString()).getJSONObject("hits").getIntValue("total"));
         }
         return page;
     }
