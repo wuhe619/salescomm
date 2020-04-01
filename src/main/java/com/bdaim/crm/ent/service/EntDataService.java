@@ -797,10 +797,10 @@ public class EntDataService {
                 BoolQueryBuilder address = QueryBuilders.boolQuery();
                 regLocation = jsonArray.getJSONObject(i);
                 if (StringUtil.isNotEmpty(regLocation.getString("regarea"))) {
-                    address.must(QueryBuilders.wildcardQuery("regarea", "*" + regLocation.getString("regarea") + "*"));
+                    address.must(QueryBuilders.termsQuery("regarea", regLocation.getString("regarea")));
                 }
                 if (StringUtil.isNotEmpty(regLocation.getString("regcity"))) {
-                    address.must(QueryBuilders.wildcardQuery("regcity", "*" + regLocation.getString("regcity") + "*"));
+                    address.must(QueryBuilders.termsQuery("regcity", regLocation.getString("regcity")));
                 }
                 if (StringUtil.isNotEmpty(regLocation.getString("address"))) {
                     address.must(QueryBuilders.wildcardQuery("address", "*" + regLocation.getString("address") + "*"));
