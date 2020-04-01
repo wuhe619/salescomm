@@ -907,7 +907,7 @@ public class EntDataService {
         return page;
     }
 
-    public Page pageSearch0(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params)  {
+    /*public Page pageSearch0(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params)  {
         Page page = new Page();
         LOG.info("企业列表查询参数:{}", params);
         // 构造DSL语句
@@ -938,7 +938,7 @@ public class EntDataService {
             page.setTotal(JSON.parseObject(result.toString()).getJSONObject("hits").getIntValue("total"));
         }
         return page;
-    }
+    }*/
 
     public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) {
         JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
