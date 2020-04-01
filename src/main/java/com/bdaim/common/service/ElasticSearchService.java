@@ -49,7 +49,7 @@ public class ElasticSearchService {
     public static final String CUSTOMER_SEA_TYPE = "data";
 
     //@Autowired
-    private TransportClient transportClient;
+    //private TransportClient transportClient;
 
     @Resource
     private RestTemplate restTemplate;
@@ -560,11 +560,11 @@ public class ElasticSearchService {
         return result;
     }
 
-    public SearchResponse searchByClient(String dsl, String index, String indexType) {
+    /*public SearchResponse searchByClient(String dsl, String index, String indexType) {
         LOG.info("index:{},indexType:{},ES检索语句:\n{}", index, indexType, dsl);
         SearchResponse result = transportClient.prepareSearch(index).setTypes(indexType).execute().actionGet();
         return result;
-    }
+    }*/
 
     public SearchSourceBuilder queryConditionToDSL(JSONObject params) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
