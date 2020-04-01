@@ -548,10 +548,13 @@ public class CustomerAppService {
                 return map;
             }
 //            String cust_id = map.get("custId").toString();
-            String sql = "select name from t_user where id="+map.get("opUser");
-            Map<String,Object> _m = jdbcTemplate.queryForMap(sql);
-            if(_m!=null){
-                map.put("opUser",_m.get("name"));
+            if(map.get("opUser")!=null) {
+                String sql = "select name from t_user where id=" + map.get("opUser");
+                List<Map<String, Object>> mlist = jdbcTemplate.queryForList(sql);
+                if (mlist != null && mlist.size()>0) {
+                    Map<String, Object> _m = mlist.get(0);
+                    map.put("opUser", _m.get("name"));
+                }
             }
             return map;
         }).collect(Collectors.toList());
