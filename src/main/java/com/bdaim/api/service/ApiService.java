@@ -312,7 +312,7 @@ public class ApiService {
             sql.append(" u.account=?");
             arr.add(params.getString("account").trim());
         }
-        sql.append("group by charge.SUBSCRIBER_ID ");
+        sql.append(" group by charge.SUBSCRIBER_ID ");
         sql.append(" order by charge.event_time desc ");
         PageList list = new Pagination().getPageData(sql.toString(), arr.toArray(), page, jdbcTemplate);
         Map<String, Object> map = new HashMap<>();
