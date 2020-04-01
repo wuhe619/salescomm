@@ -503,6 +503,7 @@ public class PhoneService {
 
     /**
      * 保存手机号对应关系
+     *
      * @param objId
      * @param u
      * @param type
@@ -515,13 +516,16 @@ public class PhoneService {
         if (StringUtil.isEmpty(u)) {
             return;
         }
-        String uid ;
-        if(PhoneUtil.isCellPhone(u)){
+        String uid;
+        if (PhoneUtil.isCellPhone(u)) {
             uid = savePhoneToAPI(u);
-        }else {
+        } else {
             uid = saveTelPhoneToAPI(u);
         }
-
+        int count = marketTaskDao.queryForInt("SELECT COUNT(0) FROM obj_u_" + custId.substring(custId.length() - 1) + " WHERE obj_id=? AND u_id = ? AND type= ?", objId, uid, type);
+        if (count > 0) {
+            return;
+        }
         String sql = "REPLACE INTO obj_u_" + custId.substring(custId.length() - 1) + " (`obj_id`, `u_id`, `type`) VALUES (?, ?, ?);";
         marketTaskDao.executeUpdateSQL(sql, objId, uid, type);
     }

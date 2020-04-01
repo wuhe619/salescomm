@@ -1444,7 +1444,7 @@ public class MarketResourceAction extends BasicAction {
         JSONObject json = new JSONObject();
         Long userId = opUser().getId();
         String customerId = opUser().getCustId();
-
+        String objId = param.getString("objId");
         String superId = param.getString("superId");
         String customerGroupId = param.getString("customerGroupId");
         String marketTaskId = param.getString("marketTaskId");
