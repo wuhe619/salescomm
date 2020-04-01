@@ -216,10 +216,7 @@ public class CrmLeadsService {
                 map.remove("super_data");
             }
         }
-        Page finalPage = new Page();
-        finalPage.setList(page.getData());
-        finalPage.setTotalRow(page.getTotal());
-        return R.ok().put("data", finalPage);
+        return R.ok().put("data", BaseUtil.crmPage(page));
     }
 
     /**
@@ -1141,9 +1138,10 @@ public class CrmLeadsService {
         }
 
         crmLeads.setCompany(object.getJSONObject("entity").getString("company"));
-        crmLeads.setCustId(BaseUtil.getUser().getCustId());
+        String custId = BaseUtil.getUser().getCustId();
+        crmLeads.setCustId(custId);
         // 查询客户默认公海
-        List<CustomerSea> publicSeaList = crmLeadsDao.find(" FROM CustomerSea WHERE custId = ? ", BaseUtil.getCustId());
+        List<CustomerSea> publicSeaList = crmLeadsDao.find(" FROM CustomerSea WHERE custId = ? ", custId);
         if (publicSeaList.size() > 0) {
             crmLeads.setSeaId(publicSeaList.get(0).getId().toString());
         }
@@ -1160,6 +1158,9 @@ public class CrmLeadsService {
             LkCrmLeadsEntity crmLeadsDb = crmLeadsDao.get(crmLeads.getLeadsId());
             BeanUtils.copyProperties(crmLeads, crmLeadsDb, JavaBeanUtil.getNullPropertyNames(crmLeads));
             crmLeadsDao.update(crmLeadsDb);
+            // 保存uid对应关系
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getMobile(), 1, custId);
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getTelephone(), 1, custId);
             return R.ok();
         } else {
             crmLeads.setCreateTime(new Timestamp(System.currentTimeMillis()));
@@ -1172,6 +1173,9 @@ public class CrmLeadsService {
             //boolean save = crmLeads.save();
             int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
             crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
+            // 保存uid对应关系
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getMobile(), 1, custId);
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getTelephone(), 1, custId);
             return id > 0 ? R.ok() : R.error();
         }
     }
