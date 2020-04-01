@@ -4,9 +4,12 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.PhoneUtil;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.service.PhoneService;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.*;
@@ -23,6 +26,7 @@ import com.bdaim.util.StringUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -56,6 +60,9 @@ public class AdminSceneService {
 
     @Resource
     private LkCrmContractDao crmContractDao;
+
+    @Autowired
+    private PhoneService phoneService;
 
 
     /**
@@ -487,6 +494,39 @@ public class AdminSceneService {
         }
         basePageRequest.setJsonObject(jsonObject);
         R result = getCrmPageList(basePageRequest);
+        if (result.get("data") != null) {
+            if (((JSONObject) result.get("data")).get("list") != null) {
+                List plist;
+                List flist;
+                JSONArray list = ((JSONObject) result.get("data")).getJSONArray("list");
+                Map p, f;
+                String phone;
+                for (int i = 0; i < list.size(); i++) {
+                    plist = new ArrayList();
+                    flist = new ArrayList();
+                    for (String k : list.getJSONObject(i).keySet()) {
+                        if ("mobile".equals(k) || "telephone".equals(k)) {
+                            // 处理电话类型
+                            f = new HashMap();
+                            f.put("field", k);
+                            f.put("type", 7);
+                            flist.add(f);
+
+                            // 处理手机号 uid
+                            phone = list.getJSONObject(i).getString(k);
+                            if (StringUtil.isNotEmpty(phone)) {
+                                p = new HashMap();
+                                p.put("p", phone);
+                                p.put("u", PhoneUtil.isCellPhone(phone) ? phoneService.savePhoneToAPI(phone) : phoneService.saveTelPhoneToAPI(phone));
+                                plist.add(p);
+                            }
+                        }
+                    }
+                    list.getJSONObject(i).put("plist", plist);
+                    list.getJSONObject(i).put("flist", flist);
+                }
+            }
+        }
         return result;
     }
 

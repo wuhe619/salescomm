@@ -221,6 +221,50 @@ public class PhoneService {
     }
 
     /**
+     * 保存固话至API服务
+     *
+     * @param phone
+     */
+    public String saveTelPhoneToAPI(String phone) {
+        if (StringUtil.isEmpty(phone)) {
+            LOG.warn("保存手机号至API服务手机号不能为空:{}", phone);
+            return null;
+        }
+        String uid = null;
+        try {
+            phone = phone.trim().replaceAll(" ", "").replaceAll("-", "");
+            phone = "9" + phone;
+            uid = HttpUtil.httpPost("http://api.core:1010/pn/pnu?pn=" + phone, "", null, 3000);
+        } catch (Exception e) {
+            LOG.error("保存手机号至API服务手机号:{}异常:{}", phone, e);
+        }
+        return uid;
+    }
+
+    /**
+     * 从API服务获取固话
+     *
+     * @param uid
+     * @return
+     */
+    public String getTelPhoneFromAPI(String uid) {
+        if (StringUtil.isEmpty(uid)) {
+            LOG.warn("获取手机号API服务uid不能为空:{}", uid);
+            return null;
+        }
+        String phone = null;
+        try {
+            phone = HttpUtil.httpPost("http://api.core:1010/pn/upn?uid=" + uid.trim().replaceAll(" ", ""), "", null, 3000);
+            if(StringUtil.isNotEmpty(phone)){
+                phone = phone.substring(1);
+            }
+        } catch (Exception e) {
+            LOG.error("获取手机号从API服务uid:{}异常:{}", uid, e);
+        }
+        return phone;
+    }
+
+    /**
      * 批量保存手机号,返回uid
      *
      * @param map
