@@ -62,15 +62,16 @@ public class SystemConfig {
 
     @Bean(name = "transportClient")
     public TransportClient transportClient() {
-        LOGGER.info("开始初始化transportClient");
         // http://localhost:9201
+        String cluster = "hkes";
         String host = AppConfig.getEs_rest();
         host = host.substring(host.lastIndexOf("/") + 1, host.lastIndexOf(":"));
+        LOGGER.info("开始初始化transportClient,host:{},port:{},cluster:{}", host, 9300, cluster);
         TransportClient transportClient = null;
         try {
             // 配置信息
             Settings esSetting = Settings.builder()
-                    .put("cluster.name", "hkes") //集群名字
+                    .put("cluster.name", cluster) //集群名字
                     .put("client.transport.sniff", true)//增加嗅探机制，找到ES集群
                     .put("thread_pool.search.size", 5)//增加线程池个数，暂时设为5
                     .build();
