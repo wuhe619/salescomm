@@ -45,8 +45,9 @@ public class BiCustomerService {
         }
         Integer beginTime = record.getInt("beginTime");
         StringBuffer sqlStringBuffer = new StringBuffer();
+        String customerview = BaseUtil.getViewSql("customerview");
         for (int i = 1; i <= cycleNum; i++) {
-            sqlStringBuffer.append("select '").append(beginTime).append("' as type,IFNULL((select count(customer_id) from customerview where cust_id='")
+            sqlStringBuffer.append("select '").append(beginTime).append("' as type,IFNULL((select count(customer_id) from " + customerview + " where cust_id='")
                     .append(BaseUtil.getCustId()).append("' and DATE_FORMAT(create_time,'")
                     .append(sqlDateFormat).append("') = '").append(beginTime).append("' and owner_user_id in (").append(userIds)
                     .append(")),0) as customerNum,IFNULL(count(DISTINCT a.customer_id),0) as dealCustomerNum from lkcrm_crm_customer as a left join lkcrm_crm_contract as b on a.customer_id = b.customer_id where DATE_FORMAT(b.order_date,'")
@@ -81,6 +82,7 @@ public class BiCustomerService {
         String[] userIdsArr = userIds.split(",");
         StringBuffer sqlStringBuffer = new StringBuffer();
         String custId = BaseUtil.getCustId();
+        String customerview = BaseUtil.getViewSqlNotASName("customerview");
         for (int i = 1; i <= userIdsArr.length; i++) {
             sqlStringBuffer.append("select (select realname from lkcrm_admin_user where user_id = ").append(userIdsArr[i - 1])
                     .append(") as realname,count(a.customer_id) as customerNum,IFNULL((select count(distinct b.customer_id) from " +
@@ -92,7 +94,7 @@ public class BiCustomerService {
                     .append(" ) as contractMoney,(select IFNULL(SUM(d.money),0) from lkcrm_crm_receivables as d left join lkcrm_crm_contract" +
                             " as e on d.contract_id = e.contract_id where DATE_FORMAT(e.order_date,'").append(sqlDateFormat).append("') between '")
                     .append(beginTime).append("' and '").append(finalTime).append("' and e.owner_user_id = ").append(userIdsArr[i - 1])
-                    .append(" ) as receivablesMoney from customerview as a where DATE_FORMAT(create_time,'").append(sqlDateFormat)
+                    .append(" ) as receivablesMoney from " + customerview + " as a where DATE_FORMAT(create_time,'").append(sqlDateFormat)
                     .append("') between '").append(beginTime).append("' and '").append(finalTime).append("' and cust_id='")
                     .append(custId)
                     .append("' and owner_user_id = ")
@@ -266,8 +268,9 @@ public class BiCustomerService {
         Integer beginTime = record.getInt("beginTime");
         Integer finalTime = record.getInt("finalTime");
         StringBuffer sqlStringBuffer = new StringBuffer();
+        String customerview = BaseUtil.getViewSqlNotASName("customerview");
         sqlStringBuffer.append("select a.customer_name,b.name as contract_name,b.money as contract_money,IFNULL(c.money,0) as receivables_money," +
-                "a.`客户行业`,a.`客户来源`,a.owner_user_name,a.create_user_name,a.create_time,a.update_time,b.order_date from customerview " +
+                "a.`客户行业`,a.`客户来源`,a.owner_user_name,a.create_user_name,a.create_time,a.update_time,b.order_date from " + customerview + " " +
                 "as a inner join lkcrm_crm_contract as b on a.customer_id = b.customer_id left join lkcrm_crm_receivables as c on " +
                 "b.contract_id = c.contract_id where b.cust_id='")
                 .append(BaseUtil.getCustId()).append("' and DATE_FORMAT(a.create_time,'")
@@ -377,9 +380,10 @@ public class BiCustomerService {
         Integer finalTime = record.getInt("finalTime");
         StringBuffer sqlStringBuffer = new StringBuffer();
         String[] userIdsArr = userIds.split(",");
+        String customerview = BaseUtil.getViewSqlNotASName("customerview");
         for (int i = 1; i <= userIdsArr.length; i++) {
             sqlStringBuffer.append("select a.realname,IFNULL(AVG(TIMESTAMPDIFF(DAY,b.create_time,c.order_date)),0) as cycle, count(b.customer_id) " +
-                    "as customerNum from lkcrm_admin_user as a left join customerview as b on a.user_id = b.owner_user_id left join " +
+                    "as customerNum from lkcrm_admin_user as a left join "+customerview+" as b on a.user_id = b.owner_user_id left join " +
                     "lkcrm_crm_contract as c on b.customer_id = c.customer_id where b.cust_id='")
                     .append(BaseUtil.getCustId()).append("' and DATE_FORMAT(b.create_time,'").append(sqlDateFormat)
                     .append("') between '").append(beginTime).append("' and '").append(finalTime).append("' and c.check_status = 2 and a.user_id = ")

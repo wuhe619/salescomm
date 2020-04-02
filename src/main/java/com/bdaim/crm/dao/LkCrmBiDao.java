@@ -565,15 +565,17 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
 
     public List<Record> portraitSource(String[] userIdsArr, Integer status, String startTime, String endTime) {
         String custId = BaseUtil.getCustId();
-        String sql = "        SELECT (SELECT COUNT(1) FROM customerview WHERE `客户来源` =ccc.`客户来源` and cust_id='" +
+        String customerview = BaseUtil.getViewSql("customerview");
+        String customerviewNotAsName = BaseUtil.getViewSqlNotASName("customerview");
+        String sql = "        SELECT (SELECT COUNT(1) FROM " + customerview + " WHERE `客户来源` =ccc.`客户来源` and cust_id='" +
                 custId + "') as allCustomer, " +
-                "          (SELECT COUNT(1) FROM customerview where deal_status = '已成交' and `客户来源` =ccc.`客户来源` and cust_id='" +
+                "          (SELECT COUNT(1) FROM " + customerview + " where deal_status = '已成交' and `客户来源` =ccc.`客户来源` and cust_id='" +
                 custId + "') as dealCustomer, " +
                 "          CASE " +
                 "          when  ccc.`客户来源` = '' then  '未知' when ccc.`客户来源` is null then '未知' " +
                 "          ELSE ccc.`客户来源` end " +
                 "          as source " +
-                "           FROM customerview as ccc " +
+                "           FROM " + customerviewNotAsName + " as ccc " +
                 "          where   ccc.owner_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
         sql += ") and ccc.cust_id='" + custId + "'";
@@ -622,13 +624,15 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
 
     public List<Record> portraitLevel(String[] userIdsArr, Integer status, String startTime, String endTime) {
         String custId = BaseUtil.getCustId();
-        String sql = "         SELECT (SELECT COUNT(1) FROM customerview WHERE `客户级别` =ccc.`客户级别` and cust_id='" + custId + "') as allCustomer, " +
-                "          (SELECT COUNT(1) FROM customerview where deal_status = '已成交' and `客户级别` =ccc.`客户级别` and cust_id='" + custId + "') as dealCustomer, " +
+        String customerviewNoAsName = BaseUtil.getViewSqlNotASName("customerview");
+        String customerview = BaseUtil.getViewSql("customerview");
+        String sql = "         SELECT (SELECT COUNT(1) FROM " + customerview + " WHERE `客户级别` =ccc.`客户级别` and cust_id='" + custId + "') as allCustomer, " +
+                "          (SELECT COUNT(1) FROM " + customerview + " where deal_status = '已成交' and `客户级别` =ccc.`客户级别` and cust_id='" + custId + "') as dealCustomer, " +
                 "          CASE " +
                 "          when  ccc.`客户级别` = '' then  '未知' when ccc.`客户级别` is null then '未知'" +
                 "          ELSE ccc.`客户级别` end " +
                 "          as level " +
-                "          FROM customerview as ccc " +
+                "          FROM " + customerviewNoAsName + " as ccc " +
                 "          where   ccc.owner_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
         sql += ") and ccc.cust_id='" + custId + "' ";
@@ -675,16 +679,18 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
     }
 
     public List<Record> portrait(String[] userIdsArr, Integer status, String startTime, String endTime) {
+        String customerview = BaseUtil.getViewSql("customerview");
+        String customerviewNoAsName = BaseUtil.getViewSqlNotASName("customerview");
         String custId = BaseUtil.getCustId();
-        String sql = "          SELECT (SELECT COUNT(1) FROM customerview WHERE `客户行业` =ccc.`客户行业` and cust_id='" +
+        String sql = "          SELECT (SELECT COUNT(1) FROM " + customerview + " WHERE `客户行业` =ccc.`客户行业` and cust_id='" +
                 custId + "') as allCustomer, " +
-                "        (SELECT COUNT(1) FROM customerview where deal_status = '已成交' and `客户行业` =ccc.`客户行业` and cust_id='" +
+                "        (SELECT COUNT(1) FROM " + customerview + " where deal_status = '已成交' and `客户行业` =ccc.`客户行业` and cust_id='" +
                 custId + "') as dealCustomer, " +
                 "        CASE " +
                 "        when  ccc.`客户行业` = '' then  '未知' when ccc.`客户行业` is null then '未知'" +
                 "        ELSE ccc.`客户行业` end " +
                 "        as industry " +
-                "         FROM customerview as ccc " +
+                "         FROM " + customerviewNoAsName + " as ccc " +
                 "         where   ccc.owner_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdsArr);
         sql += ") and ccc.cust_id='" + custId + "' ";
@@ -1064,12 +1070,13 @@ public class LkCrmBiDao extends SimpleHibernateDao<LkCrmBiDao, Integer> {
     }
 
     public List<Record> sellFunnelList(String[] userIdss, Integer status, String startTime, String endTime) {
+        String businessview = BaseUtil.getViewSql("businessview");
         String sql = "        SELECT " +
                 "         business_id,business_name,create_time,create_user_id, " +
                 "        create_user_name,customer_id,customer_name, " +
                 "        deal_date,money,owner_user_id,owner_user_name, " +
                 "        status_id,status_name,type_id,type_name " +
-                "        FROM businessview " +
+                "        FROM " + businessview + " " +
                 "        where " +
                 "        owner_user_id in (";
         sql += SqlAppendUtil.sqlAppendWhereIn(userIdss);
