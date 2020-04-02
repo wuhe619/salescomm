@@ -1522,7 +1522,8 @@ public class MarketResourceAction extends BasicAction {
                 dto.setObjType(objType);
                 dto.setCallSid(callId);
                 dto.setStatus(callStatus);
-                marketResourceService.insertLogV3(dto);
+                // 保存通话记录
+                marketResourceService.insertCrmTouchLog(dto);
             }
         } catch (Exception e) {
             LOG.error("保存手动外呼通话记录异常,", e);
