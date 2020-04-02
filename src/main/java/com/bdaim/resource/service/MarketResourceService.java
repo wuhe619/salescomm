@@ -7016,7 +7016,7 @@ public class MarketResourceService {
         sb.append(" ORDER BY sms.create_time DESC ");
         com.bdaim.common.dto.Page page = null;
         try {
-            page = this.marketResourceDao.sqlPageQuery0(sb.toString(), pageNum, pageSize, params);
+            page = this.marketResourceDao.sqlPageQuery0(sb.toString(), pageNum, pageSize, params.toArray());
         } catch (Exception e) {
             LOG.error("查询短信营销记录失败,", e);
             page = new com.bdaim.common.dto.Page();
