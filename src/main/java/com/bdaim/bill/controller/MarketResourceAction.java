@@ -21,6 +21,7 @@ import com.bdaim.common.page.PageList;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.service.PhoneService;
+import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.erp.crm.service.CrmContactsService;
 import com.bdaim.crm.erp.crm.service.CrmCustomerService;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
@@ -1524,6 +1525,26 @@ public class MarketResourceAction extends BasicAction {
                 dto.setStatus(callStatus);
                 // 保存通话记录
                 marketResourceService.insertCrmTouchLog(dto);
+                LkCrmAdminRecordEntity record = new LkCrmAdminRecordEntity();
+                record.setTypesId(objId);
+                record.setContent("网络电话");
+                record.setCategory("打电话");
+                record.setIsEvent(0);
+                // 致电时间
+                if (param.get("callTime") != null) {
+                    Date callTime = param.getDate("callTime");
+                    record.setNextTime(callTime);
+                }
+                // 添加更新记录
+                if ("1".equals(objType)) {
+                    crmLeadsService.addRecord(record);
+                } else if ("2".equals(objType)) {
+                    //客户私海
+                    crmCustomerService.addRecord(record);
+                } else if ("3".equals(objType)) {
+                    // 联系人
+                    crmContactsService.addRecord(record);
+                }
             }
         } catch (Exception e) {
             LOG.error("保存手动外呼通话记录异常,", e);

@@ -909,6 +909,7 @@ public class EntDataService {
 
     /**
      * 查询指定条件下的数据总量
+     *
      * @param custId
      * @param custGroupId
      * @param custUserId
@@ -920,6 +921,8 @@ public class EntDataService {
         Map data = new HashMap();
         LOG.info("企业检索总数查询参数:{}", params);
         // 构造DSL语句
+        params.remove("pageNum");
+        params.remove("pageSize");
         SearchSourceBuilder searchSourceBuilder = queryCondition(params);
         CountResult result = elasticSearchService.count(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         data.put("total", JSON.parseObject(result.getJsonString()).get("count"));
