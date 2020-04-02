@@ -19,10 +19,12 @@ import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import io.searchbox.core.CountResult;
 import io.searchbox.core.SearchResult;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.index.query.WildcardQueryBuilder;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -813,32 +815,32 @@ public class EntDataService {
         }
         // 注册时间
         if (StringUtil.isNotEmpty(param.getString("startTime")) && StringUtil.isNotEmpty(param.getString("endTime"))) {
-            qb.must(QueryBuilders.rangeQuery("estabTime").from(param.getDate("startTime").getTime()).to(param.getDate("endTime").getTime()));
+            qb.filter(QueryBuilders.rangeQuery("estabTime").from(param.getDate("startTime").getTime()).to(param.getDate("endTime").getTime()));
         } else if (StringUtil.isNotEmpty(param.getString("startTime"))) {
-            qb.must(QueryBuilders.rangeQuery("estabTime").from(param.getDate("startTime").getTime()));
+            qb.filter(QueryBuilders.rangeQuery("estabTime").from(param.getDate("startTime").getTime()));
         } else if (StringUtil.isNotEmpty(param.getString("endTime"))) {
-            qb.must(QueryBuilders.rangeQuery("estabTime").to(param.getDate("endTime").getTime()));
+            qb.filter(QueryBuilders.rangeQuery("estabTime").to(param.getDate("endTime").getTime()));
         }
 
         // 注册资金
         if (StringUtil.isNotEmpty(param.getString("regCapital")) && StringUtil.isNotEmpty(param.getString("regCapital2"))) {
-            qb.must(QueryBuilders.rangeQuery("regCapNum").gt(param.getIntValue("regCapital")).lt(param.getIntValue("regCapital2")));
+            qb.filter(QueryBuilders.rangeQuery("regCapNum").gt(param.getIntValue("regCapital")).lt(param.getIntValue("regCapital2")));
         } else if (StringUtil.isNotEmpty(param.getString("regCapital"))) {
-            qb.must(QueryBuilders.rangeQuery("regCapNum").from(param.getIntValue("regCapital")));
+            qb.filter(QueryBuilders.rangeQuery("regCapNum").from(param.getIntValue("regCapital")));
         } else if (StringUtil.isNotEmpty(param.getString("regCapital2"))) {
-            qb.must(QueryBuilders.rangeQuery("regCapNum").to(param.getIntValue("regCapital2")));
+            qb.filter(QueryBuilders.rangeQuery("regCapNum").to(param.getIntValue("regCapital2")));
         }
 
         //来源
         if (StringUtil.isNotEmpty(param.getString("src"))) {
-            qb.must(QueryBuilders.termQuery("src", param.getString("src")));
+            qb.filter(QueryBuilders.termQuery("src", param.getString("src")));
         }
         // 联系电话
         if (StringUtil.isNotEmpty(param.getString("phoneStatus"))) {
             String phoneStatus = param.getString("phoneStatus");
             // 有联系电话
             if ("1".equals(phoneStatus)) {
-                qb.must(QueryBuilders.regexpQuery("phone", "[0-9].+"));
+                qb.filter(QueryBuilders.regexpQuery("phone", "[0-9].+"));
                 //qb.mustNot(QueryBuilders.matchQuery("phone", ","));
             }/* else if ("2".equals(phoneStatus)) {
                 // 有手机
@@ -852,7 +854,7 @@ public class EntDataService {
         if (StringUtil.isNotEmpty(param.getString("emailStatus"))) {
             // 有邮箱
             if ("1".equals(param.getString("emailStatus"))) {
-                qb.must(QueryBuilders.regexpQuery("email", "[0-9|a-z|A-Z]@.+"));
+                qb.filter(QueryBuilders.regexpQuery("email", "[0-9|a-z|A-Z]@.+"));
             } else if ("2".equals(param.getString("emailStatus"))) {
                 // 无邮箱
                 qb.mustNot(QueryBuilders.regexpQuery("email", "[0-9|a-z|A-Z]@.+"));
