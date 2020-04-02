@@ -721,6 +721,9 @@ public class AdminFieldService {
             case "crm_customer_pool":
                 type = 8;
                 break;
+            case "crm_cluePublic":
+                type = 11;
+                break;
             default:
                 type = 0;
                 break;
