@@ -25,4 +25,19 @@ public class BiTouchController {
                               @RequestParam String type) {
         return biTouchService.phone(deptId, userId, type);
     }
+
+    /**
+     * 短信触达送达率分析
+     *
+     * @param deptId
+     * @param userId
+     * @param type
+     * @return
+     * @author Chacker
+     */
+    @RequestMapping(value = "/textMessage")
+    public ResponseInfo textMessage(@RequestParam Integer deptId, @RequestParam Long userId,
+                                    @RequestParam String type) {
+        return biTouchService.textMessage(deptId, userId, type);
+    }
 }
