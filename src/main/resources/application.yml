@@ -125,3 +125,5 @@ alipay_app_private_key_pro: 1
 alipay_public_key_pro: 1
   #支付结果异步通知地址
 alipay_notify_url_pro: 1
+ent_data_index: ent_data_test
+ent_data_type: tag
