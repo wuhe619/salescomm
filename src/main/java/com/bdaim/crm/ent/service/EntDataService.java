@@ -17,6 +17,7 @@ import com.bdaim.util.ExcelUtil;
 import com.bdaim.util.MD5Util;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
+import io.searchbox.core.CountResult;
 import io.searchbox.core.SearchResult;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -42,6 +43,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -871,15 +873,13 @@ public class EntDataService {
         return searchSourceBuilder;
     }
 
+
     public Page pageSearch(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params) throws Exception {
         Page page = new Page();
         LOG.info("企业列表查询参数:{}", params);
         // 构造DSL语句
         SearchSourceBuilder searchSourceBuilder = queryCondition(params);
-
-        System.out.println(searchSourceBuilder.toString());
         SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
-
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             List list = new ArrayList<>();
             JSONObject t;
@@ -907,6 +907,24 @@ public class EntDataService {
         return page;
     }
 
+    /**
+     * 查询指定条件下的数据总量
+     * @param custId
+     * @param custGroupId
+     * @param custUserId
+     * @param busiType
+     * @param params
+     * @return
+     */
+    public Map count(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params) {
+        Map data = new HashMap();
+        LOG.info("企业检索总数查询参数:{}", params);
+        // 构造DSL语句
+        SearchSourceBuilder searchSourceBuilder = queryCondition(params);
+        CountResult result = elasticSearchService.count(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
+        data.put("total", JSON.parseObject(result.getJsonString()).get("count"));
+        return data;
+    }
     /*public Page pageSearch0(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params)  {
         Page page = new Page();
         LOG.info("企业列表查询参数:{}", params);
