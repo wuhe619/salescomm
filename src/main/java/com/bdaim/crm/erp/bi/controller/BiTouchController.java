@@ -58,8 +58,29 @@ public class BiTouchController {
                                   @RequestParam Integer deptId,
                                   @RequestParam Long userId, @RequestParam String type) {
         if (pageNum == null || pageSize == null) {
-            return new ResponseInfoAssemble().failure(500, "请选择分页");
+            return new ResponseInfoAssemble().failure(500, "请选择页码");
         }
         return biTouchService.phoneList(pageNum, pageSize, deptId, userId, type);
+    }
+
+    /**
+     * 短信统计分析列表
+     *
+     * @param pageNum
+     * @param pageSize
+     * @param deptId
+     * @param userId
+     * @param type
+     * @return
+     */
+    @RequestMapping(value = "/messageList")
+    public ResponseInfo messageList(@RequestParam Integer pageNum, @RequestParam Integer pageSize,
+                                    @RequestParam Integer deptId,
+                                    @RequestParam Long userId, @RequestParam String type) {
+        if (pageNum == null || pageSize == null) {
+            return new ResponseInfoAssemble().failure(500, "请选择页码");
+        }
+        return biTouchService.messageList(pageNum, pageSize, deptId, userId, type);
+
     }
 }
