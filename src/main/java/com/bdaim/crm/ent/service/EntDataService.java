@@ -19,12 +19,10 @@ import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import io.searchbox.core.CountResult;
 import io.searchbox.core.SearchResult;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.index.query.WildcardQueryBuilder;
-import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -801,10 +799,10 @@ public class EntDataService {
                 BoolQueryBuilder address = QueryBuilders.boolQuery();
                 regLocation = jsonArray.getJSONObject(i);
                 if (StringUtil.isNotEmpty(regLocation.getString("regarea"))) {
-                    address.must(QueryBuilders.termsQuery("regarea", regLocation.getString("regarea")));
+                    address.must(QueryBuilders.termQuery("regarea", regLocation.getString("regarea")));
                 }
                 if (StringUtil.isNotEmpty(regLocation.getString("regcity"))) {
-                    address.must(QueryBuilders.termsQuery("regcity", regLocation.getString("regcity")));
+                    address.must(QueryBuilders.termQuery("regcity", regLocation.getString("regcity")));
                 }
                 if (StringUtil.isNotEmpty(regLocation.getString("address"))) {
                     address.must(QueryBuilders.wildcardQuery("address", "*" + regLocation.getString("address") + "*"));
