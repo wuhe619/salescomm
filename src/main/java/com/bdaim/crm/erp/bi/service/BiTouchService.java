@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.bi.service;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
+import com.bdaim.util.ConfigUtil;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -84,6 +85,34 @@ public class BiTouchService {
         }
         return new ResponseInfoAssemble().success(resultList);
 
+    }
+
+    /**
+     * 通话记录 列表
+     *
+     * @author Chacker
+     * @date 2020/4/2
+     */
+    public ResponseInfo phoneList(Integer pageNum, Integer pageSize, Integer deptId, Long userId, String type) {
+        //默认传进来的参数有 pageNum、pageSize、deptId、type
+        Map<String, Object> result = new HashMap<>();
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        Map<String, Object> testMap = new HashMap<>();
+        testMap.put("realname", "程宁测试");
+        testMap.put("create_time", "2020-3-10 13:20:00");
+        testMap.put("custName", "我是被叫名称");
+        testMap.put("custNumber", "被叫号码");
+        testMap.put("status", "1001");
+        testMap.put("Callerduration", "我是通话时长");
+        testMap.put("callSid", "我是呼叫ID");
+        testMap.put("companyName", "北京某公司名称");
+        resultList.add(testMap);
+        result.put("data", resultList);
+        result.put("total", 1);
+        // 录音路径
+        String audioUrl = ConfigUtil.getInstance().get("audio_server_url") + "/";
+        result.put("audioUrl", audioUrl);
+        return new ResponseInfoAssemble().success(result);
     }
 }
 
