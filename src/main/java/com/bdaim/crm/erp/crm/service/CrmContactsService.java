@@ -221,8 +221,8 @@ public class CrmContactsService {
             BeanUtils.copyProperties(crmContacts, dnEntity, JavaBeanUtil.getNullPropertyNames(crmContacts));
             crmContactsDao.saveOrUpdate(dnEntity);
             // 保存uid对应关系
-            phoneService.saveObjU(String.valueOf(crmContacts.getContactsId()), crmContacts.getMobile(), 3, user.getCustId());
-            phoneService.saveObjU(String.valueOf(crmContacts.getContactsId()), crmContacts.getTelephone(), 3, user.getCustId());
+            phoneService.saveObjU(String.valueOf(entity.getContactsId()), crmContacts.getMobile(), 3, user.getCustId());
+            phoneService.saveObjU(String.valueOf(entity.getContactsId()), crmContacts.getTelephone(), 3, user.getCustId());
             return R.ok();
         } else {
             crmContacts.setCreateTime(DateUtil.date().toTimestamp());

@@ -184,8 +184,8 @@ public class CrmCustomerService {
             }
             int id = (int) crmCustomerDao.saveReturnPk(crmCustomer);
             // 保存uid对应关系
-            phoneService.saveObjU(String.valueOf(entity.getCustomerId()), crmCustomer.getMobile(), 2, user.getCustId());
-            phoneService.saveObjU(String.valueOf(entity.getCustomerId()), crmCustomer.getTelephone(), 2, user.getCustId());
+            phoneService.saveObjU(String.valueOf(crmCustomer.getCustomerId()), crmCustomer.getMobile(), 2, user.getCustId());
+            phoneService.saveObjU(String.valueOf(crmCustomer.getCustomerId()), crmCustomer.getTelephone(), 2, user.getCustId());
             crmRecordService.addRecord(crmCustomer.getCustomerId(), CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
             if (leadsId != null) {
                 // 转移线索的信息到客户
