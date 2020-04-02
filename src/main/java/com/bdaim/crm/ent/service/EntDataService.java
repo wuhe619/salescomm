@@ -838,16 +838,16 @@ public class EntDataService {
         // 联系电话
         if (StringUtil.isNotEmpty(param.getString("phoneStatus"))) {
             String phoneStatus = param.getString("phoneStatus");
-            // 有联系电话
+            // 有固话
             if ("1".equals(phoneStatus)) {
-                qb.filter(QueryBuilders.regexpQuery("phone", "[0-9].+"));
-                //qb.mustNot(QueryBuilders.matchQuery("phone", ","));
-            }/* else if ("2".equals(phoneStatus)) {
+                qb.filter(QueryBuilders.regexpQuery("phone1", "[0-9].+"));
+            } else if ("2".equals(phoneStatus)) {
                 // 有手机
-                qb.must(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
-            } */ else if ("2".equals(phoneStatus)) {
+                qb.filter(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
+            } else if ("2".equals(phoneStatus)) {
                 // 无联系方式
-                qb.mustNot(QueryBuilders.regexpQuery("phone", "[0-9].+"));
+                qb.mustNot(QueryBuilders.regexpQuery("phone1", "[0-9].+"));
+                qb.mustNot(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
             }
         }
         // 邮箱
