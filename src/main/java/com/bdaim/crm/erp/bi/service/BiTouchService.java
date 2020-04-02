@@ -96,6 +96,7 @@ public class BiTouchService {
     public ResponseInfo phoneList(Integer pageNum, Integer pageSize, Integer deptId, Long userId, String type) {
         //默认传进来的参数有 pageNum、pageSize、deptId、type
         Map<String, Object> result = new HashMap<>();
+        List<Map<String, Object>> resultList = new ArrayList<>();
         Map<String, Object> testMap = new HashMap<>();
         testMap.put("realname", "程宁测试");
         testMap.put("create_time", "2020-3-10 13:20:00");
@@ -105,7 +106,8 @@ public class BiTouchService {
         testMap.put("Callerduration", "我是通话时长");
         testMap.put("callSid", "我是呼叫ID");
         testMap.put("companyName", "北京某公司名称");
-        result.put("data", testMap);
+        resultList.add(testMap);
+        result.put("data", resultList);
         result.put("total", 1);
         // 录音路径
         String audioUrl = ConfigUtil.getInstance().get("audio_server_url") + "/";
