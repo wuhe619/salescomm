@@ -106,6 +106,7 @@ public class BiTouchService {
         testMap.put("Callerduration", "我是通话时长");
         testMap.put("callSid", "我是呼叫ID");
         testMap.put("companyName", "北京某公司名称");
+        testMap.put("recordurl","123.mp3");
         resultList.add(testMap);
         result.put("data", resultList);
         result.put("total", 1);
