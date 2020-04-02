@@ -53,6 +53,38 @@ public class BiTouchService {
         }
         return new ResponseInfoAssemble().success(resultList);
     }
+
+    public ResponseInfo textMessage(Integer deptId, Long userId, String type) {
+        //proportion
+        //type
+        //messageNum
+        //messageEnd
+        Record record = new Record();
+        record.set("deptId", deptId).set("userId", userId).set("type", type)
+                .set("startTime", null).set("endTime", null);
+        biTimeUtil.analyzeType(record);
+        Integer cycleNum = record.getInt("cycleNum");
+        Integer beginTime = record.getInt("beginTime");
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        Random ran = new Random();
+        for (int i = 0; i < cycleNum; i++) {
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("type", String.valueOf(beginTime));
+            beginTime = biTimeUtil.estimateTime(beginTime);
+            int messageNum = ran.nextInt(10) + 5;
+            int messageEnd = messageNum - ran.nextInt(5);
+            resultMap.put("messageNum", messageNum);
+            resultMap.put("messageEnd", messageEnd);
+
+            BigDecimal messageNumD = new BigDecimal(messageNum);
+            BigDecimal messageEndD = new BigDecimal(messageEnd);
+            BigDecimal proportionD = messageEndD.divide(messageNumD, 4, BigDecimal.ROUND_HALF_UP);
+            resultMap.put("proportion", String.valueOf(proportionD));
+            resultList.add(resultMap);
+        }
+        return new ResponseInfoAssemble().success(resultList);
+
+    }
 }
 
 
