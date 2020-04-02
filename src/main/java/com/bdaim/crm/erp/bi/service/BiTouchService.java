@@ -114,6 +114,7 @@ public class BiTouchService {
             testMap.put("callSid", "我是呼叫ID");
             testMap.put("companyName", "北京某公司名称");
             testMap.put("recordurl", "20200420031904523400007200402112716000001.mp3");
+            testMap.put("userId", "20031904523400007");
             resultList.add(testMap);
         }
         result.put("data", resultList);
