@@ -59,7 +59,6 @@ public class CrmContactsController extends BasicAction {
     private AdminSceneService adminSceneService;
 
     /**
-     * @author wyq
      * 查看列表页
      */
     @Permissions({"crm:contacts:index"})
@@ -78,7 +77,6 @@ public class CrmContactsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 分页条件查询联系人
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
@@ -88,7 +86,6 @@ public class CrmContactsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据id查询联系人
      */
     @Permissions("crm:contacts:read")
@@ -98,7 +95,6 @@ public class CrmContactsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据联系人名称查询
      */
     @RequestMapping(value = "/queryByName", method = RequestMethod.POST)
@@ -107,7 +103,6 @@ public class CrmContactsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据联系人id查询商机
      */
     @RequestMapping(value = "/queryBusiness", method = RequestMethod.POST)
@@ -122,7 +117,6 @@ public class CrmContactsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 联系人关联商机
      */
     @RequestMapping(value = "/relateBusiness", method = RequestMethod.POST)
@@ -131,7 +125,6 @@ public class CrmContactsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 联系人解除关联商机
      */
     @RequestMapping(value = "/unrelateBusiness", method = RequestMethod.POST)
@@ -140,7 +133,6 @@ public class CrmContactsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 新建或更新联系人
      */
     @Permissions({"crm:contacts:save", "crm:contacts:update"})
@@ -164,7 +156,6 @@ public class CrmContactsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据id删除联系人
      */
     @Permissions("crm:contacts:delete")
@@ -174,7 +165,6 @@ public class CrmContactsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 联系人转移
      */
     @Permissions("crm:contacts:transfer")
@@ -187,7 +177,6 @@ public class CrmContactsController extends BasicAction {
 
 
     /**
-     * @author wyq
      * 添加跟进记录
      */
     @NotNullValidate(value = "typesId", message = "联系人id不能为空")
@@ -209,7 +198,6 @@ public class CrmContactsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 查看跟进记录
      */
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
@@ -242,7 +230,6 @@ public class CrmContactsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 批量导出线索
      */
     @Permissions("crm:contacts:excelexport")
@@ -254,7 +241,6 @@ public class CrmContactsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 导出全部联系人
      */
     @Permissions("crm:contacts:excelexport")
@@ -328,7 +314,6 @@ public class CrmContactsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 获取联系人导入模板
      */
     @LoginFormCookie

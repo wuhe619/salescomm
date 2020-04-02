@@ -10,6 +10,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.service.PhoneService;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
@@ -88,6 +89,8 @@ public class CrmContactsService {
     private LkCrmTaskDao crmTaskDao;
     @Autowired
     private LkCrmLeadsDao crmLeadsDao;
+    @Autowired
+    private PhoneService phoneService;
 
     /**
      * @return
@@ -209,24 +212,31 @@ public class CrmContactsService {
         String batchId = StrUtil.isNotEmpty(crmContacts.getBatchId()) ? crmContacts.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
-        crmContacts.setCustId(BaseUtil.getUser().getCustId());
+        LoginUser user = BaseUtil.getUser();
+        crmContacts.setCustId(user.getCustId());
         if (entity.getContactsId() != null) {
             crmContacts.setUpdateTime(DateUtil.date().toTimestamp());
             crmRecordService.updateRecord(crmContactsDao.get(crmContacts.getContactsId()), crmContacts, CrmEnum.CONTACTS_TYPE_KEY.getTypes());
             LkCrmContactsEntity dnEntity = crmContactsDao.get(crmContacts.getContactsId());
             BeanUtils.copyProperties(crmContacts, dnEntity, JavaBeanUtil.getNullPropertyNames(crmContacts));
             crmContactsDao.saveOrUpdate(dnEntity);
+            // 保存uid对应关系
+            phoneService.saveObjU(String.valueOf(entity.getContactsId()), crmContacts.getMobile(), 3, user.getCustId());
+            phoneService.saveObjU(String.valueOf(entity.getContactsId()), crmContacts.getTelephone(), 3, user.getCustId());
             return R.ok();
         } else {
             crmContacts.setCreateTime(DateUtil.date().toTimestamp());
             crmContacts.setUpdateTime(DateUtil.date().toTimestamp());
-            crmContacts.setCreateUserId(BaseUtil.getUserId());
+            crmContacts.setCreateUserId(user.getUserId());
             if (crmContacts.getOwnerUserId() == null) {
-                crmContacts.setOwnerUserId(BaseUtil.getUserId());
+                crmContacts.setOwnerUserId(user.getUserId());
             }
             crmContacts.setBatchId(batchId);
             boolean save = (int) crmContactsDao.saveReturnPk(crmContacts) > 0;
             crmRecordService.addRecord(crmContacts.getContactsId(), CrmEnum.CONTACTS_TYPE_KEY.getTypes());
+            // 保存uid对应关系
+            phoneService.saveObjU(String.valueOf(crmContacts.getContactsId()), crmContacts.getMobile(), 3, user.getCustId());
+            phoneService.saveObjU(String.valueOf(crmContacts.getContactsId()), crmContacts.getTelephone(), 3, user.getCustId());
             return save ? R.ok() : R.error();
         }
     }
@@ -246,12 +256,13 @@ public class CrmContactsService {
             String batchId = StrUtil.isNotEmpty(crmContacts.getBatchId()) ? crmContacts.getBatchId() : IdUtil.simpleUUID();
             //crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
             //adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
-            crmContacts.setCustId(BaseUtil.getUser().getCustId());
+            LoginUser user = BaseUtil.getUser();
+            crmContacts.setCustId(user.getCustId());
             crmContacts.setCreateTime(DateUtil.date().toTimestamp());
             crmContacts.setUpdateTime(DateUtil.date().toTimestamp());
-            crmContacts.setCreateUserId(BaseUtil.getUserId());
+            crmContacts.setCreateUserId(user.getUserId());
             if (crmContacts.getOwnerUserId() == null) {
-                crmContacts.setOwnerUserId(BaseUtil.getUserId());
+                crmContacts.setOwnerUserId(user.getUserId());
             }
             crmContacts.setBatchId(batchId);
             if ((int) crmContactsDao.saveReturnPk(crmContacts) > 0) {
@@ -263,6 +274,10 @@ public class CrmContactsService {
                     crmContacts.setMobile(lkCrmLeads.getMobile());
                     crmContacts.setTelephone(lkCrmLeads.getTelephone());
                     crmContacts.setName(lkCrmLeads.getLeadsName());
+
+                    // 保存uid对应关系
+                    phoneService.saveObjU(String.valueOf(crmContacts.getContactsId()), crmContacts.getMobile(), 3, user.getCustId());
+                    phoneService.saveObjU(String.valueOf(crmContacts.getContactsId()), crmContacts.getTelephone(), 3, user.getCustId());
                     crmContactsDao.update(crmContacts);
 
                     Integer customer_id = objects.getJSONObject(i).getInteger("customer_id");
@@ -280,7 +295,7 @@ public class CrmContactsService {
                             adminFileList.addAll(leadsRecordFiles);
                             adminRecord.setBatchId(crmContacts.getBatchId());
                             adminRecord.setRecordId(null);
-                            adminRecord.setCustId(BaseUtil.getCustId());
+                            adminRecord.setCustId(user.getCustId());
                             adminRecord.setTypes("crm_contacts");
                             adminRecord.setTypesId(crmContacts.getContactsId().toString());
                             adminRecord.setUpdateTime(new Timestamp(System.currentTimeMillis()));

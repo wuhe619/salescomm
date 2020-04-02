@@ -1,6 +1,7 @@
 package com.bdaim.common.service;
 
 import com.bdaim.callcenter.dto.XzPullPhoneDTO;
+import com.bdaim.common.PhoneUtil;
 import com.bdaim.customersea.dao.CustomerSeaDao;
 import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.customgroup.dao.CustomGroupDao;
@@ -221,11 +222,49 @@ public class PhoneService {
     }
 
     /**
+     * 保存固话或手机号
+     * @param phone
+     * @return
+     */
+    public String pnu(String phone) {
+        if (StringUtil.isEmpty(phone)) {
+            LOG.warn("保存手机号至API服务手机号不能为空:{}", phone);
+            return null;
+        }
+        String uid = null;
+        if (PhoneUtil.isCellPhone(phone)) {
+            uid = savePhoneToAPI(phone);
+        } else {
+            uid = saveTelPhoneToAPI(phone);
+        }
+        return uid;
+    }
+
+    /**
+     * 获取固话或手机号
+     * @param uid
+     * @return
+     */
+    public String upn(String uid) {
+        if (StringUtil.isEmpty(uid)) {
+            LOG.warn("获取手机号API服务uid不能为空:{}", uid);
+            return null;
+        }
+        String phone = null;
+        if (PhoneUtil.isCellPhone(phone)) {
+            phone = getPhoneFromAPI(phone);
+        } else {
+            phone = getTelPhoneFromAPI(phone);
+        }
+        return phone;
+    }
+
+    /**
      * 保存固话至API服务
      *
      * @param phone
      */
-    public String saveTelPhoneToAPI(String phone) {
+    private String saveTelPhoneToAPI(String phone) {
         if (StringUtil.isEmpty(phone)) {
             LOG.warn("保存手机号至API服务手机号不能为空:{}", phone);
             return null;
@@ -247,7 +286,7 @@ public class PhoneService {
      * @param uid
      * @return
      */
-    public String getTelPhoneFromAPI(String uid) {
+    private String getTelPhoneFromAPI(String uid) {
         if (StringUtil.isEmpty(uid)) {
             LOG.warn("获取手机号API服务uid不能为空:{}", uid);
             return null;
@@ -255,7 +294,7 @@ public class PhoneService {
         String phone = null;
         try {
             phone = HttpUtil.httpPost("http://api.core:1010/pn/upn?uid=" + uid.trim().replaceAll(" ", ""), "", null, 3000);
-            if(StringUtil.isNotEmpty(phone)){
+            if (StringUtil.isNotEmpty(phone)) {
                 phone = phone.substring(1);
             }
         } catch (Exception e) {
@@ -498,6 +537,30 @@ public class PhoneService {
             phoneList = new ArrayList<>();
         }
         return phoneList;
+    }
+
+    /**
+     * 保存手机号对应关系
+     *
+     * @param objId
+     * @param phone
+     * @param type
+     * @param custId
+     */
+    public void saveObjU(String objId, String phone, int type, String custId) {
+        if (StringUtil.isEmpty(custId)) {
+            return;
+        }
+        if (StringUtil.isEmpty(phone)) {
+            return;
+        }
+        String uid = pnu(phone);
+        int count = marketTaskDao.queryForInt("SELECT COUNT(0) FROM obj_u_" + custId.substring(custId.length() - 1) + " WHERE obj_id=? AND u_id = ? AND type= ?", objId, uid, type);
+        if (count > 0) {
+            return;
+        }
+        String sql = "REPLACE INTO obj_u_" + custId.substring(custId.length() - 1) + " (`obj_id`, `u_id`, `type`) VALUES (?, ?, ?);";
+        marketTaskDao.executeUpdateSQL(sql, objId, uid, type);
     }
 
 

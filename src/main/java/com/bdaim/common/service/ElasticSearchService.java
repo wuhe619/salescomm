@@ -48,8 +48,8 @@ public class ElasticSearchService {
 
     public static final String CUSTOMER_SEA_TYPE = "data";
 
-    @Autowired
-    private TransportClient transportClient;
+    //@Autowired
+    //private TransportClient transportClient;
 
     @Resource
     private RestTemplate restTemplate;
@@ -560,11 +560,35 @@ public class ElasticSearchService {
         return result;
     }
 
-    public SearchResponse searchByClient(String dsl, String index, String indexType) {
+    /**
+     * ES汇总总量
+     *
+     * @param dsl
+     * @param index
+     * @param indexType
+     * @return
+     */
+    public CountResult count(String dsl, String index, String indexType) {
+        LOG.info("index:{},indexType:{},ES检索语句:\n{}", index, indexType, dsl);
+        CountResult result = null;
+        try {
+            Count count = new Count.Builder().query(dsl)
+                    .addIndex(index)
+                    .addType(indexType)
+                    .build();
+            result = jestClient.execute(count);
+        } catch (IOException e) {
+            LOG.error("ES汇总查询异常", e);
+        }
+        LOG.info("ES查询结果:\n{}", result.getJsonString());
+        return result;
+    }
+
+    /*public SearchResponse searchByClient(String dsl, String index, String indexType) {
         LOG.info("index:{},indexType:{},ES检索语句:\n{}", index, indexType, dsl);
         SearchResponse result = transportClient.prepareSearch(index).setTypes(indexType).execute().actionGet();
         return result;
-    }
+    }*/
 
     public SearchSourceBuilder queryConditionToDSL(JSONObject params) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();

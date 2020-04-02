@@ -496,13 +496,13 @@ public class AdminSceneService {
         R result = getCrmPageList(basePageRequest);
         if (result.get("data") != null) {
             if (((JSONObject) result.get("data")).get("list") != null) {
-                List plist;
+                //List plist;
                 List flist;
                 JSONArray list = ((JSONObject) result.get("data")).getJSONArray("list");
                 Map p, f;
                 String phone;
                 for (int i = 0; i < list.size(); i++) {
-                    plist = new ArrayList();
+                    //plist = new ArrayList();
                     flist = new ArrayList();
                     for (String k : list.getJSONObject(i).keySet()) {
                         if ("mobile".equals(k) || "telephone".equals(k)) {
@@ -512,17 +512,17 @@ public class AdminSceneService {
                             f.put("type", 7);
                             flist.add(f);
 
-                            // 处理手机号 uid
+                            /*// 处理手机号 uid
                             phone = list.getJSONObject(i).getString(k);
                             if (StringUtil.isNotEmpty(phone)) {
                                 p = new HashMap();
                                 p.put("p", phone);
                                 p.put("u", PhoneUtil.isCellPhone(phone) ? phoneService.savePhoneToAPI(phone) : phoneService.saveTelPhoneToAPI(phone));
                                 plist.add(p);
-                            }
+                            }*/
                         }
                     }
-                    list.getJSONObject(i).put("plist", plist);
+                    //list.getJSONObject(i).put("plist", plist);
                     list.getJSONObject(i).put("flist", flist);
                 }
             }

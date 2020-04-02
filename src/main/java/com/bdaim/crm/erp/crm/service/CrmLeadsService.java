@@ -12,6 +12,7 @@ import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
@@ -216,10 +217,7 @@ public class CrmLeadsService {
                 map.remove("super_data");
             }
         }
-        Page finalPage = new Page();
-        finalPage.setList(page.getData());
-        finalPage.setTotalRow(page.getTotal());
-        return R.ok().put("data", finalPage);
+        return R.ok().put("data", BaseUtil.crmPage(page));
     }
 
     /**
@@ -834,22 +832,25 @@ public class CrmLeadsService {
             for (Map<String, Object> field : fieldList) {
                 jsonArray.add(BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true));
             }
-
+            LoginUser user = BaseUtil.getUser();
             String batchId = String.valueOf(m.get("id"));
             crmLeads.setBatchId(batchId);
-            crmLeads.setCustId(BaseUtil.getUser().getCustId());
+            crmLeads.setCustId(user.getCustId());
             crmRecordService.updateRecord(jsonArray, batchId);
             adminFieldService.save(jsonArray, batchId);
             crmLeads.setCreateTime(DateUtil.date().toTimestamp());
             crmLeads.setUpdateTime(DateUtil.date().toTimestamp());
-            crmLeads.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmLeads.setCreateUserId(user.getUserId());
             if (crmLeads.getOwnerUserId() == null) {
-                crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId());
+                crmLeads.setOwnerUserId(user.getUserId());
             }
             crmLeads.setBatchId(batchId);
             crmLeads.setSeaId(seaId);
             int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
             crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
+            // 保存uid对应关系
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getMobile(), 1, user.getCustId());
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getTelephone(), 1, user.getCustId());
         }
         return 0;
     }
@@ -942,6 +943,7 @@ public class CrmLeadsService {
      * @return
      */
     public String transferToPrivateSea(String seaId, String company, String mobile, String telephone, int index) {
+        LoginUser user = BaseUtil.getUser();
         //添加到线索私海数据
         LkCrmLeadsEntity crmLeads = new LkCrmLeadsEntity();
         crmLeads.setLeadsName(company + index);
@@ -952,17 +954,20 @@ public class CrmLeadsService {
         // 查询公海线索的标记信息
         String batchId = MD5Util.encode32Bit(mobile);
         crmLeads.setBatchId(batchId);
-        crmLeads.setCustId(BaseUtil.getUser().getCustId());
+        crmLeads.setCustId(user.getCustId());
         crmLeads.setCreateTime(DateUtil.date().toTimestamp());
         crmLeads.setUpdateTime(DateUtil.date().toTimestamp());
-        crmLeads.setCreateUserId(BaseUtil.getUser().getUserId());
+        crmLeads.setCreateUserId(user.getUserId());
         if (crmLeads.getOwnerUserId() == null) {
-            crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId());
+            crmLeads.setOwnerUserId(user.getUserId());
         }
         crmLeads.setBatchId(batchId);
         crmLeads.setSeaId(seaId);
         int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
         crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
+        // 保存uid对应关系
+        phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getMobile(), 1, user.getCustId());
+        phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getTelephone(), 1, user.getCustId());
         return batchId;
     }
 
@@ -1141,9 +1146,10 @@ public class CrmLeadsService {
         }
 
         crmLeads.setCompany(object.getJSONObject("entity").getString("company"));
-        crmLeads.setCustId(BaseUtil.getUser().getCustId());
+        String custId = BaseUtil.getUser().getCustId();
+        crmLeads.setCustId(custId);
         // 查询客户默认公海
-        List<CustomerSea> publicSeaList = crmLeadsDao.find(" FROM CustomerSea WHERE custId = ? ", BaseUtil.getCustId());
+        List<CustomerSea> publicSeaList = crmLeadsDao.find(" FROM CustomerSea WHERE custId = ? ", custId);
         if (publicSeaList.size() > 0) {
             crmLeads.setSeaId(publicSeaList.get(0).getId().toString());
         }
@@ -1160,6 +1166,9 @@ public class CrmLeadsService {
             LkCrmLeadsEntity crmLeadsDb = crmLeadsDao.get(crmLeads.getLeadsId());
             BeanUtils.copyProperties(crmLeads, crmLeadsDb, JavaBeanUtil.getNullPropertyNames(crmLeads));
             crmLeadsDao.update(crmLeadsDb);
+            // 保存uid对应关系
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getMobile(), 1, custId);
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getTelephone(), 1, custId);
             return R.ok();
         } else {
             crmLeads.setCreateTime(new Timestamp(System.currentTimeMillis()));
@@ -1172,6 +1181,9 @@ public class CrmLeadsService {
             //boolean save = crmLeads.save();
             int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
             crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
+            // 保存uid对应关系
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getMobile(), 1, custId);
+            phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getTelephone(), 1, custId);
             return id > 0 ? R.ok() : R.error();
         }
     }
@@ -1351,6 +1363,7 @@ public class CrmLeadsService {
     public R translate(String leadsIds) {
         String[] leadsIdsArr = leadsIds.split(",");
         String leadsview = BaseUtil.getViewSql("leadsview");
+        LoginUser user = BaseUtil.getUser();
         for (String leadsId : leadsIdsArr) {
             List<Map<String, Object>> maps = crmLeadsDao.sqlQuery("select * from " + leadsview + " where leads_id = ?", Integer.valueOf(leadsId));
             Record crmLeads = JavaBeanUtil.mapToRecord(maps.get(0));
@@ -1364,12 +1377,13 @@ public class CrmLeadsService {
             List<Record> leadsFields = adminFieldService.list("1");
             LkCrmCustomerEntity crmCustomer = new LkCrmCustomerEntity();
             crmCustomer.setCustomerName(customerName);
+            crmCustomer.setCustId(user.getCustId());
             crmCustomer.setIsLock(0);
             crmCustomer.setNextTime(crmLeads.getTimestamp("next_time"));
             crmCustomer.setMobile(crmLeads.getStr("mobile"));
             crmCustomer.setTelephone(crmLeads.getStr("telephone"));
             crmCustomer.setDealStatus("未成交");
-            crmCustomer.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmCustomer.setCreateUserId(user.getUserId());
             crmCustomer.setOwnerUserId(crmLeads.getLong("owner_user_id"));
             crmCustomer.setCreateTime(new Timestamp(System.currentTimeMillis()));
             crmCustomer.setUpdateTime(new Timestamp(System.currentTimeMillis()));
@@ -1383,7 +1397,7 @@ public class CrmLeadsService {
             crmCustomer.setRemark("");
             String customerBatchId = IdUtil.simpleUUID();
             crmCustomer.setBatchId(customerBatchId);
-            List<LkCrmAdminFieldEntity> customerFields = crmLeadsDao.queryListBySql("select field_id,name,field_name,field_type from lkcrm_admin_field where label = '2'", LkCrmAdminFieldEntity.class);
+            List<LkCrmAdminFieldEntity> customerFields = crmLeadsDao.queryListBySql("select field_id,name,field_name,field_type from lkcrm_admin_field where label = '2' AND cust_id = ? ", user.getCustId(), LkCrmAdminFieldEntity.class);
             List<LkCrmAdminFieldvEntity> adminFieldvList = new ArrayList<>();
             for (Record leadsFIeld : leadsFields) {
                 for (LkCrmAdminFieldEntity customerField : customerFields) {
@@ -1396,6 +1410,7 @@ public class CrmLeadsService {
                             adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                             adminFieldv.setFieldId(customerField.getFieldId());
                             adminFieldv.setName(customerField.getName());
+                            adminFieldv.setCustId(user.getCustId());
                             adminFieldvList.add(adminFieldv);
                         }
                         continue;
@@ -1408,6 +1423,7 @@ public class CrmLeadsService {
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(customerField.getFieldId());
                         adminFieldv.setName(customerField.getName());
+                        adminFieldv.setCustId(user.getCustId());
                         adminFieldvList.add(adminFieldv);
                     }
                     if ("客户行业".equals(customerField.getName()) && "客户行业".equals(leadsFIeld.getStr("name"))) {
@@ -1415,6 +1431,7 @@ public class CrmLeadsService {
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(customerField.getFieldId());
                         adminFieldv.setName(customerField.getName());
+                        adminFieldv.setCustId(user.getCustId());
                         adminFieldvList.add(adminFieldv);
                     }
                     if ("客户级别".equals(customerField.getName()) && "客户级别".equals(leadsFIeld.getStr("name"))) {
@@ -1422,13 +1439,16 @@ public class CrmLeadsService {
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(customerField.getFieldId());
                         adminFieldv.setName(customerField.getName());
+                        adminFieldv.setCustId(user.getCustId());
                         adminFieldvList.add(adminFieldv);
                     }
                 }
-                ;
             }
-            ;
-            crmCustomerDao.save(crmCustomer);
+            int customerId = (int) crmCustomerDao.saveReturnPk(crmCustomer);
+            // 保存uid对应关系
+            phoneService.saveObjU(String.valueOf(customerId), crmLeads.getStr("mobile"), 2, user.getCustId());
+            phoneService.saveObjU(String.valueOf(customerId), crmLeads.getStr("telephone"), 2, user.getCustId());
+
             crmRecordService.addConversionCustomerRecord(crmCustomer.getCustomerId(), CrmEnum.CUSTOMER_TYPE_KEY.getTypes(), crmCustomer.getCustomerName());
             adminFieldService.save(adminFieldvList, customerBatchId);
             crmLeadsDao.executeUpdateSQL("update lkcrm_crm_leads set is_transform = 1,update_time = ?,customer_id = ? where leads_id = ?",

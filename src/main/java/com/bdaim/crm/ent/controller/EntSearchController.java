@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * @author chengning@salescomm.net
  */
@@ -34,6 +36,12 @@ public class EntSearchController extends BasicAction {
             params = JSONObject.parseObject(body);
         } catch (Exception e) {
             return new ResponseInfoAssemble().failure(-1, "查询条件解析异常[" + busiType + "]");
+        }
+        // 查询总量
+        if ("_count".equals(params.getString("_rule_"))) {
+            Map count = entDataService.count(opUser().getCustId(), opUser().getUserGroupId(), opUser().getId(), busiType, params);
+            resp.setData(count);
+            return resp;
         }
         Page page = null;
         try {

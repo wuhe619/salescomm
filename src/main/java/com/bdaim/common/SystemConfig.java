@@ -1,5 +1,6 @@
 package com.bdaim.common;
 
+import com.bdaim.AppConfig;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
@@ -59,20 +60,23 @@ public class SystemConfig {
     }
 
 
-    @Bean(name = "transportClient")
+    //@Bean(name = "transportClient")
     public TransportClient transportClient() {
-        LOGGER.info("开始初始化transportClient");
+        String cluster = "elasticsearch";
+        String host = AppConfig.getEs_rest();
+        host = host.substring(host.lastIndexOf("/") + 1, host.lastIndexOf(":"));
+        LOGGER.info("开始初始化transportClient,host:{},port:{},cluster:{}", host, 9300, cluster);
         TransportClient transportClient = null;
         try {
             // 配置信息
             Settings esSetting = Settings.builder()
-                    .put("cluster.name", "elasticsearch") //集群名字
+                    .put("cluster.name", cluster) //集群名字
                     .put("client.transport.sniff", true)//增加嗅探机制，找到ES集群
                     .put("thread_pool.search.size", 5)//增加线程池个数，暂时设为5
                     .build();
             //配置信息Settings自定义
             transportClient = new PreBuiltTransportClient(esSetting);
-            TransportAddress transportAddress = new TransportAddress(InetAddress.getByName("bd1"), 9300);
+            TransportAddress transportAddress = new TransportAddress(InetAddress.getByName(host), 9300);
             transportClient.addTransportAddresses(transportAddress);
         } catch (Exception e) {
             LOGGER.error("初始化transportClient异常", e);

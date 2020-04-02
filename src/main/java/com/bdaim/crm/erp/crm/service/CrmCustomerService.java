@@ -11,6 +11,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.service.PhoneService;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
@@ -120,6 +121,9 @@ public class CrmCustomerService {
     @Autowired
     private CrmLeadsService crmLeadsService;
 
+    @Autowired
+    private PhoneService phoneService;
+
     /**
      * @return
      * @author wyq
@@ -145,7 +149,7 @@ public class CrmCustomerService {
      */
     public R addOrUpdate(JSONObject jsonObject, String type) {
         Integer leadsId = jsonObject.getJSONObject("entity").getInteger("leadsId");
-
+        LoginUser user = BaseUtil.getUser();
         CrmCustomer entity = jsonObject.getObject("entity", CrmCustomer.class);
         LkCrmCustomerEntity crmCustomer = new LkCrmCustomerEntity();
         BeanUtils.copyProperties(entity, crmCustomer);
@@ -153,7 +157,7 @@ public class CrmCustomerService {
         String batchId = StrUtil.isNotEmpty(crmCustomer.getBatchId()) ? crmCustomer.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
-        crmCustomer.setCustId(BaseUtil.getUser().getCustId());
+        crmCustomer.setCustId(user.getCustId());
         if (entity.getCustomerId() != null) {
             crmCustomer.setCustomerId(entity.getCustomerId());
             LkCrmCustomerEntity oldCrmCustomer = crmCustomerDao.get(crmCustomer.getCustomerId());
@@ -161,13 +165,16 @@ public class CrmCustomerService {
             crmCustomer.setUpdateTime(DateUtil.date().toTimestamp());
             BeanUtils.copyProperties(crmCustomer, oldCrmCustomer, JavaBeanUtil.getNullPropertyNames(crmCustomer));
             crmCustomerDao.update(oldCrmCustomer);
+            // 保存uid对应关系
+            phoneService.saveObjU(String.valueOf(entity.getCustomerId()), crmCustomer.getMobile(), 2, user.getCustId());
+            phoneService.saveObjU(String.valueOf(entity.getCustomerId()), crmCustomer.getTelephone(), 2, user.getCustId());
             return R.ok();
         } else {
             crmCustomer.setCreateTime(DateUtil.date().toTimestamp());
             crmCustomer.setUpdateTime(DateUtil.date().toTimestamp());
-            crmCustomer.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmCustomer.setCreateUserId(user.getUserId());
             if ("noImport".equals(type)) {
-                crmCustomer.setOwnerUserId(BaseUtil.getUser().getUserId());
+                crmCustomer.setOwnerUserId(user.getUserId());
             }
             crmCustomer.setBatchId(batchId);
             crmCustomer.setRwUserId(",");
@@ -176,6 +183,9 @@ public class CrmCustomerService {
                 crmCustomer.setIsLock(0);
             }
             int id = (int) crmCustomerDao.saveReturnPk(crmCustomer);
+            // 保存uid对应关系
+            phoneService.saveObjU(String.valueOf(crmCustomer.getCustomerId()), crmCustomer.getMobile(), 2, user.getCustId());
+            phoneService.saveObjU(String.valueOf(crmCustomer.getCustomerId()), crmCustomer.getTelephone(), 2, user.getCustId());
             crmRecordService.addRecord(crmCustomer.getCustomerId(), CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
             if (leadsId != null) {
                 // 转移线索的信息到客户

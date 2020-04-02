@@ -312,7 +312,7 @@ public class ApiService {
             sql.append(" u.account=?");
             arr.add(params.getString("account").trim());
         }
-        sql.append("group by charge.SUBSCRIBER_ID ");
+        sql.append(" group by charge.SUBSCRIBER_ID ");
         sql.append(" order by charge.event_time desc ");
         PageList list = new Pagination().getPageData(sql.toString(), arr.toArray(), page, jdbcTemplate);
         Map<String, Object> map = new HashMap<>();
@@ -321,7 +321,7 @@ public class ApiService {
             List param =new ArrayList();
             dataMap.put("monthFee",0);
             String monCallFeeSql = "select sum(charge)monthCharge from am_charge_" + params.getString("callMonth") + " " +
-                    " where SUBSCRIBER_ID=? and app_id=?";
+                    " where SUBSCRIBER_ID=? and api_id=?";
             param.add(dataMap.get("SUBSCRIBERID"));
             param.add(params.getString("apiId"));
             Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
