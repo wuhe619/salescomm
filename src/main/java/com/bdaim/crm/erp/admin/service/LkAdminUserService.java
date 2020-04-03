@@ -138,13 +138,6 @@ public class LkAdminUserService {
     public R saveUser(LkCrmAdminUserEntity adminUser, boolean newStatus, String custId, int userType, String roleIds) {
         boolean bol;
         adminUser.setCustId(custId);
-        if (adminUser.getParentId() == null) {
-            // 查询父级
-            CustomerUser user = crmAdminUserDao.findUnique(" FROM CustomerUser WHERE  cust_id= ? AND userType = ?", custId, 1);
-            if (user != null) {
-                adminUser.setParentId(user.getId());
-            }
-        }
         if (newStatus) {
             String sql = "select count(*) from lkcrm_admin_user where username = ?";
             Integer count = crmAdminUserDao.queryForInt(sql, adminUser.getUsername());
@@ -156,6 +149,13 @@ public class LkAdminUserService {
                 LkCrmAdminDeptEntity dept = crmAdminDeptDao.findUnique(" FROM LkCrmAdminDeptEntity WHERE pid = 0 AND custId= ? AND name = ?", custId, "办公室");
                 if (dept != null) {
                     adminUser.setDeptId(dept.getDeptId());
+                }
+            }
+            if (adminUser.getParentId() == null) {
+                // 查询父级
+                CustomerUser user = crmAdminUserDao.findUnique(" FROM CustomerUser WHERE  cust_id= ? AND userType = ?", custId, 1);
+                if (user != null) {
+                    adminUser.setParentId(user.getId());
                 }
             }
             updateScene(adminUser,true);

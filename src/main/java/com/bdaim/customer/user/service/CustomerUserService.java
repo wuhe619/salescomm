@@ -658,14 +658,19 @@ public class CustomerUserService {
 //        } else {
 //            sb.append(", modify_time = NOW() ");
 //        }
+        int userStatus = 0;
+        String sql = "update lkcrm_admin_user set status = ? where username = ?";
         if (1 == status) {
             sb.append(",locked_time=now() ");
+            userStatus = 0;
         } else {
+            userStatus = 1;
             sb.append(",locked_time=null");
         }
         sb.append(" where  account= ? and cust_id='" + custId + "'");
 
         int code = jdbcTemplate.update(sb.toString(), new Object[]{status, userName});
+        jdbcTemplate.update(sql, userStatus, userName);
         /*if (1 == status) {
             // 冻结
             unicomService.saveUpdateUserExtensionByUserId("", userName, 1);
@@ -854,6 +859,18 @@ public class CustomerUserService {
             }
             if (list.size() > 0) {
                 this.customerUserDao.batchSaveOrUpdate(list);
+            }
+            String custId = userDTO.getCustomerId();
+            // 同步创建crm登录账号
+            CustomerProperty service_mode = customerDao.getProperty(custId, "service_mode");
+            if (service_mode != null && "2".equals(service_mode.getPropertyValue())) {
+                LkCrmAdminUserEntity adminUser = new LkCrmAdminUserEntity();
+                adminUser.setUserId(cu.getId());
+                adminUser.setUsername(cu.getAccount());
+                adminUser.setPassword(cu.getPassword());
+                adminUser.setMobile(StringUtil.isNotEmpty(userDTO.getMobileNumber()) ? userDTO.getMobileNumber() : "");
+                adminUser.setEmail(userDTO.getEmail());
+                lkAdminUserService.saveUser(adminUser, false, custId, 2, "1");
             }
         } catch (Exception e) {
             logger.error("更新用户信息失败", e);
