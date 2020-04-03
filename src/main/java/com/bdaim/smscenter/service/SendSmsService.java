@@ -1,5 +1,7 @@
 package com.bdaim.smscenter.service;
 
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -8,9 +10,20 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.auth.entity.UserVerificationCode;
 import com.bdaim.auth.service.UserVerificationCodeService;
 import com.bdaim.common.service.PhoneService;
+import com.bdaim.common.service.SequenceService;
+import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.erp.admin.service.AdminSceneService;
+import com.bdaim.crm.erp.crm.service.CrmContactsService;
+import com.bdaim.crm.erp.crm.service.CrmCustomerService;
+import com.bdaim.crm.erp.crm.service.CrmLeadsService;
+import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.crm.utils.R;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customgroup.service.CustomGroupService;
+import com.bdaim.markettask.dao.MarketTaskDao;
+import com.bdaim.markettask.entity.MarketTask;
+import com.bdaim.markettask.entity.MarketTaskProperty;
 import com.bdaim.markettask.service.MarketTaskService;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
@@ -31,6 +44,7 @@ import com.bdaim.util.http.HttpUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.expression.ParseException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -43,6 +57,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -58,12 +73,12 @@ import java.util.concurrent.*;
  */
 @Service("sendSmsService")
 @Transactional
-public class SendSmsService{
+public class SendSmsService {
 
     ThreadPoolExecutor executor = new ThreadPoolExecutor(5, 10, 0,
             TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(),
             new ThreadPoolExecutor.CallerRunsPolicy());
-    
+
     private static Logger logger = LoggerFactory.getLogger(SendSmsService.class);
     //获取短信话术URL
     private final static String QUERY_MESSAGE_URL = "http://120.52.23.243:10080/jzyxpt";
@@ -83,6 +98,17 @@ public class SendSmsService{
     private RestTemplate restTemplate;
     @Resource
     private UserVerificationCodeService userVerificationCodeService;
+    @Autowired
+    private CrmLeadsService crmLeadsService;
+    @Autowired
+    private CrmCustomerService crmCustomerService;
+    @Autowired
+    private CrmContactsService crmContactsService;
+    @Autowired
+    private AdminSceneService adminSceneService;
+    @Autowired
+    private MarketTaskDao marketTaskDao;
+
 
     /**
      * 1-生产 2-dev
@@ -110,8 +136,8 @@ public class SendSmsService{
     private MarketTaskService marketTaskService;
     @Resource
     private CustomGroupService customGroupService;
-    
-    
+
+
     public String sendSmsVcCodeByRestAPI(String phone, String templateId, String templateValue) {
         MultiValueMap<String, Object> urlVariables = new LinkedMultiValueMap<>();
         urlVariables.add("interfaceID", "SaleSmsService");
@@ -125,8 +151,8 @@ public class SendSmsService{
 
         return result;
     }
-    
-    
+
+
     /**
      * @description 短信话术查询
      * @author:duanliying
@@ -156,7 +182,7 @@ public class SendSmsService{
      * @method
      * @date: 2018/10/15 10:11
      */
-    
+
     public String sendSmsService(SendSmsDTO sendSmsDTO, String id, String batchId) {
         String result;
         //根据id和batch_id查询活动id和省份id
@@ -651,7 +677,7 @@ public class SendSmsService{
                 values.add(vCode);
                 values.add("30");
                 break;
-                //数客宝来客通知短信
+            //数客宝来客通知短信
             case 12:
                 templateId = "2779";
                 values.add("");
@@ -775,6 +801,44 @@ public class SendSmsService{
             final String sql = "INSERT INTO `t_touch_sms_queue` (`template_id`, `cust_id`, `customer_group_id`, `superid`, `create_time`, batch_number,resource_id, user_id, market_task_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?);";
             Timestamp createTime = new Timestamp(System.currentTimeMillis());
             String batchNumber = String.valueOf(IDHelper.getTouchId());
+            try {
+                jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                        preparedStatement.setString(1, templateId);
+                        preparedStatement.setString(2, custId);
+                        preparedStatement.setString(3, custGroupId);
+                        preparedStatement.setString(4, superIds.get(i));
+                        preparedStatement.setTimestamp(5, createTime);
+                        preparedStatement.setString(6, batchNumber);
+                        preparedStatement.setString(7, resourceId);
+                        preparedStatement.setString(8, userId);
+                        preparedStatement.setString(9, marketTaskId);
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return superIds.size();
+                    }
+                });
+            } catch (DataAccessException e) {
+                logger.error("批量保存至短信队列表失败,", e);
+            }
+            return batchNumber;
+        } else {
+            logger.warn("批量发送短信保存至队列custId:" + custId + ",custGroupId:" + custGroupId + ",templateId:" + templateId + ",superIds为空:" + superIds.toString());
+        }
+        return "";
+    }
+
+    public String sendSmsToQueue(String custId, String custGroupId, List<String> superIds, String templateId, String userId,
+                                 String marketTaskId, String batchNumber) {
+        if (superIds != null && superIds.size() > 0) {
+            MarketTemplate template = marketTemplateDao.findUniqueBy("id", Integer.valueOf(templateId));
+            if (template == null || StringUtil.isEmpty(template.getResourceId())) return null;
+            String resourceId = template.getResourceId();
+            final String sql = "INSERT INTO `t_touch_sms_queue` (`template_id`, `cust_id`, `customer_group_id`, `superid`, `create_time`, batch_number,resource_id, user_id, market_task_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?);";
+            Timestamp createTime = new Timestamp(System.currentTimeMillis());
             try {
                 jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
                     @Override
@@ -987,6 +1051,223 @@ public class SendSmsService{
             }
         }
         return 2001;
+    }
+
+    public int sendBatchSms(String custId, String marketTaskId, String batchId, String customerGroupId, String superId, String templateId, LoginUser loginUser) {
+        // 判断余额
+        boolean amountStatus = marketResourceService.judRemainAmount(custId);
+        if (!amountStatus) {
+            logger.warn("客户:[" + custId + "]余额不足");
+            return 1003;
+        }
+
+        JSONObject jsonSuperId = JSONObject.parseObject(superId);
+        Set<String> superIds = new HashSet<>();
+        // 部分发送
+        if (jsonSuperId != null && jsonSuperId.size() > 0) {
+            JSONArray superIdList = jsonSuperId.getJSONArray("data");
+            JSONObject jsonItem;
+            for (int i = 0; i < superIdList.size(); i++) {
+                jsonItem = superIdList.getJSONObject(i);
+                superIds.add(jsonItem.getString("superid"));
+            }
+        } else {
+            // 全部发送客户群短信
+            List<Map<String, Object>> list = null;
+            if (StringUtil.isNotEmpty(marketTaskId)) {
+                list = marketTaskService.listMarketTaskData(loginUser, marketTaskId, null, null, "", "", null, "", "", "");
+            } else if (StringUtil.isNotEmpty(customerGroupId)) {
+                list = customGroupService.getCustomGroupDataV3(loginUser, customerGroupId, null, null, "", "", null, "", "", "");
+            }
+
+            if (list != null && list.size() > 0) {
+                for (int i = 0; i < list.size(); i++) {
+                    if (list.get(i) != null) {
+                        superIds.add(String.valueOf(list.get(i).get("id")));
+                    }
+                }
+            } else {
+                logger.warn("客户:[" + custId + "]请选择要发送的数据");
+                return 1003;
+            }
+        }
+        Integer num = superIds.size();
+        // 判断客户余额是否足够用于此次发送的短信数量
+        boolean flag1 = marketResourceService.checkAmount0(custId, num, templateId);
+        if (!flag1) {
+            logger.warn("客户:[" + custId + "]余额不足或未配置供应商售价");
+            return 1003;
+        } else {
+            logger.info("短信发送custId:" + custId + ",custGroupId:" + customerGroupId + ",userId:" + loginUser.getId() + ",templateId:" + templateId + ",superIds:" + superIds);
+            boolean sendStatus = false;
+            if (superIds.size() > 0) {
+                List<String> superList = new ArrayList<>(superIds);
+                String batchNumber = sendSmsToQueue(custId, customerGroupId, superList, templateId, String.valueOf(loginUser.getId()), marketTaskId, batchId);
+                logger.info("发送短信customerGroupId:" + customerGroupId + ",templateId:" + templateId + ",结果:" + batchNumber);
+                if (StringUtil.isNotEmpty(batchNumber)) {
+                    sendStatus = true;
+                }
+                if (sendStatus) {
+                    return 1001;
+                } else {
+                    return 2001;
+                }
+            }
+        }
+        return 2001;
+    }
+
+    public int crmBatchSendSms(BasePageRequest basePageRequest) {
+        LoginUser user = BaseUtil.getUser();
+        // 1-线索私海 2-客户 3-联系人
+        JSONObject param = basePageRequest.getJsonObject();
+        Integer type = param.getInteger("type");
+        String batchName = param.getString("name");
+        String smsTemplateId = param.getString("smsTemplateId");
+
+        MarketTask marketTask = new MarketTask();
+        marketTask.setId(IDHelper.getID().toString());
+        marketTask.setCustId(user.getCustId());
+        marketTask.setName(batchName);
+        marketTask.setCustomerGroupId(0);
+        marketTask.setCreateUid(user.getId());
+        marketTask.setRemark("crm短信批次任务");
+        marketTask.setTaskType(4);
+        Timestamp now = DateUtil.date().toTimestamp();
+        marketTask.setCreateTime(now);
+        marketTask.setTaskCreateTime(now);
+        marketTask.setTaskEndTime(new Timestamp(now.getTime() + 86400000L));
+        marketTask.setSmsTemplateId(smsTemplateId);
+        marketTask.setStatus(1);
+        marketTaskDao.save(marketTask);
+        MarketTaskProperty mtp = new MarketTaskProperty(marketTask.getId(), "sendTime", "1", now);
+        marketTaskDao.saveOrUpdate(mtp);
+
+        List<Map<String, Object>> list = new ArrayList<>();
+        // 指定ID发送
+        if (param.get("ids") != null && param.getJSONArray("ids") != null) {
+            // 按条件发送
+            List<Map<String, Object>> tmp = null;
+            if (type == 1) {
+                tmp = crmLeadsService.queryByListId((List) param.get("ids"));
+            } else if (type == 2) {
+                tmp = crmCustomerService.queryByListId((List) param.get("ids"));
+            } else if (type == 3) {
+                tmp = crmContactsService.queryByListId((List) param.get("ids"));
+            }
+            if (tmp != null && tmp.size() > 0) {
+                Map value, f;
+                List fList;
+                for (int i = 0; i < tmp.size(); i++) {
+                    fList = new ArrayList();
+                    value = list.get(i);
+                    for (Object k : value.keySet()) {
+                        if ("mobile".equals(k) || "手机号".equals(k) || "手机".equals(k)) {
+                            // 处理手机号类型
+                            f = new HashMap();
+                            f.put("field", k);
+                            f.put("type", 7);
+                            fList.add(f);
+                        }
+                    }
+                    value.put("flist", fList);
+                }
+                list.addAll(tmp);
+            }
+        } else {
+            // 按条件发送
+            basePageRequest.setJsonObject(param);
+            R result = adminSceneService.filterConditionAndGetPageList(basePageRequest);
+            if (result.get("data") != null) {
+                if (((JSONObject) result.get("data")).get("list") != null) {
+                    Map<String, Object> m;
+                    JSONObject jsonObject;
+                    JSONArray data = ((JSONObject) result.get("data")).getJSONArray("list");
+                    for (int i = 0; i < data.size(); i++) {
+                        jsonObject = data.getJSONObject(i);
+                        m = new HashMap<>();
+                        m.putAll(jsonObject);
+                        list.add(m);
+                    }
+                }
+            }
+        }
+        // 创建营销任务详情表
+        StringBuffer sql = new StringBuffer();
+        sql.append(" create table IF NOT EXISTS ")
+                .append(ConstantsUtil.MARKET_TASK_TABLE_PREFIX)
+                .append(marketTask.getId())
+                .append(" like t_customer_group_list");
+        jdbcTemplate.update(sql.toString());
+
+        // 统计处理手机号转ID
+        List<Map> superIds = new ArrayList();
+        if (list.size() > 0) {
+            Map<String, Object> m, p;
+            String superId, phone;
+            for (int i = 0; i < list.size(); i++) {
+                m = list.get(i);
+                if (m.get("flist") == null || ((List) m.get("flist")).size() == 0) {
+                    continue;
+                }
+                List<Map> phones = (List) m.get("flist");
+                for (int j = 0; j < phones.size(); j++) {
+                    // 手机号
+                    if (NumberConvertUtil.parseInt(phones.get(j).get("type")) == 7) {
+                        phone = String.valueOf(m.get(phones.get(j).get("field")));
+                        if (StringUtil.isEmpty(phone)) {
+                            continue;
+                        }
+                        p = new HashMap<>();
+                        p.putAll(m);
+                        superId = phoneService.savePhoneToAPI(phone);
+                        if (StringUtil.isEmpty(superId)) {
+                            superId = UUID.randomUUID().toString().replaceAll("-", "");
+                        }
+                        p.put("superid", superId);
+                        superIds.add(p);
+                    }
+                }
+            }
+        }
+
+        //导入数据
+        sql = new StringBuffer();
+        sql.append("INSERT INTO " + ConstantsUtil.MARKET_TASK_TABLE_PREFIX + marketTask.getId())
+                .append(" (id,status,remark,super_name,super_telphone,create_time) VALUES (?,?,?,?,?,?) ");
+        Timestamp createTime = new Timestamp(System.currentTimeMillis());
+        try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
+            conn.setAutoCommit(false);
+            PreparedStatement ps = null;
+            ps = conn.prepareStatement(sql.toString());
+            for (int i = 0; i < superIds.size(); i++) {
+                ps.setString(1, String.valueOf(superIds.get(i).get("superid")));
+                ps.setInt(2, 0);
+                ps.setString(3, type.toString());
+                ps.setString(4, String.valueOf(superIds.get(i).get("name")));
+                ps.setString(5, String.valueOf(superIds.get(i).get("mobile")));
+                ps.setTimestamp(6, createTime);
+
+                ps.addBatch();
+                // 每1000条记录插入一次
+                if (i % 1000 == 0) {
+                    ps.executeBatch();
+                    conn.commit();
+                    ps.clearBatch();
+                }
+            }
+            // 剩余数量不足1000
+            ps.executeBatch();
+            conn.commit();
+            ps.clearBatch();
+        } catch (SQLException e) {
+            logger.error("CRM发送短信插入营销任务明细表数据异常", e);
+        }
+        int sendCount = sendBatchSms(marketTask.getCustId(), marketTask.getId(), marketTask.getId(), String.valueOf(marketTask.getCustomerGroupId()), "", marketTask.getSmsTemplateId(), user);
+        if (sendCount > 0) {
+            marketTaskDao.executeUpdateSQL(" UPDATE t_market_task SET status = ? WHERE id =?", 2, marketTask.getId());
+        }
+        return sendCount;
     }
 
     public static void main(String[] args) {

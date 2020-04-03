@@ -1,5 +1,7 @@
 package com.bdaim.common;
 
+import com.bdaim.util.StringUtil;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -83,6 +85,9 @@ public class PhoneUtil {
      * @return
      */
     public static boolean isCellPhone(String number) {
+        if(StringUtil.isEmpty(number)){
+            return false;
+        }
         Matcher match = PATTERN_MOBILEPHONE.matcher(number);
         return match.matches();
     }
@@ -95,6 +100,9 @@ public class PhoneUtil {
      * @return
      */
     public static boolean isFixedPhone(String number) {
+        if(StringUtil.isEmpty(number)){
+            return false;
+        }
         Matcher match = PATTERN_FIXEDPHONE.matcher(number);
         return match.matches();
     }

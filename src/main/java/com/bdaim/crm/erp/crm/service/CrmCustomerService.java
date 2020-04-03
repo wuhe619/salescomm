@@ -206,11 +206,15 @@ public class CrmCustomerService {
 
     /**
      * @return
-     * @author wyq
      * 根据客户id查询
      */
     public Map<String, Object> queryById(Integer customerId) {
         return crmCustomerDao.queryById(customerId).get(0);
+        //return Db.findFirst(Db.getSql("crm.customer.queryById"), customerId);
+    }
+
+    public List<Map<String, Object>> queryByListId(List ids) {
+        return crmCustomerDao.queryByListId(ids);
         //return Db.findFirst(Db.getSql("crm.customer.queryById"), customerId);
     }
 

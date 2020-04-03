@@ -42,7 +42,6 @@ import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
@@ -1237,11 +1236,20 @@ public class CrmLeadsService {
 
     /**
      * @return
-     * @author wyq
      * 根据线索id查询
      */
     public Map queryById(Integer leadsId) {
         return crmLeadsDao.queryById(leadsId);
+        //return Db.findFirst(Db.getSql("crm.leads.queryById"), leadsId);
+    }
+
+    /**
+     * 指定多个id查询
+     * @param ids
+     * @return
+     */
+    public List<Map<String, Object>> queryByListId(List ids) {
+        return crmLeadsDao.queryByListId(ids);
         //return Db.findFirst(Db.getSql("crm.leads.queryById"), leadsId);
     }
 

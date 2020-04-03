@@ -75,6 +75,13 @@ public class LkCrmContactsDao extends SimpleHibernateDao<LkCrmContactsEntity, In
         return maps;
     }
 
+    public List<Map<String, Object>> queryByListId(List ids) {
+        String contactsview = BaseUtil.getViewSql("contactsview");
+        String sql = "select * from " + contactsview + " where contacts_id IN("+SqlAppendUtil.sqlAppendWhereIn(ids)+")";
+        List<Map<String, Object>> maps = sqlQuery(sql);
+        return maps;
+    }
+
     public List<Map<String, Object>> queryByName(String name) {
         String contactsview = BaseUtil.getViewSql("contactsview");
         String sql = " select * from " + contactsview + " where name = ?";

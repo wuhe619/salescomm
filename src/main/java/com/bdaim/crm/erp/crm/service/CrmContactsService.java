@@ -47,6 +47,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * 联系人
+ */
 @Service
 @Transactional
 public class CrmContactsService {
@@ -115,11 +118,15 @@ public class CrmContactsService {
     }
 
     /**
-     * @author wyq
      * 根据id查询联系人
      */
     public Map<String, Object> queryById(Integer contactsId) {
         return crmContactsDao.queryById(contactsId).get(0);
+        //return Db.findFirst(Db.getSql("crm.contact.queryById"), contactsId);
+    }
+
+    public List<Map<String, Object>> queryByListId(List ids) {
+        return crmContactsDao.queryByListId(ids);
         //return Db.findFirst(Db.getSql("crm.contact.queryById"), contactsId);
     }
 
