@@ -228,12 +228,12 @@ public class CustomerUserService {
 
         PasswordChecker checker = new PasswordChecker();
 
-        if(!checker.check(value.getPassword())){
+        if (!checker.check(value.getPassword())) {
             throw new Exception("密码不符合要求");
         }
         //用户是否已存在
-        List<CustomerUser> customerUsers = customerUserDao.findBy("account",value.getUserName());
-        if(!CollectionUtils.isEmpty(customerUsers)){
+        List<CustomerUser> customerUsers = customerUserDao.findBy("account", value.getUserName());
+        if (!CollectionUtils.isEmpty(customerUsers)) {
             throw new Exception("该手机号已被注册");
         }
         //创建客户信息
@@ -336,11 +336,11 @@ public class CustomerUserService {
         String password = userDTO.getPassword();
         PasswordChecker checker = new PasswordChecker();
         try {
-            if(!checker.check(password)){
+            if (!checker.check(password)) {
                 throw new Exception("密码不符合要求");
             }
             //String appId = userDTO.getAppId();
-    //        String callCenterId = userDTO.getCallCenterId();
+            //        String callCenterId = userDTO.getCallCenterId();
             String callType = userDTO.getCallType();
             String callChannel = userDTO.getCallChannel();
             Integer userType = userDTO.getUserType();
@@ -426,6 +426,17 @@ public class CustomerUserService {
             cu.setUserType(userType); //2:添加普通员工 3:项目管理员
             cu.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
             this.customerUserDao.save(cu);
+            // 同步创建crm登录账号
+            CustomerProperty service_mode = customerDao.getProperty(custId, "service_mode");
+            if (service_mode != null && "2".equals(service_mode.getPropertyValue())) {
+                LkCrmAdminUserEntity adminUser = new LkCrmAdminUserEntity();
+                adminUser.setUserId(cu.getId());
+                adminUser.setUsername(cu.getAccount());
+                adminUser.setPassword(cu.getPassword());
+                adminUser.setMobile(StringUtil.isNotEmpty(userDTO.getMobileNumber()) ? userDTO.getMobileNumber() : "");
+                adminUser.setEmail(userDTO.getEmail());
+                lkAdminUserService.saveUser(adminUser, true, custId, 2, "1");
+            }
 
             List<CustomerUserPropertyDO> list = new ArrayList<>();
             CustomerUserPropertyDO mobile_num = new CustomerUserPropertyDO(cu.getId().toString(), "mobile_num", userDTO.getMobileNumber(), new Timestamp(System.currentTimeMillis()));
@@ -702,7 +713,7 @@ public class CustomerUserService {
             if (cu != null) {
                 if (StringUtil.isNotEmpty(userDTO.getPassword())) {
                     PasswordChecker checker = new PasswordChecker();
-                    if(!checker.check(userDTO.getPassword())){
+                    if (!checker.check(userDTO.getPassword())) {
                         throw new Exception("密码不符合要求");
                     }
                     String password = CipherUtil.generatePassword(userDTO.getPassword());

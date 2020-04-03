@@ -127,7 +127,90 @@ public class LkAdminUserService {
         this.customerUserDao.batchSaveOrUpdate(list);
     }
 
-    @Before(Tx.class)
+    /**
+     * 保存crm账号,password为加密后的密码
+     * @param adminUser
+     * @param custId
+     * @param userType
+     * @param roleIds
+     * @return
+     */
+    public R saveUser(LkCrmAdminUserEntity adminUser, boolean newStatus, String custId, int userType, String roleIds) {
+        boolean bol;
+        adminUser.setCustId(custId);
+        if (adminUser.getParentId() == null) {
+            // 查询父级
+            CustomerUser user = crmAdminUserDao.findUnique(" FROM CustomerUser WHERE  cust_id= ? AND userType = ?", custId, 1);
+            if (user != null) {
+                adminUser.setParentId(user.getId());
+            }
+        }
+        if (newStatus) {
+            String sql = "select count(*) from lkcrm_admin_user where username = ?";
+            Integer count = crmAdminUserDao.queryForInt(sql, adminUser.getUsername());
+            if (count > 0) {
+                return R.error("手机号重复！");
+            }
+            if (adminUser.getDeptId() == null) {
+                // 查询默认部门
+                LkCrmAdminDeptEntity dept = crmAdminDeptDao.findUnique(" FROM LkCrmAdminDeptEntity WHERE pid = 0 AND custId= ? AND name = ?", custId, "办公室");
+                if (dept != null) {
+                    adminUser.setDeptId(dept.getDeptId());
+                }
+            }
+            updateScene(adminUser,true);
+            String salt = IdUtil.fastSimpleUUID();
+            adminUser.setCustId(custId);
+            adminUser.setNum(RandomUtil.randomNumbers(15));
+            adminUser.setSalt(salt);
+            adminUser.setStatus(1);
+            adminUser.setPassword(adminUser.getPassword());
+            adminUser.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            adminUser.setMobile(adminUser.getUsername());
+            crmAdminUserDao.saveReturnPk(adminUser);
+        } else {
+            if (adminUser.getParentId() != null && adminUser.getParentId() != 0) {
+                List<Record> topUserList = queryTopUserList(adminUser.getUserId());
+                boolean isContain = false;
+                for (Record record : topUserList) {
+                    if (record.getLong("user_id").equals(adminUser.getParentId())) {
+                        isContain = true;
+                        break;
+                    }
+                }
+                if (!isContain) {
+                    return R.error("该员工的下级员工不能设置为直属上级");
+                }
+            }
+
+            String sql = "select username from lkcrm_admin_user where user_id = ?";
+            String username = crmAdminUserDao.queryForObject(sql, adminUser.getUserId());
+            if (!username.equals(adminUser.getUsername())) {
+                return R.error("用户名不能修改！");
+            }
+            updateScene(adminUser,false);
+//            bol = adminUser.update();
+            LkCrmAdminUserEntity entity = crmAdminUserDao.get(adminUser.getUserId());
+            BeanUtils.copyProperties(adminUser, entity, JavaBeanUtil.getNullPropertyNames(adminUser));
+            crmAdminUserDao.update(entity);
+            String delSql1 = "delete from lkcrm_admin_user_role where user_id = ?";
+            crmAdminUserDao.executeUpdateSQL(delSql1, adminUser.getUserId());
+            String delSql2 = "delete from lkcrm_admin_scene where user_id = ? and is_system = 1";
+            crmAdminUserDao.executeUpdateSQL(delSql2, adminUser.getUserId());
+        }
+        if (StrUtil.isNotBlank(roleIds)) {
+            Long userId = adminUser.getUserId();
+            for (Integer roleId : TagUtil.toSet(roleIds)) {
+                LkCrmAdminUserRoleEntity adminUserRole = new LkCrmAdminUserRoleEntity();
+                adminUserRole.setUserId(userId);
+                adminUserRole.setRoleId(roleId);
+                crmAdminUserDao.saveOrUpdate(adminUserRole);
+            }
+        }
+        return R.isSuccess(true);
+    }
+
+
     public R setUser(LkCrmAdminUserEntity adminUser, String roleIds) {
         boolean bol;
         adminUser.setCustId(BaseUtil.getCustId());
@@ -331,6 +414,36 @@ public class LkAdminUserService {
         crmAdminConfigDao.saveOrUpdate(examineEntity);
 
         return R.isSuccess(true);
+    }
+
+    private void updateScene(LkCrmAdminUserEntity adminUser, boolean newStatus) {
+        List<Long> ids = new ArrayList<>();
+        if (newStatus && adminUser.getParentId() != null) {
+            //新客户，且有上级
+            ids.add(adminUser.getParentId());
+        } else if (!newStatus) {
+            //老客户
+//            AdminUser oldAdminUser = AdminUser.dao.findById(adminUser.getUserId());
+            LkCrmAdminUserEntity oldAdminUser = crmAdminUserDao.get(adminUser.getUserId());
+            if (oldAdminUser.getParentId() == null && adminUser.getParentId() != null) {
+                //原来没上级，现在有上级
+                ids.add(adminUser.getParentId());
+            } else if (oldAdminUser.getParentId() != null && !oldAdminUser.getParentId().equals(adminUser.getParentId())) {
+                //原来有上级，且现在跟原来的上级不一样了
+                if (!oldAdminUser.getParentId().equals(0L)) {
+                    ids.add(oldAdminUser.getParentId());
+                }
+                if (adminUser.getParentId() != null && !adminUser.getParentId().equals(0L)) {
+                    ids.add(adminUser.getParentId());
+                }
+            }
+        }
+        if (ids.size() > 0) {
+            Set<Long> idsSet = new HashSet<>();
+            ids.forEach(id -> idsSet.addAll(queryTopUserId(id, BaseConstant.AUTH_DATA_RECURSION_NUM)));
+            String sql = "delete from lkcrm_admin_scene where user_id in (" + SQLHelper.getInSQL(idsSet) + ")";
+            crmAdminUserDao.executeUpdateSQL(sql);
+        }
     }
 
     private void updateScene(LkCrmAdminUserEntity adminUser) {
