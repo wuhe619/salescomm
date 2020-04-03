@@ -758,9 +758,16 @@ public class B2BTcbService implements BusiService {
                         LOG.info("客户:{},B2B企业ID:{}已经领取过", custId, id);
                         continue;
                     }
-                    if (jsonObject.containsKey("phone") && StringUtil.isNotEmpty(jsonObject.getString("phone"))) {
+                    if ((jsonObject.containsKey("phone") && StringUtil.isNotEmpty(jsonObject.getString("phone")))
+                            || (jsonObject.containsKey("phone1") && StringUtil.isNotEmpty(jsonObject.getString("phone1")))) {
                         List phones = new ArrayList();
                         for (String p : jsonObject.getString("phone").split(",")) {
+                            if (StringUtil.isEmpty(p) || "-".equals(p)) {
+                                continue;
+                            }
+                            phones.add(p);
+                        }
+                        for (String p : jsonObject.getString("phone1").split(",")) {
                             if (StringUtil.isEmpty(p) || "-".equals(p)) {
                                 continue;
                             }

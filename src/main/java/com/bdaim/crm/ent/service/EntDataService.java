@@ -858,16 +858,16 @@ public class EntDataService {
         // 联系电话
         if (StringUtil.isNotEmpty(param.getString("phoneStatus"))) {
             String phoneStatus = param.getString("phoneStatus");
-            // 有固话
+            // 有联系电话
             if ("1".equals(phoneStatus)) {
-                qb.filter(QueryBuilders.regexpQuery("phone1", "[0-9].+"));
-            } else if ("2".equals(phoneStatus)) {
+                qb.must(QueryBuilders.regexpQuery("phone", "[0-9].+"));
+                //qb.mustNot(QueryBuilders.matchQuery("phone", ","));
+            }/* else if ("2".equals(phoneStatus)) {
                 // 有手机
-                qb.filter(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
-            } else if ("2".equals(phoneStatus)) {
+                qb.must(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
+            } */ else if ("2".equals(phoneStatus)) {
                 // 无联系方式
-                qb.mustNot(QueryBuilders.regexpQuery("phone1", "[0-9].+"));
-                qb.mustNot(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
+                qb.mustNot(QueryBuilders.regexpQuery("phone", "[0-9].+"));
             }
         }
         // 邮箱
@@ -912,6 +912,13 @@ public class EntDataService {
                 sum = 0;
                 if (StringUtil.isNotEmpty(t.getString("phone"))) {
                     for (String p : t.getString("phone").split(",")) {
+                        if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
+                                && !"-".equals(p)) {
+                            sum++;
+                        }
+                    }
+                } else if (StringUtil.isNotEmpty(t.getString("phone1"))) {
+                    for (String p : t.getString("phone1").split(",")) {
                         if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
                                 && !"-".equals(p)) {
                             sum++;
@@ -984,9 +991,18 @@ public class EntDataService {
     public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) {
         JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
         if (baseResult != null) {
-            if (baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone"))) {
+            if ((baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone")))
+                    || (baseResult.containsKey("phone1") && StringUtil.isNotEmpty(baseResult.getString("phone1")))) {
                 List phones = new ArrayList();
+                // 手机号
                 for (String p : baseResult.getString("phone").split(",")) {
+                    if (StringUtil.isEmpty(p) || "-".equals(p)) {
+                        continue;
+                    }
+                    phones.add(p);
+                }
+                // 固话
+                for (String p : baseResult.getString("phone1").split(",")) {
                     if (StringUtil.isEmpty(p) || "-".equals(p)) {
                         continue;
                     }
