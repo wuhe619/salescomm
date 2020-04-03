@@ -837,18 +837,23 @@ public class EntDataService {
         }
         // 联系电话
         if (StringUtil.isNotEmpty(param.getString("phoneStatus"))) {
-            String phoneStatus = param.getString("phoneStatus");
-            // 有固话
-            if ("1".equals(phoneStatus)) {
-                qb.filter(QueryBuilders.regexpQuery("phone1", "[0-9].+"));
-            } else if ("2".equals(phoneStatus)) {
-                // 有手机
-                qb.filter(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
-            } else if ("2".equals(phoneStatus)) {
-                // 无联系方式
-                qb.mustNot(QueryBuilders.regexpQuery("phone1", "[0-9].+"));
-                qb.mustNot(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
+            JSONArray jsonArray = param.getJSONArray("phoneStatus");
+            BoolQueryBuilder temp = QueryBuilders.boolQuery();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                String phoneStatus = jsonArray.getJSONObject(i).getString("value");
+                // 有固话
+                if ("1".equals(phoneStatus)) {
+                    temp.should(QueryBuilders.regexpQuery("phone1", "[0-9].+"));
+                } else if ("2".equals(phoneStatus)) {
+                    // 有手机
+                    temp.should(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
+                } else if ("3".equals(phoneStatus)) {
+                    // 无联系方式
+                    temp.mustNot(QueryBuilders.regexpQuery("phone1", "[0-9].+"));
+                    temp.mustNot(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
+                }
             }
+            qb.filter(temp);
         }
         // 邮箱
         if (StringUtil.isNotEmpty(param.getString("emailStatus"))) {
