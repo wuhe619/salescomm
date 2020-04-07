@@ -24,14 +24,14 @@ public class BiTouchService {
      * @return
      * @author Chacker
      */
-    public ResponseInfo phone(Integer deptId, Long userId, String type) {
+    public ResponseInfo phone(Integer deptId, Long userId, String type, String startTime, String endTime) {
         //proportion
         //type
         //phoneNum
         //phoneEnd
         Record record = new Record();
         record.set("deptId", deptId).set("userId", userId).set("type", type)
-                .set("startTime", null).set("endTime", null);
+                .set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         Integer cycleNum = record.getInt("cycleNum");
         Integer beginTime = record.getInt("beginTime");
@@ -55,14 +55,14 @@ public class BiTouchService {
         return new ResponseInfoAssemble().success(resultList);
     }
 
-    public ResponseInfo textMessage(Integer deptId, Long userId, String type) {
+    public ResponseInfo textMessage(Integer deptId, Long userId, String type, String startTime, String endTime) {
         //proportion
         //type
         //messageNum
         //messageEnd
         Record record = new Record();
         record.set("deptId", deptId).set("userId", userId).set("type", type)
-                .set("startTime", null).set("endTime", null);
+                .set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
         Integer cycleNum = record.getInt("cycleNum");
         Integer beginTime = record.getInt("beginTime");
@@ -93,7 +93,8 @@ public class BiTouchService {
      * @author Chacker
      * @date 2020/4/2
      */
-    public ResponseInfo phoneList(Integer pageNum, Integer pageSize, Integer deptId, Long userId, String type) {
+    public ResponseInfo phoneList(Integer pageNum, Integer pageSize, Integer deptId, Long userId,
+                                  String type, String startTime, String endTime) {
         //默认传进来的参数有 pageNum、pageSize、deptId、type
         Map<String, Object> result = new HashMap<>();
         List<Map<String, Object>> resultList = new ArrayList<>();
@@ -131,7 +132,8 @@ public class BiTouchService {
      * @author Chacker
      * @date 2020/4/2
      */
-    public ResponseInfo messageList(Integer pageNum, Integer pageSize, Integer deptId, Long userId, String type) {
+    public ResponseInfo messageList(Integer pageNum, Integer pageSize, Integer deptId, Long userId,
+                                    String type, String startTime, String endTime) {
         //默认传进来的参数有 pageNum、pageSize、deptId、type
         Map<String, Object> result = new HashMap<>();
         List<Map<String, Object>> resultList = new ArrayList<>();
