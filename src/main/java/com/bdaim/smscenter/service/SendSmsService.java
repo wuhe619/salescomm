@@ -832,12 +832,12 @@ public class SendSmsService {
     }
 
     public String sendSmsToQueue(String custId, String custGroupId, List<String> superIds, String templateId, String userId,
-                                 String marketTaskId, String batchNumber) {
+                                 String marketTaskId, String batchNumber, String objType) {
         if (superIds != null && superIds.size() > 0) {
             MarketTemplate template = marketTemplateDao.findUniqueBy("id", Integer.valueOf(templateId));
             if (template == null || StringUtil.isEmpty(template.getResourceId())) return null;
             String resourceId = template.getResourceId();
-            final String sql = "INSERT INTO `t_touch_sms_queue` (`template_id`, `cust_id`, `customer_group_id`, `superid`, `create_time`, batch_number,resource_id, user_id, market_task_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?);";
+            final String sql = "INSERT INTO `t_touch_sms_queue` (`template_id`, `cust_id`, `customer_group_id`, `superid`, `create_time`, batch_number,resource_id, user_id, market_task_id, obj_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?);";
             Timestamp createTime = new Timestamp(System.currentTimeMillis());
             try {
                 jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
@@ -852,6 +852,7 @@ public class SendSmsService {
                         preparedStatement.setString(7, resourceId);
                         preparedStatement.setString(8, userId);
                         preparedStatement.setString(9, marketTaskId);
+                        preparedStatement.setString(10, objType);
                     }
 
                     @Override
@@ -1053,7 +1054,7 @@ public class SendSmsService {
         return 2001;
     }
 
-    public int sendBatchSms(String custId, String marketTaskId, String batchId, String customerGroupId, String superId, String templateId, LoginUser loginUser) {
+    public int sendBatchSms(String custId, String marketTaskId, String batchId, String customerGroupId, String superId, String templateId, LoginUser loginUser, String objType) {
         // 判断余额
         boolean amountStatus = marketResourceService.judRemainAmount(custId);
         if (!amountStatus) {
@@ -1102,7 +1103,7 @@ public class SendSmsService {
             boolean sendStatus = false;
             if (superIds.size() > 0) {
                 List<String> superList = new ArrayList<>(superIds);
-                String batchNumber = sendSmsToQueue(custId, customerGroupId, superList, templateId, String.valueOf(loginUser.getId()), marketTaskId, batchId);
+                String batchNumber = sendSmsToQueue(custId, customerGroupId, superList, templateId, String.valueOf(loginUser.getId()), marketTaskId, batchId, objType);
                 logger.info("发送短信customerGroupId:" + customerGroupId + ",templateId:" + templateId + ",结果:" + batchNumber);
                 if (StringUtil.isNotEmpty(batchNumber)) {
                     sendStatus = true;
@@ -1263,7 +1264,7 @@ public class SendSmsService {
         } catch (SQLException e) {
             logger.error("CRM发送短信插入营销任务明细表数据异常", e);
         }
-        int sendCount = sendBatchSms(marketTask.getCustId(), marketTask.getId(), marketTask.getId(), String.valueOf(marketTask.getCustomerGroupId()), "", marketTask.getSmsTemplateId(), user);
+        int sendCount = sendBatchSms(marketTask.getCustId(), marketTask.getId(), marketTask.getId(), String.valueOf(marketTask.getCustomerGroupId()), "", marketTask.getSmsTemplateId(), user, String.valueOf(type));
         if (sendCount > 0) {
             marketTaskDao.executeUpdateSQL(" UPDATE t_market_task SET status = ? WHERE id =?", 2, marketTask.getId());
         }

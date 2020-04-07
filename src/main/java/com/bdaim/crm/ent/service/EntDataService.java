@@ -41,10 +41,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Transactional
@@ -997,9 +994,8 @@ public class EntDataService {
     public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) {
         JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
         if (baseResult != null) {
-            if ((baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone")))
-                    || (baseResult.containsKey("phone1") && StringUtil.isNotEmpty(baseResult.getString("phone1")))) {
-                List phones = new ArrayList();
+            Set phones = new HashSet();
+            if (baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone"))) {
                 // 手机号
                 for (String p : baseResult.getString("phone").split(",")) {
                     if (StringUtil.isEmpty(p) || "-".equals(p)) {
@@ -1007,6 +1003,8 @@ public class EntDataService {
                     }
                     phones.add(p);
                 }
+            }
+            if (baseResult.containsKey("phone1") && StringUtil.isNotEmpty(baseResult.getString("phone1"))) {
                 // 固话
                 for (String p : baseResult.getString("phone1").split(",")) {
                     if (StringUtil.isEmpty(p) || "-".equals(p)) {
@@ -1014,11 +1012,11 @@ public class EntDataService {
                     }
                     phones.add(p);
                 }
-                baseResult.put("phones", phones);
-                if (seaId > 0) {
-                    //处理公司联系方式是否有意向
-                    handleClueFollowStatus(seaId, baseResult);
-                }
+            }
+            baseResult.put("phones", phones);
+            if (seaId > 0) {
+                //处理公司联系方式是否有意向
+                handleClueFollowStatus(seaId, baseResult);
             }
         }
         return baseResult;

@@ -342,7 +342,8 @@ public class B2BTcbService implements BusiService {
             // 已经领取过不可重复领取
             if (companyIds != null && companyIds.size() > 0 &&
                     b2BTcbLogService.checkClueGetStatus(custId, companyIds.get(0))) {
-                throw new TouchException("该线索已经领取过");
+                LOG.warn("该线索已经领取过,entId:{}",companyIds.get(0));
+                //throw new TouchException("该线索已经领取过");
             }
             LOG.info("kais doClueDataToSeaByIds");
             if (sourceType == 1) {
@@ -758,23 +759,24 @@ public class B2BTcbService implements BusiService {
                         LOG.info("客户:{},B2B企业ID:{}已经领取过", custId, id);
                         continue;
                     }
-                    if ((jsonObject.containsKey("phone") && StringUtil.isNotEmpty(jsonObject.getString("phone")))
-                            || (jsonObject.containsKey("phone1") && StringUtil.isNotEmpty(jsonObject.getString("phone1")))) {
-                        List phones = new ArrayList();
+                    Set phones = new HashSet();
+                    if (jsonObject.containsKey("phone") && StringUtil.isNotEmpty(jsonObject.getString("phone"))) {
                         for (String p : jsonObject.getString("phone").split(",")) {
                             if (StringUtil.isEmpty(p) || "-".equals(p)) {
                                 continue;
                             }
                             phones.add(p);
                         }
+                    }
+                    if (jsonObject.containsKey("phone1") && StringUtil.isNotEmpty(jsonObject.getString("phone1"))) {
                         for (String p : jsonObject.getString("phone1").split(",")) {
                             if (StringUtil.isEmpty(p) || "-".equals(p)) {
                                 continue;
                             }
                             phones.add(p);
                         }
-                        jsonObject.put("phoneNumber", phones);
                     }
+                    jsonObject.put("phoneNumber", phones);
                     if (getNumber > data.size()) {
                         data.put(id, jsonObject);
                     } else {
@@ -833,15 +835,13 @@ public class B2BTcbService implements BusiService {
     public Map<String, JSONObject> doClueDataToSeaByIdsHK(List<String> companyIds, String custId) {
         Map<String, JSONObject> data = new HashMap<>();
         JSONObject companyContact;
-        BaseResult companyDetail;
-        JSONObject detailData;
         LOG.info("in doClueDataToSeaByIds mode=1");
         for (String id : companyIds) {
             // 已经领取过不可重复领取
-            if (b2BTcbLogService.checkClueGetStatus(custId, id)) {
+            /*if (b2BTcbLogService.checkClueGetStatus(custId, id)) {
                 LOG.info("客户:{},B2B企业ID:{}已经领取过", custId, id);
                 continue;
-            }
+            }*/
             LOG.info("Kaiser xunhuan ");
             // 查询企业联系方式
             try {
