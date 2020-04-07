@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.bi.service;
 
+import com.bdaim.callcenter.common.CallUtil;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
@@ -7,14 +8,18 @@ import com.bdaim.crm.dao.LkCrmBiDao;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.ConfigUtil;
+import com.bdaim.util.DatetimeUtils;
 import com.bdaim.util.SqlAppendUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.plugin.activerecord.Record;
 import org.apache.poi.util.ArrayUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -125,7 +130,7 @@ public class BiTouchService {
             sqlBuffer.append("SELECT ")
                     .append("  ( SELECT realname FROM t_customer_user WHERE id = t1.user_id ) realname,")
                     .append("  t1.create_time create_time,t1.call_data ->> '$.called' AS custNumber,")
-                    .append("  t1.callSid callSid,t1.user_id userId,t1.status status,")
+                    .append("  t1.callSid callSid,t1.user_id userId,t1.status status,t1.touch_id touchId,")
                     .append("  t1.called_duration Callerduration,t1.recordurl recordurl,t2.obj_id, ")
                     .append(" CASE WHEN  t1.obj_type='1' THEN x1.leads_name  ")
                     .append(" WHEN t1.obj_type='2' THEN x2.customer_name")
@@ -184,37 +189,18 @@ public class BiTouchService {
             }
         }
         Page page = biDao.sqlPageQuery(sqlBuffer.toString(), pageNum, pageSize, params.toArray());
-        result.put("data", page.getData());
+        List<Map<String, Object>> resultList = page.getData();
+        if (!CollectionUtils.isEmpty(resultList)) {
+            for (int i = 0; i < resultList.size(); i++) {
+                Map<String, Object> map = resultList.get(i);
+                String monthYear = LocalDateTime.parse(String.valueOf(map.get("create_time")),
+                        DatetimeUtils.DATE_TIME_FORMATTER_SSS).format(DatetimeUtils.YYYY_MM);
+                map.put("recordurl", CallUtil.generateRecordNameToMp3(monthYear, map.get("touchId")));
+            }
+        }
+        result.put("data", resultList);
         result.put("total", page.getTotal());
         return new ResponseInfoAssemble().success(result);
-//        Map<String, Object> result = new HashMap<>();
-//        List<Map<String, Object>> resultList = new ArrayList<>();
-//        int totalCount = 0;
-//        if (pageNum == 1) {
-//            totalCount = 15;
-//        } else if (pageNum == 2) {
-//            totalCount = 1;
-//        }
-//        for (int i = 0; i < totalCount; i++) {
-//            Map<String, Object> testMap = new HashMap<>();
-////            testMap.put("realname", "程宁测试");
-////            testMap.put("create_time", "2020-3-10 13:20:00");
-//            testMap.put("custName", "我是被叫名称");
-//            testMap.put("custNumber", "被叫号码");
-////            testMap.put("status", "1001");
-////            testMap.put("Callerduration", "我是通话时长");
-////            testMap.put("callSid", "我是呼叫ID");
-//            testMap.put("companyName", "北京某公司名称");
-////            testMap.put("recordurl", "20200420031904523400007200402112716000001.mp3");
-////            testMap.put("userId", "20031904523400007");
-//            resultList.add(testMap);
-//        }
-//        result.put("data", resultList);
-//        result.put("total", 16);
-        // 录音路径
-//        String audioUrl = ConfigUtil.getInstance().get("audio_server_url") + "/";
-//        result.put("audioUrl", audioUrl);
-//        return new ResponseInfoAssemble().success(result);
     }
 
     /**
