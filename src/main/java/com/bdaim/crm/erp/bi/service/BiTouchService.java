@@ -4,6 +4,7 @@ import com.bdaim.callcenter.common.CallUtil;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
+import com.bdaim.common.service.PhoneService;
 import com.bdaim.crm.dao.LkCrmBiDao;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
 import com.bdaim.crm.utils.BaseUtil;
@@ -29,6 +30,8 @@ public class BiTouchService {
     private BiTimeUtil biTimeUtil;
     @Autowired
     private LkCrmBiDao biDao;
+    @Autowired
+    private PhoneService phoneService;
 
     /**
      * 电话触达接通率分析
@@ -130,7 +133,7 @@ public class BiTouchService {
             sqlBuffer.append("SELECT ")
                     .append("  ( SELECT realname FROM t_customer_user WHERE id = t1.user_id ) realname,")
                     .append("  t1.create_time create_time,t1.call_data ->> '$.called' AS custNumber,")
-                    .append("  t1.callSid callSid,t1.user_id userId,t1.status status,t1.touch_id touchId,")
+                    .append("  t1.callSid callSid,CAST(t1.user_id AS char) userId,t1.status status,t1.touch_id touchId,")
                     .append("  t1.called_duration Callerduration,t1.recordurl recordurl,t2.obj_id, ")
                     .append(" CASE WHEN  t1.obj_type='1' THEN x1.leads_name  ")
                     .append(" WHEN t1.obj_type='2' THEN x2.customer_name")
@@ -209,31 +212,104 @@ public class BiTouchService {
      * @author Chacker
      * @date 2020/4/2
      */
+    @SuppressWarnings("all")
     public ResponseInfo messageList(Integer pageNum, Integer pageSize, Integer deptId, Long userId,
                                     String type, String startTime, String endTime) {
         //默认传进来的参数有 pageNum、pageSize、deptId、type
-        Map<String, Object> result = new HashMap<>();
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        int totalCount = 0;
-        if (pageNum == 1) {
-            totalCount = 15;
-        } else if (pageNum == 2) {
-            totalCount = 1;
+        Record record = new Record();
+        record.set("deptId", deptId).set("userId", userId).set("type", type).set("startTime", startTime).set("endTime", endTime);
+        biTimeUtil.analyzeType(record);
+        String userIds = record.getStr("userIds");
+        String[] userIdsArr = userIds.split(",");
+
+        Integer status = biTimeUtil.analyzeType(type);
+        //t_touch_sms_log 表名
+        StringBuffer sqlBuffer = new StringBuffer();
+        List<Object> params = new ArrayList<>();
+        sqlBuffer.append("SELECT ")
+                .append("  ( SELECT realname FROM t_customer_user WHERE id = t1.user_id ) realname,")
+                .append("  t1.create_time sendTime,")
+                .append("  ( SELECT NAME FROM t_market_task WHERE id = t1.batch_id ) batchName,")
+                .append("  t1.send_status status,")
+                .append("  t1.request_id sendId,")
+                .append("  ( SELECT title FROM t_template WHERE id = t1.templateId ) templateName,")
+                .append("  t1.superid superId ")
+                .append(" FROM t_touch_sms_log t1 WHERE 1=1 ")
+                .append(" AND t1.obj_type IS NOT NULL ")
+                .append(" AND t1.user_id IN (").append(SqlAppendUtil.sqlAppendWhereIn(userIdsArr))
+                .append(") ");
+        if (status == 1) {
+            sqlBuffer.append(" AND TO_DAYS(NOW()) = TO_DAYS(t1.create_time) ");
         }
-        for (int i = 0; i < totalCount; i++) {
-            Map<String, Object> testMap = new HashMap<>();
-            testMap.put("realname", "我是员工名称");
-            testMap.put("sendTime", "2020-3-10 13:20:00");
-            testMap.put("batchName", "我是批次名称");
-            testMap.put("sendNumber", "1338890899");
-            testMap.put("status", "1001");
-            testMap.put("templateName", "我是模板名称");
-            testMap.put("sendId", "我是发送ID");
-            resultList.add(testMap);
+        if (status == 2) {
+            sqlBuffer.append(" AND TO_DAYS(NOW()) - TO_DAYS(t1.create_time) = 1 ");
+        }
+        if (status == 3) {
+            sqlBuffer.append(" AND YEARWEEK(date_format(t1.create_time,'%Y-%m-%d')) = YEARWEEK(now()) ");
+        }
+        if (status == 4) {
+            sqlBuffer.append(" AND YEARWEEK(date_format(t1.create_time,'%Y-%m-%d')) = YEARWEEK(now()) -1 ");
+        }
+        if (status == 5) {
+            sqlBuffer.append(" AND date_format(t1.create_time,'%Y-%m')=date_format(now(),'%Y-%m')  ");
+        }
+        if (status == 6) {
+            sqlBuffer.append(" AND date_format(t1.create_time,'%Y-%m')=date_format(DATE_SUB(curdate(), INTERVAL 1 MONTH),'%Y-%m') ");
+        }
+        if (status == 7) {
+            sqlBuffer.append(" AND QUARTER(t1.create_time)=QUARTER(now()) AND YEAR(t1.create_time)=YEAR(NOW()) ");
+        }
+        if (status == 8) {
+            sqlBuffer.append(" AND QUARTER(t1.create_time)=QUARTER(DATE_SUB(now(),interval 1 QUARTER)) AND YEAR(DATE_SUB(t1.create_time,interval 1 QUARTER)) = YEAR(DATE_SUB(NOW(),interval 1 QUARTER)) ");
+        }
+        if (status == 9) {
+            sqlBuffer.append(" AND YEAR(t1.create_time)=YEAR(NOW()) ");
+        }
+        if (status == 10) {
+            sqlBuffer.append(" AND YEAR(t1.create_time)=YEAR(date_sub(now(),interval 1 year)) ");
+        }
+        if (status == 11) {
+            sqlBuffer.append(" AND  TO_DAYS(t1.create_time) >= TO_DAYS(?)");
+            sqlBuffer.append(" AND  TO_DAYS(t1.create_time) <= TO_DAYS(?)");
+            params.add(startTime);
+            params.add(endTime);
+        }
+
+        Page page = biDao.sqlPageQuery(sqlBuffer.toString(), pageNum, pageSize, params.toArray());
+        Map<String, Object> result = new HashMap<>();
+        List<Map<String, Object>> resultList = page.getData();
+        //根据superId获取电话号码(手机或固话)
+        if (!CollectionUtils.isEmpty(resultList)) {
+            for (int i = 0; i < resultList.size(); i++) {
+                Map<String, Object> map = resultList.get(i);
+                String superId = String.valueOf(map.get("superId"));
+                String sendNumber = phoneService.upn(superId);
+                map.put("sendNumber", sendNumber);
+            }
         }
         result.put("data", resultList);
-        result.put("total", 16);
+        result.put("total", page.getTotal());
         return new ResponseInfoAssemble().success(result);
+//        List<Map<String, Object>> resultList = new ArrayList<>();
+//        int totalCount = 0;
+//        if (pageNum == 1) {
+//            totalCount = 15;
+//        } else if (pageNum == 2) {
+//            totalCount = 1;
+//        }
+//        for (int i = 0; i < totalCount; i++) {
+//            Map<String, Object> testMap = new HashMap<>();
+//            testMap.put("realname", "我是员工名称");
+//            testMap.put("sendTime", "2020-3-10 13:20:00");
+//            testMap.put("batchName", "我是批次名称");
+//            testMap.put("sendNumber", "1338890899");
+//            testMap.put("status", "1001");
+//            testMap.put("templateName", "我是模板名称");
+//            testMap.put("sendId", "我是发送ID");
+//            resultList.add(testMap);
+//        }
+//        result.put("data", resultList);
+//        result.put("total", 16);
     }
 }
 
