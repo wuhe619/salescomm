@@ -343,7 +343,7 @@ public class B2BTcbService implements BusiService {
             if (companyIds != null && companyIds.size() > 0 &&
                     b2BTcbLogService.checkClueGetStatus(custId, companyIds.get(0))) {
                 LOG.warn("该线索已经领取过,entId:{}",companyIds.get(0));
-                throw new TouchException("该线索已经领取过");
+                //throw new TouchException("该线索已经领取过");
             }
             LOG.info("kais doClueDataToSeaByIds");
             if (sourceType == 1) {
