@@ -342,6 +342,7 @@ public class B2BTcbService implements BusiService {
             // 已经领取过不可重复领取
             if (companyIds != null && companyIds.size() > 0 &&
                     b2BTcbLogService.checkClueGetStatus(custId, companyIds.get(0))) {
+                LOG.warn("该线索已经领取过,entId:{}",companyIds.get(0));
                 throw new TouchException("该线索已经领取过");
             }
             LOG.info("kais doClueDataToSeaByIds");
@@ -833,15 +834,13 @@ public class B2BTcbService implements BusiService {
     public Map<String, JSONObject> doClueDataToSeaByIdsHK(List<String> companyIds, String custId) {
         Map<String, JSONObject> data = new HashMap<>();
         JSONObject companyContact;
-        BaseResult companyDetail;
-        JSONObject detailData;
         LOG.info("in doClueDataToSeaByIds mode=1");
         for (String id : companyIds) {
             // 已经领取过不可重复领取
-            if (b2BTcbLogService.checkClueGetStatus(custId, id)) {
+            /*if (b2BTcbLogService.checkClueGetStatus(custId, id)) {
                 LOG.info("客户:{},B2B企业ID:{}已经领取过", custId, id);
                 continue;
-            }
+            }*/
             LOG.info("Kaiser xunhuan ");
             // 查询企业联系方式
             try {
