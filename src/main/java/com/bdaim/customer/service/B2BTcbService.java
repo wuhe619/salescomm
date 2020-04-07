@@ -329,6 +329,7 @@ public class B2BTcbService implements BusiService {
         if (eTime.isBefore(LocalDateTime.now())) {
             throw new TouchException("企业套餐已过期");
         }
+        // 查询使用的套餐包类型
         Map config = getB2BSearchConfig(custId);
         int sourceType = (int) config.get("type");
 
@@ -487,15 +488,14 @@ public class B2BTcbService implements BusiService {
                     b2BTcbLogService.checkClueGetStatus(custId, companyIds.get(0))) {
                 throw new TouchException("该线索已经领取过");
             }
-            LOG.info("kais doClueDataToSeaByIds");
-            data = doClueDataToSeaByIds(companyIds, custId);
+            data = doClueDataToSeaByIdsHK(companyIds, custId);
             // 指定数量
         } else if (mode == 2) {
             //领取，只返回id
-            data = doClueDataToSeaByNumber(param, getNumber, custId, userId, busiType);
+            data = doClueDataToSeaByNumberHK(param, getNumber, custId, userId, busiType);
         }
         if (data.size() == 0) {
-            throw new TouchException("未查询到匹配企业数据");
+            throw new TouchException("领取异常,请检查检索条件");
         }
         String batchId = UUID.randomUUID().toString().replaceAll("-", "");
         Iterator keys = data.keySet().iterator();
