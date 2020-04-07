@@ -726,9 +726,9 @@ public class AdminSceneService {
                         "    ) as pool_day," +
                         "    (select count(*) from lkcrm_crm_business as a where a.customer_id = " + customerview + ".customer_id) as business_count";
 
-                return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQueryByPageSize(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
+                return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQueryByPageSize0(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
             } else {
-                Page page = crmAdminSceneDao.sqlPageQueryByPageSize("select * " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
+                Page page = crmAdminSceneDao.sqlPageQueryByPageSize0("select * " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
                 Map map = null;
                 for (int i = 0; i < page.getData().size(); i++) {
                     map = (Map) page.getData().get(i);
@@ -741,7 +741,7 @@ public class AdminSceneService {
         } else if (6 == type) {
             Record totalMoney = JavaBeanUtil.mapToRecord(crmAdminSceneDao.sqlQuery("select SUM(money) as contractMoney,GROUP_CONCAT(contract_id) as contractIds " + conditions.toString(), BaseUtil.getUser().getCustId()).get(0));
             String contractview = BaseUtil.getViewSql("contractview");
-            Page page = crmAdminSceneDao.sqlPageQueryByPageSize("select * " + conditions.toString(), basePageRequest.getPage(),
+            Page page = crmAdminSceneDao.sqlPageQueryByPageSize0("select * " + conditions.toString(), basePageRequest.getPage(),
                     basePageRequest.getLimit(), loginUser.getCustId());
             Map map = null;
             for (int i = 0; i < page.getData().size(); i++) {
@@ -757,7 +757,7 @@ public class AdminSceneService {
             return R.ok().put("data", result);
         }
         String sql = "select *" + conditions.toString();
-        com.bdaim.common.dto.Page recordPage = crmAdminSceneDao.sqlPageQueryByPageSize(sql, basePageRequest.getPage(),
+        com.bdaim.common.dto.Page recordPage = crmAdminSceneDao.sqlPageQueryByPageSize0(sql, basePageRequest.getPage(),
                 basePageRequest.getLimit(), loginUser.getCustId());
         if (type == 5) {
             recordPage.getData().forEach(record -> {
