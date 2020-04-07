@@ -889,7 +889,7 @@ public class EntDataService {
 
         }
         searchSourceBuilder.query(qb);
-        searchSourceBuilder.sort("taxpayerNo", SortOrder.ASC);
+        searchSourceBuilder.sort("estabTime", SortOrder.DESC);
         return searchSourceBuilder;
     }
 
