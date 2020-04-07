@@ -39,11 +39,9 @@ public class BiTouchService {
      * @return
      * @author Chacker
      */
+    @SuppressWarnings("all")
     public ResponseInfo phone(Integer deptId, Long userId, String type, String startTime, String endTime) {
-        //proportion
-        //type
-        //phoneNum
-        //phoneEnd
+        //proportion、type、phoneNum、phoneEnd
         Record record = new Record();
         record.set("deptId", deptId).set("userId", userId).set("type", type)
                 .set("startTime", startTime).set("endTime", endTime);
@@ -199,6 +197,10 @@ public class BiTouchService {
                 String monthYear = LocalDateTime.parse(String.valueOf(map.get("create_time")),
                         DatetimeUtils.DATE_TIME_FORMATTER_SSS).format(DatetimeUtils.YYYY_MM);
                 map.put("recordurl", CallUtil.generateRecordNameToMp3(monthYear, map.get("touchId")));
+                String Callerduration = String.valueOf(map.get("Callerduration"));
+                if (StringUtil.isEmpty(Callerduration)) {
+                    map.put("recordurl", "");
+                }
             }
         }
         result.put("data", resultList);
