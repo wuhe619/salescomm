@@ -1161,7 +1161,7 @@ public class SendSmsService {
                 List fList;
                 for (int i = 0; i < tmp.size(); i++) {
                     fList = new ArrayList();
-                    value = list.get(i);
+                    value = tmp.get(i);
                     for (Object k : value.keySet()) {
                         if ("mobile".equals(k) || "手机号".equals(k) || "手机".equals(k)) {
                             // 处理手机号类型
