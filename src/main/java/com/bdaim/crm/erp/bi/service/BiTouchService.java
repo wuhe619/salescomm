@@ -7,6 +7,7 @@ import com.bdaim.crm.dao.LkCrmBiDao;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.ConfigUtil;
+import com.bdaim.util.SqlAppendUtil;
 import com.jfinal.plugin.activerecord.Record;
 import org.apache.poi.util.ArrayUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,8 +107,12 @@ public class BiTouchService {
         Record record = new Record();
         record.set("deptId", deptId).set("userId", userId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
+        //t_touch_voice_log_ 表名
         String tableNamesStr = record.getStr("tableNames");
         String[] tableNamesArr = tableNamesStr.split(",");
+        //用户ID
+        String userIds = record.getStr("userIds");
+        String[] userIdsArr = userIds.split(",");
         String custId = BaseUtil.getCustId();
         String relationTable = "obj_u_" + custId.substring(custId.length() - 1);
 
@@ -135,7 +140,9 @@ public class BiTouchService {
                     .append(" LEFT JOIN lkcrm_crm_leads x1 ON t2.obj_id = x1.leads_id ")
                     .append(" LEFT JOIN lkcrm_crm_customer x2 ON t2.obj_id = x2.customer_id ")
                     .append(" LEFT JOIN lkcrm_crm_contacts x3 ON t2.obj_id = x3.contacts_id ")
-                    .append(" WHERE t1.obj_type IS NOT NULL ");
+                    .append(" WHERE t1.obj_type IS NOT NULL ")
+                    .append(" AND t1.user_id IN (").append(SqlAppendUtil.sqlAppendWhereIn(userIdsArr))
+                    .append(") ");
             if (status == 1) {
                 sqlBuffer.append(" AND TO_DAYS(NOW()) = TO_DAYS(t1.create_time) ");
             }
