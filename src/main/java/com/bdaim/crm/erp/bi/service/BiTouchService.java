@@ -115,15 +115,26 @@ public class BiTouchService {
         StringBuffer sqlBuffer = new StringBuffer();
         Integer status = biTimeUtil.analyzeType(type);
         List<Object> params = new ArrayList<>();
+        //obj_type 1、线索 2、客户 3、联系人
         for (int i = 0; i < tableNamesArr.length; i++) {
             sqlBuffer.append("SELECT ")
                     .append("  ( SELECT realname FROM t_customer_user WHERE id = t1.user_id ) realname,")
                     .append("  t1.create_time create_time,t1.call_data ->> '$.called' AS custNumber,")
                     .append("  t1.callSid callSid,t1.user_id userId,t1.status status,")
-                    .append("  t1.called_duration Callerduration,t1.recordurl recordurl,t2.obj_id ")
+                    .append("  t1.called_duration Callerduration,t1.recordurl recordurl,t2.obj_id, ")
+                    .append(" CASE WHEN  t1.obj_type='1' THEN x1.leads_name  ")
+                    .append(" WHEN t1.obj_type='2' THEN x2.customer_name")
+                    .append(" WHEN t1.obj_type='3' THEN x3.name")
+                    .append(" END AS custName, ")
+                    .append(" CASE WHEN t1.obj_type='1' THEN x1.company")
+                    .append(" WHEN t1.obj_type='2' THEN x2.company ")
+                    .append(" END AS companyName ")
                     .append("FROM ").append(tableNamesArr[i])
                     .append(" t1 LEFT JOIN ").append(relationTable).append(" t2 ON t1.superid = t2.u_id ")
                     .append(" AND t1.obj_type = t2.type ")
+                    .append(" LEFT JOIN lkcrm_crm_leads x1 ON t2.obj_id = x1.leads_id ")
+                    .append(" LEFT JOIN lkcrm_crm_customer x2 ON t2.obj_id = x2.customer_id ")
+                    .append(" LEFT JOIN lkcrm_crm_contacts x3 ON t2.obj_id = x3.contacts_id ")
                     .append(" WHERE t1.obj_type IS NOT NULL ");
             if (status == 1) {
                 sqlBuffer.append(" AND TO_DAYS(NOW()) = TO_DAYS(t1.create_time) ");
