@@ -654,12 +654,13 @@ public class EntDataService {
         if (param.getInteger("pageNum") != null && param.getInteger("pageSize") != null) {
             int pageNum = param.getIntValue("pageNum");
             int pageSize = param.getIntValue("pageSize");
-            if (pageNum < 0 || pageNum == 1) {
-                pageNum = 0;
+            if (pageNum < 0) {
+                pageNum = 1;
             }
             if (pageSize < 0 || pageSize > 100) {
                 pageSize = 100;
             }
+            pageNum = (pageNum - 1) * pageSize;
             searchSourceBuilder.from(pageNum).size(pageSize);
         }
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
@@ -889,7 +890,6 @@ public class EntDataService {
 
         }
         searchSourceBuilder.query(qb);
-        searchSourceBuilder.sort("estabTime", SortOrder.DESC);
         return searchSourceBuilder;
     }
 
@@ -899,6 +899,7 @@ public class EntDataService {
         LOG.info("企业列表查询参数:{}", params);
         // 构造DSL语句
         SearchSourceBuilder searchSourceBuilder = queryCondition(params);
+        searchSourceBuilder.sort("estabTime", SortOrder.DESC);
         SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             List list = new ArrayList<>();
@@ -929,7 +930,12 @@ public class EntDataService {
                 list.add(t);
             }
             page.setData(list);
-            page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
+            int maxTotal = 100000;
+            int total = NumberConvertUtil.parseInt(result.getTotal());
+            page.setTotal(total);
+            if (total > maxTotal) {
+                page.setTotal(maxTotal);
+            }
         }
         return page;
     }
