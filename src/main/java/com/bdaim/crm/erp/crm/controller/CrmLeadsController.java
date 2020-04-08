@@ -267,11 +267,8 @@ public class CrmLeadsController extends BasicAction {
                 // 删除公海线索
                 crmLeadsService.deletePublicClue(param.getSuperIds(), param.getSeaId());
             }
-
             if (3 == operate) {
-                String leadsview = BaseUtil.getViewSql("leadsview");
-                crmLeadsService.batchClueBackToSea(param.getUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds(),
-                        param.getBackReason(), param.getBackRemark(), leadsview, BaseUtil.getUser());
+                crmLeadsService.batchClueBackToSea(param.getUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds(), param.getBackReason(), param.getBackRemark());
                 // 指定ID退回公海时删除私海线索
                 crmLeadsService.deleteByBatchIds(param.getSuperIds());
             } else {
@@ -395,7 +392,7 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "delete FROM obj_u_6 where obj_id = 190 LIMIT 1";
+        String sql = "update h_dic SET p_code = 0 WHERE type = 'INDUSTRY_CODE_1';";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;

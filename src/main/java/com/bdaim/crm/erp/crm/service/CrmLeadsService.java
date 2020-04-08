@@ -716,7 +716,8 @@ public class CrmLeadsService {
      * @param batchId
      * @return
      */
-    public int transferToPublicSea(String seaId, String userId, String batchId, String leadsview, LoginUser user) {
+    @Async
+    public int transferToPublicSea(String seaId, String userId, String batchId, LoginUser user, String leadsview) {
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
                 .append("SELECT * FROM lkcrm_crm_leads  WHERE batch_id =? ");
@@ -725,7 +726,6 @@ public class CrmLeadsService {
         String insertSql = "REPLACE INTO " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " (`id`, `user_id`, `update_time`, `status`, " +
                 "super_name,super_telphone,super_phone,super_data,create_time,batch_id) VALUES(?,?,?,?,?,?,?,?,?,?)";
 
-        //String leadsview = BaseUtil.getViewSql("leadsview");
         for (Map<String, Object> m : maps) {
             JSONObject superData = new JSONObject();
             superData.put("SYS005", m.get("company"));
@@ -737,6 +737,9 @@ public class CrmLeadsService {
                     , m.get("mobile"), m.get("telephone"), superData.toJSONString(), m.get("create_time"), csp.getPropertyValue());
             // 退回到公海线索
             List<Map<String, Object>> list = crmLeadsDao.sqlQuery("select * from " + leadsview + " where batch_id = ?", batchId);
+            if (list == null || list.size() == 0) {
+                continue;
+            }
             Record crmLeads = JavaBeanUtil.mapToRecord(list.get(0));
             List<Record> leadsFields = adminFieldService.list("1");
             List<LkCrmAdminFieldEntity> seaFields = crmLeadsDao.find("from LkCrmAdminFieldEntity where label = '11' AND custId = ? ", user.getCustId());
@@ -1294,7 +1297,6 @@ public class CrmLeadsService {
     /**
      * 根据id 删除线索
      */
-
     @Async
     public R deleteByBatchIds(List idsList) {
         if (idsList == null || idsList.size() == 0) {
@@ -1322,10 +1324,7 @@ public class CrmLeadsService {
         return i > 0 ? R.ok() : R.error("公海线索删除失败");
     }
 
-
-    @Async
-    public void batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark
-            , String leadsview, LoginUser user) {
+    public int batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
         // 指定ID退回公海
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
@@ -1348,14 +1347,15 @@ public class CrmLeadsService {
         }
         customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
         int status = customerSeaDao.executeUpdateSQL(sql.toString(), param.toArray());
-        //String leadsview = BaseUtil.getViewSql("leadsview");
+        LoginUser user = BaseUtil.getUser();
+        String leadsview = BaseUtil.getViewSql("leadsview");
         for (String id : superIds) {
             List<Map<String, Object>> list = customerSeaDao.sqlQuery("select * from " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " WHERE id = ? ", id);
             if (list.size() == 0) {
-                transferToPublicSea(seaId, userId.toString(), id, leadsview, user);
+                transferToPublicSea(seaId, userId.toString(), id, user, leadsview);
             }
         }
-        //return status;
+        return status;
     }
 
     /**
