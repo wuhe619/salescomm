@@ -12,6 +12,7 @@ import com.bdaim.auth.service.UserVerificationCodeService;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.service.CrmContactsService;
 import com.bdaim.crm.erp.crm.service.CrmCustomerService;
@@ -108,6 +109,8 @@ public class SendSmsService {
     private AdminSceneService adminSceneService;
     @Autowired
     private MarketTaskDao marketTaskDao;
+    @Autowired
+    private AdminFieldService adminFieldService;
 
 
     /**
@@ -1211,6 +1214,9 @@ public class SendSmsService {
                 if (m.get("flist") == null || ((List) m.get("flist")).size() == 0) {
                     continue;
                 }
+                // 发送短信次数
+                adminFieldService.saveCallSmsCount(String.valueOf(m.get("batch_id")), type,2,1);
+
                 List<Map> phones = (List) m.get("flist");
                 for (int j = 0; j < phones.size(); j++) {
                     // 手机号
