@@ -200,7 +200,7 @@ public class BiTouchService {
                 sqlBuffer.append(" UNION ALL ");
             }
         }
-        sqlBuffer.append(" ) ORDER BY create_time DESC ");
+        sqlBuffer.append(" ) tt ORDER BY tt.create_time DESC ");
         Page page = biDao.sqlPageQuery(sqlBuffer.toString(), pageNum, pageSize, params.toArray());
         List<Map<String, Object>> resultList = page.getData();
         if (!CollectionUtils.isEmpty(resultList)) {
@@ -289,7 +289,7 @@ public class BiTouchService {
             params.add(startTime);
             params.add(endTime);
         }
-        sqlBuffer.append(") ORDER BY sendTime DESC");
+        sqlBuffer.append(") tt ORDER BY tt.sendTime DESC");
 
 
         Page page = biDao.sqlPageQuery(sqlBuffer.toString(), pageNum, pageSize, params.toArray());
