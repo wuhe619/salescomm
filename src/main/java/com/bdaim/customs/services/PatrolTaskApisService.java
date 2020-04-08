@@ -107,7 +107,8 @@ public class PatrolTaskApisService implements BusiService {
         try {
             log.info("apiid;==="+apiId);
             if (StringUtil.isNotEmpty(apiId)) {
-                String sql = "select api_name from am_api where id=?";
+                String sql = "select api_name from am_api where api_id=?";
+                log.info("api sql:"+sql);
                 List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, apiId);
                 log.info("listsss: "+list);
                 if (list != null && list.size() > 0) {
