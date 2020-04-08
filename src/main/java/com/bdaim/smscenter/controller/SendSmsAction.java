@@ -143,6 +143,8 @@ public class SendSmsAction extends BasicAction {
             return R.ok("发送成功");
         } else if (code == 1003) {
             return R.error(code, "余额不足");
+        } else if (code == 1004) {
+            return R.error(code, "模板未配置");
         }
         return R.error(code, "发送失败");
     }
