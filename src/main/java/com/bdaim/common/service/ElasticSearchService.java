@@ -14,6 +14,8 @@ import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.*;
 import io.searchbox.indices.mapping.GetMapping;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -46,7 +48,8 @@ public class ElasticSearchService {
 
     public static final String CUSTOMER_SEA_TYPE = "data";
 
-    //TransportClient client;
+    //@Autowired
+    //private TransportClient transportClient;
 
     @Resource
     private RestTemplate restTemplate;
@@ -556,6 +559,36 @@ public class ElasticSearchService {
         LOG.info("ES查询结果:\n{}", result.getJsonString());
         return result;
     }
+
+    /**
+     * ES汇总总量
+     *
+     * @param dsl
+     * @param index
+     * @param indexType
+     * @return
+     */
+    public CountResult count(String dsl, String index, String indexType) {
+        LOG.info("index:{},indexType:{},ES检索语句:\n{}", index, indexType, dsl);
+        CountResult result = null;
+        try {
+            Count count = new Count.Builder().query(dsl)
+                    .addIndex(index)
+                    .addType(indexType)
+                    .build();
+            result = jestClient.execute(count);
+        } catch (IOException e) {
+            LOG.error("ES汇总查询异常", e);
+        }
+        LOG.info("ES查询结果:\n{}", result.getJsonString());
+        return result;
+    }
+
+    /*public SearchResponse searchByClient(String dsl, String index, String indexType) {
+        LOG.info("index:{},indexType:{},ES检索语句:\n{}", index, indexType, dsl);
+        SearchResponse result = transportClient.prepareSearch(index).setTypes(indexType).execute().actionGet();
+        return result;
+    }*/
 
     public SearchSourceBuilder queryConditionToDSL(JSONObject params) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();

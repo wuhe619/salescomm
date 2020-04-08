@@ -231,7 +231,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 查看跟进记录
      */
     @RequestMapping(value = "/cluesea/getRecord", method = RequestMethod.POST)
@@ -268,8 +267,11 @@ public class CrmLeadsController extends BasicAction {
                 // 删除公海线索
                 crmLeadsService.deletePublicClue(param.getSuperIds(), param.getSeaId());
             }
+
             if (3 == operate) {
-                crmLeadsService.batchClueBackToSea(param.getUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds(), param.getBackReason(), param.getBackRemark());
+                String leadsview = BaseUtil.getViewSql("leadsview");
+                crmLeadsService.batchClueBackToSea(param.getUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds(),
+                        param.getBackReason(), param.getBackRemark(), leadsview, BaseUtil.getUser());
                 // 指定ID退回公海时删除私海线索
                 crmLeadsService.deleteByBatchIds(param.getSuperIds());
             } else {
@@ -393,7 +395,7 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "update h_dic SET p_code = 0 WHERE type = 'INDUSTRY_CODE_1';";
+        String sql = "delete FROM obj_u_6 where obj_id = 190 LIMIT 1";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
@@ -421,7 +423,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 新增或更新线索
      */
     @Permissions({"crm:leads:save", "crm:leads:update"})
@@ -432,7 +433,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据线索id查询
      */
     @Permissions("crm:leads:read")
@@ -443,7 +443,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据线索名称查询
      */
     @RequestMapping(value = "/queryByName")
@@ -452,7 +451,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据id 删除线索
      */
     @Permissions("crm:leads:delete")
@@ -516,7 +514,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 查看跟进记录
      */
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
@@ -550,7 +547,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 批量导出线索
      */
     @Permissions("crm:leads:excelexport")
@@ -572,7 +568,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 导出全部线索
      */
     @Permissions("crm:leads:excelexport")
@@ -742,7 +737,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 获取线索导入模板
      */
     @LoginFormCookie
@@ -877,7 +871,6 @@ public class CrmLeadsController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 线索导入
      */
     @Permissions("crm:leads:excelimport")

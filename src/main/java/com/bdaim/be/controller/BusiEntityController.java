@@ -189,14 +189,25 @@ public class BusiEntityController extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseInfo deleteInfo(@PathVariable(name = "id") Long id, @PathVariable(name = "busiType") String busiType) {
+    public ResponseInfo deleteInfo(@RequestBody(required = false) String body,@PathVariable(name = "id") Long id, @PathVariable(name = "busiType") String busiType) {
         ResponseInfo resp = new ResponseInfo();
         try {
             LoginUser lu = opUser();
-            if (lu.getCustId() == null || "".equals(lu.getCustId()))
+            String cust_id = lu.getCustId();
+            if (lu.getRole().contains("admin") || lu.getRole().contains("ROLE_USER")) {
+                try {
+                    if (body == null || "".equals(body))
+                        body = "{}";
+                    JSONObject params = JSONObject.parseObject(body);
+                    cust_id = params.getString("cust_id");
+                } catch (Exception e) {
+                    return new ResponseInfoAssemble().failure(-1, "删除条件解析异常[" + busiType + "]");
+                }
+            }
+
+            if (StringUtil.isEmpty(cust_id))
                 return new ResponseInfoAssemble().failure(-1, "无归属企业，不能删除记录:[" + busiType + "]");
 
-            String cust_id = lu.getCustId();
             String cust_group_id = lu.getUserGroupId();
             Long cust_user_id = lu.getId();
 

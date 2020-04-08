@@ -21,6 +21,11 @@ import com.bdaim.common.page.PageList;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.service.PhoneService;
+import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
+import com.bdaim.crm.erp.admin.service.AdminFieldService;
+import com.bdaim.crm.erp.crm.service.CrmContactsService;
+import com.bdaim.crm.erp.crm.service.CrmCustomerService;
+import com.bdaim.crm.erp.crm.service.CrmLeadsService;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerLabelDTO;
@@ -54,6 +59,7 @@ import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.LinkedMultiValueMap;
@@ -91,6 +97,14 @@ public class MarketResourceAction extends BasicAction {
     private CustomerDao customerDao;
     @Resource
     private BatchService batchService;
+    @Autowired
+    private CrmLeadsService crmLeadsService;
+    @Autowired
+    private CrmCustomerService crmCustomerService;
+    @Autowired
+    private CrmContactsService crmContactsService;
+    @Autowired
+    private AdminFieldService adminFieldService;
 
     /**
      * 通话历史
@@ -1437,20 +1451,42 @@ public class MarketResourceAction extends BasicAction {
     }
 
 
-    @RequestMapping(value = "/saveVoiceLog", method = RequestMethod.POST)
+    @PostMapping(value = "/crmtouchlog")
     @ResponseBody
     public String saveVoiceLog(@RequestBody JSONObject param) {
         Map<Object, Object> map = new HashMap<>();
         JSONObject json = new JSONObject();
         Long userId = opUser().getId();
         String customerId = opUser().getCustId();
-
+        String objId = param.getString("objId");
         String superId = param.getString("superId");
+        String field = param.getString("field");
+        String objType = param.getString("objType");
+        Map data = null;
+        if (StringUtil.isEmpty(superId)) {
+            // 线索私海
+            if ("1".equals(objType)) {
+                data = crmLeadsService.queryById(NumberConvertUtil.parseInt(objId));
+            } else if ("2".equals(objType)) {
+                //客户私海
+                data = crmCustomerService.queryById(NumberConvertUtil.parseInt(objId));
+            } else if ("3".equals(objType)) {
+                // 联系人
+                data = crmContactsService.queryById(NumberConvertUtil.parseInt(objId));
+            }
+            if (data != null && data.get(field) != null) {
+                superId = phoneService.pnu(String.valueOf(data.get(field)));
+            }
+        }
+        if (StringUtil.isEmpty(superId)) {
+            map.put("code", -1);
+            map.put("message", "superId必填");
+            json.put("data", map);
+            return json.toJSONString();
+        }
         String customerGroupId = param.getString("customerGroupId");
         String marketTaskId = param.getString("marketTaskId");
         String seaId = param.getString("seaId");
-        String objType = param.getString("objType");
-
         String callId = param.getString("callId");
         Integer callStatus = param.getInteger("callStatus");
 
@@ -1474,7 +1510,7 @@ public class MarketResourceAction extends BasicAction {
                         customerGroupId = String.valueOf(clueData.get("batch_id"));
                     }
                 }
-                if(StringUtil.isNotEmpty(customerGroupId)){
+                if (StringUtil.isNotEmpty(customerGroupId)) {
                     dto.setCustomerGroupId(NumberConvertUtil.parseInt(customerGroupId));
                 }
                 // 判断是否管理员进行的外呼
@@ -1487,11 +1523,35 @@ public class MarketResourceAction extends BasicAction {
                 dto.setCugId(opUser().getJobMarketId());
                 dto.setMarketTaskId(StringUtil.isNotEmpty(marketTaskId) ? marketTaskId : "");
                 dto.setCustomerSeaId(StringUtil.isNotEmpty(seaId) ? seaId : "");
-                dto.setObjType(objType);
+                dto.setObjType(objId);
                 dto.setCallSid(callId);
                 dto.setStatus(callStatus);
-                marketResourceService.insertLogV3(dto);
-
+                // 保存通话记录
+                marketResourceService.insertCrmTouchLog(dto);
+                LkCrmAdminRecordEntity record = new LkCrmAdminRecordEntity();
+                record.setTypesId(objId);
+                record.setContent("网络电话");
+                record.setCategory("打电话");
+                record.setIsEvent(0);
+                // 致电时间
+                if (param.get("callTime") != null) {
+                    Date callTime = param.getDate("callTime");
+                    record.setNextTime(callTime);
+                }
+                // 添加更新记录
+                if ("1".equals(objType)) {
+                    crmLeadsService.addRecord(record);
+                } else if ("2".equals(objType)) {
+                    //客户私海
+                    crmCustomerService.addRecord(record);
+                } else if ("3".equals(objType)) {
+                    // 联系人
+                    crmContactsService.addRecord(record);
+                }
+                // 更新致电次数
+                /*data = new HashMap();
+                data.put("batch_id","22a6dd6cc3ed4010963d1bcd9e002ead");*/
+                adminFieldService.saveCallSmsCount(String.valueOf(data.get("batch_id")), NumberConvertUtil.parseInt(objType),1,1);
             }
         } catch (Exception e) {
             LOG.error("保存手动外呼通话记录异常,", e);

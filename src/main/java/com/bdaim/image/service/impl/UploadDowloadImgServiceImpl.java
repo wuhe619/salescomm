@@ -1216,7 +1216,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             }
             try {
                 response.setHeader("Content-Type", "application/octet-stream");
-                response.setHeader("Content-Disposition", "attachment;filename=" + fileId + fileInfo.getFileType());
+                response.setHeader("Content-Disposition", "attachment;filename=" + fileId + (fileInfo != null ? fileInfo.getFileType() : ""));
                 byte[] bytes = mongoFileService.downloadFile(fileId);
                 IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());
             } catch (Exception e) {

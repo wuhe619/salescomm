@@ -2437,7 +2437,7 @@ public class SupplierService {
                     supplierDTOMap.put("supplierId", map1.get("supplier_id"));
                     SupplierPropertyEntity remain_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "remain_amount");
                     SupplierPropertyEntity used_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "used_amount");
-                    if ("5".equals(map1.get("type").toString())) {
+                    if ("5".equals(map1.get("type").toString())) {//api 供应商
                         supplierDTOMap.put("balance", remain_amount == null ? 0 : Float.valueOf(remain_amount.getPropertyValue()) / 10000);
                         supplierDTOMap.put("consumption", used_amount == null ? 0 : Float.valueOf(used_amount.getPropertyValue()) / 10000);
                     } else {

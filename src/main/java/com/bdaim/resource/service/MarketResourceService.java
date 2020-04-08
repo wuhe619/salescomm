@@ -3953,6 +3953,71 @@ public class MarketResourceService {
         marketResourceDao.executeUpdateSQL(sql.toString(), params.toArray());
     }
 
+    /**
+     * CRM联系记录保存
+     * @param dto
+     */
+    public void insertCrmTouchLog(MarketResourceLogDTO dto) {
+        String type_code = dto.getType_code();
+        StringBuffer sql = new StringBuffer();
+        List<Object> params = new ArrayList<>();
+        if (type_code.equals("1")) {
+            String nowYearMonth = DateUtil.getNowMonthToYYYYMM();
+            // 检查通话记录月表是否存在
+            marketResourceDao.createVoiceLogTableNotExist(nowYearMonth);
+
+            sql.setLength(0);
+            sql.append(
+                    "insert  into " + ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + nowYearMonth + " (touch_id,cust_id,user_id,remark,create_time,status,superId,callSid,customer_group_id, cug_id, market_task_id, customer_sea_id, obj_type) values ( ");
+            sql.append("?,?,?,?,");
+            params.add(dto.getTouch_id());
+            params.add(dto.getCust_id());
+            params.add(dto.getUser_id());
+            params.add(dto.getRemark());
+            sql.append("now(),");
+            sql.append("?,?,?,?,?,?,?,?)");
+            params.add(dto.getStatus());
+            params.add(dto.getSuperId());
+            params.add(dto.getCallSid());
+            params.add(dto.getCustomerGroupId());
+            params.add(dto.getCugId());
+            params.add(dto.getMarketTaskId());
+            params.add(dto.getCustomerSeaId());
+            params.add(dto.getObjType());
+        }
+        if (type_code.equals("2")) {
+            sql.append(
+                    "insert  into t_touch_sms_log (cust_id,user_id,remark,create_time,status,sms_content,superId, obj_type) values ( ");
+            sql.append("?,?,?,");
+            params.add(dto.getCust_id());
+            params.add(dto.getUser_id());
+            params.add(dto.getRemark());
+            sql.append("now(),");
+            sql.append("?,?,?,?)");
+            params.add(dto.getStatus());
+            params.add(dto.getSms_content());
+            params.add(dto.getSuperId());
+            params.add(dto.getObjType());
+        }
+        if (type_code.equals("3")) {
+            sql.append(
+                    "insert  into t_touch_email_log (cust_id,user_id,remark,create_time,status,email_content,superId,templateId,batch_number) values ( ");
+            sql.append("?,?,?,");
+            params.add(dto.getCust_id());
+            params.add(dto.getUser_id());
+            params.add(dto.getRemark());
+            sql.append("now(),");
+            sql.append("?,?,?,?,?)");
+            params.add(dto.getStatus());
+            params.add(dto.getEmail_content());
+            params.add(dto.getSuperId());
+            params.add(dto.getTemplateId());
+            params.add(dto.getBatchNumber());
+        }
+        LOG.info("inserLog：SQL------->" + sql.toString());
+        marketResourceDao.executeUpdateSQL(sql.toString(), params.toArray());
+    }
+
 
     /**
      * 购买资源包
@@ -6951,7 +7016,7 @@ public class MarketResourceService {
         sb.append(" ORDER BY sms.create_time DESC ");
         com.bdaim.common.dto.Page page = null;
         try {
-            page = this.marketResourceDao.sqlPageQuery0(sb.toString(), pageNum, pageSize, params);
+            page = this.marketResourceDao.sqlPageQuery0(sb.toString(), pageNum, pageSize, params.toArray());
         } catch (Exception e) {
             LOG.error("查询短信营销记录失败,", e);
             page = new com.bdaim.common.dto.Page();

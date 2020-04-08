@@ -4,9 +4,12 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.PhoneUtil;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.service.PhoneService;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.*;
@@ -23,6 +26,7 @@ import com.bdaim.util.StringUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -56,6 +60,9 @@ public class AdminSceneService {
 
     @Resource
     private LkCrmContractDao crmContractDao;
+
+    @Autowired
+    private PhoneService phoneService;
 
 
     /**
@@ -487,6 +494,34 @@ public class AdminSceneService {
         }
         basePageRequest.setJsonObject(jsonObject);
         R result = getCrmPageList(basePageRequest);
+        if (result.get("data") != null) {
+            if (((JSONObject) result.get("data")).get("list") != null) {
+                List fList;
+                JSONArray list = ((JSONObject) result.get("data")).getJSONArray("list");
+                Map f;
+                JSONObject value;
+                for (int i = 0; i < list.size(); i++) {
+                    fList = new ArrayList();
+                    value = list.getJSONObject(i);
+                    for (String k : value.keySet()) {
+                        if ("mobile".equals(k) || "手机号".equals(k) || "手机".equals(k)) {
+                            // 处理手机号类型
+                            f = new HashMap();
+                            f.put("field", k);
+                            f.put("type", 7);
+                            fList.add(f);
+                        } else if ("telephone".equals(k) || "固话".equals(k) || "电话".equals(k)) {
+                            // 处理电话类型
+                            f = new HashMap();
+                            f.put("field", k);
+                            f.put("type", 22);
+                            fList.add(f);
+                        }
+                    }
+                    list.getJSONObject(i).put("flist", fList);
+                }
+            }
+        }
         return result;
     }
 
@@ -691,9 +726,9 @@ public class AdminSceneService {
                         "    ) as pool_day," +
                         "    (select count(*) from lkcrm_crm_business as a where a.customer_id = " + customerview + ".customer_id) as business_count";
 
-                return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQuery(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
+                return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQueryByPageSize0(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
             } else {
-                Page page = crmAdminSceneDao.sqlPageQuery("select * " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
+                Page page = crmAdminSceneDao.sqlPageQueryByPageSize0("select * " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
                 Map map = null;
                 for (int i = 0; i < page.getData().size(); i++) {
                     map = (Map) page.getData().get(i);
@@ -706,7 +741,7 @@ public class AdminSceneService {
         } else if (6 == type) {
             Record totalMoney = JavaBeanUtil.mapToRecord(crmAdminSceneDao.sqlQuery("select SUM(money) as contractMoney,GROUP_CONCAT(contract_id) as contractIds " + conditions.toString(), BaseUtil.getUser().getCustId()).get(0));
             String contractview = BaseUtil.getViewSql("contractview");
-            Page page = crmAdminSceneDao.sqlPageQuery("select * " + conditions.toString(), basePageRequest.getPage(),
+            Page page = crmAdminSceneDao.sqlPageQueryByPageSize0("select * " + conditions.toString(), basePageRequest.getPage(),
                     basePageRequest.getLimit(), loginUser.getCustId());
             Map map = null;
             for (int i = 0; i < page.getData().size(); i++) {
@@ -722,7 +757,7 @@ public class AdminSceneService {
             return R.ok().put("data", result);
         }
         String sql = "select *" + conditions.toString();
-        com.bdaim.common.dto.Page recordPage = crmAdminSceneDao.sqlPageQuery(sql, basePageRequest.getPage(),
+        com.bdaim.common.dto.Page recordPage = crmAdminSceneDao.sqlPageQueryByPageSize0(sql, basePageRequest.getPage(),
                 basePageRequest.getLimit(), loginUser.getCustId());
         if (type == 5) {
             recordPage.getData().forEach(record -> {
@@ -737,9 +772,6 @@ public class AdminSceneService {
             });
             setBusinessStatus(JavaBeanUtil.mapToRecords(recordPage.getData()));
         }
-      /*  com.jfinal.plugin.activerecord.Page finalPage = new com.jfinal.plugin.activerecord.Page();
-        finalPage.setList(recordPage.getData());
-        finalPage.setTotalRow(recordPage.getTotal());*/
         Map map;
         for (int i = 0; i < recordPage.getData().size(); i++) {
             map = (Map) recordPage.getData().get(i);

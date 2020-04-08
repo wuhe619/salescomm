@@ -367,7 +367,6 @@ public class CrmRecordService<T> {
 
 
     /**
-     * @author wyq
      * 删除跟进记录
      */
     public R deleteFollowRecord(Integer recordId) {
@@ -376,7 +375,6 @@ public class CrmRecordService<T> {
     }
 
     /**
-     * @author wyq
      * 查询跟进记录类型
      */
     public R queryRecordOptions() {
@@ -385,7 +383,6 @@ public class CrmRecordService<T> {
     }
 
     /**
-     * @author wyq
      * 设置跟进记录类型
      */
     @Before(Tx.class)

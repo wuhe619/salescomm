@@ -7,16 +7,17 @@ import com.bdaim.callcenter.dto.SeatPropertyDTO;
 import com.bdaim.callcenter.dto.SeatsInfo;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
+import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.utils.R;
 import com.bdaim.smscenter.dto.CallBackSmsDTO;
 import com.bdaim.smscenter.service.SendSmsService;
 import com.bdaim.util.StringUtil;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -24,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +39,7 @@ import java.util.Map;
 @RequestMapping("/sms")
 public class SendSmsAction extends BasicAction {
 
-    private final static Logger LOG = Logger.getLogger(SendSmsAction.class);
+    private final static Logger LOG = LoggerFactory.getLogger(SendSmsAction.class);
 
     @Resource
     private SendSmsService sendSmsService;
@@ -122,6 +124,33 @@ public class SendSmsAction extends BasicAction {
         }
     }
 
+
+    @PostMapping(value = "/crmBatchSendSms")
+    @ResponseBody
+    public R crmBatchSendSms(@RequestBody JSONObject param) {
+        BasePageRequest basePageRequest = new BasePageRequest();
+        if (param.getInteger("pageNum") != null && param.getInteger("pageSize") != null) {
+            basePageRequest = new BasePageRequest<>(param.getInteger("pageNum"), param.getInteger("pageSize"));
+        }
+        basePageRequest.setJsonObject(param);
+        int code = 0;
+        try {
+            code = sendSmsService.crmBatchSendSms(basePageRequest);
+        } catch (Exception e) {
+            code = -1;
+            LOG.error("crm批次发送短信异常", e);
+        }
+        if (code == 1001) {
+            return R.ok("发送成功");
+        }else if (code == 1002) {
+            return R.error(code, "未配置售价,请联系管理员");
+        } else if (code == 1003) {
+            return R.error(code, "余额不足");
+        } else if (code == 1004) {
+            return R.error(code, "模板未配置");
+        }
+        return R.error(code, "发送失败");
+    }
 
     public static void main(String[] args) {
         JSONObject json = new JSONObject();

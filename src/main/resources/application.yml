@@ -11,13 +11,10 @@ spring:
     test-on-borrow: false
     test-while-idle: true
     time-between-eviction-runs-millis: 1000000
-#    username: dev
-#    password: dev__807
+    username: dev
+    password: dev__807
     #    url: jdbc:mysql://localhost:3306/bp?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
-#    url: jdbc:mysql://192.168.32.200/label?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
-    url: jdbc:mysql://47.104.205.217:3306/label_dev?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
-    username: chacker
-    password: chacker
+    url: jdbc:mysql://192.168.32.200/label?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
     hikari:
       auto-commit: true
       minimum-idle: 5
@@ -128,3 +125,5 @@ alipay_app_private_key_pro: 1
 alipay_public_key_pro: 1
   #支付结果异步通知地址
 alipay_notify_url_pro: 1
+ent_data_index: ent_data_test
+ent_data_type: tag

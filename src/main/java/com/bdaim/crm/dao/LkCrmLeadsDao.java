@@ -48,6 +48,12 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         return null;
     }
 
+    public List<Map<String, Object>> queryByListId(List ids) {
+        String leadsview = BaseUtil.getViewSql("leadsview");
+        String sql = "select *,leads_name as name from " + leadsview + " where leads_id IN (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ") ";
+        return this.sqlQuery(sql);
+    }
+
     public int updateOwnerUserId(String ownerUserId, List<String> ids) {
         String sql = "update lkcrm_crm_leads " +
                 "    set owner_user_id = ?,followup = 0 " +

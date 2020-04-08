@@ -294,6 +294,12 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
         return sqlQuery(sql, customer_id);
     }
 
+    public List<Map<String, Object>> queryByListId(List ids) {
+        String customerview = BaseUtil.getViewSql("customerview");
+        String sql = " select *,(IF(owner_user_id is null,1,0)) as is_pool from " + customerview + "  where customer_id IN(" + SqlAppendUtil.sqlAppendWhereIn(ids) + ") ";
+        return sqlQuery(sql);
+    }
+
     public Page getCustomerPageList(int pageNum, int pageSize, String customerName, String mobile, String telephone) {
         String customerview = BaseUtil.getViewSql("customerview");
         String sql = " select customer_id,customer_name,owner_user_name from " + customerview + " where 1=1";

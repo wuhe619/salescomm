@@ -58,19 +58,22 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
     }
 
     public List queryFields() {
-        String sql = "SELECT IFNULL(label,'1') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'线索管理' as name,'crm_leads' as types FROM lkcrm_admin_field WHERE label='1'\n" +
+        String custId = BaseUtil.getCustId();
+        String sql = "SELECT IFNULL(label,'1') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'线索管理' as name,'crm_leads' as types FROM lkcrm_admin_field WHERE label='1' AND cust_id = '" + custId + "' " +
                 "      union all\n" +
-                "      SELECT IFNULL(label,'2') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'客户管理' as name,'crm_customer' as types FROM lkcrm_admin_field WHERE label='2'\n" +
+                "      SELECT IFNULL(label,'2') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'客户管理' as name,'crm_customer' as types FROM lkcrm_admin_field WHERE label='2' AND cust_id = '" + custId + "'" +
                 "      union all\n" +
-                "      SELECT IFNULL(label,'3') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'联系人管理' as name,'crm_contacts' as types FROM lkcrm_admin_field WHERE label='3'\n" +
+                "      SELECT IFNULL(label,'3') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'联系人管理' as name,'crm_contacts' as types FROM lkcrm_admin_field WHERE label='3' AND cust_id = '" + custId + "'" +
                 "      union all\n" +
-                "      SELECT IFNULL(label,'4') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'产品管理' as name,'crm_product' as types FROM lkcrm_admin_field WHERE label='4'\n" +
+                "      SELECT IFNULL(label,'4') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'产品管理' as name,'crm_product' as types FROM lkcrm_admin_field WHERE label='4' AND cust_id = '" + custId + "' " +
                 "      union all\n" +
-                "      SELECT IFNULL(label,'5') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'商机管理' as name,'crm_business' as types FROM lkcrm_admin_field WHERE label='5'\n" +
+                "      SELECT IFNULL(label,'5') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'商机管理' as name,'crm_business' as types FROM lkcrm_admin_field WHERE label='5' AND cust_id = '" + custId + "'" +
                 "      union all\n" +
-                "      SELECT IFNULL(label,'6') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'合同管理' as name,'crm_contract' as types FROM lkcrm_admin_field WHERE label='6'\n" +
+                "      SELECT IFNULL(label,'6') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'合同管理' as name,'crm_contract' as types FROM lkcrm_admin_field WHERE label='6' AND cust_id = '" + custId + "'" +
                 "      union all\n" +
-                "      SELECT IFNULL(label,'7') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'回款管理' as name,'crm_receivables' as types FROM lkcrm_admin_field WHERE label='7'";
+                "      SELECT IFNULL(label,'7') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'回款管理' as name,'crm_receivables' as types FROM lkcrm_admin_field WHERE label='7' AND cust_id = '" + custId + "'" +
+                "      union all\n" +
+                "      SELECT IFNULL(label,'11') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'线索公海' as name,'crm_cluePublic' as types FROM lkcrm_admin_field WHERE label='11' AND cust_id = '" + custId + "'";
         return sqlQuery(sql);
     }
 

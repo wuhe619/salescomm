@@ -228,12 +228,12 @@ public class CustomerUserService {
 
         PasswordChecker checker = new PasswordChecker();
 
-        if(!checker.check(value.getPassword())){
+        if (!checker.check(value.getPassword())) {
             throw new Exception("密码不符合要求");
         }
         //用户是否已存在
-        List<CustomerUser> customerUsers = customerUserDao.findBy("account",value.getUserName());
-        if(!CollectionUtils.isEmpty(customerUsers)){
+        List<CustomerUser> customerUsers = customerUserDao.findBy("account", value.getUserName());
+        if (!CollectionUtils.isEmpty(customerUsers)) {
             throw new Exception("该手机号已被注册");
         }
         //创建客户信息
@@ -336,11 +336,11 @@ public class CustomerUserService {
         String password = userDTO.getPassword();
         PasswordChecker checker = new PasswordChecker();
         try {
-            if(!checker.check(password)){
+            if (!checker.check(password)) {
                 throw new Exception("密码不符合要求");
             }
             //String appId = userDTO.getAppId();
-    //        String callCenterId = userDTO.getCallCenterId();
+            //        String callCenterId = userDTO.getCallCenterId();
             String callType = userDTO.getCallType();
             String callChannel = userDTO.getCallChannel();
             Integer userType = userDTO.getUserType();
@@ -426,6 +426,17 @@ public class CustomerUserService {
             cu.setUserType(userType); //2:添加普通员工 3:项目管理员
             cu.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
             this.customerUserDao.save(cu);
+            // 同步创建crm登录账号
+            CustomerProperty service_mode = customerDao.getProperty(custId, "service_mode");
+            if (service_mode != null && "2".equals(service_mode.getPropertyValue())) {
+                LkCrmAdminUserEntity adminUser = new LkCrmAdminUserEntity();
+                adminUser.setUserId(cu.getId());
+                adminUser.setUsername(cu.getAccount());
+                adminUser.setPassword(cu.getPassword());
+                adminUser.setMobile(StringUtil.isNotEmpty(userDTO.getMobileNumber()) ? userDTO.getMobileNumber() : "");
+                adminUser.setEmail(userDTO.getEmail());
+                lkAdminUserService.saveUser(adminUser, true, custId, 2, "1");
+            }
 
             List<CustomerUserPropertyDO> list = new ArrayList<>();
             CustomerUserPropertyDO mobile_num = new CustomerUserPropertyDO(cu.getId().toString(), "mobile_num", userDTO.getMobileNumber(), new Timestamp(System.currentTimeMillis()));
@@ -647,14 +658,19 @@ public class CustomerUserService {
 //        } else {
 //            sb.append(", modify_time = NOW() ");
 //        }
+        int userStatus = 0;
+        String sql = "update lkcrm_admin_user set status = ? where username = ?";
         if (1 == status) {
             sb.append(",locked_time=now() ");
+            userStatus = 0;
         } else {
+            userStatus = 1;
             sb.append(",locked_time=null");
         }
         sb.append(" where  account= ? and cust_id='" + custId + "'");
 
         int code = jdbcTemplate.update(sb.toString(), new Object[]{status, userName});
+        jdbcTemplate.update(sql, userStatus, userName);
         /*if (1 == status) {
             // 冻结
             unicomService.saveUpdateUserExtensionByUserId("", userName, 1);
@@ -702,7 +718,7 @@ public class CustomerUserService {
             if (cu != null) {
                 if (StringUtil.isNotEmpty(userDTO.getPassword())) {
                     PasswordChecker checker = new PasswordChecker();
-                    if(!checker.check(userDTO.getPassword())){
+                    if (!checker.check(userDTO.getPassword())) {
                         throw new Exception("密码不符合要求");
                     }
                     String password = CipherUtil.generatePassword(userDTO.getPassword());
@@ -843,6 +859,18 @@ public class CustomerUserService {
             }
             if (list.size() > 0) {
                 this.customerUserDao.batchSaveOrUpdate(list);
+            }
+            String custId = userDTO.getCustomerId();
+            // 同步创建crm登录账号
+            CustomerProperty service_mode = customerDao.getProperty(custId, "service_mode");
+            if (service_mode != null && "2".equals(service_mode.getPropertyValue())) {
+                LkCrmAdminUserEntity adminUser = new LkCrmAdminUserEntity();
+                adminUser.setUserId(cu.getId());
+                adminUser.setUsername(cu.getAccount());
+                adminUser.setPassword(cu.getPassword());
+                adminUser.setMobile(StringUtil.isNotEmpty(userDTO.getMobileNumber()) ? userDTO.getMobileNumber() : "");
+                adminUser.setEmail(userDTO.getEmail());
+                lkAdminUserService.saveUser(adminUser, false, custId, 2, "1");
             }
         } catch (Exception e) {
             logger.error("更新用户信息失败", e);

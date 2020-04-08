@@ -78,7 +78,6 @@ public class CrmCustomerController extends BasicAction {
     private AdminSceneService adminSceneService;
 
     /**
-     * @author wyq
      * 查看列表页
      */
     @Permissions({"crm:customer:index"})
@@ -103,7 +102,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 全局搜索查询客户
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
@@ -113,7 +111,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 新增或更新客户
      */
     @Permissions({"crm:customer:save", "crm:customer:update"})
@@ -124,7 +121,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据客户id查询
      */
     @Permissions("crm:customer:read")
@@ -135,7 +131,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据客户名称查询
      */
     @NotNullValidate(value = "name", message = "客户名称不能为空")
@@ -145,7 +140,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据客户id查询联系人
      */
     @RequestMapping(value = "/queryContacts", method = RequestMethod.POST)
@@ -163,7 +157,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据id删除客户
      */
     @Permissions("crm:customer:delete")
@@ -174,7 +167,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据客户id查找商机
      */
     @RequestMapping(value = "/queryBusiness", method = RequestMethod.POST)
@@ -192,7 +184,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据客户id查询合同
      */
     @RequestMapping(value = "/queryContract", method = RequestMethod.POST)
@@ -207,7 +198,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author zxy
      * 条件查询客户公海
      */
     @RequestMapping(value = "/queryPageGH", method = RequestMethod.POST)
@@ -217,7 +207,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 根据客户id查询回款计划
      */
     @RequestMapping(value = "/queryReceivablesPlan", method = RequestMethod.POST)
@@ -232,7 +221,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author zxy
      * 根据客户id查询回款
      */
     @RequestMapping(value = "/queryReceivables", method = RequestMethod.POST)
@@ -247,7 +235,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 客户锁定
      */
     @Permissions("crm:customer:lock")
@@ -261,7 +248,6 @@ public class CrmCustomerController extends BasicAction {
     /**
      * 客户转移
      *
-     * @author wyq
      */
     @Permissions("crm:customer:transfer")
     @NotNullValidate(value = "customerIds", message = "客户id不能为空")
@@ -294,7 +280,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 查询团队成员
      */
     @NotNullValidate(value = "customerId", message = "客户id不能为空")
@@ -309,7 +294,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 添加团队成员
      */
     @Permissions("crm:customer:teamsave")
@@ -346,7 +330,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 编辑团队成员
      */
     @NotNullValidate(value = "ids", message = "商机id不能为空")
@@ -358,7 +341,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 删除团队成员
      */
     @NotNullValidate(value = "ids", message = "客户id不能为空")
@@ -369,7 +351,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author zxy
      * 客户保护规则设置
      */
     @Permissions("manage:crm")
@@ -388,7 +369,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author zxy
      * 获取客户保护规则设置
      */
     @RequestMapping(value = "/getRulesSetting", method = RequestMethod.POST)
@@ -397,7 +377,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 添加跟进记录
      */
     @NotNullValidate(value = "typesId", message = "客户id不能为空")
@@ -419,7 +398,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 查看跟进记录
      */
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
@@ -453,7 +431,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 客户批量导出
      */
     @Permissions("crm:customer:excelexport")
@@ -465,7 +442,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 全部导出
      */
     @Permissions("crm:customer:excelexport")
@@ -483,7 +459,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 公海批量导出
      */
     @Permissions("crm:pool:excelexport")
@@ -495,7 +470,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 公海全部导出
      */
     @Permissions("crm:pool:excelexport")
@@ -577,7 +551,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * 客户放入公海
      *
      * @author zxy
      */
@@ -591,7 +564,6 @@ public class CrmCustomerController extends BasicAction {
     /**
      * 领取或分配客户
      *
-     * @author zxy
      */
     @Permissions("crm:customer:distribute")
     @RequestMapping(value = "/getCustomersByIds", method = RequestMethod.POST)
@@ -602,7 +574,6 @@ public class CrmCustomerController extends BasicAction {
     /**
      * 公海分配客户
      *
-     * @author zxy
      */
     @Permissions("crm:pool:distribute")
     @RequestMapping(value = "/distributeByIds", method = RequestMethod.POST)
@@ -615,7 +586,6 @@ public class CrmCustomerController extends BasicAction {
     /**
      * 公海领取客户
      *
-     * @author zxy
      */
     @Permissions("crm:pool:receive")
     @RequestMapping(value = "/receiveByIds", method = RequestMethod.POST)
@@ -626,7 +596,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 获取导入模板
      */
     @LoginFormCookie
@@ -692,7 +661,6 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
-     * @author wyq
      * 导入客户
      */
     /*@Permissions("crm:customer:excelimport")
