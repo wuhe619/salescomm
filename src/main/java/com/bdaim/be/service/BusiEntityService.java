@@ -242,7 +242,7 @@ public class BusiEntityService {
         sqlParams.add(pageSize);
         try {
             logger.info("querySql:{}", sql);
-            logger.info("queryParam:{}", JSON.toJSONString(sqlParams));
+            logger.info("queryParam:{}", sqlParams);
             logger.info("开始查询...");
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql, sqlParams.toArray());
             stopwatch.split();
@@ -300,7 +300,9 @@ public class BusiEntityService {
                 logger.info("查询耗时2:" + stopwatch.getSplitTime() + "," + stopwatch.toSplitString());
                 try {
                     //执行自定义查询结果格式化
+                    logger.info("开始格式化数据");
                     busiService.formatInfo(busiType, cust_id, cust_group_id, cust_user_id, jo);
+                    logger.info("格式化数据结束");
                 } catch (Exception e) {
                     logger.error(e.getMessage());
                 }

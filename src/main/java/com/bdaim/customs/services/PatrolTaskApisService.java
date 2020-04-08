@@ -102,6 +102,7 @@ public class PatrolTaskApisService implements BusiService {
     @Override
     public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
         String apiId = info.getString("apiId");
+        log.info("格式华数据... "+apiId);
         info.put("apiName","");
         try {
             log.info("apiid;==="+apiId);
