@@ -142,6 +142,8 @@ public class SendSmsAction extends BasicAction {
         }
         if (code == 1001) {
             return R.ok("发送成功");
+        }else if (code == 1002) {
+            return R.error(code, "未配置售价,请联系管理员");
         } else if (code == 1003) {
             return R.error(code, "余额不足");
         } else if (code == 1004) {

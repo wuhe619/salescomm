@@ -1135,7 +1135,7 @@ public class SendSmsService {
         boolean flag1 = marketResourceService.checkAmount0(custId, num, templateId);
         if (!flag1) {
             logger.warn("客户:[" + custId + "]余额不足或未配置供应商售价");
-            return 1003;
+            return 1002;
         } else {
             logger.info("短信发送custId:" + custId + ",custGroupId:" + customerGroupId + ",userId:" + loginUser.getId() + ",templateId:" + templateId);
             boolean sendStatus = false;

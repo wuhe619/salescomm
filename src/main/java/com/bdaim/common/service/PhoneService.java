@@ -250,11 +250,11 @@ public class PhoneService {
             LOG.warn("获取手机号API服务uid不能为空:{}", uid);
             return null;
         }
-        String phone = null;
-        if (PhoneUtil.isCellPhone(phone)) {
-            phone = getPhoneFromAPI(phone);
-        } else {
-            phone = getTelPhoneFromAPI(phone);
+        String phone = getPhoneFromAPI(uid);
+        if(StringUtil.isNotEmpty(phone)){
+            if(phone.startsWith("9")){
+                phone = phone.substring(1);
+            }
         }
         return phone;
     }

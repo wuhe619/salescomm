@@ -50,6 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -715,7 +716,8 @@ public class CrmLeadsService {
      * @param batchId
      * @return
      */
-    public int transferToPublicSea(String seaId, String userId, String batchId) {
+    @Async
+    public int transferToPublicSea(String seaId, String userId, String batchId, LoginUser user, String leadsview) {
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
                 .append("SELECT * FROM lkcrm_crm_leads  WHERE batch_id =? ");
@@ -723,6 +725,7 @@ public class CrmLeadsService {
         int i = 0;
         String insertSql = "REPLACE INTO " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " (`id`, `user_id`, `update_time`, `status`, " +
                 "super_name,super_telphone,super_phone,super_data,create_time,batch_id) VALUES(?,?,?,?,?,?,?,?,?,?)";
+
         for (Map<String, Object> m : maps) {
             JSONObject superData = new JSONObject();
             superData.put("SYS005", m.get("company"));
@@ -733,11 +736,13 @@ public class CrmLeadsService {
             customerSeaDao.executeUpdateSQL(insertSql, superId, null, new Date(), 1, m.get("leads_name")
                     , m.get("mobile"), m.get("telephone"), superData.toJSONString(), m.get("create_time"), csp.getPropertyValue());
             // 退回到公海线索
-            String leadsview = BaseUtil.getViewSql("leadsview");
             List<Map<String, Object>> list = crmLeadsDao.sqlQuery("select * from " + leadsview + " where batch_id = ?", batchId);
+            if (list == null || list.size() == 0) {
+                continue;
+            }
             Record crmLeads = JavaBeanUtil.mapToRecord(list.get(0));
             List<Record> leadsFields = adminFieldService.list("1");
-            List<LkCrmAdminFieldEntity> seaFields = crmLeadsDao.find("from LkCrmAdminFieldEntity where label = '11' AND custId = ? ", BaseUtil.getCustId());
+            List<LkCrmAdminFieldEntity> seaFields = crmLeadsDao.find("from LkCrmAdminFieldEntity where label = '11' AND custId = ? ", user.getCustId());
             List<LkCrmAdminFieldvEntity> adminFieldvList = new ArrayList<>();
             for (Record leadsFIeld : leadsFields) {
                 for (LkCrmAdminFieldEntity seaField : seaFields) {
@@ -749,7 +754,7 @@ public class CrmLeadsService {
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(seaField.getFieldId());
                         adminFieldv.setName(seaField.getName());
-                        adminFieldv.setCustId(BaseUtil.getCustId());
+                        adminFieldv.setCustId(user.getCustId());
                         adminFieldv.setBatchId(superId);
                         adminFieldvList.add(adminFieldv);
                     }
@@ -758,7 +763,7 @@ public class CrmLeadsService {
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(seaField.getFieldId());
                         adminFieldv.setName(seaField.getName());
-                        adminFieldv.setCustId(BaseUtil.getCustId());
+                        adminFieldv.setCustId(user.getCustId());
                         adminFieldv.setBatchId(superId);
                         adminFieldvList.add(adminFieldv);
                     }
@@ -767,7 +772,7 @@ public class CrmLeadsService {
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(seaField.getFieldId());
                         adminFieldv.setName(seaField.getName());
-                        adminFieldv.setCustId(BaseUtil.getCustId());
+                        adminFieldv.setCustId(user.getCustId());
                         adminFieldv.setBatchId(superId);
                         adminFieldvList.add(adminFieldv);
                     }
@@ -776,7 +781,7 @@ public class CrmLeadsService {
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(seaField.getFieldId());
                         adminFieldv.setName(seaField.getName());
-                        adminFieldv.setCustId(BaseUtil.getCustId());
+                        adminFieldv.setCustId(user.getCustId());
                         adminFieldv.setBatchId(superId);
                         adminFieldvList.add(adminFieldv);
                     }
@@ -1235,8 +1240,7 @@ public class CrmLeadsService {
     }
 
     /**
-     * @return
-     * 根据线索id查询
+     * @return 根据线索id查询
      */
     public Map queryById(Integer leadsId) {
         return crmLeadsDao.queryById(leadsId);
@@ -1245,6 +1249,7 @@ public class CrmLeadsService {
 
     /**
      * 指定多个id查询
+     *
      * @param ids
      * @return
      */
@@ -1292,6 +1297,7 @@ public class CrmLeadsService {
     /**
      * 根据id 删除线索
      */
+    @Async
     public R deleteByBatchIds(List idsList) {
         if (idsList == null || idsList.size() == 0) {
             R.error("leadsIds不能为空");
@@ -1341,10 +1347,12 @@ public class CrmLeadsService {
         }
         customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
         int status = customerSeaDao.executeUpdateSQL(sql.toString(), param.toArray());
+        LoginUser user = BaseUtil.getUser();
+        String leadsview = BaseUtil.getViewSql("leadsview");
         for (String id : superIds) {
             List<Map<String, Object>> list = customerSeaDao.sqlQuery("select * from " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " WHERE id = ? ", id);
             if (list.size() == 0) {
-                transferToPublicSea(seaId, userId.toString(), id);
+                transferToPublicSea(seaId, userId.toString(), id, user, leadsview);
             }
         }
         return status;

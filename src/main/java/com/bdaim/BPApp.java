@@ -1,6 +1,5 @@
 package com.bdaim;
 
-import com.bdaim.api.service.ApiService;
 import com.bdaim.common.auth.AuthController;
 import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.db.HibernateConfig;
@@ -15,7 +14,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 //import org.springframework.security.web.access.AccessDeniedHandler;
 
@@ -26,6 +25,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Import({SecurityConfig.class, TokenAuthenticationFilter.class, TokenAuthenticationProvider.class, AuthExceptionHandler.class, AuthController.class, TokenCacheService.class, ErrorController.class, HibernateConfig.class})
 @ServletComponentScan(basePackages = "com.bdaim.common.controller")
 //@EnableScheduling
+@EnableAsync
 public class BPApp {
 
     private static Logger logger = LoggerFactory.getLogger(BPApp.class);
