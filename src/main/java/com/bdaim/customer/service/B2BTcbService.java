@@ -4,6 +4,7 @@ import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.be.service.BusiEntityService;
 import com.bdaim.bill.dto.TransactionTypeEnum;
 import com.bdaim.bill.service.TransactionService;
@@ -16,6 +17,7 @@ import com.bdaim.crm.ent.service.EntDataService;
 import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
@@ -342,7 +344,7 @@ public class B2BTcbService implements BusiService {
             // 已经领取过不可重复领取
             if (companyIds != null && companyIds.size() > 0 &&
                     b2BTcbLogService.checkClueGetStatus(custId, companyIds.get(0))) {
-                LOG.warn("该线索已经领取过,entId:{}",companyIds.get(0));
+                LOG.warn("该线索已经领取过,entId:{}", companyIds.get(0));
                 //throw new TouchException("该线索已经领取过");
             }
             LOG.info("kais doClueDataToSeaByIds");
@@ -351,13 +353,15 @@ public class B2BTcbService implements BusiService {
             } else {
                 data = doClueDataToSeaByIds(companyIds, custId);
             }
-
             // 指定数量
         } else if (mode == 2) {
+            LoginUser user = BaseUtil.getUser();
             //领取，只返回id
             if (sourceType == 1) {
-                data = doClueDataToSeaByNumberHK(param, getNumber, custId, userId, busiType);
+                //data = doClueDataToSeaByNumberHK(param, getNumber, custId, userId, busiType);
+                return entDataService.addCrmClueQueue(user.getCustId(), user.getUserId(), getNumber, param, 1);
             } else {
+                entDataService.addCrmClueQueue(user.getCustId(), user.getUserId(), getNumber, param, 0);
                 data = doClueDataToSeaByNumber(param, getNumber, custId, userId, busiType);
             }
         }
@@ -722,15 +726,15 @@ public class B2BTcbService implements BusiService {
        /* Random random = new Random();
         long pageNo = random.nextInt((int) getNumber), pageSize = getNumber * 5;*/
         // 预查询数据
-        param.put("phoneStatus", "1");
+        JSONArray pStatus = JSON.parseArray("[{\"value\":\"1\"},{\"value\":\"2\"}]");
+        param.put("phoneStatus", pStatus);
         baseResult = entDataService.pageSearch(custId, "", userId, busiType, param);
         if (baseResult.getData() != null && baseResult.getData().size() > 0) {
             if (getNumber > baseResult.getTotal()) {
-                LOG.warn("领取数据大于可用线索");
-                throw new TouchException("领取数据大于可用线索");
+                LOG.warn("领取数量大于可用线索数量");
+                throw new TouchException("领取数量大于可用线索数量");
             }
         }
-
         long pageNo = 1, pageSize = getNumber * 5;
         int i = 0;
         while (getNumber > data.size() && i <= 10) {

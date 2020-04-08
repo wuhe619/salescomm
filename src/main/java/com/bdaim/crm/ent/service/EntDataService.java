@@ -1050,4 +1050,10 @@ public class EntDataService {
         }
     }
 
+    public int addCrmClueQueue(String custId, long userId, long num, JSONObject condition, int type) {
+        int update = jdbcTemplate.update("INSERT INTO `lkcrm_clue_queue` (`cust_id`, `user_id`, `num`, `condition`, `type`, `create_time`,status) VALUES (?, ?, ?, ?, ?, ?, ?);",
+                custId, userId, num, condition.toJSONString(), type, DateUtil.date().toTimestamp(), 1);
+        return update;
+    }
+
 }
