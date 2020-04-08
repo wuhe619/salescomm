@@ -267,8 +267,11 @@ public class CrmLeadsController extends BasicAction {
                 // 删除公海线索
                 crmLeadsService.deletePublicClue(param.getSuperIds(), param.getSeaId());
             }
+
             if (3 == operate) {
-                crmLeadsService.batchClueBackToSea(param.getUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds(), param.getBackReason(), param.getBackRemark());
+                String leadsview = BaseUtil.getViewSql("leadsview");
+                crmLeadsService.batchClueBackToSea(param.getUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds(),
+                        param.getBackReason(), param.getBackRemark(), leadsview, BaseUtil.getUser());
                 // 指定ID退回公海时删除私海线索
                 crmLeadsService.deleteByBatchIds(param.getSuperIds());
             } else {
