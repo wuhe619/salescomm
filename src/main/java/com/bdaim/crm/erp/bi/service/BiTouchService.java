@@ -134,6 +134,7 @@ public class BiTouchService {
 
         Map<String, Object> result = new HashMap<>();
         StringBuffer sqlBuffer = new StringBuffer();
+        sqlBuffer.append("SELECT * FROM (");
         Integer status = biTimeUtil.analyzeType(type);
         List<Object> params = new ArrayList<>();
         //obj_type 1、线索 2、客户 3、联系人
@@ -199,6 +200,7 @@ public class BiTouchService {
                 sqlBuffer.append(" UNION ALL ");
             }
         }
+        sqlBuffer.append(" ) ORDER BY create_time DESC ");
         Page page = biDao.sqlPageQuery(sqlBuffer.toString(), pageNum, pageSize, params.toArray());
         List<Map<String, Object>> resultList = page.getData();
         if (!CollectionUtils.isEmpty(resultList)) {
@@ -237,6 +239,7 @@ public class BiTouchService {
         Integer status = biTimeUtil.analyzeType(type);
         //t_touch_sms_log 表名
         StringBuffer sqlBuffer = new StringBuffer();
+        sqlBuffer.append("SELECT * FROM ( ");
         List<Object> params = new ArrayList<>();
         sqlBuffer.append("SELECT ")
                 .append("  ( SELECT realname FROM t_customer_user WHERE id = t1.user_id ) realname,")
@@ -286,6 +289,8 @@ public class BiTouchService {
             params.add(startTime);
             params.add(endTime);
         }
+        sqlBuffer.append(") ORDER BY sendTime DESC");
+
 
         Page page = biDao.sqlPageQuery(sqlBuffer.toString(), pageNum, pageSize, params.toArray());
         Map<String, Object> result = new HashMap<>();
