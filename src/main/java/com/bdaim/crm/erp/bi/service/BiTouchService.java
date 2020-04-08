@@ -246,7 +246,7 @@ public class BiTouchService {
         List<Object> params = new ArrayList<>();
         sqlBuffer.append("SELECT ")
                 .append("  ( SELECT realname FROM t_customer_user WHERE id = t1.user_id ) realname,")
-                .append("  t1.create_time sendTime,")
+                .append("  t1.active_time sendTime,")
                 .append("  ( SELECT NAME FROM t_market_task WHERE id = t1.batch_number ) batchName,")
                 .append("  t1.status status,")
                 .append("  t1.request_id sendId,")
