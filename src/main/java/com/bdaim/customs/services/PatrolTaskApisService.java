@@ -101,16 +101,16 @@ public class PatrolTaskApisService implements BusiService {
 
     @Override
     public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
-        String apiId=info.getString("apiId");
+        String apiId = info.getString("apiId");
         info.put("apiName","");
         try {
             if (StringUtil.isNotEmpty(apiId)) {
-                String sql = "select name from am_api where id=?";
+                String sql = "select api_name from am_api where id=?";
                 List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, apiId);
                 if (list != null && list.size() > 0) {
                     Map<String, Object> map = list.get(0);
-                    if (map != null && map.containsKey("name")) {
-                        info.put("apiName", map.get("name"));
+                    if (map != null && map.containsKey("api_name")) {
+                        info.put("apiName", map.get("api_name"));
                     }
                 }
             }
