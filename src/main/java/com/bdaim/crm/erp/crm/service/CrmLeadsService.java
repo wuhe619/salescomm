@@ -50,7 +50,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -716,7 +715,7 @@ public class CrmLeadsService {
      * @param batchId
      * @return
      */
-    public int transferToPublicSea(String seaId, String userId, String batchId, String leadsview, LoginUser user) {
+    public int transferToPublicSea(String seaId, String userId, String batchId, LoginUser user) {
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
                 .append("SELECT * FROM lkcrm_crm_leads  WHERE batch_id =? ");
@@ -724,8 +723,7 @@ public class CrmLeadsService {
         int i = 0;
         String insertSql = "REPLACE INTO " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " (`id`, `user_id`, `update_time`, `status`, " +
                 "super_name,super_telphone,super_phone,super_data,create_time,batch_id) VALUES(?,?,?,?,?,?,?,?,?,?)";
-
-        //String leadsview = BaseUtil.getViewSql("leadsview");
+        String leadsview = BaseUtil.getViewSql("leadsview");
         for (Map<String, Object> m : maps) {
             JSONObject superData = new JSONObject();
             superData.put("SYS005", m.get("company"));
@@ -1294,8 +1292,6 @@ public class CrmLeadsService {
     /**
      * 根据id 删除线索
      */
-
-    @Async
     public R deleteByBatchIds(List idsList) {
         if (idsList == null || idsList.size() == 0) {
             R.error("leadsIds不能为空");
@@ -1322,10 +1318,7 @@ public class CrmLeadsService {
         return i > 0 ? R.ok() : R.error("公海线索删除失败");
     }
 
-
-    @Async
-    public void batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark
-            , String leadsview, LoginUser user) {
+    public int batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
         // 指定ID退回公海
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
@@ -1348,14 +1341,14 @@ public class CrmLeadsService {
         }
         customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
         int status = customerSeaDao.executeUpdateSQL(sql.toString(), param.toArray());
-        //String leadsview = BaseUtil.getViewSql("leadsview");
+        LoginUser user = BaseUtil.getUser();
         for (String id : superIds) {
             List<Map<String, Object>> list = customerSeaDao.sqlQuery("select * from " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " WHERE id = ? ", id);
             if (list.size() == 0) {
-                transferToPublicSea(seaId, userId.toString(), id, leadsview, user);
+                transferToPublicSea(seaId, userId.toString(), id, user);
             }
         }
-        //return status;
+        return status;
     }
 
     /**
