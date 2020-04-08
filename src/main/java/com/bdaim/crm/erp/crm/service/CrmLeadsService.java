@@ -329,7 +329,7 @@ public class CrmLeadsService {
                 // 超管和项目管理员数据状态为未分配
                 dto.setUser_id(null);
             }
-            LOG.info("开始保存添加线索个人信息:" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + ",数据:" + dto.toString());
+            LOG.info("开始保存添加线索个人信息:" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + ",数据:" + JSON.toJSONString(dto));
             try {
                 customGroupDao.createCgDataTable(NumberConvertUtil.parseInt(dto.getCust_group_id()));
             } catch (HibernateException e) {

@@ -19,13 +19,12 @@ import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import io.searchbox.core.CountResult;
 import io.searchbox.core.SearchResult;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.index.query.WildcardQueryBuilder;
-import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -42,10 +41,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Transactional
@@ -655,12 +651,13 @@ public class EntDataService {
         if (param.getInteger("pageNum") != null && param.getInteger("pageSize") != null) {
             int pageNum = param.getIntValue("pageNum");
             int pageSize = param.getIntValue("pageSize");
-            if (pageNum < 0 || pageNum == 1) {
-                pageNum = 0;
+            if (pageNum < 0) {
+                pageNum = 1;
             }
             if (pageSize < 0 || pageSize > 100) {
                 pageSize = 100;
             }
+            pageNum = (pageNum - 1) * pageSize;
             searchSourceBuilder.from(pageNum).size(pageSize);
         }
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
@@ -836,7 +833,7 @@ public class EntDataService {
             qb.filter(QueryBuilders.termQuery("src", param.getString("src")));
         }
         // 联系电话
-        /*if (StringUtil.isNotEmpty(param.getString("phoneStatus"))) {
+        if (StringUtil.isNotEmpty(param.getString("phoneStatus"))) {
             JSONArray jsonArray = param.getJSONArray("phoneStatus");
             BoolQueryBuilder temp = QueryBuilders.boolQuery();
             for (int i = 0; i < jsonArray.size(); i++) {
@@ -854,22 +851,22 @@ public class EntDataService {
                 }
             }
             qb.filter(temp);
-        }*/
-        // 联系电话
-        if (StringUtil.isNotEmpty(param.getString("phoneStatus"))) {
-            String phoneStatus = param.getString("phoneStatus");
-            // 有固话
-            if ("1".equals(phoneStatus)) {
-                qb.filter(QueryBuilders.regexpQuery("phone1", "[0-9].+"));
-            } else if ("2".equals(phoneStatus)) {
-                // 有手机
-                qb.filter(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
-            } else if ("2".equals(phoneStatus)) {
-                // 无联系方式
-                qb.mustNot(QueryBuilders.regexpQuery("phone1", "[0-9].+"));
-                qb.mustNot(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
-            }
         }
+        // 联系电话
+        /*if (StringUtil.isNotEmpty(param.getString("phoneStatus"))) {
+            String phoneStatus = param.getString("phoneStatus");
+            // 有联系电话
+            if ("1".equals(phoneStatus)) {
+                qb.must(QueryBuilders.regexpQuery("phone", "[0-9].+"));
+                //qb.mustNot(QueryBuilders.matchQuery("phone", ","));
+            }*//* else if ("2".equals(phoneStatus)) {
+                // 有手机
+                qb.must(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
+            } *//* else if ("2".equals(phoneStatus)) {
+                // 无联系方式
+                qb.mustNot(QueryBuilders.regexpQuery("phone", "[0-9].+"));
+            }
+        }*/
         // 邮箱
         if (StringUtil.isNotEmpty(param.getString("emailStatus"))) {
             // 有邮箱
@@ -899,6 +896,7 @@ public class EntDataService {
         LOG.info("企业列表查询参数:{}", params);
         // 构造DSL语句
         SearchSourceBuilder searchSourceBuilder = queryCondition(params);
+        searchSourceBuilder.sort("estabTime", SortOrder.DESC);
         SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             List list = new ArrayList<>();
@@ -917,12 +915,24 @@ public class EntDataService {
                             sum++;
                         }
                     }
+                } else if (StringUtil.isNotEmpty(t.getString("phone1"))) {
+                    for (String p : t.getString("phone1").split(",")) {
+                        if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
+                                && !"-".equals(p)) {
+                            sum++;
+                        }
+                    }
                 }
                 t.put("sum", sum);
                 list.add(t);
             }
             page.setData(list);
-            page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
+            int maxTotal = 100000;
+            int total = NumberConvertUtil.parseInt(result.getTotal());
+            page.setTotal(total);
+            if (total > maxTotal) {
+                page.setTotal(maxTotal);
+            }
         }
         return page;
     }
@@ -984,19 +994,29 @@ public class EntDataService {
     public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) {
         JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
         if (baseResult != null) {
+            Set phones = new HashSet();
             if (baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone"))) {
-                List phones = new ArrayList();
+                // 手机号
                 for (String p : baseResult.getString("phone").split(",")) {
                     if (StringUtil.isEmpty(p) || "-".equals(p)) {
                         continue;
                     }
                     phones.add(p);
                 }
-                baseResult.put("phones", phones);
-                if (seaId > 0) {
-                    //处理公司联系方式是否有意向
-                    handleClueFollowStatus(seaId, baseResult);
+            }
+            if (baseResult.containsKey("phone1") && StringUtil.isNotEmpty(baseResult.getString("phone1"))) {
+                // 固话
+                for (String p : baseResult.getString("phone1").split(",")) {
+                    if (StringUtil.isEmpty(p) || "-".equals(p)) {
+                        continue;
+                    }
+                    phones.add(p);
                 }
+            }
+            baseResult.put("phones", phones);
+            if (seaId > 0) {
+                //处理公司联系方式是否有意向
+                handleClueFollowStatus(seaId, baseResult);
             }
         }
         return baseResult;
@@ -1028,6 +1048,12 @@ public class EntDataService {
             }
             data.put("clueFollowStatus", clueFollowStatus);
         }
+    }
+
+    public int addCrmClueQueue(String custId, long userId, long num, JSONObject condition, int type) {
+        int update = jdbcTemplate.update("INSERT INTO `lkcrm_clue_queue` (`cust_id`, `user_id`, `num`, `condition`, `type`, `create_time`,status) VALUES (?, ?, ?, ?, ?, ?, ?);",
+                custId, userId, num, condition.toJSONString(), type, DateUtil.date().toTimestamp(), 1);
+        return update;
     }
 
 }

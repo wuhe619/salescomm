@@ -150,7 +150,7 @@ public class CustomerAction extends BasicAction {
 
     /**
      * @Title: updateUser
-     * @Description: 团队管理列表编辑操作员/getClueDataToSea
+     * @Description: 团队管理列表编辑操作员
      */
     @ResponseBody
     @RequestMapping(value = "/user/update", method = RequestMethod.PUT)

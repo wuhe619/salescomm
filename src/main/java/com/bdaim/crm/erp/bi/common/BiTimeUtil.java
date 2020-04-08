@@ -133,7 +133,18 @@ public class BiTimeUtil {
         }
         Integer beginTime = Integer.valueOf(DateUtil.format(beginDate, dateFormat));
         Integer finalTime = Integer.valueOf(DateUtil.format(endDate, dateFormat));
-        record.set("sqlDateFormat", sqlDateFormat).set("beginDate", beginDate).set("endDate", endDate).set("cycleNum", cycleNum).set("userIds", userIds).set("beginTime", beginTime).set("finalTime", finalTime);
+        record.set("sqlDateFormat", sqlDateFormat).set("beginDate", beginDate).set("endDate", endDate)
+                .set("cycleNum", cycleNum).set("userIds", userIds)
+                .set("beginTime", beginTime).set("finalTime", finalTime);
+        //处理表名
+        Integer beginTable = beginTime > 20000000 ? beginTime / 100 : beginTime;
+        Integer endTable = finalTime > 20000000 ? finalTime / 100 : finalTime;
+        List<String> tableList = new ArrayList<>();
+        for (Integer i = beginTable; i <= endTable; i++) {
+            String tableName = "t_touch_voice_log_" + i;
+            tableList.add(tableName);
+        }
+        record.set("tableNames", CollectionUtil.join(tableList, ","));
         return record;
     }
 

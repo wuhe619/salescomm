@@ -4344,7 +4344,7 @@ public class CustomerSeaService {
             } else {
                 dto.setCust_group_id(csp.getPropertyValue());
             }
-            String superId = phoneService.savePhoneToAPI(dto.getSuper_telphone());
+            String superId = phoneService.pnu(dto.getSuper_telphone());
             if (StringUtil.isEmpty(superId)) {
                 superId = MD5Util.encode32Bit("c" + dto.getSuper_telphone());
             }
@@ -4375,10 +4375,10 @@ public class CustomerSeaService {
             if (list.size() > 0) {
                 LOG.warn("客群ID:[" + dto.getCust_group_id() + "]添加线索ID:[" + superId + "]已经存在");
                 //return -1;
-                throw new TouchException("客群ID:[" + dto.getCust_group_id() + "]添加线索ID:[" + superId + "]已经存在");
+                //throw new TouchException("客群ID:[" + dto.getCust_group_id() + "]添加线索ID:[" + superId + "]已经存在");
             }
 
-            sql.append(" INSERT INTO " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id())
+            sql.append(" replace INTO " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id())
                     .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`,update_time) ")
                     .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ");
             this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
@@ -4386,7 +4386,7 @@ public class CustomerSeaService {
                     dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), new Timestamp(System.currentTimeMillis()));
             if ((seaType == 1 && "crm".equals(source)) || StringUtil.isEmpty(source)) {
                 sql = new StringBuffer();
-                sql.append(" INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId())
+                sql.append(" replace INTO " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId())
                         .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`, batch_id, data_source,create_time) ")
                         .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
                 this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),

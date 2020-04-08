@@ -23,6 +23,7 @@ import com.bdaim.customer.entity.CustomerLabel;
 import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.util.ConstantsUtil;
 import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
@@ -307,6 +308,48 @@ public class AdminFieldService {
             crmAdminFieldvDao.save(fieldv);
         });
         return true;
+    }
+
+    /**
+     * 保存通话和短信次数
+     *
+     * @param batchId
+     * @param type
+     * @param saveType
+     * @param count
+     * @return
+     */
+    public boolean saveCallSmsCount(String batchId, int type, int saveType, int count) {
+        if (StrUtil.isEmpty(batchId)) {
+            return false;
+        }
+        LoginUser user = BaseUtil.getUser();
+        List<LkCrmAdminFieldEntity> list = null;
+        if (saveType == 1) {
+            list = crmAdminFieldDao.find(" FROM LkCrmAdminFieldEntity WHERE custId = ? AND label = ? AND name = '致电次数' ", user.getCustId(), NumberConvertUtil.parseInt(type));
+        } else if (saveType == 2) {
+            list = crmAdminFieldDao.find(" FROM LkCrmAdminFieldEntity WHERE custId = ? AND label = ? AND name = '短信次数' ", user.getCustId(), NumberConvertUtil.parseInt(type));
+        }
+        if (list != null && list.size() > 0) {
+            int fieldId = list.get(0).getFieldId();
+            String name = list.get(0).getName();
+            LkCrmAdminFieldvEntity fieldv = null;
+            List<LkCrmAdminFieldvEntity> fieldList = crmAdminFieldvDao.find(" FROM LkCrmAdminFieldvEntity WHERE fieldId = ? AND name =? AND batchId = ? ", fieldId, name, batchId);
+            if (fieldList.size() > 0) {
+                fieldv = fieldList.get(0);
+                fieldv.setValue(String.valueOf(NumberConvertUtil.parseInt(fieldv.getValue()) + count));
+            } else {
+                fieldv = new LkCrmAdminFieldvEntity();
+                fieldv.setCustId(user.getCustId());
+                fieldv.setBatchId(batchId);
+                fieldv.setValue(String.valueOf(count));
+                fieldv.setName(name);
+                fieldv.setFieldId(fieldId);
+                fieldv.setCreateTime(DateUtil.date().toTimestamp());
+            }
+            crmAdminFieldvDao.saveOrUpdate(fieldv);
+        }
+        return false;
     }
 
     public synchronized void createView(Integer label) {
@@ -872,7 +915,7 @@ public class AdminFieldService {
                 if (sortEntity != null && sortEntity.getFieldId() != null) {
                     LkCrmAdminFieldEntity fieldEntity = crmAdminFieldDao.get(sortEntity.getFieldId());
                     if (fieldEntity != null) {
-                        crmAdminFieldDao.executeUpdateSQL("  update lkcrm_admin_field_sort set is_hide = 1,sort = 0, name=?  where id =? and label = ? and user_id = ?",  fieldEntity.getName(), hideIdsArr[i], adminFieldSort.getLabel(), userId);
+                        crmAdminFieldDao.executeUpdateSQL("  update lkcrm_admin_field_sort set is_hide = 1,sort = 0, name=?  where id =? and label = ? and user_id = ?", fieldEntity.getName(), hideIdsArr[i], adminFieldSort.getLabel(), userId);
                     }
                 } else {
                     crmAdminFieldDao.executeUpdateSQL("  update lkcrm_admin_field_sort set is_hide = 1,sort = 0 where id =? and label = ? and user_id = ?", hideIdsArr[i], adminFieldSort.getLabel(), userId);

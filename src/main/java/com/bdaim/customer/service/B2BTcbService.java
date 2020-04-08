@@ -4,6 +4,7 @@ import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.be.service.BusiEntityService;
 import com.bdaim.bill.dto.TransactionTypeEnum;
 import com.bdaim.bill.service.TransactionService;
@@ -16,6 +17,7 @@ import com.bdaim.crm.ent.service.EntDataService;
 import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
@@ -329,6 +331,7 @@ public class B2BTcbService implements BusiService {
         if (eTime.isBefore(LocalDateTime.now())) {
             throw new TouchException("企业套餐已过期");
         }
+        // 查询使用的套餐包类型
         Map config = getB2BSearchConfig(custId);
         int sourceType = (int) config.get("type");
 
@@ -341,7 +344,8 @@ public class B2BTcbService implements BusiService {
             // 已经领取过不可重复领取
             if (companyIds != null && companyIds.size() > 0 &&
                     b2BTcbLogService.checkClueGetStatus(custId, companyIds.get(0))) {
-                throw new TouchException("该线索已经领取过");
+                LOG.warn("该线索已经领取过,entId:{}", companyIds.get(0));
+                //throw new TouchException("该线索已经领取过");
             }
             LOG.info("kais doClueDataToSeaByIds");
             if (sourceType == 1) {
@@ -349,13 +353,15 @@ public class B2BTcbService implements BusiService {
             } else {
                 data = doClueDataToSeaByIds(companyIds, custId);
             }
-
             // 指定数量
         } else if (mode == 2) {
+            LoginUser user = BaseUtil.getUser();
             //领取，只返回id
             if (sourceType == 1) {
-                data = doClueDataToSeaByNumberHK(param, getNumber, custId, userId, busiType);
+                //data = doClueDataToSeaByNumberHK(param, getNumber, custId, userId, busiType);
+                return entDataService.addCrmClueQueue(user.getCustId(), user.getUserId(), getNumber, param, 1);
             } else {
+                entDataService.addCrmClueQueue(user.getCustId(), user.getUserId(), getNumber, param, 0);
                 data = doClueDataToSeaByNumber(param, getNumber, custId, userId, busiType);
             }
         }
@@ -487,15 +493,14 @@ public class B2BTcbService implements BusiService {
                     b2BTcbLogService.checkClueGetStatus(custId, companyIds.get(0))) {
                 throw new TouchException("该线索已经领取过");
             }
-            LOG.info("kais doClueDataToSeaByIds");
-            data = doClueDataToSeaByIds(companyIds, custId);
+            data = doClueDataToSeaByIdsHK(companyIds, custId);
             // 指定数量
         } else if (mode == 2) {
             //领取，只返回id
-            data = doClueDataToSeaByNumber(param, getNumber, custId, userId, busiType);
+            data = doClueDataToSeaByNumberHK(param, getNumber, custId, userId, busiType);
         }
         if (data.size() == 0) {
-            throw new TouchException("未查询到匹配企业数据");
+            throw new TouchException("领取异常,请检查检索条件");
         }
         String batchId = UUID.randomUUID().toString().replaceAll("-", "");
         Iterator keys = data.keySet().iterator();
@@ -721,15 +726,15 @@ public class B2BTcbService implements BusiService {
        /* Random random = new Random();
         long pageNo = random.nextInt((int) getNumber), pageSize = getNumber * 5;*/
         // 预查询数据
-        param.put("phoneStatus", "1");
+        JSONArray pStatus = JSON.parseArray("[{\"value\":\"1\"},{\"value\":\"2\"}]");
+        param.put("phoneStatus", pStatus);
         baseResult = entDataService.pageSearch(custId, "", userId, busiType, param);
         if (baseResult.getData() != null && baseResult.getData().size() > 0) {
             if (getNumber > baseResult.getTotal()) {
-                LOG.warn("领取数据大于可用线索");
-                throw new TouchException("领取数据大于可用线索");
+                LOG.warn("领取数量大于可用线索数量");
+                throw new TouchException("领取数量大于可用线索数量");
             }
         }
-
         long pageNo = 1, pageSize = getNumber * 5;
         int i = 0;
         while (getNumber > data.size() && i <= 10) {
@@ -758,16 +763,24 @@ public class B2BTcbService implements BusiService {
                         LOG.info("客户:{},B2B企业ID:{}已经领取过", custId, id);
                         continue;
                     }
+                    Set phones = new HashSet();
                     if (jsonObject.containsKey("phone") && StringUtil.isNotEmpty(jsonObject.getString("phone"))) {
-                        List phones = new ArrayList();
                         for (String p : jsonObject.getString("phone").split(",")) {
                             if (StringUtil.isEmpty(p) || "-".equals(p)) {
                                 continue;
                             }
                             phones.add(p);
                         }
-                        jsonObject.put("phoneNumber", phones);
                     }
+                    if (jsonObject.containsKey("phone1") && StringUtil.isNotEmpty(jsonObject.getString("phone1"))) {
+                        for (String p : jsonObject.getString("phone1").split(",")) {
+                            if (StringUtil.isEmpty(p) || "-".equals(p)) {
+                                continue;
+                            }
+                            phones.add(p);
+                        }
+                    }
+                    jsonObject.put("phoneNumber", phones);
                     if (getNumber > data.size()) {
                         data.put(id, jsonObject);
                     } else {
@@ -826,15 +839,13 @@ public class B2BTcbService implements BusiService {
     public Map<String, JSONObject> doClueDataToSeaByIdsHK(List<String> companyIds, String custId) {
         Map<String, JSONObject> data = new HashMap<>();
         JSONObject companyContact;
-        BaseResult companyDetail;
-        JSONObject detailData;
         LOG.info("in doClueDataToSeaByIds mode=1");
         for (String id : companyIds) {
             // 已经领取过不可重复领取
-            if (b2BTcbLogService.checkClueGetStatus(custId, id)) {
+            /*if (b2BTcbLogService.checkClueGetStatus(custId, id)) {
                 LOG.info("客户:{},B2B企业ID:{}已经领取过", custId, id);
                 continue;
-            }
+            }*/
             LOG.info("Kaiser xunhuan ");
             // 查询企业联系方式
             try {

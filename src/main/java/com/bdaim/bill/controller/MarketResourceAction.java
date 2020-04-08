@@ -22,6 +22,7 @@ import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
+import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.service.CrmContactsService;
 import com.bdaim.crm.erp.crm.service.CrmCustomerService;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
@@ -102,6 +103,8 @@ public class MarketResourceAction extends BasicAction {
     private CrmCustomerService crmCustomerService;
     @Autowired
     private CrmContactsService crmContactsService;
+    @Autowired
+    private AdminFieldService adminFieldService;
 
     /**
      * 通话历史
@@ -1459,8 +1462,8 @@ public class MarketResourceAction extends BasicAction {
         String superId = param.getString("superId");
         String field = param.getString("field");
         String objType = param.getString("objType");
+        Map data = null;
         if (StringUtil.isEmpty(superId)) {
-            Map data = null;
             // 线索私海
             if ("1".equals(objType)) {
                 data = crmLeadsService.queryById(NumberConvertUtil.parseInt(objId));
@@ -1545,6 +1548,10 @@ public class MarketResourceAction extends BasicAction {
                     // 联系人
                     crmContactsService.addRecord(record);
                 }
+                // 更新致电次数
+                /*data = new HashMap();
+                data.put("batch_id","22a6dd6cc3ed4010963d1bcd9e002ead");*/
+                adminFieldService.saveCallSmsCount(String.valueOf(data.get("batch_id")), NumberConvertUtil.parseInt(objType),1,1);
             }
         } catch (Exception e) {
             LOG.error("保存手动外呼通话记录异常,", e);
