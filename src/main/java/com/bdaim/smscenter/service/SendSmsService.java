@@ -1143,7 +1143,7 @@ public class SendSmsService {
                 MarketTemplate template = marketTemplateDao.findUniqueBy("id", Integer.valueOf(templateId));
                 if (template == null || StringUtil.isEmpty(template.getResourceId())) return 1004;
                 String resourceId = template.getResourceId();
-                final String sql = "INSERT INTO `t_touch_sms_queue` (`template_id`, `cust_id`, `customer_group_id`, `superid`, `create_time`, batch_number,resource_id, user_id, market_task_id, obj_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?);";
+                final String sql = "INSERT INTO `t_touch_sms_queue` (`template_id`, `cust_id`, `customer_group_id`, `superid`, `create_time`, batch_number, resource_id, user_id, market_task_id, obj_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?);";
                 Timestamp createTime = new Timestamp(System.currentTimeMillis());
                 try {
                     jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
