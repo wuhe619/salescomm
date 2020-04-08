@@ -559,7 +559,7 @@ public class PhoneService {
         if (count > 0) {
             return;
         }
-        String sql = "REPLACE INTO obj_u_" + custId.substring(custId.length() - 1) + " (`obj_id`, `u_id`, `type`) VALUES (?, ?, ?);";
+        String sql = "INSERT INTO obj_u_" + custId.substring(custId.length() - 1) + " (`obj_id`, `u_id`, `type`) VALUES (?, ?, ?);";
         marketTaskDao.executeUpdateSQL(sql, objId, uid, type);
     }
 

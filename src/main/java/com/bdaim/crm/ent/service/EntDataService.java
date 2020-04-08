@@ -896,7 +896,13 @@ public class EntDataService {
         LOG.info("企业列表查询参数:{}", params);
         // 构造DSL语句
         SearchSourceBuilder searchSourceBuilder = queryCondition(params);
-        searchSourceBuilder.sort("estabTime", SortOrder.DESC);
+        String _orderby_ = params.getString("_orderby_");
+        String _sort_ = params.getString("_sort_");
+        if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
+            if ("asc".equals(_sort_) || "desc".equals(_sort_)) {
+                searchSourceBuilder.sort(_orderby_, SortOrder.valueOf(_sort_.toUpperCase()));
+            }
+        }
         SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             List list = new ArrayList<>();
