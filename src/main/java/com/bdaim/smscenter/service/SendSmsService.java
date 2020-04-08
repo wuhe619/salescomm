@@ -1156,7 +1156,7 @@ public class SendSmsService {
                             preparedStatement.setTimestamp(5, createTime);
                             preparedStatement.setString(6, marketTaskId);
                             preparedStatement.setString(7, resourceId);
-                            preparedStatement.setString(8, loginUser.getUser().getId().toString());
+                            preparedStatement.setString(8, loginUser.getId().toString());
                             preparedStatement.setString(9, marketTaskId);
                             preparedStatement.setString(10, String.valueOf(list.get(i).get("objId")));
                         }

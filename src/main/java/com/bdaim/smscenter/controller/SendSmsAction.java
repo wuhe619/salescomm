@@ -14,7 +14,8 @@ import com.bdaim.smscenter.dto.CallBackSmsDTO;
 import com.bdaim.smscenter.service.SendSmsService;
 import com.bdaim.util.StringUtil;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,7 @@ import java.util.Map;
 @RequestMapping("/sms")
 public class SendSmsAction extends BasicAction {
 
-    private final static Logger LOG = Logger.getLogger(SendSmsAction.class);
+    private final static Logger LOG = LoggerFactory.getLogger(SendSmsAction.class);
 
     @Resource
     private SendSmsService sendSmsService;
