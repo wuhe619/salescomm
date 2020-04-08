@@ -139,7 +139,12 @@ public class SendSmsAction extends BasicAction {
             code = -1;
             LOG.error("crm批次发送短信异常", e);
         }
-        return code > 0 ? R.ok().put("data", code) : R.error();
+        if (code == 1001) {
+            return R.ok("发送成功");
+        } else if (code == 1003) {
+            return R.error(code, "余额不足");
+        }
+        return R.error(code, "发送失败");
     }
 
     public static void main(String[] args) {
