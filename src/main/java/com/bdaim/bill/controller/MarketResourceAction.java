@@ -1523,7 +1523,7 @@ public class MarketResourceAction extends BasicAction {
                 dto.setCugId(opUser().getJobMarketId());
                 dto.setMarketTaskId(StringUtil.isNotEmpty(marketTaskId) ? marketTaskId : "");
                 dto.setCustomerSeaId(StringUtil.isNotEmpty(seaId) ? seaId : "");
-                dto.setObjType(objType);
+                dto.setObjType(objId);
                 dto.setCallSid(callId);
                 dto.setStatus(callStatus);
                 // 保存通话记录
