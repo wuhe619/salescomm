@@ -1143,7 +1143,7 @@ public class SendSmsService {
                 MarketTemplate template = marketTemplateDao.findUniqueBy("id", Integer.valueOf(templateId));
                 if (template == null || StringUtil.isEmpty(template.getResourceId())) return 1004;
                 String resourceId = template.getResourceId();
-                final String sql = "INSERT INTO `t_touch_sms_queue` (`template_id`, `cust_id`, `customer_group_id`, `superid`, `create_time`, batch_number,resource_id, user_id, market_task_id, obj_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?);";
+                final String sql = "INSERT INTO `t_touch_sms_queue` (`template_id`, `cust_id`, `customer_group_id`, `superid`, `create_time`, batch_number, batch_id, resource_id, user_id, market_task_id, obj_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);";
                 Timestamp createTime = new Timestamp(System.currentTimeMillis());
                 try {
                     jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
@@ -1155,10 +1155,11 @@ public class SendSmsService {
                             preparedStatement.setString(4, String.valueOf(list.get(i).get("superid")));
                             preparedStatement.setTimestamp(5, createTime);
                             preparedStatement.setString(6, marketTaskId);
-                            preparedStatement.setString(7, resourceId);
-                            preparedStatement.setString(8, loginUser.getId().toString());
-                            preparedStatement.setString(9, marketTaskId);
-                            preparedStatement.setString(10, String.valueOf(list.get(i).get("objId")));
+                            preparedStatement.setString(7, marketTaskId);
+                            preparedStatement.setString(8, resourceId);
+                            preparedStatement.setString(9, loginUser.getId().toString());
+                            preparedStatement.setString(10, marketTaskId);
+                            preparedStatement.setString(11, String.valueOf(list.get(i).get("objId")));
                         }
 
                         @Override
