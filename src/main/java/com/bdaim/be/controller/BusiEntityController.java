@@ -204,10 +204,8 @@ public class BusiEntityController extends BasicAction {
                     return new ResponseInfoAssemble().failure(-1, "删除条件解析异常[" + busiType + "]");
                 }
             }
-            if (StringUtil.isEmpty(cust_id))
-                return new ResponseInfoAssemble().failure(-1, "无归属企业，不能删除记录:[" + busiType + "]");
 
-            if (lu.getCustId() == null || "".equals(lu.getCustId()))
+            if (StringUtil.isEmpty(cust_id))
                 return new ResponseInfoAssemble().failure(-1, "无归属企业，不能删除记录:[" + busiType + "]");
 
             String cust_group_id = lu.getUserGroupId();
