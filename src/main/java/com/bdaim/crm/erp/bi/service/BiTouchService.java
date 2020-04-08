@@ -48,26 +48,32 @@ public class BiTouchService {
         biTimeUtil.analyzeType(record);
         Integer cycleNum = record.getInt("cycleNum");
         Integer beginTime = record.getInt("beginTime");
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        Random ran = new Random();
-        for (int i = 0; i < cycleNum; i++) {
-            Map<String, Object> resultMap = new HashMap<>();
-            resultMap.put("type", String.valueOf(beginTime));
+        String sqlDateFormat = record.getStr("sqlDateFormat");
+        String userIds = record.getStr("userIds");
+        String[] userIdsArr = userIds.split(",");
+        //根据查询类型拼接查询SQL字符串
+        StringBuffer sqlBuffer = new StringBuffer();
+        for (int i = 1; i <= cycleNum; i++) {
+            sqlBuffer.append("SELECT ")
+                    .append("   '").append(beginTime).append("' AS type,")
+                    .append("   IFNULL(SUM(total_num),0) phoneNum,")
+                    .append("   IFNULL(SUM(total_end),0) phoneEnd,")
+                    .append("   FORMAT(IFNULL(IFNULL(SUM(total_end),0)/IFNULL(SUM(total_num),0),0),4) proportion ")
+                    .append("FROM   ")
+                    .append("   lkcrm_crm_phone_sms_stats ")
+                    .append("WHERE date_format( create_time,'").append(sqlDateFormat).append("')='")
+                    .append(beginTime).append("' AND type = '1' AND user_id IN (")
+                    .append(SqlAppendUtil.sqlAppendWhereIn(userIdsArr)).append(") ");
+            if (i != cycleNum) {
+                sqlBuffer.append(" UNION ALL ");
+            }
             beginTime = biTimeUtil.estimateTime(beginTime);
-            int phoneNum = ran.nextInt(10) + 5;
-            int phoneEnd = phoneNum - ran.nextInt(5);
-            resultMap.put("phoneNum", phoneNum);
-            resultMap.put("phoneEnd", phoneEnd);
-
-            BigDecimal phoneNumD = new BigDecimal(phoneNum);
-            BigDecimal phoneEndD = new BigDecimal(phoneEnd);
-            BigDecimal proportionD = phoneEndD.divide(phoneNumD, 4, BigDecimal.ROUND_HALF_UP);
-            resultMap.put("proportion", String.valueOf(proportionD));
-            resultList.add(resultMap);
         }
-        return new ResponseInfoAssemble().success(resultList);
+        List<Map<String, Object>> result = biDao.queryListBySql(sqlBuffer.toString());
+        return new ResponseInfoAssemble().success(result);
     }
 
+    @SuppressWarnings("all")
     public ResponseInfo textMessage(Integer deptId, Long userId, String type, String startTime, String endTime) {
         //proportion
         //type
@@ -79,25 +85,29 @@ public class BiTouchService {
         biTimeUtil.analyzeType(record);
         Integer cycleNum = record.getInt("cycleNum");
         Integer beginTime = record.getInt("beginTime");
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        Random ran = new Random();
-        for (int i = 0; i < cycleNum; i++) {
-            Map<String, Object> resultMap = new HashMap<>();
-            resultMap.put("type", String.valueOf(beginTime));
+        String sqlDateFormat = record.getStr("sqlDateFormat");
+        String userIds = record.getStr("userIds");
+        String[] userIdsArr = userIds.split(",");
+        //根据查询类型拼接查询SQL字符串
+        StringBuffer sqlBuffer = new StringBuffer();
+        for (int i = 1; i <= cycleNum; i++) {
+            sqlBuffer.append("SELECT ")
+                    .append("   '").append(beginTime).append("' AS type,")
+                    .append("   IFNULL(SUM(total_num),0) messageNum,")
+                    .append("   IFNULL(SUM(total_end),0) messageEnd,")
+                    .append("   FORMAT(IFNULL(IFNULL(SUM(total_end),0)/IFNULL(SUM(total_num),0),0),4) proportion ")
+                    .append("FROM   ")
+                    .append("   lkcrm_crm_phone_sms_stats ")
+                    .append("WHERE date_format( create_time,'").append(sqlDateFormat).append("')='")
+                    .append(beginTime).append("' AND type = '2' AND user_id IN (")
+                    .append(SqlAppendUtil.sqlAppendWhereIn(userIdsArr)).append(") ");
+            if (i != cycleNum) {
+                sqlBuffer.append(" UNION ALL ");
+            }
             beginTime = biTimeUtil.estimateTime(beginTime);
-            int messageNum = ran.nextInt(10) + 5;
-            int messageEnd = messageNum - ran.nextInt(5);
-            resultMap.put("messageNum", messageNum);
-            resultMap.put("messageEnd", messageEnd);
-
-            BigDecimal messageNumD = new BigDecimal(messageNum);
-            BigDecimal messageEndD = new BigDecimal(messageEnd);
-            BigDecimal proportionD = messageEndD.divide(messageNumD, 4, BigDecimal.ROUND_HALF_UP);
-            resultMap.put("proportion", String.valueOf(proportionD));
-            resultList.add(resultMap);
         }
-        return new ResponseInfoAssemble().success(resultList);
-
+        List<Map<String, Object>> result = biDao.queryListBySql(sqlBuffer.toString());
+        return new ResponseInfoAssemble().success(result);
     }
 
     /**
