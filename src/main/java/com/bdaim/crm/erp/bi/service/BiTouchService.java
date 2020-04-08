@@ -245,7 +245,7 @@ public class BiTouchService {
                 .append("  ( SELECT realname FROM t_customer_user WHERE id = t1.user_id ) realname,")
                 .append("  t1.create_time sendTime,")
                 .append("  ( SELECT NAME FROM t_market_task WHERE id = t1.batch_id ) batchName,")
-                .append("  t1.send_status status,")
+                .append("  t1.status status,")
                 .append("  t1.request_id sendId,")
                 .append("  ( SELECT title FROM t_template WHERE id = t1.templateId ) templateName,")
                 .append("  t1.superid superId ")
