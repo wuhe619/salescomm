@@ -153,7 +153,7 @@ public class BiTouchService {
                     .append(" END AS companyName ")
                     .append("FROM ").append(tableNamesArr[i])
                     .append(" t1 LEFT JOIN ").append(relationTable).append(" t2 ON t1.superid = t2.u_id ")
-                    .append(" AND t1.obj_type = t2.type ")
+                    .append(" AND t1.obj_type = t2.obj_id ")
                     .append(" LEFT JOIN lkcrm_crm_leads x1 ON t2.obj_id = x1.leads_id ")
                     .append(" LEFT JOIN lkcrm_crm_customer x2 ON t2.obj_id = x2.customer_id ")
                     .append(" LEFT JOIN lkcrm_crm_contacts x3 ON t2.obj_id = x3.contacts_id ")
