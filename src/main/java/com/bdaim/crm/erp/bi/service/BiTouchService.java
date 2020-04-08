@@ -14,6 +14,8 @@ import com.bdaim.util.SqlAppendUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.plugin.activerecord.Record;
 import org.apache.poi.util.ArrayUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,7 @@ import java.util.*;
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class BiTouchService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BiTouchService.class);
     @Autowired
     private BiTimeUtil biTimeUtil;
     @Autowired
@@ -301,6 +304,7 @@ public class BiTouchService {
                 Map<String, Object> map = resultList.get(i);
                 String superId = String.valueOf(map.get("superId"));
                 String sendNumber = phoneService.upn(superId);
+                LOGGER.info("superId is {},返回值 {}", superId, sendNumber);
                 map.put("sendNumber", sendNumber);
             }
         }
