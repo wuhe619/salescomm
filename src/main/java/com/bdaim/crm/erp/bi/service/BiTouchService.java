@@ -311,26 +311,6 @@ public class BiTouchService {
         result.put("data", resultList);
         result.put("total", page.getTotal());
         return new ResponseInfoAssemble().success(result);
-//        List<Map<String, Object>> resultList = new ArrayList<>();
-//        int totalCount = 0;
-//        if (pageNum == 1) {
-//            totalCount = 15;
-//        } else if (pageNum == 2) {
-//            totalCount = 1;
-//        }
-//        for (int i = 0; i < totalCount; i++) {
-//            Map<String, Object> testMap = new HashMap<>();
-//            testMap.put("realname", "我是员工名称");
-//            testMap.put("sendTime", "2020-3-10 13:20:00");
-//            testMap.put("batchName", "我是批次名称");
-//            testMap.put("sendNumber", "1338890899");
-//            testMap.put("status", "1001");
-//            testMap.put("templateName", "我是模板名称");
-//            testMap.put("sendId", "我是发送ID");
-//            resultList.add(testMap);
-//        }
-//        result.put("data", resultList);
-//        result.put("total", 16);
     }
 }
 
