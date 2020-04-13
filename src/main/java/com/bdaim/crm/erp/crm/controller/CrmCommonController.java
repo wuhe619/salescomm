@@ -27,7 +27,7 @@ public class CrmCommonController extends BasicAction {
     @Autowired
     private CrmCommonService crmCommonService;
 
-    @PostMapping(value = "/call/validSeat", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/call/validSeat")
     public ResponseCommon validSeat() {
         LoginUser lu = opUser();
         ResponseCommon response = new ResponseCommon();
