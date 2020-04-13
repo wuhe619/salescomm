@@ -1030,6 +1030,7 @@ public class CrmLeadsService {
         for (int i = 0; i < assignedList.size(); i++) {
             userId = assignedList.getJSONObject(i).getString("userId");
             number = assignedList.getJSONObject(i).getInteger("number");
+            addPublicSeaStats(userId, null, Integer.parseInt(String.valueOf(number)));
             try {
                 quantity = getUserReceivableQuantity(param.getSeaId(), userId);
             } catch (TouchException e) {
@@ -1097,6 +1098,7 @@ public class CrmLeadsService {
             superIds.add(String.valueOf(m.get("id")));
         }
         transferToPrivateSea(param.getSeaId(), userId, superIds);
+        addPublicSeaStats(userId, superIds, null);
         return count;
     }
 
