@@ -43,7 +43,7 @@ public class BiClueService {
     }
 
     /**
-     * 线索详情统计列表
+     * 线索详情统计列表  根据userId和开始、截止时间查询 分为is_transform【0】未转化 和【1】已转化
      *
      * @param xStats
      * @return
@@ -118,10 +118,13 @@ public class BiClueService {
         String[] userIdsArr = userIds.split(",");
         StringBuffer sqlBuffer = new StringBuffer();
         for (int i = 1; i <= userIdsArr.length; i++) {
-            sqlBuffer.append("SELECT (SELECT realname FROM lkcrm_admin_user WHERE user_id='").append(userIdsArr[i - 1])
-                    .append("') realname");
+            sqlBuffer.append("SELECT b.realname,IFNULL(count(a.record_id),0) as recordCount,IFNULL(count(DISTINCT a.types_id),0) " +
+                    "as leadsCount FROM lkcrm_admin_record as a LEFT JOIN lkcrm_admin_user as b on a.create_user_id = b.user_id where DATE_FORMAT(a.create_time,'")
+                    .append(sqlDateFormat).append("') between '").append(beginTime).append("' and '").append(finalTime)
+                    .append("' and a.cust_id='").append(BaseUtil.getCustId())
+                    .append("' and a.types = 'crm_leads' and b.user_id = ").append(userIdsArr[i - 1]);
             if (i != userIdsArr.length) {
-                sqlBuffer.append(" UNION ALL ");
+                sqlBuffer.append(" union all ");
             }
         }
         LOGGER.info("SQL is {}", sqlBuffer.toString());
