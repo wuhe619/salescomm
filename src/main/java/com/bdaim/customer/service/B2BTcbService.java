@@ -1,5 +1,6 @@
 package com.bdaim.customer.service;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -13,8 +14,10 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
+import com.bdaim.crm.dao.LkCrmOwnerRecordDao;
 import com.bdaim.crm.ent.service.EntDataService;
 import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
+import com.bdaim.crm.entity.LkCrmOwnerRecordEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
 import com.bdaim.crm.utils.BaseUtil;
@@ -37,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -81,6 +85,8 @@ public class B2BTcbService implements BusiService {
     private CustomerDao customerDao;
     @Autowired
     private SequenceService sequenceService;
+    @Autowired
+    private LkCrmOwnerRecordDao crmOwnerRecordDao;
     @Autowired
     private EntDataService entDataService;
 
@@ -346,6 +352,9 @@ public class B2BTcbService implements BusiService {
                     b2BTcbLogService.checkClueGetStatus(custId, companyIds.get(0))) {
                 LOG.warn("该线索已经领取过,entId:{}", companyIds.get(0));
                 //throw new TouchException("该线索已经领取过");
+                if (seaType == 1) {
+                    addPublicSeaStats(companyIds, null, userId);
+                }
             }
             LOG.info("kais doClueDataToSeaByIds");
             if (sourceType == 1) {
@@ -363,6 +372,9 @@ public class B2BTcbService implements BusiService {
             } else {
                 entDataService.addCrmClueQueue(user.getCustId(), user.getUserId(), getNumber, param, 0);
                 data = doClueDataToSeaByNumber(param, getNumber, custId, userId, busiType);
+            }
+            if (seaType == 1) {
+                addPublicSeaStats(null, getNumber, userId);
             }
         }
         if (data.size() == 0) {
@@ -452,6 +464,23 @@ public class B2BTcbService implements BusiService {
         // 更新套餐余量和消耗量
         updateTbRemain(useB2BTcb.getLong("id"), consumeNum, BusiTypeEnum.B2B_TC.getType());
         return 0;
+    }
+
+    private void addPublicSeaStats(List<String> companyIds, Long getNumber, long userId) {
+        List<LkCrmOwnerRecordEntity> list = new ArrayList<>();
+        int sum = !CollectionUtils.isEmpty(companyIds) ? companyIds.size() : getNumber.intValue();
+        for (int i = 0; i < sum; i++) {
+            //添加线索公海统计记录
+            LkCrmOwnerRecordEntity crmOwnerRecord = new LkCrmOwnerRecordEntity();
+            crmOwnerRecord.setTypeId(0);
+            crmOwnerRecord.setType(9);
+            crmOwnerRecord.setPreOwnerUserId(userId);
+            crmOwnerRecord.setCreateTime(DateUtil.date().toTimestamp());
+            list.add(crmOwnerRecord);
+        }
+        if (!CollectionUtils.isEmpty(list)) {
+            crmOwnerRecordDao.batchSaveOrUpdate(list);
+        }
     }
 
 
