@@ -176,7 +176,12 @@ public class BiClueService {
      * @return
      */
     public ResponseInfo poolTable(XStats xStats) {
-        return null;
+        Record record = new Record();
+        record.set("deptId", xStats.getDeptId()).set("userId", xStats.getUserId()).set("type", xStats.getType())
+                .set("startTime", xStats.getStartTime()).set("endTime", xStats.getEndTime());
+        biTimeUtil.analyzeType(record);
+        List<Map<String, Object>> resultList = lkCrmBiClueDao.poolTable(record);
+        return new ResponseInfoAssemble().success(resultList);
     }
 
     /**
