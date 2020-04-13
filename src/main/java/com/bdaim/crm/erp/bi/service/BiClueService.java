@@ -1,12 +1,14 @@
 package com.bdaim.crm.erp.bi.service;
 
 
+import cn.hutool.core.util.StrUtil;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.crm.dao.LkCrmBiClueDao;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
 import com.bdaim.crm.erp.work.entity.XStats;
 import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.plugin.activerecord.Record;
@@ -138,8 +140,33 @@ public class BiClueService {
      * @param xStats
      * @return
      */
+    @SuppressWarnings("all")
     public ResponseInfo clueRecordCategoryStats(XStats xStats) {
-        return null;
+        Record record = new Record();
+        record.set("deptId", xStats.getDeptId()).set("userId", xStats.getUserId()).set("type", xStats.getType())
+                .set("startTime", xStats.getStartTime()).set("endTime", xStats.getEndTime());
+        biTimeUtil.analyzeType(record);
+        String sqlDateFormat = record.getStr("sqlDateFormat");
+        String userIds = record.getStr("userIds");
+        if (StrUtil.isEmpty(userIds)) {
+            userIds = "0";
+        }
+        Integer beginTime = record.getInt("beginTime");
+        Integer finalTime = record.getInt("finalTime");
+        StringBuffer sqlStringBuffer = new StringBuffer();
+        sqlStringBuffer.append("select category,IFNULL(count(record_id),0) as recordNum," +
+                "IFNULL(count(record_id)*100/(select count(*) from lkcrm_admin_record where cust_id='")
+                .append(BaseUtil.getCustId()).append("' and DATE_FORMAT(create_time,'")
+                .append(sqlDateFormat).append("') between '").append(beginTime).append("' and '")
+                .append(finalTime).append("' and types='crm_leads' and create_user_id in (")
+                .append(userIds).append(")),0) as proportion from lkcrm_admin_record where cust_id='")
+                .append(BaseUtil.getCustId()).append("' and (DATE_FORMAT(create_time,'")
+                .append(sqlDateFormat)
+                .append("') between '").append(beginTime).append("' and '").append(finalTime)
+                .append("') and create_user_id in (").append(userIds)
+                .append(") and types='crm_leads' group by category");
+        List<Map<String, Object>> resultList = lkCrmBiClueDao.queryListBySql(sqlStringBuffer.toString());
+        return new ResponseInfoAssemble().success(resultList);
     }
 
     /**
