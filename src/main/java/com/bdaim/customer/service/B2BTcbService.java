@@ -364,6 +364,9 @@ public class B2BTcbService implements BusiService {
             }
             // 指定数量
         } else if (mode == 2) {
+            if (seaType == 1) {
+                addPublicSeaStats(null, getNumber, userId);
+            }
             LoginUser user = BaseUtil.getUser();
             //领取，只返回id
             if (sourceType == 1) {
@@ -372,9 +375,6 @@ public class B2BTcbService implements BusiService {
             } else {
                 entDataService.addCrmClueQueue(user.getCustId(), user.getUserId(), getNumber, param, 0);
                 data = doClueDataToSeaByNumber(param, getNumber, custId, userId, busiType);
-            }
-            if (seaType == 1) {
-                addPublicSeaStats(null, getNumber, userId);
             }
         }
         if (data.size() == 0) {
