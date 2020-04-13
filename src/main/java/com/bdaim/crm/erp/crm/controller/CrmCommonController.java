@@ -40,6 +40,7 @@ public class CrmCommonController extends BasicAction {
             result = false;
         }
         response.setCode(result ? 1 : -1);
+        response.setMsg(response.getMessage());
         return response;
     }
 }
