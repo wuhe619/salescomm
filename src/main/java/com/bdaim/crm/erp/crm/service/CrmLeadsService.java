@@ -52,6 +52,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -125,6 +126,8 @@ public class CrmLeadsService {
     private LkCrmTaskDao crmTaskDao;
     @Autowired
     private LkCrmActionRecordDao crmActionRecordDao;
+    @Autowired
+    private LkCrmOwnerRecordDao crmOwnerRecordDao;
 
     /**
      * 默认需要转为super_data的字段名称
@@ -654,6 +657,8 @@ public class CrmLeadsService {
         if (superIds == null || superIds.size() == 0) {
             throw new TouchException("-1", "superIds必填");
         }
+        //添加领取公海线索统计
+        addPublicSeaStats(userId, superIds, null);
         long quantity = getUserReceivableQuantity(seaId, userId);
         List<String> tempList = new ArrayList<>();
         boolean limit = false;
@@ -686,6 +691,23 @@ public class CrmLeadsService {
         // 保存转交记录
         customerSeaDao.executeUpdateSQL(logSql.toString());
         return customerSeaDao.executeUpdateSQL(sql.toString(), p.toArray());
+    }
+
+    private void addPublicSeaStats(String userId, List<String> superIds, Integer number) {
+        List<LkCrmOwnerRecordEntity> list = new ArrayList<>();
+        int total = !CollectionUtils.isEmpty(superIds) ? superIds.size() : number;
+        for (int i = 0; i < total; i++) {
+            //添加线索公海统计记录
+            LkCrmOwnerRecordEntity crmOwnerRecord = new LkCrmOwnerRecordEntity();
+            crmOwnerRecord.setTypeId(0);
+            crmOwnerRecord.setType(9);
+            crmOwnerRecord.setPostOwnerUserId(Long.valueOf(userId));
+            crmOwnerRecord.setCreateTime(DateUtil.date().toTimestamp());
+            list.add(crmOwnerRecord);
+        }
+        if (!CollectionUtils.isEmpty(list)) {
+            crmOwnerRecordDao.batchSaveOrUpdate(list);
+        }
     }
 
     private int singleDistributionClue1(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
@@ -1093,6 +1115,7 @@ public class CrmLeadsService {
         if (quantity == 0) {
             throw new TouchException("-1", "当天领取线索已达上限");
         }
+        addPublicSeaStats(userId, null, number);
         int count = 0;
         StringBuilder update = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
