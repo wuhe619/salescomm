@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -27,7 +29,7 @@ public class EntSearchController extends BasicAction {
     EntDataService entDataService;
 
     @PostMapping(value = "/search")
-    public ResponseInfo pageSearch(@RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType) {
+    public ResponseInfo pageSearch(@RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType, HttpServletResponse response) throws IOException {
         ResponseInfo resp = new ResponseInfo();
         JSONObject params = null;
         try {
@@ -42,6 +44,10 @@ public class EntSearchController extends BasicAction {
             Map count = entDataService.count(opUser().getCustId(), opUser().getUserGroupId(), opUser().getId(), busiType, params);
             resp.setData(count);
             return resp;
+        }
+        if(StringUtil.isEmpty(request.getHeader("Authorization"))){
+            response.getWriter().write("{code:401,msg:'no auth'}");
+            return null;
         }
         Page page = null;
         try {
