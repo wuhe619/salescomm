@@ -876,7 +876,9 @@ public class OaExamineService {
         }
         com.bdaim.common.dto.Page paginate = crmOaExamineDao.queryExamineRelation(pageRequest.getPage(), pageRequest.getLimit(), relation.getBusinessIds(), relation.getContactsIds(), relation.getContractIds(), relation.getCustomerIds());
         //Page<Record> paginate = Db.paginate(pageRequest.getPage(), pageRequest.getLimit(), Db.getSqlPara("oa.examine.queryExamineRelation", Kv.by("businessIds", relation.getBusinessIds()).set("contactsIds", relation.getContactsIds()).set("contractIds", relation.getContractIds()).set("customerIds", relation.getCustomerIds())));
-        transfer(JavaBeanUtil.mapToRecords(paginate.getData()));
+        List list = JavaBeanUtil.mapToRecords(paginate.getData());
+        transfer(list);
+        paginate.setData(list);
         return R.ok().put("data", BaseUtil.crmPage(paginate));
     }
 

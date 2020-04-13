@@ -262,9 +262,17 @@ public class OaLogService {
         com.bdaim.common.dto.Page page = crmOaLogDao.pageQueryLogRelation(basePageRequest.getPage(), basePageRequest.getLimit(), relation.getBusinessIds(), relation.getContactsIds(), relation.getContractIds(), relation.getCustomerIds());
         //Page<Record> recordPage = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("oa.log.queryLogRelation", Kv.by("businessIds", relation.getBusinessIds()).set("contactsIds", relation.getContactsIds()).set("contractIds", relation.getContractIds()).set("customerIds", relation.getCustomerIds())));
         LoginUser user = BaseUtil.getUser();
-        page.getData().forEach((record -> {
+        /*page.getData().forEach((record -> {
             queryLogDetail(JavaBeanUtil.mapToRecord((Map<String, Object>) record), user.getUserId());
+        }));*/
+
+        List list = new ArrayList();
+        page.getData().forEach((record -> {
+            Record data = JavaBeanUtil.mapToRecord((Map<String, Object>) record);
+            queryLogDetail(data, user.getUserId());
+            list.add(data);
         }));
+        page.setData(list);
         return R.ok().put("data", BaseUtil.crmPage(page));
     }
 }
