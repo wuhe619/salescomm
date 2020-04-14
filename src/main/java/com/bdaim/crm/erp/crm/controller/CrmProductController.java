@@ -4,7 +4,6 @@ import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
@@ -214,7 +213,6 @@ public class CrmProductController extends BasicAction {
      * @author zxy
      * 获取导入模板
      */
-    @LoginFormCookie
     @RequestMapping(value = "downloadExcel", method = RequestMethod.POST)
     public void downloadExcel(HttpServletResponse response) {
         List<Record> recordList = adminFieldService.queryAddField(4);

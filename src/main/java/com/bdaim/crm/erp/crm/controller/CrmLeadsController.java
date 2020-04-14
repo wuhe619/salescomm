@@ -15,7 +15,6 @@ import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
-import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
@@ -742,7 +741,6 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 获取线索导入模板
      */
-    @LoginFormCookie
     @RequestMapping(value = "/downloadExcel")
     public void downloadExcel(HttpServletResponse response) {
         List<Record> recordList = adminFieldService.queryAddField(1);
@@ -808,7 +806,6 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 获取线索导入模板
      */
-    @LoginFormCookie
     @RequestMapping(value = "/cluesea/downloadExcel")
     public void clueSeaDownloadExcel(HttpServletResponse response) {
         List<Record> recordList = adminFieldService.queryAddField(11);
