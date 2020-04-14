@@ -6833,7 +6833,7 @@ public class MarketResourceService {
         data.put("userSum", userSum);
         data.put("historyMarketTask", historyMarketTask);
         data.put("newMarketTask", newMarketTask);
-        data.put("accountBalance", df.format(accountBalance / 100));
+        data.put("accountBalance", df.format(accountBalance / 1000));
 
         // 查询呼叫统计类数据
         StringBuffer sql = new StringBuffer();
