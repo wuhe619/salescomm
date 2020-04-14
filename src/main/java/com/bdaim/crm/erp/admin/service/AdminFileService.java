@@ -5,6 +5,7 @@ import cn.hutool.core.util.ClassLoaderUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.AppConfig;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.service.UploadFileService;
 import com.bdaim.crm.dao.LkCrmAdminFileDao;
 import com.bdaim.crm.dto.LkCrmAdminFileDTO;
@@ -79,10 +80,11 @@ public class AdminFileService {
         if (batchId == null || "".equals(batchId)) {
             batchId = IdUtil.simpleUUID();
         }
+        LoginUser user = BaseUtil.getUser();
         LkCrmAdminFileEntity adminFile = new LkCrmAdminFileEntity();
         adminFile.setBatchId(batchId);
         adminFile.setCreateTime(DateUtil.date().toTimestamp());
-        adminFile.setCreateUserId(BaseUtil.getUser().getUserId());
+        adminFile.setCreateUserId(user.getUserId());
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
                 request.getSession().getServletContext());
         String fileName = "", type = "";
@@ -111,7 +113,7 @@ public class AdminFileService {
         if (StrUtil.isNotBlank(fileType)) {
             adminFile.setFileType(fileType);
         }
-        adminFile.setCreateUserId(BaseUtil.getUser().getUserId());
+        adminFile.setCreateUserId(user.getUserId());
         return (int) crmAdminFileDao.saveReturnPk(adminFile) > 0 ? R.ok().put("batchId", batchId).put("name", adminFile.getName()).put("url", adminFile.getFilePath()).put("size", adminFile.getSize() / 1000 + "KB").put("file_id", adminFile.getFileId()).put("fileId", adminFile.getFileId()) : R.error();
     }
 

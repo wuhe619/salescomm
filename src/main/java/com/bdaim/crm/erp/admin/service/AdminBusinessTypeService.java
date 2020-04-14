@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.admin.service;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.util.TypeUtils;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.LkCrmAdminDeptDao;
 import com.bdaim.crm.dao.LkCrmBusinessStatusDao;
@@ -42,15 +43,16 @@ public class AdminBusinessTypeService {
 
     @Before(Tx.class)
     public void addBusinessType(LkCrmBusinessTypeEntity crmBusinessType, JSONArray crmBusinessStatusList) {
+        LoginUser user = BaseUtil.getUser();
         if (crmBusinessType.getTypeId() == null) {
-            crmBusinessType.setCustId(BaseUtil.getCustId());
+            crmBusinessType.setCustId(user.getCustId());
             crmBusinessType.setCreateTime(DateUtil.date().toTimestamp());
-            crmBusinessType.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmBusinessType.setCreateUserId(user.getUserId());
             crmBusinessType.setStatus(1);
             crmBusinessTypeDao.save(crmBusinessType);
         } else {
             crmBusinessType.setStatus(1);
-            crmBusinessType.setCustId(BaseUtil.getCustId());
+            crmBusinessType.setCustId(user.getCustId());
             crmBusinessType.setUpdateTime(DateUtil.date().toTimestamp());
             LkCrmBusinessTypeEntity dbEntity = crmBusinessTypeDao.get(crmBusinessType.getTypeId());
             BeanUtils.copyProperties(crmBusinessType, dbEntity, JavaBeanUtil.getNullPropertyNames(crmBusinessType));

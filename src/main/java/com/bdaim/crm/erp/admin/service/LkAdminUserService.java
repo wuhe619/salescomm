@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.helper.SQLHelper;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
@@ -213,7 +214,8 @@ public class LkAdminUserService {
 
     public R setUser(LkCrmAdminUserEntity adminUser, String roleIds) {
         boolean bol;
-        adminUser.setCustId(BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        adminUser.setCustId(user.getCustId());
         updateScene(adminUser);
         if (adminUser.getUserId() == 0) {
             String sql = "select count(*) from lkcrm_admin_user where username = ?";
@@ -224,7 +226,7 @@ public class LkAdminUserService {
             Long userId = IDHelper.getUserID();
             adminUser.setUserId(userId);
             String salt = IdUtil.fastSimpleUUID();
-            adminUser.setCustId(BaseUtil.getCustId());
+            adminUser.setCustId(user.getCustId());
             adminUser.setNum(RandomUtil.randomNumbers(15));
             adminUser.setSalt(salt);
             adminUser.setStatus(1);
@@ -237,7 +239,7 @@ public class LkAdminUserService {
             UserCallConfigDTO userDTO = new UserCallConfigDTO();
             userDTO.setMobileNumber(adminUser.getMobile());
             userDTO.setEmail(adminUser.getEmail());
-            saveBpUser(userId, adminUser.getUsername(), adminUser.getRealname(), adminUser.getPassword(), BaseUtil.getCustId(), 2, "", "", userDTO);
+            saveBpUser(userId, adminUser.getUsername(), adminUser.getRealname(), adminUser.getPassword(), user.getCustId(), 2, "", "", userDTO);
         } else {
             if (adminUser.getParentId() != null && adminUser.getParentId() != 0) {
                 List<Record> topUserList = queryTopUserList(adminUser.getUserId());
@@ -685,11 +687,12 @@ public class LkAdminUserService {
     }
 
     public boolean updateUser(LkCrmAdminUserEntity adminUser) {
-        if (!BaseUtil.getUser().getUsername().equals(adminUser.getUsername())) {
+        LoginUser user = BaseUtil.getUser();
+        if (!user.getUsername().equals(adminUser.getUsername())) {
             return false;
         }
         LkCrmAdminUserEntity lkCrmAdminUserEntity = crmAdminUserDao.queryByUserName(adminUser.getUsername());
-        adminUser.setUserId(BaseUtil.getUserId());
+        adminUser.setUserId(user.getUserId());
         CustomerUser customerUser = customerUserDao.get(adminUser.getUserId());
         if (StrUtil.isNotEmpty(adminUser.getPassword())) {
             adminUser.setSalt(IdUtil.simpleUUID());

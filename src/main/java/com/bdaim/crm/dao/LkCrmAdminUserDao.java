@@ -35,7 +35,8 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
                 "WHERE " +
                 " 1 = 1  " +
                 " AND au.realname LIKE concat( '%', ?, '%' ) AND au.cust_id = ? AND ad.cust_id=?";
-        return super.sqlQuery(sql, name, BaseUtil.getCustId(), BaseUtil.getCustId());
+        String custId = BaseUtil.getCustId();
+        return super.sqlQuery(sql, name, custId, custId);
     }
 
     public List<Map<String, Object>> querySuperior(String realName) {
@@ -54,7 +55,8 @@ public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, 
                 " 1 = 1  " +
                 " AND au.dept_id = ?  " +
                 " AND au.realname LIKE concat( '%', ?, '%' ) AND au.cust_id = ? AND ad.cust_id=?";
-        return super.sqlQuery(sql, dept_id, name, BaseUtil.getCustId(), BaseUtil.getCustId());
+        String custId = BaseUtil.getCustId();
+        return super.sqlQuery(sql, dept_id, name, custId, custId);
     }
 
     public List<Map<String, Object>> queryUserList(String name, List<Integer> deptId, Integer status, String roleId, String roleName) {

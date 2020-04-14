@@ -40,8 +40,33 @@ public class BiClueService {
      * @param xStats
      * @return
      */
+    @SuppressWarnings("all")
     public ResponseInfo totalClueStats(XStats xStats) {
-        return null;
+        Record record = new Record();
+        record.set("deptId", xStats.getDeptId()).set("userId", xStats.getUserId()).set("type", xStats.getType())
+                .set("startTime", xStats.getStartTime()).set("endTime", xStats.getEndTime());
+        biTimeUtil.analyzeType(record);
+        Integer cycleNum = record.getInt("cycleNum");
+        String sqlDateFormat = record.getStr("sqlDateFormat");
+        String userIds = record.getStr("userIds");
+        if (StrUtil.isEmpty(userIds)) {
+            userIds = "0";
+        }
+        Integer beginTime = record.getInt("beginTime");
+        StringBuffer sqlBuffer = new StringBuffer();
+        String leadsview = BaseUtil.getViewSql("leadsview");
+        for (int i = 1; i <= cycleNum; i++) {
+            sqlBuffer.append("SELECT '").append(beginTime).append("' AS type,COUNT(leads_id) AS leadsNum,")
+                    .append("IFNULL(SUM(is_transform),0) AS transformNum FROM ").append(leadsview).append(" WHERE owner_user_id IN (")
+                    .append(userIds).append(") AND DATE_FORMAT(create_time,'").append(sqlDateFormat).append("')='")
+                    .append(beginTime).append("'");
+            if (i != cycleNum) {
+                sqlBuffer.append(" UNION ALL ");
+            }
+            beginTime = biTimeUtil.estimateTime(beginTime);
+        }
+        List<Map<String, Object>> resultList = lkCrmBiClueDao.findMapBySql(sqlBuffer.toString(), null);
+        return new ResponseInfoAssemble().success(resultList);
     }
 
     /**
@@ -93,8 +118,34 @@ public class BiClueService {
      * @param xStats
      * @return
      */
+    @SuppressWarnings("all")
     public ResponseInfo clueRecordStats(XStats xStats) {
-        return null;
+        Record record = new Record();
+        record.set("deptId", xStats.getDeptId()).set("userId", xStats.getUserId()).set("type", xStats.getType())
+                .set("startTime", xStats.getStartTime()).set("endTime", xStats.getEndTime());
+        biTimeUtil.analyzeType(record);
+        Integer cycleNum = record.getInt("cycleNum");
+        String sqlDateFormat = record.getStr("sqlDateFormat");
+        String userIds = record.getStr("userIds");
+        if (StrUtil.isEmpty(userIds)) {
+            userIds = "0";
+        }
+        Integer beginTime = record.getInt("beginTime");
+        StringBuffer sqlStringBuffer = new StringBuffer();
+        for (int i = 1; i <= cycleNum; i++) {
+            sqlStringBuffer.append("select '").append(beginTime).append("' as type,IFNULL((select count(record_id) from lkcrm_admin_record where DATE_FORMAT(create_time,'")
+                    .append(sqlDateFormat).append("') = '").append(beginTime).append("' and types = 'crm_leads' and cust_id='")
+                    .append(BaseUtil.getCustId()).append("' and create_user_id in (").append(userIds)
+                    .append(")),0) as recordCount,IFNULL(count(DISTINCT types_id),0) as customerCount from lkcrm_admin_record where DATE_FORMAT(create_time,'")
+                    .append(sqlDateFormat).append("') = '").append(beginTime).append("' and types = 'crm_leads' and cust_id='")
+                    .append(BaseUtil.getCustId()).append("' and create_user_id in (").append(userIds).append(")");
+            if (i != cycleNum) {
+                sqlStringBuffer.append(" union all ");
+            }
+            beginTime = biTimeUtil.estimateTime(beginTime);
+        }
+        List<Map<String, Object>> resultList = lkCrmBiClueDao.queryListBySql(sqlStringBuffer.toString());
+        return new ResponseInfoAssemble().success(resultList);
     }
 
     /**
@@ -196,25 +247,26 @@ public class BiClueService {
         record.set("deptId", xStats.getDeptId()).set("userId", xStats.getUserId()).set("type", xStats.getType())
                 .set("startTime", xStats.getStartTime()).set("endTime", xStats.getEndTime());
         biTimeUtil.analyzeType(record);
-
-        String userIds = record.getStr("userIds");
-        if (StringUtil.isEmpty(userIds)) {
-            return new ResponseInfoAssemble().success(new ArrayList<>());
-        }
+        Integer cycleNum = record.getInt("cycleNum");
         String sqlDateFormat = record.getStr("sqlDateFormat");
-        Integer beginTime = record.getInt("beginTime");
-        Integer finalTime = record.getInt("finalTime");
-        String[] userIdsArr = userIds.split(",");
-        StringBuffer sqlBuffer = new StringBuffer();
-        for (int i = 1; i <= userIdsArr.length; i++) {
-            sqlBuffer.append("SELECT (SELECT realname FROM lkcrm_admin_user WHERE user_id='").append(userIdsArr[i - 1])
-                    .append("') realname");
-            if (i != userIdsArr.length) {
-                sqlBuffer.append(" UNION ALL ");
-            }
+        String userIds = record.getStr("userIds");
+        if (StrUtil.isEmpty(userIds)) {
+            userIds = "0";
         }
-        LOGGER.info("SQL is {}", sqlBuffer.toString());
-        List<Map<String, Object>> result = lkCrmBiClueDao.queryListBySql(sqlBuffer.toString());
-        return new ResponseInfoAssemble().success(result);
+        Integer beginTime = record.getInt("beginTime");
+        StringBuffer sqlStringBuffer = new StringBuffer();
+        for (int i = 1; i <= cycleNum; i++) {
+            sqlStringBuffer.append("select '").append(beginTime).append("' as type,count(type_id) as putInNum,(select count(type_id)" +
+                    " from lkcrm_crm_owner_record where DATE_FORMAT(create_time,'").append(sqlDateFormat).append("') = '")
+                    .append(beginTime).append("' and type = 9 and post_owner_user_id in (").append(userIds).append(")) as receiveNum " +
+                    "from lkcrm_crm_owner_record where DATE_FORMAT(create_time,'").append(sqlDateFormat).append("') = '")
+                    .append(beginTime).append("' and type = 9 and pre_owner_user_id in (").append(userIds).append(")");
+            if (i != cycleNum) {
+                sqlStringBuffer.append(" union all ");
+            }
+            beginTime = biTimeUtil.estimateTime(beginTime);
+        }
+        List<Map<String, Object>> resultList = lkCrmBiClueDao.queryListBySql(sqlStringBuffer.toString());
+        return new ResponseInfoAssemble().success(resultList);
     }
 }

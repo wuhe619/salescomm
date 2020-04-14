@@ -36,6 +36,15 @@ public class CrmBackLogController extends BasicAction {
     }
 
     /**
+     *今日需联系线索
+     */
+    @RequestMapping(value = "/todayCrmLeads", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R todayCrmLeads(BasePageRequest basePageRequest){
+        return(crmBackLogService.todayCrmLeads(basePageRequest));
+    }
+
+    /**
      * 标记线索为已跟进
      */
     @RequestMapping(value = "/setLeadsFollowup", method = RequestMethod.POST)

@@ -347,14 +347,14 @@ public class B2BTcbService implements BusiService {
         Map<String, JSONObject> data = new HashMap(16);
         // 指定企业ID领取方式
         if (mode == 1) {
+            if (seaType == 1) {
+                addPublicSeaStats(companyIds, null, userId);
+            }
             // 已经领取过不可重复领取
             if (companyIds != null && companyIds.size() > 0 &&
                     b2BTcbLogService.checkClueGetStatus(custId, companyIds.get(0))) {
                 LOG.warn("该线索已经领取过,entId:{}", companyIds.get(0));
                 //throw new TouchException("该线索已经领取过");
-                if (seaType == 1) {
-                    addPublicSeaStats(companyIds, null, userId);
-                }
             }
             LOG.info("kais doClueDataToSeaByIds");
             if (sourceType == 1) {

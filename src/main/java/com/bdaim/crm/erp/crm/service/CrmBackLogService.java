@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminConfigDao;
@@ -44,14 +45,15 @@ public class CrmBackLogService {
      * 代办事项数量统计
      */
     public R num() {
-        String userId = BaseUtil.getUserId().toString();
+        LoginUser user = BaseUtil.getUser();
+        String userId = user.getUserId().toString();
         Integer todayCustomer = crmCustomerDao.todayCustomerNum(userId);
         Integer followLeads = crmCustomerDao.followLeadsNum(userId);
         Integer followCustomer = crmCustomerDao.followCustomerNum(userId);
-        Integer config = crmCustomerDao.queryForInt("select status from lkcrm_admin_config where name = 'expiringContractDays' AND cust_id = ? ", BaseUtil.getCustId());
+        Integer config = crmCustomerDao.queryForInt("select status from lkcrm_admin_config where name = 'expiringContractDays' AND cust_id = ? ", user.getCustId());
         Integer checkReceivables = crmCustomerDao.checkReceivablesNum(userId);
         Integer remindReceivablesPlan = crmCustomerDao.remindReceivablesPlanNum(userId);
-        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity where name = ? and cust_id = ?", "expiringContractDays", BaseUtil.getCustId());
+        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity where name = ? and cust_id = ?", "expiringContractDays", user.getCustId());
         Integer endContract = 0;
         if (1 == adminConfig.getStatus()) {
             endContract = crmCustomerDao.endContractNum(adminConfig.getValue(), userId);
@@ -66,10 +68,10 @@ public class CrmBackLogService {
     }
 
     /**
-     * 今日需联系客户
-     * 今日需要联系为下次联系时间是今天且没有跟进的客户
-     * 已逾期是过了下次联系时间那天的且未跟进的客户
-     * 已联系是下次联系时间是今天且已经跟进的客户
+     * <p>今日需联系客户</p>
+     * <p>今日需要联系为下次联系时间是今天且没有跟进的客户</p>
+     * <p>已逾期是过了下次联系时间那天的且未跟进的客户</p>
+     * <p>已联系是下次联系时间是今天且已经跟进的客户</p>
      */
     public R todayCustomer(BasePageRequest basePageRequest) {
         JSONObject jsonObject = basePageRequest.getJsonObject();
@@ -86,10 +88,47 @@ public class CrmBackLogService {
         } else {
             return R.error("type类型不正确");
         }
+        LoginUser user = BaseUtil.getUser();
         if (isSub == 1) {
-            stringBuffer.append(" and a.owner_user_id = ").append(BaseUtil.getUserId());
+            stringBuffer.append(" and a.owner_user_id = ").append(user.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            if (StrUtil.isEmpty(ids)) {
+                ids = "0";
+            }
+            stringBuffer.append(" and a.owner_user_id in (").append(ids).append(")");
+        } else {
+            return R.error("isSub参数不正确");
+        }
+        JSONObject data = jsonObject.getJSONObject("data");
+        if (data != null) {
+            stringBuffer.append(getConditionSql(data));
+        }
+        //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select * ", stringBuffer.toString());
+        com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
+        return R.ok().put("data", BaseUtil.crmPage(page));
+    }
+
+    public R todayCrmLeads(BasePageRequest basePageRequest) {
+        JSONObject jsonObject = basePageRequest.getJsonObject();
+        Integer type = jsonObject.getInteger("type");
+        Integer isSub = jsonObject.getInteger("isSub");
+        String customerview = BaseUtil.getViewSqlNotASName("leadsview");
+        StringBuffer stringBuffer = new StringBuffer("from " + customerview + " as a where ");
+        if (type == 1) {
+            stringBuffer.append(" a.leads_id not in (IFNULL((select GROUP_CONCAT(types_id) from lkcrm_admin_record where types = 'crm_leads' and to_days(create_time) = to_days(now())),0)) and to_days(a.next_time) = to_days(now())");
+        } else if (type == 2) {
+            stringBuffer.append(" a.leads_id not in (IFNULL((select GROUP_CONCAT(types_id) from lkcrm_admin_record where types = 'crm_leads' and to_days(create_time) >= to_days(a.next_time)),0)) and to_days(a.next_time) < to_days(now())");
+        } else if (type == 3) {
+            stringBuffer.append(" a.leads_id = any(select types_id from lkcrm_admin_record where types = 'crm_leads' and to_days(create_time) = to_days(now())) and to_days(a.next_time) = to_days(now())");
+        } else {
+            return R.error("type类型不正确");
+        }
+        LoginUser user = BaseUtil.getUser();
+        if (isSub == 1) {
+            stringBuffer.append(" and a.owner_user_id = ").append(user.getUserId());
+        } else if (isSub == 2) {
+            String ids = adminSceneService.getSubUserId(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -131,10 +170,11 @@ public class CrmBackLogService {
         } else {
             return R.error("type类型不正确");
         }
+        LoginUser user = BaseUtil.getUser();
         if (isSub == 1) {
-            stringBuffer.append(" and a.owner_user_id = ").append(BaseUtil.getUserId());
+            stringBuffer.append(" and a.owner_user_id = ").append(user.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -178,10 +218,11 @@ public class CrmBackLogService {
         } else {
             return R.error("type类型不正确");
         }
+        LoginUser user = BaseUtil.getUser();
         if (isSub == 1) {
-            stringBuffer.append(" and a.owner_user_id = ").append(BaseUtil.getUserId());
+            stringBuffer.append(" and a.owner_user_id = ").append(user.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -213,10 +254,11 @@ public class CrmBackLogService {
         } else {
             return R.error("type类型不正确");
         }
+        LoginUser user = BaseUtil.getUser();
         if (isSub == 1) {
-            stringBuffer.append(" and c.examine_user = ").append(BaseUtil.getUserId());
+            stringBuffer.append(" and c.examine_user = ").append(user.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -254,10 +296,11 @@ public class CrmBackLogService {
         } else {
             return R.error("type类型不正确");
         }
+        LoginUser user = BaseUtil.getUser();
         if (isSub == 1) {
-            stringBuffer.append(" and c.examine_user = ").append(BaseUtil.getUserId());
+            stringBuffer.append(" and c.examine_user = ").append(user.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -297,10 +340,11 @@ public class CrmBackLogService {
         } else {
             return R.error("type类型不正确");
         }
+        LoginUser user = BaseUtil.getUser();
         if (isSub == 1) {
-            stringBuffer.append(" and c.owner_user_id = ").append(BaseUtil.getUserId());
+            stringBuffer.append(" and c.owner_user_id = ").append(user.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }
@@ -324,7 +368,8 @@ public class CrmBackLogService {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         Integer type = jsonObject.getInteger("type");
         Integer isSub = jsonObject.getInteger("isSub");
-        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUnique(" FROM LkCrmAdminConfigEntity WHERE name = ? AND custId= ?", "expiringContractDays", BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUnique(" FROM LkCrmAdminConfigEntity WHERE name = ? AND custId= ?", "expiringContractDays", user.getCustId());
         String contractview = BaseUtil.getViewSqlNotASName("contractview");
         StringBuffer stringBuffer = new StringBuffer("from " + contractview + " as a where");
         if (type == 1) {
@@ -338,9 +383,9 @@ public class CrmBackLogService {
             return R.error("type类型不正确");
         }
         if (isSub == 1) {
-            stringBuffer.append(" and owner_user_id = ").append(BaseUtil.getUserId());
+            stringBuffer.append(" and owner_user_id = ").append(user.getUserId());
         } else if (isSub == 2) {
-            String ids = adminSceneService.getSubUserId(BaseUtil.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            String ids = adminSceneService.getSubUserId(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
             if (StrUtil.isEmpty(ids)) {
                 ids = "0";
             }

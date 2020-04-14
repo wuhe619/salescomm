@@ -5,6 +5,7 @@ import cn.hutool.core.util.ReUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.config.cache.CaffeineCache;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminRoleDao;
@@ -59,11 +60,13 @@ public class LkAdminRoleService {
         if (rType != null) {
             types = new Integer[]{rType};
         }
+        LoginUser user = BaseUtil.getUser();
         for (Integer roleType : types) {
             Record record = new Record();
             record.set("name", roleTypeCaseName(roleType));
             record.set("pid", roleType);
-            String custId = BaseUtil.getCustId();
+
+            String custId = user.getCustId();
             if (1 == roleType) {
                 custId = "";
             }
@@ -77,7 +80,7 @@ public class LkAdminRoleService {
                 role.set("rules", new JSONObject().fluentPut("crm", crm).fluentPut("bi", bi)
                         .fluentPut("find", find).fluentPut("manage", manage));
 
-                role.set("userNum", crmAdminRoleDao.queryForInt("SELECT COUNT(0) FROM lkcrm_admin_user_role a JOIN lkcrm_admin_user b on a.user_id = b.user_id WHERE a.role_id = ? AND b.cust_id = ? ", role.getInt("id"), BaseUtil.getCustId()));
+                role.set("userNum", crmAdminRoleDao.queryForInt("SELECT COUNT(0) FROM lkcrm_admin_user_role a JOIN lkcrm_admin_user b on a.user_id = b.user_id WHERE a.role_id = ? AND b.cust_id = ? ", role.getInt("id"), user.getCustId()));
             });
             record.set("list", recordList);
             records.add(record);
@@ -98,8 +101,9 @@ public class LkAdminRoleService {
      * 新建
      */
     public R save(LkCrmAdminRoleEntity adminRole) {
-        adminRole.setCustId(BaseUtil.getCustId());
-        Integer number = crmAdminRoleDao.queryForInt("select count(*) from lkcrm_admin_role where role_name = ? and role_type = ? AND cust_id =?", adminRole.getRoleName(), adminRole.getRoleType(), BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        adminRole.setCustId(user.getCustId());
+        Integer number = crmAdminRoleDao.queryForInt("select count(*) from lkcrm_admin_role where role_name = ? and role_type = ? AND cust_id =?", adminRole.getRoleName(), adminRole.getRoleType(), user.getCustId());
         if (number > 0) {
             return R.error("角色名已存在");
         }

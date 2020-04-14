@@ -55,7 +55,7 @@ spring:
     port: 6379
   elasticsearch:
     jest:
-      uris: http://localhost:9200
+      uris: http://localhost:9201
       read-timeout: 20000 #读取超时
       connection-timeout: 20000 #连接超时
   task:
@@ -66,8 +66,8 @@ spring:
 logging:
   level:
     #root: Debug
-    org.hibernate: Debug
-    com.bdaim: WARN
+    org.hibernate: INFO
+    com.bdaim: INFO
     org.springframework.jdbc.core.JdbcTemplate: Debug
     io.searchbox.client: WARN
     org:.apache.http: WARN
@@ -99,7 +99,7 @@ hbase_audio_url: http://ds4:1111/voice/
 
 finance.h5.host: http://financedev.datau.top/h5
 online.host: http://bp.online.datau.top
-es.rest: http://localhost:9200
+es.rest: http://localhost:9201
 ds.es.index.0: labels
 ds.es.type.0: label
 is_enable_oper_log: true

@@ -92,11 +92,12 @@ public class AdminFieldService {
      * 查询编辑字段列表
      */
     public List<Record> queryUpdateField(Integer label, Record record) {
-        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery("select field_id,field_name,name,type,input_tips,options,is_unique,is_null,'' as value,field_type from lkcrm_admin_field where label = ? AND cust_id = ? AND (add_hidden is NULL OR add_hidden =2)  order by sorting", label, BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery("select field_id,field_name,name,type,input_tips,options,is_unique,is_null,'' as value,field_type from lkcrm_admin_field where label = ? AND cust_id = ? AND (add_hidden is NULL OR add_hidden =2)  order by sorting", label, user.getCustId());
         List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
         recordList.forEach(r -> {
             if (r.getInt("type") == 10 || r.getInt("type") == 12) {
-                r.set("value", crmAdminFieldDao.queryForObject("select value from lkcrm_admin_fieldv where field_id = ? and batch_id = ? AND cust_id = ?", r.getInt("field_id"), record.getStr("batch_id"), BaseUtil.getCustId()));
+                r.set("value", crmAdminFieldDao.queryForObject("select value from lkcrm_admin_fieldv where field_id = ? and batch_id = ? AND cust_id = ?", r.getInt("field_id"), record.getStr("batch_id"), user.getCustId()));
             } else {
                 r.set("value", record.get(r.getStr("field_name")) != null ? record.get(r.getStr("field_name")) : "");
             }
@@ -136,6 +137,7 @@ public class AdminFieldService {
         if (categoryId != null && crmAdminFieldDao.queryForInt("select ifnull(is_sys,0) from lkcrm_oa_examine_category where category_id = ?", categoryId) == 1) {
             return R.error("系统审批类型暂不支持编辑");
         }
+        LoginUser user = BaseUtil.getUser();
         List<Integer> arr = new ArrayList<>();
         adminFields.forEach(object -> {
             LkCrmAdminFieldEntity field = TypeUtils.castToJavaBean(object, LkCrmAdminFieldEntity.class);
@@ -143,7 +145,7 @@ public class AdminFieldService {
                 arr.add(field.getFieldId());
             }
         });
-        List<LkCrmAdminFieldEntity> fieldSorts = crmAdminFieldDao.find("from LkCrmAdminFieldEntity where label = ? AND custId = ?", label, BaseUtil.getCustId());
+        List<LkCrmAdminFieldEntity> fieldSorts = crmAdminFieldDao.find("from LkCrmAdminFieldEntity where label = ? AND custId = ?", label, user.getCustId());
         List<Integer> fieldList = fieldSorts.stream().map(LkCrmAdminFieldEntity::getFieldId).collect(Collectors.toList());
         if (arr.size() > 0) {
            /* SqlPara sql = Db.getSqlPara("admin.field.deleteByChooseId", Kv.by("ids", arr).set("label", label).set("categoryId", categoryId));
@@ -161,7 +163,7 @@ public class AdminFieldService {
                 adminFields.getJSONObject(i).remove("defaultValue");
             }
             LkCrmAdminFieldEntity entity = TypeUtils.castToJavaBean(adminFields.get(i), LkCrmAdminFieldEntity.class);
-            entity.setCustId(BaseUtil.getCustId());
+            entity.setCustId(user.getCustId());
             entity.setUpdateTime(DateUtil.date().toTimestamp());
             if (entity.getFieldType() == null || entity.getFieldType() == 0) {
                 entity.setFieldName(entity.getName());
@@ -202,12 +204,13 @@ public class AdminFieldService {
     }
 
     public R verify(Map kv) {
+        LoginUser user = BaseUtil.getUser();
         Integer number = 0;
         if ("0".equals(kv.get("fieldType"))) {
             String sql = " SELECT COUNT(*) FROM lkcrm_admin_field as a inner join lkcrm_admin_fieldv as b on a.field_id = b.field_id " +
                     "      WHERE a.label=? and a.name=? and b.value=? AND a.cust_id = ? ";
             //SqlPara sqlPara = Db.getSqlPara("admin.field.queryFieldIsExist",kv);
-            number = crmAdminFieldDao.queryForInt(sql, kv.get("types"), kv.get("fieldName"), kv.get("val"), BaseUtil.getCustId());
+            number = crmAdminFieldDao.queryForInt(sql, kv.get("types"), kv.get("fieldName"), kv.get("val"), user.getCustId());
         } else {
             String type = kv.get("types").toString();
             String tableName;
@@ -247,7 +250,7 @@ public class AdminFieldService {
                     break;
                 case "11":
                     // 查询客户默认公海
-                    List<CustomerSea> publicSeaList = crmAdminFieldDao.find(" FROM CustomerSea WHERE custId = ? ", BaseUtil.getCustId());
+                    List<CustomerSea> publicSeaList = crmAdminFieldDao.find(" FROM CustomerSea WHERE custId = ? ", user.getCustId());
                     if (publicSeaList.size() > 0) {
                         int val = crmAdminFieldDao.queryForInt(" SELECT count(*) from " + ConstantsUtil.SEA_TABLE_PREFIX + publicSeaList.get(0).getId() + " WHERE super_telphone = ? ", kv.get("val").toString());
                         return val > 0 ? R.error("参数校验错误").put("error", kv.get("fieldName").toString() + "：参数唯一") : R.ok();
@@ -259,7 +262,7 @@ public class AdminFieldService {
             if (!ParamsUtil.isValid(kv.get("fieldName").toString())) {
                 return R.error("参数包含非法字段");
             }
-            number = crmAdminFieldDao.queryForInt("select count(*) from lkcrm_crm_" + tableName + " where cust_id = ? AND " + kv.get("fieldName").toString() + " = ? and " + primaryKey + " != ? ", BaseUtil.getCustId(), kv.get("val").toString(), StringUtil.isNotEmpty(String.valueOf(kv.get("id"))) ? Integer.valueOf(kv.get("id").toString()) : 0);
+            number = crmAdminFieldDao.queryForInt("select count(*) from lkcrm_crm_" + tableName + " where cust_id = ? AND " + kv.get("fieldName").toString() + " = ? and " + primaryKey + " != ? ", user.getCustId(), kv.get("val").toString(), StringUtil.isNotEmpty(String.valueOf(kv.get("id"))) ? Integer.valueOf(kv.get("id").toString()) : 0);
         }
         return number > 0 ? R.error("参数校验错误").put("error", kv.get("fieldName").toString() + "：参数唯一") : R.ok();
     }
@@ -353,7 +356,8 @@ public class AdminFieldService {
     }
 
     public synchronized void createView(Integer label) {
-        List<Record> fieldNameList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.sqlQuery("select name,type from lkcrm_admin_field WHERE label=? and field_type = 0 AND cust_id =? ORDER BY sorting asc", label, BaseUtil.getCustId()));
+        LoginUser user = BaseUtil.getUser();
+        List<Record> fieldNameList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.sqlQuery("select name,type from lkcrm_admin_field WHERE label=? and field_type = 0 AND cust_id =? ORDER BY sorting asc", label, user.getCustId()));
         StringBuilder sql = new StringBuilder();
         StringBuilder userJoin = new StringBuilder();
         StringBuilder deptJoin = new StringBuilder();
@@ -427,10 +431,10 @@ public class AdminFieldService {
                 break;
         }
         if (StrUtil.isNotBlank(filedCreate)) {
-            crmSqlViewDao.saveSqlView(BaseUtil.getCustId(), filedCreateName, filedCreate);
+            crmSqlViewDao.saveSqlView(user.getCustId(), filedCreateName, filedCreate);
         }
         if (StrUtil.isNotBlank(create)) {
-            crmSqlViewDao.saveSqlView(BaseUtil.getCustId(), createName, create);
+            crmSqlViewDao.saveSqlView(user.getCustId(), createName, create);
         }
     }
 
@@ -771,7 +775,8 @@ public class AdminFieldService {
                 type = 0;
                 break;
         }
-        List<LkCrmAdminFieldStyleEntity> adminFleldStyleList = crmAdminFieldDao.queryFieldStyle(type, kv.getStr("field"), BaseUtil.getUser().getUserId());
+        LoginUser user = BaseUtil.getUser();
+        List<LkCrmAdminFieldStyleEntity> adminFleldStyleList = crmAdminFieldDao.queryFieldStyle(type, kv.getStr("field"), user.getUserId());
         LkCrmAdminFieldStyleEntity adminFleldStyle = null;
         if (adminFleldStyleList.size() > 0) {
             adminFleldStyle = adminFleldStyleList.get(0);
@@ -787,7 +792,7 @@ public class AdminFieldService {
             adminFleldStyle.setCreateTime(DateUtil.date().toTimestamp());
             adminFleldStyle.setStyle(new BigDecimal(kv.getStr("width")).intValue());
             adminFleldStyle.setFieldName(kv.getStr("field"));
-            adminFleldStyle.setUserId(BaseUtil.getUser().getUserId());
+            adminFleldStyle.setUserId(user.getUserId());
             //adminFleldStyle.save();
             crmAdminFieldDao.saveOrUpdate(adminFleldStyle);
         }
