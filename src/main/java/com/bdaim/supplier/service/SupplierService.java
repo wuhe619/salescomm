@@ -2440,17 +2440,11 @@ public class SupplierService {
                     SupplierPropertyEntity remain_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "remain_amount");
                     SupplierPropertyEntity used_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "used_amount");
                     if ("5".equals(map1.get("type").toString())) {//api 供应商
-                        String remain_amountstr = BigDecimalUtil.strDiv(remain_amount.getPropertyValue(), "10000", 3);
-                        String used_amountstr = BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "10000", 3);
-                        supplierDTOMap.put("balance", remain_amount == null ? 0 : remain_amountstr);
-                        supplierDTOMap.put("consumption", used_amount == null ? 0 : used_amountstr);
-                        log.info("remain_amountstr:",remain_amountstr);
-                        log.info("used_amountstr:",used_amountstr);
+                        supplierDTOMap.put("balance", remain_amount == null ? 0 : BigDecimalUtil.strDiv(remain_amount.getPropertyValue(), "10000", 3));
+                        supplierDTOMap.put("consumption", used_amount == null ? 0 : BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "10000", 3));
                     } else {
-                        String remain_amountstr = BigDecimalUtil.strDiv(remain_amount.getPropertyValue(), "1000", 3);
-                        String used_amountstr = BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "1000", 3);
-                        supplierDTOMap.put("balance", remain_amount == null ? 0 : remain_amountstr);
-                        supplierDTOMap.put("consumption", used_amount == null ? 0 : used_amountstr);
+                        supplierDTOMap.put("balance", remain_amount == null ? 0 : BigDecimalUtil.strDiv(remain_amount.getPropertyValue(), "1000", 3));
+                        supplierDTOMap.put("consumption", used_amount == null ? 0 : BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "1000", 3));
                     }
                     supplierDTOMap.put("apiNum", propertyMap.containsKey(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
                     return supplierDTOMap;
