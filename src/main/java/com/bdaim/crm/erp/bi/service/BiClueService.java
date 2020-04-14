@@ -93,8 +93,34 @@ public class BiClueService {
      * @param xStats
      * @return
      */
+    @SuppressWarnings("all")
     public ResponseInfo clueRecordStats(XStats xStats) {
-        return null;
+        Record record = new Record();
+        record.set("deptId", xStats.getDeptId()).set("userId", xStats.getUserId()).set("type", xStats.getType())
+                .set("startTime", xStats.getStartTime()).set("endTime", xStats.getEndTime());
+        biTimeUtil.analyzeType(record);
+        Integer cycleNum = record.getInt("cycleNum");
+        String sqlDateFormat = record.getStr("sqlDateFormat");
+        String userIds = record.getStr("userIds");
+        if (StrUtil.isEmpty(userIds)) {
+            userIds = "0";
+        }
+        Integer beginTime = record.getInt("beginTime");
+        StringBuffer sqlStringBuffer = new StringBuffer();
+        for (int i = 1; i <= cycleNum; i++) {
+            sqlStringBuffer.append("select '").append(beginTime).append("' as type,IFNULL((select count(record_id) from lkcrm_admin_record where DATE_FORMAT(create_time,'")
+                    .append(sqlDateFormat).append("') = '").append(beginTime).append("' and types = 'crm_leads' and cust_id='")
+                    .append(BaseUtil.getCustId()).append("' and create_user_id in (").append(userIds)
+                    .append(")),0) as recordCount,IFNULL(count(DISTINCT types_id),0) as customerCount from lkcrm_admin_record where DATE_FORMAT(create_time,'")
+                    .append(sqlDateFormat).append("') = '").append(beginTime).append("' and types = 'crm_leads' and cust_id='")
+                    .append(BaseUtil.getCustId()).append("' and create_user_id in (").append(userIds).append(")");
+            if (i != cycleNum) {
+                sqlStringBuffer.append(" union all ");
+            }
+            beginTime = biTimeUtil.estimateTime(beginTime);
+        }
+        List<Map<String, Object>> resultList = lkCrmBiClueDao.queryListBySql(sqlStringBuffer.toString());
+        return new ResponseInfoAssemble().success(resultList);
     }
 
     /**
