@@ -3955,6 +3955,7 @@ public class MarketResourceService {
 
     /**
      * CRM联系记录保存
+     *
      * @param dto
      */
     public void insertCrmTouchLog(MarketResourceLogDTO dto) {
@@ -5038,17 +5039,17 @@ public class MarketResourceService {
                         }
                         if (userIds.size() > 0) {
                             String uids = "";
-                            for(String s:userIds){
-                                uids+=","+s;
+                            for (String s : userIds) {
+                                uids += "," + s;
                             }
-                            if(uids.length()>0){
+                            if (uids.length() > 0) {
                                 uids = uids.substring(1);
                             }
                             if (3 == taskType) {
-                                sb.append(" AND (voicLog.user_id IN("+uids+") OR voicLog.call_data LIKE '%level%')");
+                                sb.append(" AND (voicLog.user_id IN(" + uids + ") OR voicLog.call_data LIKE '%level%')");
 //                                params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
                             } else {
-                                sb.append(" AND voicLog.user_id IN("+uids+")");
+                                sb.append(" AND voicLog.user_id IN(" + uids + ")");
 //                                params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
                             }
                         }
@@ -5078,9 +5079,9 @@ public class MarketResourceService {
                 params.add(seaId);
             }
             sb.append(" order by voicLog.create_time DESC");
-            log.info("queryRecordVoiceLogV4:{};param:{}",sb.toString(),params.toArray());
+            log.info("queryRecordVoiceLogV4:{};param:{}", sb.toString(), params.toArray());
             page = this.marketResourceDao.sqlPageQuery0(sb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize(), params.toArray());
-            log.info("queryRecordVoiceLogV4.data:{}",page.getData());
+            log.info("queryRecordVoiceLogV4.data:{}", page.getData());
             CustomerUser customerUser;
             if (page.getData() != null && page.getData().size() > 0) {
                 //处理用户信息和录音文件
@@ -5161,7 +5162,7 @@ public class MarketResourceService {
     }
 
 
-    public String setWorkNum(String workNum, String userid, String custId) {
+    public String setWorkNum0(String workNum, String userid, String custId) {
         JSONObject map = new JSONObject();
 
         CustomerUser cu = customerUserDao.get(Long.parseLong(userid));
@@ -5173,6 +5174,38 @@ public class MarketResourceService {
 
         CustomerUserPropertyDO work_num = new CustomerUserPropertyDO(userid, "work_num", workNum, new Timestamp(System.currentTimeMillis()));
         CustomerUserPropertyDO work_num_status = new CustomerUserPropertyDO(userid, "work_num_status", "0", new Timestamp(System.currentTimeMillis()));
+        this.customerUserDao.saveOrUpdate(work_num);
+        this.customerUserDao.saveOrUpdate(work_num_status);
+
+        map.put("code", "0");
+        map.put("message", "成功");
+        return map.toJSONString();
+    }
+
+    /**
+     * 通话号码审核
+     * @param workNum
+     * @param userid
+     * @param custId
+     * @param source CRM
+     * @return
+     */
+    public String setWorkNum(String workNum, String userid, String custId, String source) {
+        JSONObject map = new JSONObject();
+
+        CustomerUser cu = customerUserDao.get(Long.parseLong(userid));
+        if (cu == null || cu.getCust_id() == null || !cu.getCust_id().equals(custId)) {
+            map.put("code", "1");
+            map.put("message", "失败");
+            return map.toJSONString();
+        }
+        String status = "0";
+        // CRM双呼号码直接审核通过
+        if ("crm".equals(source)) {
+            status = "1";
+        }
+        CustomerUserPropertyDO work_num = new CustomerUserPropertyDO(userid, "work_num", workNum, new Timestamp(System.currentTimeMillis()));
+        CustomerUserPropertyDO work_num_status = new CustomerUserPropertyDO(userid, "work_num_status", status, new Timestamp(System.currentTimeMillis()));
         this.customerUserDao.saveOrUpdate(work_num);
         this.customerUserDao.saveOrUpdate(work_num_status);
 
@@ -5267,7 +5300,7 @@ public class MarketResourceService {
                 String sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where cust_id=? and realname like ? ";
                 sql += " ORDER BY m.account ASC LIMIT ?,?";
                 params.add(cust_id);
-                params.add("%"+username+"%");
+                params.add("%" + username + "%");
                 params.add(pageNum);
                 params.add(pageSize);
                 list = this.marketResourceDao.sqlQuery(sql, params.toArray());
@@ -6833,7 +6866,7 @@ public class MarketResourceService {
         data.put("userSum", userSum);
         data.put("historyMarketTask", historyMarketTask);
         data.put("newMarketTask", newMarketTask);
-        data.put("accountBalance", df.format(accountBalance / 100));
+        data.put("accountBalance", df.format(accountBalance / 1000));
 
         // 查询呼叫统计类数据
         StringBuffer sql = new StringBuffer();

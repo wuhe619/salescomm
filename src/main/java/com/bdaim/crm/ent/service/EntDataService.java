@@ -921,7 +921,8 @@ public class EntDataService {
                             sum++;
                         }
                     }
-                } else if (StringUtil.isNotEmpty(t.getString("phone1"))) {
+                }
+                if (StringUtil.isNotEmpty(t.getString("phone1"))) {
                     for (String p : t.getString("phone1").split(",")) {
                         if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
                                 && !"-".equals(p)) {
@@ -1030,6 +1031,7 @@ public class EntDataService {
 
     /**
      * 根据企业名称查询企业详情
+     *
      * @param companyName
      * @return
      */
@@ -1038,7 +1040,7 @@ public class EntDataService {
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
         qb.filter(QueryBuilders.termQuery("entName", companyName));
         searchSourceBuilder.query(qb);
-        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(),AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
+        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         JSONObject t = null;
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             int sum;
@@ -1053,7 +1055,8 @@ public class EntDataService {
                             sum++;
                         }
                     }
-                } else if (StringUtil.isNotEmpty(t.getString("phone1"))) {
+                }
+                if (StringUtil.isNotEmpty(t.getString("phone1"))) {
                     for (String p : t.getString("phone1").split(",")) {
                         if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
                                 && !"-".equals(p)) {

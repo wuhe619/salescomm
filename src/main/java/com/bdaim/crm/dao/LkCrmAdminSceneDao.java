@@ -1,8 +1,8 @@
 package com.bdaim.crm.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.crm.entity.LkCrmAdminFieldEntity;
 import com.bdaim.crm.entity.LkCrmAdminSceneEntity;
+import com.bdaim.util.SqlAppendUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -24,12 +24,12 @@ public class LkCrmAdminSceneDao extends SimpleHibernateDao<LkCrmAdminSceneEntity
     }
 
     public List queryHideScene(int type, long userId) {
-        String sql = "select scene_id,name,data from lkcrm_admin_scene where type = ? and user_id = ? and is_hide = 1" ;
+        String sql = "select scene_id,name,data from lkcrm_admin_scene where type = ? and user_id = ? and is_hide = 1";
         return sqlQuery(sql, type, userId);
     }
 
     public Map queryIsHideSystem(List ids) {
-        String sql = "select count(scene_id) as number from 72crm_admin_scene where scene_id in (?) and is_system = 1" ;
-        return sqlQuery(sql, ids).get(0);
+        String sql = "select count(scene_id) as number from 72crm_admin_scene where scene_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ") and is_system = 1";
+        return sqlQuery(sql).get(0);
     }
 }

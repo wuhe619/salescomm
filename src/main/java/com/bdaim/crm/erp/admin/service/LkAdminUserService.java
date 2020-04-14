@@ -568,7 +568,7 @@ public class LkAdminUserService {
      * @param userId 当前用户id
      */
     public List<Long> queryChileUserIds(Long userId, Integer deepness) {
-        List<Long> query = crmAdminUserDao.queryListBySql("select user_id from lkcrm_admin_user where parent_id = ?" +
+        List<Long> query = crmAdminUserDao.queryListForLong("select user_id from lkcrm_admin_user where parent_id = ?" +
                 " and cust_id = ?", userId, BaseUtil.getCustId());
         if (deepness > 0) {
             for (int i = 0, size = query.size(); i < size; i++) {
@@ -730,7 +730,7 @@ public class LkAdminUserService {
         List<Long> adminUsers = new ArrayList<>();
         //查询用户数据权限，从高到低排序
         String sql = "SELECT DISTINCT a.data_type FROM lkcrm_admin_role as a LEFT JOIN lkcrm_admin_user_role as b on a.role_id=b.role_id WHERE b.user_id=?  ORDER BY a.data_type desc";
-        List<Integer> list = crmAdminUserDao.queryListBySql(sql, userId);
+        List<Integer> list = crmAdminUserDao.queryListForInteger(sql, userId);
         if (list.size() == 0) {
             //无权限查询自己的数据
             adminUsers.add(userId);
@@ -771,14 +771,16 @@ public class LkAdminUserService {
         }
         sql += "ORDER BY k.data_type DESC";
         List<Record> userRoleList = JavaBeanUtil.mapToRecords(crmAdminUserDao.sqlQuery(sql, param.toArray()));
-        if (list.size() == 1 && userRoleList.size() == 1) {//如果为1的话 验证是否有最高权限，否则及有多个权限
-            //拥有最高数据权限
+        //如果为1的话 验证是否有最高权限，否则及有多个权限
+        if (list.size() == 1 && userRoleList.size() == 1) {
+            //拥有最高数据权限(数据权限为全部)
             if (list.contains(5)) {
                 return null;
             } else {
                 //AdminUser adminUser = AdminUser.dao.findById(userId);
                 LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(userId);
                 if (list.contains(4)) {
+                    // 本部门以及下属部门
                     List<Record> records = adminDeptService.queryDeptByParentDept(adminUser.getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
                     List<String> deptIds = new ArrayList<>();
                     deptIds.add(adminUser.getDeptId().toString());

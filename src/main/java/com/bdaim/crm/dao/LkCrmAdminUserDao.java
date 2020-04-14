@@ -16,9 +16,9 @@ import java.util.Map;
 @Component
 public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, Long> {
 
-    public List queryUserIdByDeptId(List<String> deptIds) {
-        String sql = " select DISTINCT user_id from lkcrm_admin_user where dept_id in (? ) AND cust_id=?";
-        return this.sqlQuery(sql, SqlAppendUtil.sqlAppendWhereIn(deptIds), BaseUtil.getCustId());
+    public List<Long> queryUserIdByDeptId(List<String> deptIds) {
+        String sql = " select DISTINCT user_id from lkcrm_admin_user where dept_id in (" + SqlAppendUtil.sqlAppendWhereIn(deptIds) + " ) AND cust_id=?";
+        return this.queryListForLong(sql, BaseUtil.getCustId());
     }
 
     public List<Long> queryUserIdByDeptId(String deptIds) {
