@@ -511,6 +511,7 @@ public class AdminSceneService {
                 for (int i = 0; i < list.size(); i++) {
                     fList = new ArrayList();
                     value = list.getJSONObject(i);
+                    value.put("entId", "");
                     for (String k : value.keySet()) {
                         if ("mobile".equals(k) || "手机号".equals(k) || "手机".equals(k)) {
                             // 处理手机号类型
