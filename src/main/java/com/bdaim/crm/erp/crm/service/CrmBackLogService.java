@@ -47,6 +47,7 @@ public class CrmBackLogService {
     public R num() {
         LoginUser user = BaseUtil.getUser();
         String userId = user.getUserId().toString();
+        Integer todayLeads = crmCustomerDao.todayLeadsNum(userId);
         Integer todayCustomer = crmCustomerDao.todayCustomerNum(userId);
         Integer followLeads = crmCustomerDao.followLeadsNum(userId);
         Integer followCustomer = crmCustomerDao.followCustomerNum(userId);
@@ -58,7 +59,7 @@ public class CrmBackLogService {
         if (1 == adminConfig.getStatus()) {
             endContract = crmCustomerDao.endContractNum(adminConfig.getValue(), userId);
         }
-        Kv kv = Kv.by("todayCustomer", todayCustomer).set("followLeads", followLeads).set("followCustomer", followCustomer)
+        Kv kv = Kv.by("todayLeads", todayLeads).set("todayCustomer", todayCustomer).set("followLeads", followLeads).set("followCustomer", followCustomer)
                 .set("checkReceivables", checkReceivables).set("remindReceivablesPlan", remindReceivablesPlan).set("endContract", endContract);
         //if (config == 1) {
         Integer checkContract = crmCustomerDao.checkContractNum(userId);
