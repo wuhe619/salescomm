@@ -2402,7 +2402,7 @@ public class SupplierService {
             }
             sql.append(" order by create_time desc");
             PageList list = new Pagination().getPageData(sql.toString(), params.toArray(), page, jdbcTemplate);
-            log.info("list::::",list);
+            log.info("list::::",list.getList());
 
             Map<String, Object> map = new HashMap<>();
             List<ApiProperty> rsIds = apiDao.getPropertyAll("rsIds");
@@ -2426,7 +2426,7 @@ public class SupplierService {
             Object collect = list.getList().stream().map(m -> {
                 try {
                     Map map1 = (Map) m;
-                    log.info("map1111:",map1);
+                    log.info("map1111:",map1.get("name"));
                     Map<String, Object> supplierDTOMap = new HashMap<>();
                     supplierDTOMap.put("name", map1.get("name"));
                     supplierDTOMap.put("settlementType", map1.get("settlement_type"));
