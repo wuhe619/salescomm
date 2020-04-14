@@ -136,7 +136,7 @@ public class BiClueService {
             sqlStringBuffer.append("select '").append(beginTime).append("' as type,IFNULL((select count(record_id) from lkcrm_admin_record where DATE_FORMAT(create_time,'")
                     .append(sqlDateFormat).append("') = '").append(beginTime).append("' and types = 'crm_leads' and cust_id='")
                     .append(BaseUtil.getCustId()).append("' and create_user_id in (").append(userIds)
-                    .append(")),0) as recordCount,IFNULL(count(DISTINCT types_id),0) as customerCount from lkcrm_admin_record where DATE_FORMAT(create_time,'")
+                    .append(")),0) as recordCount,IFNULL(count(DISTINCT types_id),0) as leadsCount from lkcrm_admin_record where DATE_FORMAT(create_time,'")
                     .append(sqlDateFormat).append("') = '").append(beginTime).append("' and types = 'crm_leads' and cust_id='")
                     .append(BaseUtil.getCustId()).append("' and create_user_id in (").append(userIds).append(")");
             if (i != cycleNum) {
