@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.util.TypeUtils;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmActionRecordDao;
 import com.bdaim.crm.dao.LkCrmAdminFieldvDao;
@@ -168,8 +169,9 @@ public class CrmRecordService<T> {
 
     public void addRecord(Object actionId, String crmTypes, final Object... operationNames) {
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
-        crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
-        crmActionRecord.setCustId(BaseUtil.getUser().getCustId());
+        LoginUser user = BaseUtil.getUser();
+        crmActionRecord.setCreateUserId(user.getUserId());
+        crmActionRecord.setCustId(user.getCustId());
         crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         crmActionRecord.setTypes(crmTypes);
         crmActionRecord.setActionId(String.valueOf(actionId));
@@ -254,8 +256,9 @@ public class CrmRecordService<T> {
     public void addConversionRecord(Integer actionId, String crmTypes, Object userId) {
         String name = crmAdminRecordDao.queryForObject("select realname from lkcrm_admin_user where user_id = ?", userId);
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
-        crmActionRecord.setCreateUserId(BaseUtil.getUserId());
-        crmActionRecord.setCustId(BaseUtil.getUser().getCustId());
+        LoginUser user = BaseUtil.getUser();
+        crmActionRecord.setCreateUserId(user.getUserId());
+        crmActionRecord.setCustId(user.getCustId());
         crmActionRecord.setCreateTime(DateUtil.date().toTimestamp());
         crmActionRecord.setTypes(crmTypes);
         crmActionRecord.setActionId(actionId.toString());
@@ -270,8 +273,9 @@ public class CrmRecordService<T> {
      */
     public void addIsLockRecord(String[] ids, String crmTypes, Integer isLock) {
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
-        crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
-        crmActionRecord.setCustId(BaseUtil.getUser().getCustId());
+        LoginUser user = BaseUtil.getUser();
+        crmActionRecord.setCreateUserId(user.getUserId());
+        crmActionRecord.setCustId(user.getCustId());
         crmActionRecord.setCreateTime(DateUtil.date().toTimestamp());
         crmActionRecord.setTypes(crmTypes);
         ArrayList<String> strings = new ArrayList<>();
@@ -295,8 +299,9 @@ public class CrmRecordService<T> {
      */
     public void addConversionCustomerRecord(Integer actionId, String crmTypes, String name) {
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
-        crmActionRecord.setCustId(BaseUtil.getUser().getCustId());
-        crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
+        LoginUser user = BaseUtil.getUser();
+        crmActionRecord.setCustId(user.getCustId());
+        crmActionRecord.setCreateUserId(user.getUserId());
         crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         crmActionRecord.setTypes(crmTypes);
         crmActionRecord.setActionId(actionId.toString());
@@ -314,12 +319,13 @@ public class CrmRecordService<T> {
      */
     public void addPutIntoTheOpenSeaRecord(Collection actionIds, String crmTypes) {
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
-        crmActionRecord.setCustId(BaseUtil.getUser().getCustId());
+        LoginUser user = BaseUtil.getUser();
+        crmActionRecord.setCustId(user.getCustId());
         Long adminUserId = BaseUtil.getAdminUserId();
         if (BaseUtil.getRequest() == null) {
             crmActionRecord.setCreateUserId(adminUserId);
         } else {
-            crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmActionRecord.setCreateUserId(user.getUserId());
         }
         crmActionRecord.setCreateTime(DateUtil.date().toTimestamp());
         crmActionRecord.setTypes(crmTypes);
@@ -348,8 +354,9 @@ public class CrmRecordService<T> {
             ArrayList<String> strings = new ArrayList<>();
             String name = crmAdminFieldvDao.queryForObject("select realname from lkcrm_admin_user where user_id = ?", userId);
             LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
-            crmActionRecord.setCustId(BaseUtil.getUser().getCustId());
-            crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
+            LoginUser user = BaseUtil.getUser();
+            crmActionRecord.setCustId(user.getCustId());
+            crmActionRecord.setCreateUserId(user.getUserId());
             crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
             crmActionRecord.setTypes(crmTypes);
             crmActionRecord.setActionId(id);
@@ -387,11 +394,12 @@ public class CrmRecordService<T> {
      */
     @Before(Tx.class)
     public R setRecordOptions(List<String> list) {
-        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'followRecordOption' AND cust_id = ? ", BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'followRecordOption' AND cust_id = ? ", user.getCustId());
         List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
-            adminConfig.setCustId(BaseUtil.getCustId());
+            adminConfig.setCustId(user.getCustId());
             adminConfig.setName("followRecordOption");
             adminConfig.setValue(list.get(i));
             adminConfig.setDescription("跟进记录选项");

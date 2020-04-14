@@ -8,6 +8,7 @@ import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
@@ -120,8 +121,9 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/cluesea/addClueData", method = RequestMethod.POST)
     public ResponseCommon addClueData(@RequestBody JSONObject jsonO) {
         ResponseCommon responseJson = new ResponseCommon();
-        String customerId = BaseUtil.getUser().getCustId();
-        Long userId = BaseUtil.getUser().getId();
+        LoginUser user = BaseUtil.getUser();
+        String customerId = user.getCustId();
+        Long userId = user.getId();
         String seaId = jsonO.getString("seaId");
         try {
             JSONArray labelIdArray = jsonO.getJSONArray("labelIds");
@@ -180,8 +182,9 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/cluesea/updateClueData", method = RequestMethod.POST)
     public ResponseCommon updateClueData(@RequestBody JSONObject jsonO) {
         ResponseCommon responseJson = new ResponseCommon();
-        String customerId = BaseUtil.getUser().getCustId();
-        Long userId = BaseUtil.getUser().getId();
+        LoginUser user = BaseUtil.getUser();
+        String customerId = user.getCustId();
+        Long userId = user.getId();
         String remark = jsonO.getString("remark");
         String superId = jsonO.getString("superId");
         String touchId = jsonO.getString("touchId");
@@ -258,11 +261,12 @@ public class CrmLeadsController extends BasicAction {
         int operate = jsonObject.getIntValue("operate");
         int data = 0;
         try {
-            param.setUserId(BaseUtil.getUser().getId());
-            param.setUserType(BaseUtil.getUser().getUserType());
-            param.setUserGroupRole(BaseUtil.getUser().getUserGroupRole());
-            param.setUserGroupId(BaseUtil.getUser().getUserGroupId());
-            param.setCustId(BaseUtil.getUser().getCustId());
+            LoginUser user = BaseUtil.getUser();
+            param.setUserId(user.getId());
+            param.setUserType(user.getUserType());
+            param.setUserGroupRole(user.getUserGroupRole());
+            param.setUserGroupId(user.getUserGroupId());
+            param.setCustId(user.getCustId());
             if (1 == operate) {
                 // 删除公海线索
                 crmLeadsService.deletePublicClue(param.getSuperIds(), param.getSeaId());
@@ -311,26 +315,27 @@ public class CrmLeadsController extends BasicAction {
             responseJson.setMsg("userIds参数必填");
             responseJson.setCode(-1);
         }
+        LoginUser user = BaseUtil.getUser();
         // 员工和组长领取线索处理
-        if ("2".equals(BaseUtil.getUser().getUserType())) {
+        if ("2".equals(user.getUserType())) {
             List<String> userIds = new ArrayList<>();
-            userIds.add(String.valueOf(BaseUtil.getUser().getId()));
+            userIds.add(String.valueOf(user.getId()));
             param.setUserIds(userIds);
         }
         if (1 == BaseUtil.getUserType() && (param.getUserIds() == null || param.getUserIds().size() == 0)) {
             List<String> userIds = new ArrayList<>();
-            userIds.add(String.valueOf(BaseUtil.getUser().getId()));
+            userIds.add(String.valueOf(user.getId()));
             param.setUserIds(userIds);
         }
         // 快速分配时用户和数量数组
         JSONArray assignedList = jsonObject.getJSONArray("assignedlist");
         int data = 0;
         try {
-            param.setUserId(BaseUtil.getUser().getId());
-            param.setUserType(BaseUtil.getUser().getUserType());
-            param.setUserGroupRole(BaseUtil.getUser().getUserGroupRole());
-            param.setUserGroupId(BaseUtil.getUser().getUserGroupId());
-            param.setCustId(BaseUtil.getUser().getCustId());
+            param.setUserId(user.getId());
+            param.setUserType(user.getUserType());
+            param.setUserGroupRole(user.getUserGroupRole());
+            param.setUserGroupId(user.getUserGroupId());
+            param.setCustId(user.getCustId());
             // 同步操作
             synchronized (this) {
                 data = crmLeadsService.distributionClue(param, operate, assignedList);
@@ -377,8 +382,9 @@ public class CrmLeadsController extends BasicAction {
         ResponseJson responseJson = new ResponseJson();
         long data = 0;
         try {
-            param.setUserId(BaseUtil.getUser().getId());
-            data = crmLeadsService.getUserReceivableQuantity(param.getSeaId(), String.valueOf(BaseUtil.getUser().getId()));
+            LoginUser user = BaseUtil.getUser();
+            param.setUserId(user.getId());
+            data = crmLeadsService.getUserReceivableQuantity(param.getSeaId(), String.valueOf(user.getId()));
             responseJson.setCode(200);
         } catch (Exception e) {
             responseJson.setCode(0);

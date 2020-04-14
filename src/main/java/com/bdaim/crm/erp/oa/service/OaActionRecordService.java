@@ -126,7 +126,7 @@ public class OaActionRecordService {
                     info = JavaBeanUtil.mapToRecord(mapList.get(0));
                 }
                 if (info != null) {
-                    oaLogService.queryLogDetail(info, BaseUtil.getUser().getUserId());
+                    oaLogService.queryLogDetail(info, user.getUserId());
                 }
             } else if (recordType.equals(OaEnum.EXAMINE_TYPE_KEY.getTypes())) {
                 String infoSql = "select content as title from lkcrm_oa_examine where examine_id = ?";

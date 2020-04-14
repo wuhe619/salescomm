@@ -6,6 +6,7 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customer.service.B2BTcbService;
@@ -150,11 +151,12 @@ public class CrmPackagesService {
         info.put("type", 4);
         info.put("status", 1);
         String custId = orderDO.getCustId();
+        LoginUser user = BaseUtil.getUser();
         try {
-            logger.info("通过crm官网购买套餐包开通custId:{},userId:{},resource_id:{}", custId, BaseUtil.getUserId(), orderDO.getRemarks());
-            b2BTcbService.saveTcbData(custId, BaseUtil.getUserId(), LocalDateTime.now(), info);
+            logger.info("通过crm官网购买套餐包开通custId:{},userId:{},resource_id:{}", custId, user.getUserId(), orderDO.getRemarks());
+            b2BTcbService.saveTcbData(custId, user.getUserId(), LocalDateTime.now(), info);
         } catch (Exception e) {
-            logger.error("通过crm官网购买套餐包开通失败:custId:{},userId:{}", custId, BaseUtil.getUserId(), e);
+            logger.error("通过crm官网购买套餐包开通失败:custId:{},userId:{}", custId, user.getUserId(), e);
         }
     }
 

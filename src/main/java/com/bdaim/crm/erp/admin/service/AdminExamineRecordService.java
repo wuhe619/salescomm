@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.admin.service;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
@@ -47,6 +48,7 @@ public class AdminExamineRecordService {
      * 第一次添加审核记录和审核日志 type 1 合同 2 回款 userId:授权审批人
      */
     public Map<String, Integer> saveExamineRecord(Integer type, Long userId, Long ownerUserId, Integer recordId) {
+        LoginUser user = BaseUtil.getUser();
         Map<String, Integer> map = new HashMap<>();
         //创建审核记录
         LkCrmAdminExamineRecordEntity examineRecord = new LkCrmAdminExamineRecordEntity();
@@ -56,13 +58,13 @@ public class AdminExamineRecordService {
             //Db.update(Db.getSql("admin.examineLog.updateExamineLogIsRecheckByRecordId"), recordId);
         } else {
             examineRecord.setCreateTime(DateUtil.date().toTimestamp());
-            examineRecord.setCreateUser(BaseUtil.getUser().getUserId());
+            examineRecord.setCreateUser(user.getUserId());
         }
         //创建审核日志
         LkCrmAdminExamineLogEntity examineLog = new LkCrmAdminExamineLogEntity();
         examineRecord.setExamineStatus(0);
         examineLog.setCreateTime(DateUtil.date().toTimestamp());
-        examineLog.setCreateUser(BaseUtil.getUser().getUserId());
+        examineLog.setCreateUser(user.getUserId());
         examineLog.setExamineStatus(0);
         examineLog.setOrderId(1);
         //根据type查询当前启用审批流程
@@ -152,9 +154,9 @@ public class AdminExamineRecordService {
      * remarks:审核备注 id:审核对象的id（合同或者回款的id）nextUserId:下一个审批人 ownerUserId:负责人
      */
     public R auditExamine(Integer recordId, Integer status, String remarks, Integer id, Long nextUserId, Long ownerUserId) {
-
+        LoginUser user = BaseUtil.getUser();
         //当前审批人
-        Long auditUserId = BaseUtil.getUser().getUserId();
+        Long auditUserId = user.getUserId();
 
         //根据审核记录id查询审核记录
         LkCrmAdminExamineRecordEntity examineRecord = crmAdminExamineRecordDao.get(recordId);
@@ -324,7 +326,7 @@ public class AdminExamineRecordService {
                                     ///examineLog.setLogId(null);
                                     examineLog.setExamineUser(Long.valueOf(uid));
                                     examineLog.setCreateTime(DateUtil.date().toTimestamp());
-                                    examineLog.setCreateUser(BaseUtil.getUser().getUserId());
+                                    examineLog.setCreateUser(user.getUserId());
                                     examineLog.setExamineStatus(0);
                                     examineLog.setIsRecheck(0);
                                     examineLog.setExamineStepId(nextExamineStep.getStepId());
@@ -345,7 +347,7 @@ public class AdminExamineRecordService {
                             }
                             examineLog.setExamineStatus(0);
                             examineLog.setCreateTime(DateUtil.date().toTimestamp());
-                            examineLog.setCreateUser(BaseUtil.getUser().getUserId());
+                            examineLog.setCreateUser(user.getUserId());
                             examineLog.setIsRecheck(0);
                             examineLog.setExamineStepId(nextExamineStep.getStepId());
                             examineLog.setRecordId(examineRecord.getRecordId());
@@ -363,7 +365,7 @@ public class AdminExamineRecordService {
                             }
                             examineLog.setExamineStatus(0);
                             examineLog.setCreateTime(DateUtil.date().toTimestamp());
-                            examineLog.setCreateUser(BaseUtil.getUser().getUserId());
+                            examineLog.setCreateUser(user.getUserId());
                             examineLog.setExamineStepId(nextExamineStep.getStepId());
                             examineLog.setRecordId(examineRecord.getRecordId());
                             examineLog.setIsRecheck(0);
@@ -404,7 +406,7 @@ public class AdminExamineRecordService {
                     examineRecord.setExamineStatus(3);
                     LkCrmAdminExamineLogEntity examineLog = new LkCrmAdminExamineLogEntity();
                     examineLog.setCreateTime(DateUtil.date().toTimestamp());
-                    examineLog.setCreateUser(BaseUtil.getUser().getUserId());
+                    examineLog.setCreateUser(user.getUserId());
                     examineLog.setExamineUser(nextUserId);
                     examineLog.setExamineStatus(0);
                     examineLog.setIsRecheck(0);

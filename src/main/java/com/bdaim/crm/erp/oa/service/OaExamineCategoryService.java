@@ -49,12 +49,13 @@ public class OaExamineCategoryService {
     public R setExamineCategory(LkCrmOaExamineCategoryEntity oaExamineCategory, List<LkCrmOaExamineStepEntity> examineStepList) {
         boolean bol;
         Integer categoryId;
+        LoginUser user = BaseUtil.getUser();
         if (oaExamineCategory.getCategoryId() == null) {
-            oaExamineCategory.setCreateUserId(BaseUtil.getUser().getUserId());
+            oaExamineCategory.setCreateUserId(user.getUserId());
             oaExamineCategory.setCreateTime(new Timestamp(System.currentTimeMillis()));
             oaExamineCategory.setUpdateTime(new Timestamp(System.currentTimeMillis()));
 //            bol = oaExamineCategory.save();
-            oaExamineCategory.setCustId(BaseUtil.getCustId());
+            oaExamineCategory.setCustId(user.getCustId());
             categoryDao.save(oaExamineCategory);
             categoryId = oaExamineCategory.getCategoryId();
             LkCrmAdminFieldEntity content = new LkCrmAdminFieldEntity();

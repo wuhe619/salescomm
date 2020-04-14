@@ -46,7 +46,8 @@ public class OaAnnouncementService {
      * 添加或修改
      */
     public R saveAndUpdate(LkCrmOaAnnouncementEntity oaAnnouncement) {
-        oaAnnouncement.setCustId(BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        oaAnnouncement.setCustId(user.getCustId());
         LkCrmAdminRoleEntity adminRole = adminRoleDao.queryAnnouncementByUserId(oaAnnouncement.getCreateUserId());
         //AdminRole adminRole = AdminRole.dao.findFirst(Db.getSql("admin.role.queryAnnouncementByUserId"), oaAnnouncement.getCreateUserId());
 
@@ -77,7 +78,6 @@ public class OaAnnouncementService {
             BeanUtils.copyProperties(oaAnnouncement, dbEntity, JavaBeanUtil.getNullPropertyNames(oaAnnouncement));
             flag = true;
         }
-        LoginUser user = BaseUtil.getUser();
         oaActionRecordService.addRecord(oaAnnouncement.getAnnouncementId(), OaEnum.ANNOUNCEMENT_TYPE_KEY.getTypes(), oaAnnouncement.getUpdateTime() == null ? 1 : 2, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaAnnouncement.getOwnerUserIds()), oaActionRecordService.getJoinIds(user.getDeptId(), oaAnnouncement.getDeptIds()));
         return R.isSuccess(flag);
     }
@@ -114,7 +114,8 @@ public class OaAnnouncementService {
      * 倒叙查询公告集合
      */
     public R queryList(BasePageRequest<OaAnnouncement> basePageRequest, Integer type) {
-        LkCrmAdminRoleEntity adminRole = adminRoleDao.queryAnnouncementByUserId(BaseUtil.getUser().getUserId());
+        LoginUser user = BaseUtil.getUser();
+        LkCrmAdminRoleEntity adminRole = adminRoleDao.queryAnnouncementByUserId(user.getUserId());
         int status = 1;
         if (adminRole == null && BaseUtil.getUserType() != 1) {
             status = 0;
@@ -132,14 +133,14 @@ public class OaAnnouncementService {
         sql.append(" AND an.cust_id = ? ");
         String cc = " order by an.announcement_id desc";
         Page page = adminRoleDao.pageByFullSql(basePageRequest.getPage(), basePageRequest.getLimit(),
-                tatal + sql, queryList + sql + cc, BaseUtil.getCustId());
+                tatal + sql, queryList + sql + cc, user.getCustId());
         List list = new ArrayList();
         for (Map<String, Object> obj : (List<Map<String, Object>>) page.getData()) {
             Record r = JavaBeanUtil.mapToRecord(obj);
             r.set("is_update", status);
             r.set("is_delete", status);
             if (r.getStr("read_user_ids") != null) {
-                r.set("is_read", r.getStr("read_user_ids").contains("," + BaseUtil.getUserId().intValue() + ",") ? 1 : 0);
+                r.set("is_read", r.getStr("read_user_ids").contains("," + user.getUserId() + ",") ? 1 : 0);
             } else {
                 r.set("is_read", 0);
             }

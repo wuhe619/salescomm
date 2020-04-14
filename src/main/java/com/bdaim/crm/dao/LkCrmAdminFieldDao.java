@@ -38,8 +38,9 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
 
     public int deleteByFieldValue(List<Integer> field_ids, int label, Integer categoryId) {
         List param = new ArrayList();
-        param.add(BaseUtil.getCustId());
-        param.add(BaseUtil.getCustId());
+        String custId = BaseUtil.getCustId();
+        param.add(custId);
+        param.add(custId);
         param.add(label);
         String sql = "DELETE FROM lkcrm_admin_fieldv WHERE cust_id = ? AND field_id in( SELECT field_id FROM lkcrm_admin_field WHERE field_id not in(" + SqlAppendUtil.sqlAppendWhereIn(field_ids.toArray()) + " AND cust_id = ?  ) and (operating = '0' or operating = '2') and label=? ";
         if (10 == label) {

@@ -68,7 +68,7 @@ public class InstrumentController extends BasicAction {
                                @RequestParam("type") String type,
                                @RequestParam("label") Integer label) {
         if (userIds == null) {
-            userIds = BaseUtil.getUser().getUserId().intValue() + "";
+            userIds = BaseUtil.getUser().getUserId() + "";
         } else if (deptIds != null && StrUtil.isNotEmpty(deptIds)) {
             userIds = adminUserService.queryUserIdsByDept(deptIds) + "," + userIds;
         }
