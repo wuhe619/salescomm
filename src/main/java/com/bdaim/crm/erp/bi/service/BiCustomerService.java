@@ -51,7 +51,7 @@ public class BiCustomerService {
                     .append(BaseUtil.getCustId()).append("' and DATE_FORMAT(create_time,'")
                     .append(sqlDateFormat).append("') = '").append(beginTime).append("' and owner_user_id in (").append(userIds)
                     .append(")),0) as customerNum,IFNULL(count(DISTINCT a.customer_id),0) as dealCustomerNum from lkcrm_crm_customer as a left join lkcrm_crm_contract as b on a.customer_id = b.customer_id where DATE_FORMAT(b.order_date,'")
-                    .append(sqlDateFormat).append("') = '").append(beginTime).append("' and b.cust_id='").append(BaseUtil.getCustId())
+                    .append(sqlDateFormat).append("') = '").append(beginTime).append("' and b.check_status='2' and b.cust_id='").append(BaseUtil.getCustId())
                     .append("' and b.owner_user_id in (").append(userIds).append(")");
             if (i != cycleNum) {
                 sqlStringBuffer.append(" union all ");
