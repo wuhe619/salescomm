@@ -293,11 +293,11 @@ public class CustomerAppService {
             CustomerProperty used_amount = customerDao.getProperty(cust_id, "used_amount");
             if (remain_amount != null) {
                 logger.info("remain_amount:{" + remain_amount + "}");
-                map.put("remainAmount", StringUtil.isEmpty(remain_amount.getPropertyValue()) ? "0" : String.valueOf(BigDecimalUtil.strDiv(remain_amount.getPropertyValue(), "10000", 2)));
+                map.put("remainAmount", StringUtil.isEmpty(remain_amount.getPropertyValue()) ? "0" : String.valueOf(BigDecimalUtil.strDiv(remain_amount.getPropertyValue(), "10000", 3)));
             }
             if (used_amount != null) {
                 logger.info("used_amount:{" + used_amount + "}");
-                map.put("used_amount", StringUtil.isEmpty(used_amount.getPropertyValue()) ? "0" : String.valueOf(BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "10000", 2)));
+                map.put("used_amount", StringUtil.isEmpty(used_amount.getPropertyValue()) ? "0" : String.valueOf(BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "10000", 3)));
             }
             CustomerProperty settlement_method = customerDao.getProperty(cust_id, "settlement_method");
             if (settlement_method != null) {
@@ -409,7 +409,7 @@ public class CustomerAppService {
                     if (property_value == null)
                         property_value = "0";
                     else
-                        property_value = BigDecimalUtil.strDiv(property_value, "10000", 2);
+                        property_value = BigDecimalUtil.strDiv(property_value, "10000", 3);
                     vo.setRemain_amount(property_value);
             }
         }
@@ -461,7 +461,7 @@ public class CustomerAppService {
                     map.put("bank_account", m.get("property_value"));
                     break;
                 case "remain_amount":
-                    map.put("remain_amount", BigDecimalUtil.strDiv(m.get("property_value").toString(),"10000",2));
+                    map.put("remain_amount", BigDecimalUtil.strDiv(m.get("property_value").toString(),"10000",3));
                     break;
             }
         });
@@ -478,7 +478,7 @@ public class CustomerAppService {
                 deposit.setCustId(depositMap.get("SUBSCRIBER_ID").toString());
             }
             if (depositMap.get("MONEY") != null) {
-                deposit.setMoney(BigDecimalUtil.strDiv(depositMap.get("MONEY").toString(),"10000",2));
+                deposit.setMoney(BigDecimalUtil.strDiv(depositMap.get("MONEY").toString(),"10000",3));
             }
             if (depositMap.get("PAY_TIME") != null) {
                 deposit.setPayTime(depositMap.get("PAY_TIME").toString());
@@ -490,7 +490,7 @@ public class CustomerAppService {
                 deposit.setPicId(depositMap.get("pay_certificate").toString());
             }
             if (depositMap.get("pre_money") != null) {
-                deposit.setPreMoney(BigDecimalUtil.strDiv(depositMap.get("pre_money").toString(),"10000",2 ));
+                deposit.setPreMoney(BigDecimalUtil.strDiv(depositMap.get("pre_money").toString(),"10000",3 ));
             }
             if (depositMap.get("user_id") != null) {
                 deposit.setUserId(depositMap.get("user_id").toString());
