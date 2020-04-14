@@ -1029,6 +1029,46 @@ public class EntDataService {
     }
 
     /**
+     * 根据企业名称查询企业详情
+     * @param companyName
+     * @return
+     */
+    public JSONObject getCompanyByName(String companyName) {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        BoolQueryBuilder qb = QueryBuilders.boolQuery();
+        qb.filter(QueryBuilders.termQuery("entName", companyName));
+        searchSourceBuilder.query(qb);
+        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(),AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
+        JSONObject t = null;
+        if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
+            int sum;
+            for (SearchResult.Hit<JSONObject, Void> hit : result.getHits(JSONObject.class)) {
+                t = hit.source;
+                t.put("id", hit.id);
+                sum = 0;
+                if (StringUtil.isNotEmpty(t.getString("phone"))) {
+                    for (String p : t.getString("phone").split(",")) {
+                        if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
+                                && !"-".equals(p)) {
+                            sum++;
+                        }
+                    }
+                } else if (StringUtil.isNotEmpty(t.getString("phone1"))) {
+                    for (String p : t.getString("phone1").split(",")) {
+                        if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
+                                && !"-".equals(p)) {
+                            sum++;
+                        }
+                    }
+                }
+                t.put("sum", sum);
+                break;
+            }
+        }
+        return t;
+    }
+
+    /**
      * 处理公司联系方式是否有意向
      *
      * @param seaId

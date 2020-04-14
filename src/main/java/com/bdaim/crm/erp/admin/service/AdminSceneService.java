@@ -13,6 +13,7 @@ import com.bdaim.common.service.PhoneService;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.*;
+import com.bdaim.crm.ent.service.EntDataService;
 import com.bdaim.crm.entity.LkCrmAdminSceneDefaultEntity;
 import com.bdaim.crm.entity.LkCrmAdminSceneEntity;
 import com.bdaim.crm.entity.LkCrmCustomerEntity;
@@ -63,6 +64,9 @@ public class AdminSceneService {
 
     @Autowired
     private PhoneService phoneService;
+
+    @Autowired
+    private EntDataService entDataService;
 
 
     /**
@@ -503,7 +507,7 @@ public class AdminSceneService {
                 List fList;
                 JSONArray list = ((JSONObject) result.get("data")).getJSONArray("list");
                 Map f;
-                JSONObject value;
+                JSONObject value, company;
                 for (int i = 0; i < list.size(); i++) {
                     fList = new ArrayList();
                     value = list.getJSONObject(i);
@@ -520,6 +524,13 @@ public class AdminSceneService {
                             f.put("field", k);
                             f.put("type", 22);
                             fList.add(f);
+                        }
+                    }
+                    // 处理公司名称
+                    if (value.containsKey("company") && StringUtil.isNotEmpty(value.getString("company"))) {
+                        company = entDataService.getCompanyByName(value.getString("company"));
+                        if (company != null) {
+                            value.put("entId", company.getString("id"));
                         }
                     }
                     list.getJSONObject(i).put("flist", fList);
