@@ -780,7 +780,7 @@ public class CrmLeadsService {
                         adminFieldv.setBatchId(superId);
                         adminFieldvList.add(adminFieldv);
                     }
-                    if ("客户来源".equals(seaField.getName()) && "线索来源".equals(leadsFIeld.getStr("name"))) {
+                    if ("线索来源".equals(seaField.getName()) && "线索来源".equals(leadsFIeld.getStr("name"))) {
                         LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(seaField.getFieldId());
@@ -1328,7 +1328,7 @@ public class CrmLeadsService {
     @Async
     public R deleteByBatchIds(List idsList) {
         if (idsList == null || idsList.size() == 0) {
-            R.error("leadsIds不能为空");
+            return R.error("superIds不能为空");
         }
         int i = crmLeadsDao.deleteByBatchIds(idsList);
         if (idsList.size() > 0) {
@@ -1339,7 +1339,7 @@ public class CrmLeadsService {
 
     public R deletePublicClue(List idsList, String seaId) {
         if (idsList == null || idsList.size() == 0) {
-            R.error("leadsIds不能为空");
+            return R.error("superIds不能为空");
         }
         int i = 0;
         if (idsList.size() > 0) {
