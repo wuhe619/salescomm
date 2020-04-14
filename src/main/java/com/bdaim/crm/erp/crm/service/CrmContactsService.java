@@ -393,18 +393,18 @@ public class CrmContactsService {
     public R addRecord(LkCrmAdminRecordEntity adminRecord) {
         adminRecord.setTypes("crm_contacts");
         adminRecord.setCreateTime(DateUtil.date().toTimestamp());
-        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
-        adminRecord.setCustId(BaseUtil.getUser().getCustId());
+        LoginUser user = BaseUtil.getUser();
+        adminRecord.setCreateUserId(user.getUserId());
+        adminRecord.setCustId(user.getCustId());
         if (1 == adminRecord.getIsEvent()) {
             LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
             oaEvent.setStartTime(adminRecord.getNextTime());
             oaEvent.setEndTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
             oaEvent.setCreateTime(DateUtil.date().toTimestamp());
-            oaEvent.setCreateUserId(BaseUtil.getUser().getUserId());
+            oaEvent.setCreateUserId(user.getUserId());
             crmOaEventDao.save(oaEvent);
 
-            LoginUser user = BaseUtil.getUser();
             oaActionRecordService.addRecord(oaEvent.getEventId(), OaEnum.EVENT_TYPE_KEY.getTypes(), 1, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaEvent.getOwnerUserIds()), oaActionRecordService.getJoinIds(user.getDeptId(), ""));
             LkCrmOaEventRelationEntity oaEventRelation = new LkCrmOaEventRelationEntity();
             oaEventRelation.setEventId(oaEvent.getEventId());
@@ -415,7 +415,7 @@ public class CrmContactsService {
         // 添加任务
         if (adminRecord.getIsTask() != null && 1 == adminRecord.getIsTask()) {
             LkCrmTaskEntity crmTaskEntity = new LkCrmTaskEntity();
-            crmTaskEntity.setCustId(BaseUtil.getUser().getCustId());
+            crmTaskEntity.setCustId(user.getCustId());
             crmTaskEntity.setBatchId(IdUtil.simpleUUID());
             crmTaskEntity.setName(adminRecord.getTaskName());
             crmTaskEntity.setDescription(adminRecord.getContent());

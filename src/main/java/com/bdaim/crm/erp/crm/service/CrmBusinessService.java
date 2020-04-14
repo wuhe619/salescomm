@@ -96,7 +96,8 @@ public class CrmBusinessService {
         CrmBusiness entity = jsonObject.getObject("entity", CrmBusiness.class);
         LkCrmBusinessEntity crmBusiness = new LkCrmBusinessEntity();
         BeanUtils.copyProperties(entity, crmBusiness, "isEnd");
-        crmBusiness.setCustId(BaseUtil.getUser().getCustId());
+        LoginUser user = BaseUtil.getUser();
+        crmBusiness.setCustId(user.getCustId());
         JSONArray jsonArray = jsonObject.getJSONArray("product");
         List<LkCrmBusinessProductEntity> businessProductList = jsonArray.toJavaList(LkCrmBusinessProductEntity.class);
         //Db.delete(Db.getSql("crm.business.clearBusinessProduct"), crmBusiness.getBusinessId());
@@ -120,7 +121,7 @@ public class CrmBusinessService {
                 change.setBusinessId(crmBusiness.getBusinessId());
                 change.setStatusId(crmBusiness.getStatusId());
                 change.setCreateTime(DateUtil.date().toTimestamp());
-                change.setCreateUserId(BaseUtil.getUserId());
+                change.setCreateUserId(user.getUserId());
                 crmBusinessDao.saveOrUpdate(change);
             }
             crmBusinessDao.saveOrUpdate(lkCrmBusinessEntity);
@@ -128,8 +129,8 @@ public class CrmBusinessService {
         } else {
             crmBusiness.setCreateTime(DateUtil.date().toTimestamp());
             crmBusiness.setUpdateTime(DateUtil.date().toTimestamp());
-            crmBusiness.setCreateUserId(BaseUtil.getUser().getUserId());
-            crmBusiness.setOwnerUserId(BaseUtil.getUser().getUserId());
+            crmBusiness.setCreateUserId(user.getUserId());
+            crmBusiness.setOwnerUserId(user.getUserId());
             crmBusiness.setBatchId(batchId);
             crmBusiness.setRwUserId(",");
             crmBusiness.setRoUserId(",");
@@ -533,16 +534,16 @@ public class CrmBusinessService {
     public R addRecord(LkCrmAdminRecordEntity adminRecord) {
         adminRecord.setTypes("crm_business");
         adminRecord.setCreateTime(DateUtil.date().toTimestamp());
-        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
+        LoginUser user = BaseUtil.getUser();
+        adminRecord.setCreateUserId(user.getUserId());
         if (1 == adminRecord.getIsEvent()) {
             LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
             oaEvent.setStartTime(adminRecord.getNextTime());
             oaEvent.setEndTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
             oaEvent.setCreateTime(DateUtil.date().toTimestamp());
-            oaEvent.setCreateUserId(BaseUtil.getUser().getUserId());
+            oaEvent.setCreateUserId(user.getUserId());
             crmOaEventDao.save(oaEvent);
-            LoginUser user = BaseUtil.getUser();
             oaActionRecordService.addRecord(oaEvent.getEventId(), OaEnum.EVENT_TYPE_KEY.getTypes(), 1, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaEvent.getOwnerUserIds()), oaActionRecordService.getJoinIds(user.getDeptId(), ""));
             LkCrmOaEventRelationEntity oaEventRelation = new LkCrmOaEventRelationEntity();
             oaEventRelation.setEventId(oaEvent.getEventId());

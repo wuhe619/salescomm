@@ -593,17 +593,17 @@ public class CrmCustomerService {
     public R addRecord(LkCrmAdminRecordEntity adminRecord) {
         adminRecord.setTypes("crm_customer");
         adminRecord.setCreateTime(DateUtil.date().toTimestamp());
-        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
-        adminRecord.setCustId(BaseUtil.getUser().getCustId());
+        LoginUser user = BaseUtil.getUser();
+        adminRecord.setCreateUserId(user.getUserId());
+        adminRecord.setCustId(user.getCustId());
         if (1 == adminRecord.getIsEvent()) {
             LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
             oaEvent.setStartTime(adminRecord.getNextTime());
             oaEvent.setEndTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
             oaEvent.setCreateTime(DateUtil.date().toTimestamp());
-            oaEvent.setCreateUserId(BaseUtil.getUser().getUserId());
+            oaEvent.setCreateUserId(user.getUserId());
             crmOaEventDao.save(oaEvent);
-            LoginUser user = BaseUtil.getUser();
             oaActionRecordService.addRecord(oaEvent.getEventId(), OaEnum.EVENT_TYPE_KEY.getTypes(), 1, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaEvent.getOwnerUserIds()), oaActionRecordService.getJoinIds(user.getDeptId(), ""));
             LkCrmOaEventRelationEntity oaEventRelation = new LkCrmOaEventRelationEntity();
             oaEventRelation.setEventId(oaEvent.getEventId());
@@ -643,7 +643,7 @@ public class CrmCustomerService {
         // 添加任务
         if (adminRecord.getIsTask() != null && 1 == adminRecord.getIsTask()) {
             LkCrmTaskEntity crmTaskEntity = new LkCrmTaskEntity();
-            crmTaskEntity.setCustId(BaseUtil.getUser().getCustId());
+            crmTaskEntity.setCustId(user.getCustId());
             crmTaskEntity.setBatchId(IdUtil.simpleUUID());
             crmTaskEntity.setName(adminRecord.getTaskName());
             crmTaskEntity.setDescription(adminRecord.getContent());
@@ -746,7 +746,8 @@ public class CrmCustomerService {
      */
     @Before(Tx.class)
     public R getRulesSetting() {
-        String custId = BaseUtil.getCustId();
+        LoginUser user = BaseUtil.getUser();
+        String custId = user.getCustId();
         String dealDay = crmAdminConfigDao.queryForObject("select value from lkcrm_admin_config where name = 'customerPoolSettingDealDays' AND cust_id = ?", custId);
         String followupDay = crmAdminConfigDao.queryForObject("select value from lkcrm_admin_config where name = 'customerPoolSettingFollowupDays' AND cust_id = ?", custId);
         Integer type = crmAdminConfigDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting' AND cust_id = ?", custId);
@@ -776,11 +777,11 @@ public class CrmCustomerService {
                 type = 0;
             }
         }
-        LkCrmAdminConfigEntity config = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity WHERE custId = ? AND NAME = ? ", BaseUtil.getCustId(), "expiringContractDays");
+        LkCrmAdminConfigEntity config = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity WHERE custId = ? AND NAME = ? ", user.getCustId(), "expiringContractDays");
         //LkCrmAdminConfigEntity config = crmAdminConfigDao.findUniqueBy("name", "expiringContractDays");
         if (config == null) {
             config = new LkCrmAdminConfigEntity();
-            config.setCustId(BaseUtil.getCustId());
+            config.setCustId(user.getCustId());
             config.setStatus(0);
             config.setName("expiringContractDays");
             config.setValue("3");
@@ -1125,14 +1126,15 @@ public class CrmCustomerService {
      * 查询跟进记录类型
      */
     public R queryRecordOptions() {
-        List<LkCrmAdminConfigEntity> list = crmActionRecordDao.find("from LkCrmAdminConfigEntity where name = ? AND custId = ? ", "customerFollowRecordOption", BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        List<LkCrmAdminConfigEntity> list = crmActionRecordDao.find("from LkCrmAdminConfigEntity where name = ? AND custId = ? ", "customerFollowRecordOption", user.getCustId());
         if (list.size() == 0) {
             List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
             // 初始化数据
             String[] defaults = new String[]{"初访", "有意义", "报价中", "合同中", "已成交", "暂缓"};
             for (String i : defaults) {
                 LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
-                adminConfig.setCustId(BaseUtil.getCustId());
+                adminConfig.setCustId(user.getCustId());
                 adminConfig.setName("customerFollowRecordOption");
                 adminConfig.setValue(i);
                 adminConfig.setDescription("客户跟进记录选项");

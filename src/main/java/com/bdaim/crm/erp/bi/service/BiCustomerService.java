@@ -51,7 +51,7 @@ public class BiCustomerService {
                     .append(BaseUtil.getCustId()).append("' and DATE_FORMAT(create_time,'")
                     .append(sqlDateFormat).append("') = '").append(beginTime).append("' and owner_user_id in (").append(userIds)
                     .append(")),0) as customerNum,IFNULL(count(DISTINCT a.customer_id),0) as dealCustomerNum from lkcrm_crm_customer as a left join lkcrm_crm_contract as b on a.customer_id = b.customer_id where DATE_FORMAT(b.order_date,'")
-                    .append(sqlDateFormat).append("') = '").append(beginTime).append("' and b.cust_id='").append(BaseUtil.getCustId())
+                    .append(sqlDateFormat).append("') = '").append(beginTime).append("' and b.check_status='2' and b.cust_id='").append(BaseUtil.getCustId())
                     .append("' and b.owner_user_id in (").append(userIds).append(")");
             if (i != cycleNum) {
                 sqlStringBuffer.append(" union all ");
@@ -201,13 +201,13 @@ public class BiCustomerService {
                 "IFNULL(count(record_id)*100/(select count(*) from lkcrm_admin_record where cust_id='")
                 .append(BaseUtil.getCustId()).append("' and DATE_FORMAT(create_time,'")
                 .append(sqlDateFormat).append("') between '").append(beginTime).append("' and '")
-                .append(finalTime).append("' and create_user_id in (")
+                .append(finalTime).append("' and types='crm_customer' and create_user_id in (")
                 .append(userIds).append(")),0) as proportion from lkcrm_admin_record where cust_id='")
                 .append(BaseUtil.getCustId()).append("' and (DATE_FORMAT(create_time,'")
                 .append(sqlDateFormat)
                 .append("') between '").append(beginTime).append("' and '").append(finalTime)
                 .append("') and create_user_id in (").append(userIds)
-                .append(") group by category");
+                .append(") and types='crm_customer' group by category");
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", recordList);

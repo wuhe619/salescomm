@@ -160,8 +160,9 @@ public class CrmContractService {
         CrmContract entity = jsonObject.getObject("entity", CrmContract.class);
         LkCrmContractEntity crmContract = new LkCrmContractEntity();
         BeanUtils.copyProperties(entity, crmContract);
+        LoginUser user = BaseUtil.getUser();
         String batchId = StrUtil.isNotEmpty(crmContract.getBatchId()) ? crmContract.getBatchId() : IdUtil.simpleUUID();
-        crmContract.setCustId(BaseUtil.getUser().getCustId());
+        crmContract.setCustId(user.getCustId());
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         boolean flag;
@@ -170,14 +171,14 @@ public class CrmContractService {
             if (contract != 0) {
                 return R.error("合同编号已存在，请校对后再添加！");
             }
-            crmContract.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmContract.setCreateUserId(user.getUserId());
             crmContract.setBatchId(batchId);
             crmContract.setCreateTime(DateUtil.date().toTimestamp());
             crmContract.setUpdateTime(DateUtil.date().toTimestamp());
             crmContract.setRoUserId(",");
             crmContract.setRwUserId(",");
             crmContract.setCheckStatus(0);
-            crmContract.setOwnerUserId(BaseUtil.getUser().getUserId());
+            crmContract.setOwnerUserId(user.getUserId());
 
             Map<String, Integer> map = null;
             try {
@@ -500,17 +501,17 @@ public class CrmContractService {
     public R addRecord(LkCrmAdminRecordEntity adminRecord) {
         adminRecord.setTypes("crm_contract");
         adminRecord.setCreateTime(DateUtil.date().toTimestamp());
-        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
+        LoginUser user = BaseUtil.getUser();
+        adminRecord.setCreateUserId(user.getUserId());
         if (1 == adminRecord.getIsEvent()) {
             LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
             oaEvent.setStartTime(adminRecord.getNextTime());
             oaEvent.setEndTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
             oaEvent.setCreateTime(DateUtil.date().toTimestamp());
-            oaEvent.setCreateUserId(BaseUtil.getUser().getUserId());
+            oaEvent.setCreateUserId(user.getUserId());
             crmOaEventDao.save(oaEvent);
 
-            LoginUser user = BaseUtil.getUser();
             oaActionRecordService.addRecord(oaEvent.getEventId(), OaEnum.EVENT_TYPE_KEY.getTypes(), 1, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaEvent.getOwnerUserIds()), oaActionRecordService.getJoinIds(user.getDeptId(), ""));
             LkCrmOaEventRelationEntity oaEventRelation = new LkCrmOaEventRelationEntity();
             oaEventRelation.setEventId(oaEvent.getEventId());
@@ -568,10 +569,11 @@ public class CrmContractService {
      */
     public R queryContractConfig() {
         //LkCrmAdminConfigEntity config = crmAdminConfigDao.findUniqueBy("name", "expiringContractDays");
-        LkCrmAdminConfigEntity config = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity WHERE name = ? AND custId = ?", "expiringContractDays", BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        LkCrmAdminConfigEntity config = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity WHERE name = ? AND custId = ?", "expiringContractDays", user.getCustId());
         if (config == null) {
             config = new LkCrmAdminConfigEntity();
-            config.setCustId(BaseUtil.getCustId());
+            config.setCustId(user.getCustId());
             config.setStatus(0);
             config.setName("expiringContractDays");
             config.setValue("3");

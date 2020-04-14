@@ -123,13 +123,14 @@ public class OaExamineService {
             String batchId = record.getStr("batch_id");
             adminFileService.queryByBatchId(batchId, record);
             setCountRecord(record);
-            List<Integer> roles = BaseUtil.getUser().getRoles();
+            LoginUser user = BaseUtil.getUser();
+            List<Integer> roles = user.getRoles();
             Map<String, Integer> permission = new HashMap<>();
             Integer createUserId = record.getInt("create_user_id");
             Integer examineStatus = record.getInt("examine_status");
-            Long userId = BaseUtil.getUser().getUserId();
+            Long userId = user.getUserId();
             Long adminUserId = BaseUtil.getAdminUserId();
-            if ((userId.equals(adminUserId) && (examineStatus == 4 || examineStatus == 2)) || (createUserId.equals(BaseUtil.getUser().getUserId().intValue()) && (examineStatus == 4 || examineStatus == 2))) {
+            if ((userId.equals(adminUserId) && (examineStatus == 4 || examineStatus == 2)) || (createUserId.equals(user.getUserId().intValue()) && (examineStatus == 4 || examineStatus == 2))) {
                 permission.put("isUpdate", 1);
             } else {
                 permission.put("isUpdate", 0);
@@ -218,7 +219,7 @@ public class OaExamineService {
             oaExamineStep = OaExamineStep.dao.findFirst("SELECT * FROM lkcrm_oa_examine_step WHERE category_id = ? ORDER BY step_num LIMIT 0,1", categoryId);
         }
         Integer recordId = null;
-        oaExamine.setCustId(BaseUtil.getCustId());
+        oaExamine.setCustId(user.getCustId());
         //创建审批记录
         if (oaExamine.getExamineId() == null) {
             oaExamine.setCreateUserId(user.getUserId());
@@ -264,10 +265,10 @@ public class OaExamineService {
             Integer stepType = oaExamineStep.getStepType();
             if (stepType == 1) {
                 String sql = "select parent_id from lkcrm_admin_user where user_id = ?";
-                checkUserIds = crmOaExamineDao.queryForInt(sql, BaseUtil.getUser().getUserId()) + "";
+                checkUserIds = crmOaExamineDao.queryForInt(sql, user.getUserId()) + "";
             } else if (stepType == 4) {
                 String sql = "select parent_id from lkcrm_admin_user where user_id = (select parent_id from lkcrm_admin_user where user_id = ?)";
-                checkUserIds = crmOaExamineDao.queryForInt(sql, BaseUtil.getUser().getUserId()) + "";
+                checkUserIds = crmOaExamineDao.queryForInt(sql, user.getUserId()) + "";
             } else {
                 checkUserIds = oaExamineStep.getCheckUserId();
             }
@@ -294,7 +295,7 @@ public class OaExamineService {
                 oaExamineLog.setCreateUser(user.getUserId());
                 oaExamineLog.setCreateTime(new Timestamp(System.currentTimeMillis()));
                 oaExamineLog.setExamineUser(Long.valueOf(userId));
-                oaExamineLog.setCustId(BaseUtil.getCustId());
+                oaExamineLog.setCustId(user.getCustId());
 //                oaExamineLog.save();
                 logDao.save(oaExamineLog);
             }
@@ -333,7 +334,8 @@ public class OaExamineService {
 
     public R oaExamine(OaExamineLog nowadayExamineLog, Long nextUserId) {
         //当前审批人
-        Long auditUserId = BaseUtil.getUser().getUserId();
+        LoginUser user = BaseUtil.getUser();
+        Long auditUserId = user.getUserId();
         String checkUserIds = "";
         if (nextUserId != null) {
             checkUserIds = nextUserId + "";
@@ -505,7 +507,7 @@ public class OaExamineService {
                         oaExamineLog.setExamineStepId(nextExamineStep.getStepId());
                     }
                     oaExamineLog.setExamineStatus(0);
-                    oaExamineLog.setCreateUser(BaseUtil.getUser().getUserId());
+                    oaExamineLog.setCreateUser(user.getUserId());
                     oaExamineLog.setCreateTime(new Date());
                     oaExamineLog.setExamineUser(Long.valueOf(userId));
                     oaExamineLog.save();
@@ -876,7 +878,9 @@ public class OaExamineService {
         }
         com.bdaim.common.dto.Page paginate = crmOaExamineDao.queryExamineRelation(pageRequest.getPage(), pageRequest.getLimit(), relation.getBusinessIds(), relation.getContactsIds(), relation.getContractIds(), relation.getCustomerIds());
         //Page<Record> paginate = Db.paginate(pageRequest.getPage(), pageRequest.getLimit(), Db.getSqlPara("oa.examine.queryExamineRelation", Kv.by("businessIds", relation.getBusinessIds()).set("contactsIds", relation.getContactsIds()).set("contractIds", relation.getContractIds()).set("customerIds", relation.getCustomerIds())));
-        transfer(JavaBeanUtil.mapToRecords(paginate.getData()));
+        List list = JavaBeanUtil.mapToRecords(paginate.getData());
+        transfer(list);
+        paginate.setData(list);
         return R.ok().put("data", BaseUtil.crmPage(paginate));
     }
 

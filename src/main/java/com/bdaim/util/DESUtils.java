@@ -63,6 +63,6 @@ public class DESUtils {
 	}
 
 	public static void main(String[] args) throws Exception {
-		System.out.println(decrypt("6NO8Px8X4r8="));
+		System.out.println(decrypt("JNNLpOliy7zkwajB8PpLMw=="));
 	}
 }

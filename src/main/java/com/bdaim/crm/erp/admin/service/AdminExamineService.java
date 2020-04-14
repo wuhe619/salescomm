@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.LkCrmAdminDeptDao;
@@ -54,22 +55,23 @@ public class AdminExamineService {
         adminExamine.setDeptIds(getIds(deptIds));
         List<Long> userIds = jsonObject.getJSONArray("userIds").toJavaList(Long.class);
         adminExamine.setUserIds(getIds(userIds));
-        String custId = BaseUtil.getCustId();
+        LoginUser user = BaseUtil.getUser();
+        String custId = user.getCustId();
         Boolean flag;
-        adminExamine.setCustId(BaseUtil.getCustId());
+        adminExamine.setCustId(user.getCustId());
         if (adminExamine.getExamineId() == null) {
             //添加
             LkCrmAdminExamineEntity examine = crmAdminExamineDao.getExamineByCategoryType(adminExamine.getCategoryType(), custId);
             if (examine != null) {
                 //判断有未删除的审批流程，不能添加
                 examine.setStatus(0);
-                examine.setUpdateUserId(BaseUtil.getUser().getUserId());
+                examine.setUpdateUserId(user.getUserId());
                 examine.setUpdateTime(DateUtil.date().toTimestamp());
                 crmAdminExamineDao.update(examine);
             }
-            adminExamine.setCreateUserId(BaseUtil.getUser().getUserId());
+            adminExamine.setCreateUserId(user.getUserId());
             adminExamine.setCreateTime(DateUtil.date().toTimestamp());
-            adminExamine.setUpdateUserId(BaseUtil.getUser().getUserId());
+            adminExamine.setUpdateUserId(user.getUserId());
             adminExamine.setUpdateTime(DateUtil.date().toTimestamp());
             adminExamine.setStatus(1);
             adminExamine.setCustId(custId);
@@ -82,7 +84,7 @@ public class AdminExamineService {
             crmAdminExamineDao.update(examine);
             adminExamine.setCreateUserId(examine.getCreateUserId());
             adminExamine.setCreateTime(examine.getCreateTime());
-            adminExamine.setUpdateUserId(BaseUtil.getUser().getUserId());
+            adminExamine.setUpdateUserId(user.getUserId());
             adminExamine.setUpdateTime(DateUtil.date().toTimestamp());
             //adminExamine.setExamineId(null);
             adminExamine.setStatus(1);

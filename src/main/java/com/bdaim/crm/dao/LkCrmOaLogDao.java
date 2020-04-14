@@ -52,13 +52,13 @@ public class LkCrmOaLogDao extends SimpleHibernateDao<LkCrmOaLogEntity, Integer>
     public Page pageQueryLogRelation(int pageNum, int pageSize, String businessIds, String contactsIds, String contractIds, String customerIds) {
         String sql = "SELECT a.*, \n" +
                 "      b.realname,\n" +
-                "      '' as userImg,\n" +
+                "      b.img as userImg,\n" +
                 "      soal.customer_ids,\n" +
                 "      soal.contacts_ids,\n" +
                 "      soal.business_ids,\n" +
                 "      soal.contract_ids\n" +
                 "    FROM lkcrm_oa_log as a left join lkcrm_oa_log_relation as d on a.log_id = d.log_id\n" +
-                "    LEFT JOIN t_customer_user as b on a.create_user_id=b.id\n" +
+                "    LEFT JOIN lkcrm_admin_user as b on a.create_user_id=b.user_id\n" +
                 "     LEFT JOIN lkcrm_oa_log_relation as soal on soal.log_id=a.log_id\n" +
                 "    WHERE 1 = 2 ";
         List param = new ArrayList();

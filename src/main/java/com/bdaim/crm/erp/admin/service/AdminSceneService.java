@@ -13,6 +13,7 @@ import com.bdaim.common.service.PhoneService;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.*;
+import com.bdaim.crm.ent.service.EntDataService;
 import com.bdaim.crm.entity.LkCrmAdminSceneDefaultEntity;
 import com.bdaim.crm.entity.LkCrmAdminSceneEntity;
 import com.bdaim.crm.entity.LkCrmCustomerEntity;
@@ -63,6 +64,9 @@ public class AdminSceneService {
 
     @Autowired
     private PhoneService phoneService;
+
+    @Autowired
+    private EntDataService entDataService;
 
 
     /**
@@ -222,8 +226,9 @@ public class AdminSceneService {
      * 增加场景
      */
     public R addScene(LkCrmAdminSceneEntity adminScene) {
-        Long userId = BaseUtil.getUser().getUserId();
-        adminScene.setCustId(BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        Long userId = user.getUserId();
+        adminScene.setCustId(user.getCustId());
         adminScene.setIsHide(0).setSort(99999).setIsSystem(0).setCreateTime(DateUtil.date().toTimestamp()).setUserId(userId);
         crmAdminSceneDao.save(adminScene);
         if (1 == adminScene.getIsDefault()) {
@@ -239,8 +244,9 @@ public class AdminSceneService {
      * 更新场景
      */
     public R updateScene(LkCrmAdminSceneEntity adminScene) {
-        Long userId = BaseUtil.getUser().getUserId();
-        adminScene.setCustId(BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        Long userId = user.getUserId();
+        adminScene.setCustId(user.getCustId());
         LkCrmAdminSceneEntity oldAdminScene = crmAdminSceneDao.get(adminScene.getSceneId());
         if (1 == adminScene.getIsDefault()) {
             crmAdminSceneDao.executeUpdateSQL("update lkcrm_admin_scene_default set scene_id = ? where user_id = ? and type = ?", adminScene.getSceneId(), userId, oldAdminScene.getType());
@@ -256,12 +262,13 @@ public class AdminSceneService {
      * 设置默认场景
      */
     public R setDefaultScene(Integer sceneId) {
-        Long userId = BaseUtil.getUser().getUserId();
+        LoginUser user = BaseUtil.getUser();
+        Long userId = user.getUserId();
         LkCrmAdminSceneEntity oldAdminScene = crmAdminSceneDao.get(sceneId);
         crmAdminSceneDao.executeUpdateSQL("delete from lkcrm_admin_scene_default where user_id = ? and type = ?", userId, oldAdminScene.getType());
         LkCrmAdminSceneDefaultEntity adminSceneDefault = new LkCrmAdminSceneDefaultEntity();
         adminSceneDefault.setSceneId(sceneId).setType(oldAdminScene.getType()).setUserId(userId);
-        adminSceneDefault.setCustId(BaseUtil.getCustId());
+        adminSceneDefault.setCustId(user.getCustId());
         crmAdminSceneDao.saveOrUpdate(adminSceneDefault);
         return R.ok();
     }
@@ -283,16 +290,17 @@ public class AdminSceneService {
      * 查询场景
      */
     public R queryScene(Integer type) {
-        Long userId = BaseUtil.getUser().getUserId();
+        LoginUser user = BaseUtil.getUser();
+        Long userId = user.getUserId();
         //查询userId下是否有系统场景，没有则插入
         String sql = "select count(*) from lkcrm_admin_scene where is_system = 1 and type = ? and user_id = ? AND cust_id = ?";
         //Integer number = Db.queryInt(Db.getSql("admin.scene.querySystemNumber"), type, userId);
-        int number = crmAdminSceneDao.queryForInt(sql, type, userId, BaseUtil.getCustId());
+        int number = crmAdminSceneDao.queryForInt(sql, type, userId, user.getCustId());
         type = type != null ? type : -1;
         if (number == 0) {
             //AdminScene systemScene = new AdminScene();
             LkCrmAdminSceneEntity systemScene = new LkCrmAdminSceneEntity();
-            systemScene.setCustId(BaseUtil.getCustId());
+            systemScene.setCustId(user.getCustId());
             systemScene.setUserId(userId).setSort(0).setData("").setIsHide(0).setIsSystem(1).setCreateTime(new Timestamp(System.currentTimeMillis())).setType(type);
             JSONObject ownerObject = new JSONObject();
             ownerObject.fluentPut("owner_user_id", new JSONObject().fluentPut("name", "owner_user_id").fluentPut("condition", "is").fluentPut("value", userId));
@@ -399,7 +407,7 @@ public class AdminSceneService {
                 "    from lkcrm_admin_scene as a left join lkcrm_admin_scene_default as b on a.scene_id = b.scene_id " +
                 "    where a.type = ? and a.user_id = ? and is_hide = 0 AND a.cust_id = ?  order by a.sort asc";
         //return R.ok().put("data", Db.find(Db.getSql("admin.scene.queryScene"), type, userId));
-        return R.ok().put("data", crmAdminSceneDao.sqlQuery(sql, type, userId, BaseUtil.getCustId()));
+        return R.ok().put("data", crmAdminSceneDao.sqlQuery(sql, type, userId, user.getCustId()));
     }
 
     /**
@@ -499,10 +507,11 @@ public class AdminSceneService {
                 List fList;
                 JSONArray list = ((JSONObject) result.get("data")).getJSONArray("list");
                 Map f;
-                JSONObject value;
+                JSONObject value, company;
                 for (int i = 0; i < list.size(); i++) {
                     fList = new ArrayList();
                     value = list.getJSONObject(i);
+                    value.put("entId", "");
                     for (String k : value.keySet()) {
                         if ("mobile".equals(k) || "手机号".equals(k) || "手机".equals(k)) {
                             // 处理手机号类型
@@ -516,6 +525,13 @@ public class AdminSceneService {
                             f.put("field", k);
                             f.put("type", 22);
                             fList.add(f);
+                        }
+                    }
+                    // 处理公司名称
+                    if (value.containsKey("company") && StringUtil.isNotEmpty(value.getString("company"))) {
+                        company = entDataService.getCompanyByName(value.getString("company"));
+                        if (company != null) {
+                            value.put("entId", company.getString("id"));
                         }
                     }
                     list.getJSONObject(i).put("flist", fList);
@@ -714,11 +730,11 @@ public class AdminSceneService {
         //conditions.append(" order by ").append(viewName).append(".").append(sortField).append(" ").append(orderNum);
         conditions.append(" order by ").append(sortField).append(" ").append(orderNum);
         if (StrUtil.isNotEmpty(basePageRequest.getJsonObject().getString("excel"))) {
-            List<Map<String, Object>> recordList = crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), BaseUtil.getUser().getCustId());
+            List<Map<String, Object>> recordList = crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), loginUser.getUser().getCustId());
             return R.ok().put("excel", JavaBeanUtil.mapToRecords(recordList));
         }
         if (2 == type || 8 == type) {
-            Integer configType = crmAdminSceneDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting' AND cust_id = ? ", BaseUtil.getCustId());
+            Integer configType = crmAdminSceneDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting' AND cust_id = ? ", loginUser.getCustId());
             if (1 == configType && 2 == type) {
                 String customerview = BaseUtil.getViewSql("customerview");
                 String sql = " select *,(TO_DAYS(IFNULL((SELECT car.create_time FROM lkcrm_admin_record as car where car.types = 'crm_customer' and car.types_id = " + customerview + ".customer_id ORDER BY car.create_time DESC LIMIT 1),create_time))\n" +
@@ -728,25 +744,25 @@ public class AdminSceneService {
 
                 return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQueryByPageSize0(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
             } else {
-                Page page = crmAdminSceneDao.sqlPageQueryByPageSize0("select * " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
+                Page page = crmAdminSceneDao.sqlPageQueryByPageSize0("select * " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), loginUser.getCustId());
                 Map map = null;
                 for (int i = 0; i < page.getData().size(); i++) {
                     map = (Map) page.getData().get(i);
-                    Map<String, Object> count = crmAdminSceneDao.queryUniqueSql("select count(*) count from lkcrm_crm_business as a where a.customer_id =? AND a.cust_id = ?  ", map.get("customer_id"), BaseUtil.getCustId());
+                    Map<String, Object> count = crmAdminSceneDao.queryUniqueSql("select count(*) count from lkcrm_crm_business as a where a.customer_id =? AND a.cust_id = ?  ", map.get("customer_id"), loginUser.getCustId());
                     map.put("business_count", count != null ? count.get("count") : 0);
                 }
                 return R.ok().put("data", BaseUtil.crmPage(page));
             }
 
         } else if (6 == type) {
-            Record totalMoney = JavaBeanUtil.mapToRecord(crmAdminSceneDao.sqlQuery("select SUM(money) as contractMoney,GROUP_CONCAT(contract_id) as contractIds " + conditions.toString(), BaseUtil.getUser().getCustId()).get(0));
+            Record totalMoney = JavaBeanUtil.mapToRecord(crmAdminSceneDao.sqlQuery("select SUM(money) as contractMoney,GROUP_CONCAT(contract_id) as contractIds " + conditions.toString(), loginUser.getCustId()).get(0));
             String contractview = BaseUtil.getViewSql("contractview");
             Page page = crmAdminSceneDao.sqlPageQueryByPageSize0("select * " + conditions.toString(), basePageRequest.getPage(),
                     basePageRequest.getLimit(), loginUser.getCustId());
             Map map = null;
             for (int i = 0; i < page.getData().size(); i++) {
                 map = (Map) page.getData().get(i);
-                Map<String, Object> count = crmAdminSceneDao.queryUniqueSql("select SUM(a.money) receivedMoney from lkcrm_crm_receivables as a where a.contract_id = ? and a.cust_id = ? ", map.get("contract_id"), BaseUtil.getCustId());
+                Map<String, Object> count = crmAdminSceneDao.queryUniqueSql("select SUM(a.money) receivedMoney from lkcrm_crm_receivables as a where a.contract_id = ? and a.cust_id = ? ", map.get("contract_id"), loginUser.getCustId());
                 map.put("receivedMoney", count != null ? count.get("receivedMoney") : 0);
             }
             String receivedMoney = crmAdminSceneDao.queryForObject("select SUM(money) from lkcrm_crm_receivables where receivables_id in (" + totalMoney.getStr("contractIds") + ")");

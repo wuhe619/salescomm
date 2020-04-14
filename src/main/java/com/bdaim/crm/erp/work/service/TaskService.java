@@ -112,7 +112,7 @@ public class TaskService {
     @Before(Tx.class)
     public R setTask(LkCrmTaskEntity task, LkCrmTaskRelationEntity taskRelation) {
         LoginUser user = BaseUtil.getUser();
-        task.setCustId(BaseUtil.getCustId());
+        task.setCustId(user.getCustId());
         boolean bol;
         if (task.getLabelId() != null) {
             task.setLabelId(TagUtil.fromString(task.getLabelId()));
@@ -596,7 +596,7 @@ public class TaskService {
     /**
      * 添加任务与业务关联
      */
-    public R saveTaskRelation(LkCrmTaskRelationEntity taskRelation, Integer userId) {
+    public R saveTaskRelation(LkCrmTaskRelationEntity taskRelation, Long userId) {
         taskRelationDao.executeUpdateSQL("delete from `lkcrm_task_relation` where task_id = ?", taskRelation.getTaskId());
         taskRelation.setCreateTime(DateUtil.date().toTimestamp());
 //        return taskRelation.save() ? R.ok() : R.error();
@@ -637,9 +637,13 @@ public class TaskService {
         }
         com.bdaim.common.dto.Page paginate = taskDao.queryTaskRelation(basePageRequest.getPage(), basePageRequest.getLimit(), relation.getBusinessIds(), relation.getContactsIds(), relation.getContractIds(), relation.getCustomerIds());
         //Page<Record> paginate = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("work.task.queryTaskRelation", Kv.by("businessIds", relation.getBusinessIds()).set("contactsIds", relation.getContactsIds()).set("contractIds", relation.getContractIds()).set("customerIds", relation.getCustomerIds())));
+        List<Record> list = new ArrayList<>();
         paginate.getData().forEach(s -> {
-            composeUser(JavaBeanUtil.mapToRecord((Map<String, Object>) s));
+            Record r = JavaBeanUtil.mapToRecord((Map<String, Object>) s);
+            composeUser(r);
+            list.add(r);
         });
+        paginate.setData(list);
         return R.ok().put("data", BaseUtil.crmPage(paginate));
     }
 
@@ -682,14 +686,15 @@ public class TaskService {
      * 查询跟进记录类型
      */
     public R queryRecordOptions() {
-        List<LkCrmAdminConfigEntity> list = crmActionRecordDao.find("from LkCrmAdminConfigEntity where name = ? AND custId = ? ", "taskType", BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        List<LkCrmAdminConfigEntity> list = crmActionRecordDao.find("from LkCrmAdminConfigEntity where name = ? AND custId = ? ", "taskType", user.getCustId());
         if (list.size() == 0) {
             List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
             // 初始化数据
             String[] defaults = new String[]{"电话", "短信", "上门拜访"};
             for (String i : defaults) {
                 LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
-                adminConfig.setCustId(BaseUtil.getCustId());
+                adminConfig.setCustId(user.getCustId());
                 adminConfig.setName("taskType");
                 adminConfig.setValue(i);
                 adminConfig.setDescription("任务类型选项");
@@ -704,11 +709,12 @@ public class TaskService {
 
 
     public R setRecordOptions(List<String> list) {
-        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'taskType' AND cust_id = ? AND is_system <> 1  ", BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'taskType' AND cust_id = ? AND is_system <> 1  ", user.getCustId());
         List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
-            adminConfig.setCustId(BaseUtil.getCustId());
+            adminConfig.setCustId(user.getCustId());
             adminConfig.setName("taskType");
             adminConfig.setValue(list.get(i));
             adminConfig.setDescription("任务类型选项");

@@ -542,11 +542,11 @@ public class WorkService {
             return R.error("项目不存在！");
         }
         int isUpdate = 0;
-        if (AuthUtil.isWorkAdmin() || BaseUtil.getUser().getRoles().contains(BaseConstant.SMALL_WORK_ADMIN_ROLE_ID)) {
+        LoginUser user = BaseUtil.getUser();
+        if (AuthUtil.isWorkAdmin() || user.getRoles().contains(BaseConstant.SMALL_WORK_ADMIN_ROLE_ID)) {
             isUpdate = 1;
         }
-        LoginUser user = BaseUtil.getUser();
-        Long userId = BaseUtil.getUserId();
+        Long userId = user.getUserId();
 //        Integer roleId = Db.queryInt("select role_id from `lkcrm_work_user` where work_id = ? and user_id = ?", workId, userId);
         String roleIdSql = "select role_id from `lkcrm_work_user` where work_id = ? and user_id = ?";
         Integer roleId = workDao.queryForInt(roleIdSql, workId, userId);

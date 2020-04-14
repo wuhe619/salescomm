@@ -273,6 +273,9 @@ public class SaleApiUtil {
     private static String send(String url, String jsonBody, String authorization) throws RuntimeException {
         String result;
         try {
+            System.out.println(url);
+            System.out.println(jsonBody);
+            System.out.println(authorization);
             Map<String, Object> headers = new HashMap<>(16);
             headers.put("Authorization", authorization);
             headers.put("Content-Type", "application/x-www-from-urlencoded");

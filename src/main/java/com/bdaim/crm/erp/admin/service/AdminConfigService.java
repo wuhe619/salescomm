@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.admin.service;
 
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.service.UploadFileService;
 import com.bdaim.crm.dao.LkCrmAdminConfigDao;
 import com.bdaim.crm.entity.LkCrmAdminConfigEntity;
@@ -29,9 +30,10 @@ public class AdminConfigService {
 
 
     public R saveOrUpdate(LkCrmAdminConfigEntity entity) {
-        entity.setCustId(BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        entity.setCustId(user.getCustId());
         if (entity.getSettingId() == null && StringUtil.isNotEmpty(entity.getName())) {
-            LkCrmAdminConfigEntity unique = crmAdminConfigDao.findUnique(" FROM LkCrmAdminConfigEntity WHERE cust_id = ? AND name = ? ", BaseUtil.getCustId(), entity.getName());
+            LkCrmAdminConfigEntity unique = crmAdminConfigDao.findUnique(" FROM LkCrmAdminConfigEntity WHERE cust_id = ? AND name = ? ", user.getCustId(), entity.getName());
             if (unique != null) {
                 entity.setSettingId(unique.getSettingId());
             }

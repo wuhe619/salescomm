@@ -74,17 +74,17 @@ public class OaEventService {
                 return R.error("结束时间早于开始时间");
             }
         }
+        LoginUser user = BaseUtil.getUser();
         LkCrmOaEventRelationEntity oaEventRelation = new LkCrmOaEventRelationEntity();
         oaEventRelation.setCustomerIds(TagUtil.fromString(oaEvent.getCustomerIds()));
         oaEventRelation.setContactsIds(TagUtil.fromString(oaEvent.getContactsIds()));
         oaEventRelation.setBusinessIds(TagUtil.fromString(oaEvent.getBusinessIds()));
         oaEventRelation.setContractIds(TagUtil.fromString(oaEvent.getContractIds()));
-        oaEvent.setCustId(BaseUtil.getCustId());
-        oaEvent.setCreateUserId(BaseUtil.getUser().getUserId());
+        oaEvent.setCustId(user.getCustId());
+        oaEvent.setCreateUserId(user.getUserId());
         oaEvent.setCreateTime(new Timestamp(System.currentTimeMillis()));
         oaEvent.setOwnerUserIds(TagUtil.fromString(oaEvent.getOwnerUserIds()));
         oaEventRelation.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        LoginUser user = BaseUtil.getUser();
         //return Db.tx(() -> {
 //            oaEvent.save();
         crmOaEventDao.save(oaEvent);
@@ -112,10 +112,10 @@ public class OaEventService {
         oaEventRelation.setContactsIds(TagUtil.fromString(oaEvent.getContactsIds()));
         oaEventRelation.setBusinessIds(TagUtil.fromString(oaEvent.getBusinessIds()));
         oaEventRelation.setContractIds(TagUtil.fromString(oaEvent.getContractIds()));
-        oaEvent.setCustId(BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        oaEvent.setCustId(user.getCustId());
         oaEvent.setUpdateTime(new Timestamp(System.currentTimeMillis()));
         oaEvent.setOwnerUserIds(TagUtil.fromString(oaEvent.getOwnerUserIds()));
-        LoginUser user = BaseUtil.getUser();
         //return Db.tx(() -> {
 //            oaEvent.update();
             crmOaEventDao.save(oaEvent);
@@ -159,6 +159,7 @@ public class OaEventService {
             record.set("createUser", Kv.by("user_id", record.get("create_user_id")).set("realname", record.get("realname")).set("img", record.get("img")));
             queryRelateList(record);
         }
+        recordPage.setData(list);
         return R.ok().put("data", BaseUtil.crmPage(recordPage));
     }
 

@@ -9,6 +9,7 @@ import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.LkCrmActionRecordDao;
@@ -101,7 +102,8 @@ public class CrmProductService {
         CrmProduct entity = jsonObject.getObject("entity", CrmProduct.class);
         LkCrmProductEntity crmProduct = new LkCrmProductEntity();
         BeanUtils.copyProperties(entity, crmProduct);
-        crmProduct.setCustId(BaseUtil.getUser().getCustId());
+        LoginUser user = BaseUtil.getUser();
+        crmProduct.setCustId(user.getCustId());
         String batchId = StrUtil.isNotEmpty(crmProduct.getBatchId()) ? crmProduct.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
@@ -111,10 +113,10 @@ public class CrmProductService {
             if (product != 0) {
                 return R.error("产品编号已存在，请校对后再添加！");
             }
-            crmProduct.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmProduct.setCreateUserId(user.getUserId());
             crmProduct.setCreateTime(DateUtil.date().toTimestamp());
             crmProduct.setUpdateTime(DateUtil.date().toTimestamp());
-            crmProduct.setOwnerUserId(BaseUtil.getUser().getUserId());
+            crmProduct.setOwnerUserId(user.getUserId());
             crmProduct.setBatchId(batchId);
             boolean save = (int) crmProductDao.saveReturnPk(crmProduct) > 0;
             crmRecordService.addRecord(crmProduct.getProductId(), CrmEnum.PRODUCT_TYPE_KEY.getTypes());
@@ -199,10 +201,11 @@ public class CrmProductService {
         sqlfield.append(" )");
         int f = crmProductDao.executeUpdateSQL(sqlfield.toString());
 //        String[] idsArray = batchIds.toString().split(",");
+        LoginUser user = BaseUtil.getUser();
         for (Record record : recordList) {
             LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
-            crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
-            crmActionRecord.setCustId(BaseUtil.getUser().getCustId());
+            crmActionRecord.setCreateUserId(user.getUserId());
+            crmActionRecord.setCustId(user.getCustId());
             crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
             crmActionRecord.setTypes(CrmEnum.PRODUCT_TYPE_KEY.getTypes());
             crmActionRecord.setActionId(record.getStr("product_id"));
