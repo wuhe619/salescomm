@@ -109,6 +109,11 @@ public class CrmBackLogService {
         return R.ok().put("data", BaseUtil.crmPage(page));
     }
 
+    /**
+     * 今日需联系线索
+     * @param basePageRequest
+     * @return
+     */
     public R todayCrmLeads(BasePageRequest basePageRequest) {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         Integer type = jsonObject.getInteger("type");
