@@ -1,12 +1,12 @@
-package com.bdaim.crm;
+package com.bdaim.crm.ent.entity;
 
 import cn.afterturn.easypoi.excel.annotation.Excel;
 
 /**
  * 企查查数据导入实体类
  */
-public class ImportQCCEnt {
-    @Excel(name = "企业名称", orderNum = "0")
+public class ImportQCCEnt1 {
+    @Excel(name = "公司名称", orderNum = "0")
     private String entName;
     @Excel(name = "法定代表人", orderNum = "1")
     private String legalName;

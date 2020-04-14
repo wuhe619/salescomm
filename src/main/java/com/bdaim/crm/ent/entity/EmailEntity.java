@@ -1,14 +1,14 @@
-package com.bdaim.crm;
+package com.bdaim.crm.ent.entity;
 
 /**
- * 固话实体类
+ * 邮箱数据实体类
  */
-public class TelPhoneEntity {
+public class EmailEntity {
 
     /**
-     * 手机号
+     * 邮箱
      */
-    private String tel;
+    private String email;
     /**
      * 录入时间
      */
@@ -22,22 +22,22 @@ public class TelPhoneEntity {
      */
     private String sourceWeb;
 
-    public TelPhoneEntity() {
+    public EmailEntity() {
     }
 
-    public TelPhoneEntity(String tel, long time, String source, String sourceWeb) {
-        this.tel = tel;
+    public EmailEntity(String email, long time, String source, String sourceWeb) {
+        this.email = email;
         this.time = time;
         this.source = source;
         this.sourceWeb = sourceWeb;
     }
 
-    public String getTel() {
-        return tel;
+    public String getEmail() {
+        return email;
     }
 
-    public void setTel(String tel) {
-        this.tel = tel;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public long getTime() {
@@ -66,8 +66,8 @@ public class TelPhoneEntity {
 
     @Override
     public String toString() {
-        return "TelPhoneSource{" +
-                "tel='" + tel + '\'' +
+        return "EmailSource{" +
+                "email='" + email + '\'' +
                 ", time=" + time +
                 ", source='" + source + '\'' +
                 ", sourceWeb='" + sourceWeb + '\'' +

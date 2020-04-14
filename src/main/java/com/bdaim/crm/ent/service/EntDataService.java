@@ -11,7 +11,7 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.service.SequenceService;
-import com.bdaim.crm.*;
+import com.bdaim.crm.ent.entity.*;
 import com.bdaim.customer.service.B2BTcbLogService;
 import com.bdaim.util.ExcelUtil;
 import com.bdaim.util.MD5Util;
