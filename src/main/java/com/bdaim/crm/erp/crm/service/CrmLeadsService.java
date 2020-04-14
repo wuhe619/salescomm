@@ -903,14 +903,15 @@ public class CrmLeadsService {
 
             String batchId = String.valueOf(m.get("id"));
             crmLeads.setBatchId(batchId);
-            crmLeads.setCustId(BaseUtil.getUser().getCustId());
+            LoginUser user = BaseUtil.getUser();
+            crmLeads.setCustId(user.getCustId());
             crmRecordService.updateRecord(jsonArray, batchId);
             adminFieldService.save(jsonArray, batchId);
             crmLeads.setCreateTime(DateUtil.date().toTimestamp());
             crmLeads.setUpdateTime(DateUtil.date().toTimestamp());
-            crmLeads.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmLeads.setCreateUserId(user.getUserId());
             if (crmLeads.getOwnerUserId() == null) {
-                crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId());
+                crmLeads.setOwnerUserId(user.getUserId());
             }
             crmLeads.setBatchId(batchId);
             crmLeads.setSeaId(seaId);
@@ -942,14 +943,15 @@ public class CrmLeadsService {
 
             String batchId = String.valueOf(m.get("id"));
             crmLeads.setBatchId(batchId);
-            crmLeads.setCustId(BaseUtil.getUser().getCustId());
+            LoginUser user = BaseUtil.getUser();
+            crmLeads.setCustId(user.getCustId());
             crmRecordService.updateRecord(jsonArray, batchId);
             adminFieldService.save(jsonArray, batchId);
             crmLeads.setCreateTime(DateUtil.date().toTimestamp());
             crmLeads.setUpdateTime(DateUtil.date().toTimestamp());
-            crmLeads.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmLeads.setCreateUserId(user.getUserId());
             if (crmLeads.getOwnerUserId() == null) {
-                crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId());
+                crmLeads.setOwnerUserId(user.getUserId());
             }
             crmLeads.setBatchId(batchId);
             crmLeads.setSeaId(seaId);
@@ -1175,7 +1177,8 @@ public class CrmLeadsService {
         }
 
         crmLeads.setCompany(object.getJSONObject("entity").getString("company"));
-        String custId = BaseUtil.getUser().getCustId();
+        LoginUser user = BaseUtil.getUser();
+        String custId = user.getCustId();
         crmLeads.setCustId(custId);
         // 查询客户默认公海
         List<CustomerSea> publicSeaList = crmLeadsDao.find(" FROM CustomerSea WHERE custId = ? ", custId);
@@ -1202,9 +1205,9 @@ public class CrmLeadsService {
         } else {
             crmLeads.setCreateTime(new Timestamp(System.currentTimeMillis()));
             crmLeads.setUpdateTime(new Timestamp(System.currentTimeMillis()));
-            crmLeads.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmLeads.setCreateUserId(user.getUserId());
             if (crmLeads.getOwnerUserId() == null) {
-                crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId());
+                crmLeads.setOwnerUserId(user.getUserId());
             }
             crmLeads.setBatchId(batchId);
             //boolean save = crmLeads.save();
@@ -1538,7 +1541,8 @@ public class CrmLeadsService {
                 return R.error("已转化线索不能再次转化");
             }
             List<Record> leadsFields = adminFieldService.list("1");
-            List<LkCrmAdminFieldEntity> customerFields = crmLeadsDao.find("from LkCrmAdminFieldEntity where label = '2' AND custId = ? ", BaseUtil.getCustId());
+            LoginUser user = BaseUtil.getUser();
+            List<LkCrmAdminFieldEntity> customerFields = crmLeadsDao.find("from LkCrmAdminFieldEntity where label = '2' AND custId = ? ", user.getCustId());
             List<LkCrmAdminFieldvEntity> adminFieldvList = new ArrayList<>();
             for (Record leadsFIeld : leadsFields) {
                 for (LkCrmAdminFieldEntity customerField : customerFields) {
@@ -1551,7 +1555,7 @@ public class CrmLeadsService {
                             adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                             adminFieldv.setFieldId(customerField.getFieldId());
                             adminFieldv.setName(customerField.getName());
-                            adminFieldv.setCustId(BaseUtil.getCustId());
+                            adminFieldv.setCustId(user.getCustId());
                             adminFieldvList.add(adminFieldv);
                         }
                         continue;
@@ -1564,7 +1568,7 @@ public class CrmLeadsService {
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(customerField.getFieldId());
                         adminFieldv.setName(customerField.getName());
-                        adminFieldv.setCustId(BaseUtil.getCustId());
+                        adminFieldv.setCustId(user.getCustId());
                         adminFieldvList.add(adminFieldv);
                     }
                     if ("客户行业".equals(customerField.getName()) && "客户行业".equals(leadsFIeld.getStr("name"))) {
@@ -1572,7 +1576,7 @@ public class CrmLeadsService {
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(customerField.getFieldId());
                         adminFieldv.setName(customerField.getName());
-                        adminFieldv.setCustId(BaseUtil.getCustId());
+                        adminFieldv.setCustId(user.getCustId());
                         adminFieldvList.add(adminFieldv);
                     }
                     if ("客户级别".equals(customerField.getName()) && "客户级别".equals(leadsFIeld.getStr("name"))) {
@@ -1580,7 +1584,7 @@ public class CrmLeadsService {
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(customerField.getFieldId());
                         adminFieldv.setName(customerField.getName());
-                        adminFieldv.setCustId(BaseUtil.getCustId());
+                        adminFieldv.setCustId(user.getCustId());
                         adminFieldvList.add(adminFieldv);
                     }
                 }
@@ -1602,7 +1606,7 @@ public class CrmLeadsService {
                     adminFileList.addAll(leadsRecordFiles);
                     adminRecord.setBatchId(customerRecordBatchId);
                     adminRecord.setRecordId(null);
-                    adminRecord.setCustId(BaseUtil.getCustId());
+                    adminRecord.setCustId(user.getCustId());
                     adminRecord.setTypes("crm_customer");
                     adminRecord.setTypesId(crmCustomer.getCustomerId().toString());
                     adminRecord.setUpdateTime(new Timestamp(System.currentTimeMillis()));
@@ -1649,8 +1653,9 @@ public class CrmLeadsService {
      */
     @Before(Tx.class)
     public R addRecord(LkCrmAdminRecordEntity adminRecord) {
-        adminRecord.setCustId(BaseUtil.getUser().getCustId());
-        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
+        LoginUser user = BaseUtil.getUser();
+        adminRecord.setCustId(user.getCustId());
+        adminRecord.setCreateUserId(user.getUserId());
         adminRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         adminRecord.setTypes("crm_leads");
         // 添加日程
@@ -1666,7 +1671,7 @@ public class CrmLeadsService {
         // 添加任务
         if (adminRecord.getIsTask() != null && 1 == adminRecord.getIsTask()) {
             LkCrmTaskEntity crmTaskEntity = new LkCrmTaskEntity();
-            crmTaskEntity.setCustId(BaseUtil.getUser().getCustId());
+            crmTaskEntity.setCustId(user.getCustId());
             crmTaskEntity.setBatchId(IdUtil.simpleUUID());
             crmTaskEntity.setName(adminRecord.getTaskName());
             crmTaskEntity.setDescription(adminRecord.getContent());
@@ -2067,14 +2072,15 @@ public class CrmLeadsService {
      * 查询跟进记录类型
      */
     public R queryRecordOptions() {
-        List<LkCrmAdminConfigEntity> list = crmActionRecordDao.find("from LkCrmAdminConfigEntity where name = ? AND custId = ? ", "clueFollowRecordOption", BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        List<LkCrmAdminConfigEntity> list = crmActionRecordDao.find("from LkCrmAdminConfigEntity where name = ? AND custId = ? ", "clueFollowRecordOption", user.getCustId());
         if (list.size() == 0) {
             List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
             // 初始化数据
             String[] defaults = new String[]{"未跟进", "跟进中", "有意向", "无意向"};
             for (String i : defaults) {
                 LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
-                adminConfig.setCustId(BaseUtil.getCustId());
+                adminConfig.setCustId(user.getCustId());
                 adminConfig.setName("clueFollowRecordOption");
                 adminConfig.setValue(i);
                 adminConfig.setDescription("线索跟进记录选项");
@@ -2089,11 +2095,12 @@ public class CrmLeadsService {
 
 
     public R setRecordOptions(List<String> list) {
-        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'clueFollowRecordOption' AND cust_id = ? AND is_system <> 1  ", BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'clueFollowRecordOption' AND cust_id = ? AND is_system <> 1  ", user.getCustId());
         List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
-            adminConfig.setCustId(BaseUtil.getCustId());
+            adminConfig.setCustId(user.getCustId());
             adminConfig.setName("clueFollowRecordOption");
             adminConfig.setValue(list.get(i));
             adminConfig.setDescription("线索跟进记录选项");

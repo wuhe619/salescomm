@@ -2,6 +2,7 @@ package com.bdaim.crm.erp.work.controller;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
@@ -190,12 +191,13 @@ public class TaskController extends BasicAction {
         Long userId = getLong("userId");
         String name = getPara("search");
         List<Long> userIds = new ArrayList<>();
+        LoginUser user = BaseUtil.getUser();
         if (mold == null) {
-            userIds.add(BaseUtil.getUser().getUserId());
+            userIds.add(user.getUserId());
         } else if (mold == 1 && userId == null) {
-            userIds = adminUserService.queryUserIdsByParentId(BaseUtil.getUser().getUserId());
+            userIds = adminUserService.queryUserIdsByParentId(user.getUserId());
         } else {
-            List<Long> list = adminUserService.queryChileUserIds(BaseUtil.getUser().getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
+            List<Long> list = adminUserService.queryChileUserIds(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
             for (Long id : list) {
                 if (id == userId) {
                     userIds.add(userId);
@@ -236,7 +238,7 @@ public class TaskController extends BasicAction {
      */
     @RequestMapping(value = "/svaeTaskRelation", method = RequestMethod.POST)
     public R svaeTaskRelation(@Para("") LkCrmTaskRelationEntity taskRelation) {
-        return (taskService.saveTaskRelation(taskRelation, BaseUtil.getUser().getUserId().intValue()));
+        return (taskService.saveTaskRelation(taskRelation, BaseUtil.getUser().getUserId()));
     }
 
     /**

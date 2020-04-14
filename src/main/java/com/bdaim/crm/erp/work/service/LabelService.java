@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.work.service;
 
+import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.dao.LkCrmWorkTaskLabelDao;
 import com.bdaim.crm.entity.LkCrmWorkTaskLabelEntity;
 import com.bdaim.crm.utils.AuthUtil;
@@ -29,10 +30,11 @@ public class LabelService {
 
     public R setLabel(LkCrmWorkTaskLabelEntity taskLabel) {
 //        boolean bol;
-        taskLabel.setCustId(BaseUtil.getCustId());
+        LoginUser user = BaseUtil.getUser();
+        taskLabel.setCustId(user.getCustId());
         if (taskLabel.getLabelId() == null) {
             taskLabel.setCreateTime(new Timestamp(System.currentTimeMillis()));
-            taskLabel.setCreateUserId(BaseUtil.getUser().getUserId());
+            taskLabel.setCreateUserId(user.getUserId());
 //            bol = taskLable.save();
             crmWorkTaskLabelDao.save(taskLabel);
         } else {
@@ -71,12 +73,13 @@ public class LabelService {
      * 标签任务列表
      */
     public R getTaskList(Integer labelId) {
+        LoginUser user = BaseUtil.getUser();
 //        List<Record> taskList = Db.find(Db.getSqlPara("work.label.queryTaskList", Kv.by("labelId", labelId).set("userId", BaseUtil.getUserId().intValue())));
-        List<Record> taskList = JavaBeanUtil.mapToRecords(crmWorkTaskLabelDao.queryTaskList(labelId, BaseUtil.getUserId()));
+        List<Record> taskList = JavaBeanUtil.mapToRecords(crmWorkTaskLabelDao.queryTaskList(labelId, user.getUserId()));
         workbenchService.taskListTransfer(taskList);
         Map<Integer, List<Record>> map = taskList.stream().collect(Collectors.groupingBy(record -> record.getInt("work_id")));
 //        List<Record> workList = Db.find(Db.getSqlPara("work.label.queryWorkList", Kv.by("labelId", labelId).set("userId", BaseUtil.getUserId().intValue())));
-        List<Record> workList = JavaBeanUtil.mapToRecords(crmWorkTaskLabelDao.queryWorkList(labelId, BaseUtil.getUserId()));
+        List<Record> workList = JavaBeanUtil.mapToRecords(crmWorkTaskLabelDao.queryWorkList(labelId, user.getUserId()));
         workList.forEach(work -> work.set("list", map.get(work.getInt("work_id"))));
         return R.ok().put("data", workList);
     }

@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.LkCrmAdminFieldDao;
 import com.bdaim.crm.dao.LkCrmReceivablesDao;
@@ -98,8 +99,9 @@ public class CrmReceivablesService {
         CrmReceivables entity = jsonObject.getObject("entity", CrmReceivables.class);
         LkCrmReceivablesEntity crmReceivables = new LkCrmReceivablesEntity();
         BeanUtils.copyProperties(entity, crmReceivables);
-        crmReceivables.setCreateUserId(BaseUtil.getUser().getUserId());
-        crmReceivables.setCustId(BaseUtil.getUser().getCustId());
+        LoginUser user = BaseUtil.getUser();
+        crmReceivables.setCreateUserId(user.getUserId());
+        crmReceivables.setCustId(user.getCustId());
         String batchId = StrUtil.isNotEmpty(crmReceivables.getBatchId()) ? crmReceivables.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
@@ -113,7 +115,7 @@ public class CrmReceivablesService {
             crmReceivables.setUpdateTime(DateUtil.date().toTimestamp());
             crmReceivables.setBatchId(batchId);
             crmReceivables.setCheckStatus(0);
-            crmReceivables.setOwnerUserId(BaseUtil.getUser().getUserId());
+            crmReceivables.setOwnerUserId(user.getUserId());
             Map<String, Integer> map = examineRecordService.saveExamineRecord(2, jsonObject.getLong("checkUserId"), crmReceivables.getOwnerUserId(), null);
             if (map.get("status") == 0) {
                 return R.error("没有启动的审核步骤，不能添加！");

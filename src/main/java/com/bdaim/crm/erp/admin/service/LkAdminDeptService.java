@@ -1,6 +1,7 @@
 package com.bdaim.crm.erp.admin.service;
 
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminDeptDao;
 import com.bdaim.crm.dao.LkCrmAdminRoleDao;
@@ -96,15 +97,16 @@ public class LkAdminDeptService {
         if (list.size() == 0) {
             return adminDepts;
         }
+        LoginUser user = BaseUtil.getUser();
         //拥有最高数据权限
         if (list.contains(5)) {
             return JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid from " +
-                    "lkcrm_admin_dept WHERE cust_id = ?", BaseUtil.getCustId()));
+                    "lkcrm_admin_dept WHERE cust_id = ?", user.getCustId()));
         } else {
             adminDepts.add(JavaBeanUtil.mapToRecord(crmAdminDeptDao.queryUniqueSql("select dept_id as id,name,pid " +
-                    "from lkcrm_admin_dept where dept_id=? and cust_id=?", BaseUtil.getUser().getDeptId(), BaseUtil.getCustId())));
+                    "from lkcrm_admin_dept where dept_id=? and cust_id=?", user.getDeptId(), user.getCustId())));
             if (list.contains(4)) {
-                adminDepts.addAll(queryDeptByParentDept(BaseUtil.getUser().getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM));
+                adminDepts.addAll(queryDeptByParentDept(user.getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM));
             }
             if (list.contains(2)) {
                 adminDepts.addAll(queryDeptByParentUser(userId, BaseConstant.AUTH_DATA_RECURSION_NUM));
@@ -130,10 +132,11 @@ public class LkAdminDeptService {
 
     private List<Record> queryDeptByParentUser(Long userId, Integer deepness) {
         List<Record> recordList = new ArrayList<>();
+        LoginUser user = BaseUtil.getUser();
         if (deepness > 0) {
             List<Record> records = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("SELECT a.dept_id AS id,a.name," +
                     "a.pid,b.user_id FROM lkcrm_admin_dept as a LEFT JOIN lkcrm_admin_user as b on a.dept_id=b.dept_id" +
-                    " WHERE b.parent_id = ? AND a.cust_id = ? AND b.cust_id = ?", userId, BaseUtil.getCustId(), BaseUtil.getCustId()));
+                    " WHERE b.parent_id = ? AND a.cust_id = ? AND b.cust_id = ?", userId, user.getCustId(), user.getCustId()));
             recordList.addAll(records);
             records.forEach(record -> {
                 recordList.addAll(queryDeptByParentUser(record.getLong("user_id"), deepness - 1));
@@ -168,18 +171,19 @@ public class LkAdminDeptService {
     }
 
     public R deleteDept(String id) {
+        LoginUser user = BaseUtil.getUser();
         Integer userCount = crmAdminDeptDao.queryForInt("select count(*) from lkcrm_admin_user where " +
-                "dept_id = ? and cust_id = ?", id, BaseUtil.getCustId());
+                "dept_id = ? and cust_id = ?", id, user.getCustId());
         if (userCount > 0) {
             return R.error("该部门下有员工，不能删除！");
         }
         Integer childDeptCount = crmAdminDeptDao.queryForInt("select count(*) from lkcrm_admin_dept where " +
-                "pid = ? and cust_id = ?", id, BaseUtil.getCustId());
+                "pid = ? and cust_id = ?", id, user.getCustId());
         if (childDeptCount > 0) {
             return R.error("该部门下有下级部门，不能删除！");
         }
         int delete = crmAdminDeptDao.executeUpdateSQL("delete from lkcrm_admin_dept where dept_id = ? " +
-                "and cust_id = ?", id, BaseUtil.getCustId());
+                "and cust_id = ?", id, user.getCustId());
         return delete > 0 ? R.ok() : R.error();
     }
 }

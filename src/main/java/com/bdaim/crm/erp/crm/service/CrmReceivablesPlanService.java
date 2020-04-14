@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.LkCrmReceivablesDao;
@@ -43,14 +44,15 @@ public class CrmReceivablesPlanService {
     public R saveAndUpdate(JSONObject jsonObject) {
         CrmReceivablesPlan entity = jsonObject.getObject("entity", CrmReceivablesPlan.class);
 
+        LoginUser user = BaseUtil.getUser();
         LkCrmReceivablesPlanEntity crmReceivablesPlan = new LkCrmReceivablesPlanEntity();
         BeanUtils.copyProperties(entity, crmReceivablesPlan);
-        crmReceivablesPlan.setCustId(BaseUtil.getUser().getCustId());
+        crmReceivablesPlan.setCustId(user.getCustId());
         String batchId = StrUtil.isNotEmpty(crmReceivablesPlan.getFileBatch()) ? crmReceivablesPlan.getFileBatch() : IdUtil.simpleUUID();
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         if (null == entity.getPlanId()) {
             crmReceivablesPlan.setCreateTime(DateUtil.date().toTimestamp());
-            crmReceivablesPlan.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmReceivablesPlan.setCreateUserId(user.getUserId());
             crmReceivablesPlan.setFileBatch(batchId);
             LkCrmReceivablesPlanEntity receivablesPlan = crmReceivablesPlanDao.queryByContractId(crmReceivablesPlan.getContractId());
             //LkCrmReceivablesPlanEntity receivablesPlan = CrmReceivablesPlan.dao.findFirst(Db.getSql("crm.receivablesplan.queryByContractId"), crmReceivablesPlan.getContractId());
