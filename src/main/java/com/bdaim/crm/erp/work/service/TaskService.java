@@ -637,9 +637,13 @@ public class TaskService {
         }
         com.bdaim.common.dto.Page paginate = taskDao.queryTaskRelation(basePageRequest.getPage(), basePageRequest.getLimit(), relation.getBusinessIds(), relation.getContactsIds(), relation.getContractIds(), relation.getCustomerIds());
         //Page<Record> paginate = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("work.task.queryTaskRelation", Kv.by("businessIds", relation.getBusinessIds()).set("contactsIds", relation.getContactsIds()).set("contractIds", relation.getContractIds()).set("customerIds", relation.getCustomerIds())));
+        List<Record> list = new ArrayList<>();
         paginate.getData().forEach(s -> {
-            composeUser(JavaBeanUtil.mapToRecord((Map<String, Object>) s));
+            Record r = JavaBeanUtil.mapToRecord((Map<String, Object>) s);
+            composeUser(r);
+            list.add(r);
         });
+        paginate.setData(list);
         return R.ok().put("data", BaseUtil.crmPage(paginate));
     }
 

@@ -159,6 +159,7 @@ public class OaEventService {
             record.set("createUser", Kv.by("user_id", record.get("create_user_id")).set("realname", record.get("realname")).set("img", record.get("img")));
             queryRelateList(record);
         }
+        recordPage.setData(list);
         return R.ok().put("data", BaseUtil.crmPage(recordPage));
     }
 
