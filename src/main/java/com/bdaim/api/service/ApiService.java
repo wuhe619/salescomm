@@ -265,7 +265,7 @@ public class ApiService {
                         " where api_id=? ";
                 Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
                 if(monthCharge!=null) {
-                    String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 2);
+                    String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 3);
                     dataMap.put("monthFee",monChargeStr);
                 }
             }
@@ -325,7 +325,7 @@ public class ApiService {
             param.add(dataMap.get("SUBSCRIBERID"));
             param.add(params.getString("apiId"));
             Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
-            String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(),"10000",2);
+            String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(),"10000",3);
             dataMap.put("monthFee",monChargeStr);
             return dataMap;
         }).collect(Collectors.toList());
@@ -367,7 +367,7 @@ public class ApiService {
             param.add(dataMap.get("subscriberId"));
             Float monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Float.class);
             if(monthCharge!=null) {
-                String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 2);
+                String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 3);
                 dataMap.put("monthFee", monChargeStr);
             }
             Map<String,Object> salePriceMap = getApiSalePrice(dataMap.get("subscriberId").toString(),dataMap.get("apiId").toString());
@@ -861,7 +861,7 @@ public class ApiService {
                 if (amountMap != null) {
                     Object amount = amountMap.get("amount");
                     if (amount != null) {
-                        String amountStr = BigDecimalUtil.strDiv(amount.toString(), "10000", 2);
+                        String amountStr = BigDecimalUtil.strDiv(amount.toString(), "10000", 3);
                         map.put("amount", amountStr);
                     }
                 }

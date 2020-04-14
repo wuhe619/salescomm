@@ -383,6 +383,7 @@ public class SendSmsService {
         return result;
     }
 
+
     /**
      * 通过接口发送营销短信
      *
@@ -1357,13 +1358,16 @@ public class SendSmsService {
         YxtSmsParam smsParam = new YxtSmsParam();
         smsParam.setAction(SaleApiUtil.TEMPLATE_SMS_ACTION);
         smsParam.setAppid(SaleApiUtil.SMS_APP_ID);
-        smsParam.setMobile("18811526913");
-        smsParam.setTemplateId("1909");
-        smsParam.setDatas(Arrays.asList("0000".split(",")));
+        smsParam.setMobile("13120315498");
+        smsParam.setTemplateId("2815");
+        String[]s={"任务名称(14844983)","1"};
+        smsParam.setDatas(Arrays.asList(s));
+        System.out.println(JSON.toJSONString(smsParam));
         String result = SaleApiUtil.sendSms(JSON.toJSONString(smsParam), SaleApiUtil.ENV);
+        System.out.println(result);
         LogUtil.info("模板ID:" + smsParam.getTemplateId() + "----手机号：" + smsParam.getMobile());
         //短信
-        smsParam.setAppid("c217790f22634c288dd6a917dc809722");
+//        smsParam.setAppid("c217790f22634c288dd6a917dc809722");
         LogUtil.info("短信发送结果:" + result);
     }
 }

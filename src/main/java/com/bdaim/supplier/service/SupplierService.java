@@ -2402,11 +2402,11 @@ public class SupplierService {
             }
             sql.append(" order by create_time desc");
             PageList list = new Pagination().getPageData(sql.toString(), params.toArray(), page, jdbcTemplate);
+            log.info(jdbcTemplate.getDataSource().getConnection().getSchema());
+
             Map<String, Object> map = new HashMap<>();
             List<ApiProperty> rsIds = apiDao.getPropertyAll("rsIds");
-
             Map<Integer, List<String>> propertyMap = new HashMap<>();
-
             rsIds.stream().forEach(pro -> {
                 JSONArray.parseArray(pro.getPropertyValue()).stream().forEach(e -> {
                     JSONObject jsonObject = JSONObject.parseObject(e.toString());
@@ -2438,15 +2438,16 @@ public class SupplierService {
                     SupplierPropertyEntity remain_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "remain_amount");
                     SupplierPropertyEntity used_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "used_amount");
                     if ("5".equals(map1.get("type").toString())) {//api 供应商
-                        supplierDTOMap.put("balance", remain_amount == null ? 0 : Float.valueOf(remain_amount.getPropertyValue()) / 10000);
-                        supplierDTOMap.put("consumption", used_amount == null ? 0 : Float.valueOf(used_amount.getPropertyValue()) / 10000);
+                        supplierDTOMap.put("balance", remain_amount == null ? 0 : BigDecimalUtil.strDiv(remain_amount.getPropertyValue(), "10000", 3));
+                        supplierDTOMap.put("consumption", used_amount == null ? 0 : BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "10000", 3));
                     } else {
-                        supplierDTOMap.put("balance", remain_amount == null ? 0 : Float.valueOf(remain_amount.getPropertyValue()) / 1000);
-                        supplierDTOMap.put("consumption", used_amount == null ? 0 : Float.valueOf(used_amount.getPropertyValue()) / 1000);
+                        supplierDTOMap.put("balance", remain_amount == null ? 0 : BigDecimalUtil.strDiv(remain_amount.getPropertyValue(), "1000", 3));
+                        supplierDTOMap.put("consumption", used_amount == null ? 0 : BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "1000", 3));
                     }
                     supplierDTOMap.put("apiNum", propertyMap.containsKey(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
                     return supplierDTOMap;
                 } catch (Exception e) {
+                    log.error("supplier列表查询："+e.getMessage());
                     e.printStackTrace();
                 }
                 return null;
@@ -2462,20 +2463,13 @@ public class SupplierService {
     }
 
     public int supplierDeposit(Deposit deposit, String userId) {
-//        BigDecimal b = new BigDecimal(10000);
-//        BigDecimal pre_money;
-//        int money = Integer.valueOf((Double.valueOf(deposit.getMoney())* 10000) + "".trim()).intValue();
         int pre_money = 0;
-        int money = Integer.valueOf(deposit.getMoney()) * 10000;
-
-//        BigDecimal bigDecimal = BigDecimal.valueOf(Double.valueOf(deposit.getMoney()));
-//        BigDecimal money = bigDecimal.multiply(b);
+        BigDecimal money1 = BigDecimalUtil.mul(deposit.getMoney(),"10000");
+        int money = money1.intValue();
         SupplierPropertyEntity supplierPropertyEntity = supplierDao.getProperty(String.valueOf(deposit.getId()), "remain_amount");
         if (supplierPropertyEntity == null) {
-//            pre_money = new BigDecimal(0);
-            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(money));
+            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", money1.toPlainString());
         } else {
-//            BigDecimal bigDecimal1 = new BigDecimal(Double.valueOf(supplierPropertyEntity.getPropertyValue()));
             pre_money = new BigDecimal(supplierPropertyEntity.getPropertyValue()).intValue();
             supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(pre_money + money));
         }
@@ -2497,7 +2491,7 @@ public class SupplierService {
                     map.put("bank_account", m.get("property_value"));
                     break;
                 case "remain_amount":
-                    map.put("remain_amount", Double.valueOf(m.get("property_value").toString()).intValue() / 10000);
+                    map.put("remain_amount", BigDecimalUtil.strDiv(m.get("property_value").toString(),"10000",3));
                     break;
             }
         });
@@ -2514,7 +2508,7 @@ public class SupplierService {
                 deposit.setCustId(depositMap.get("SUBSCRIBER_ID").toString());
             }
             if (depositMap.get("MONEY") != null) {
-                deposit.setMoney(Double.valueOf(depositMap.get("MONEY").toString()).intValue() / 10000 + "");
+                deposit.setMoney(BigDecimalUtil.strDiv(depositMap.get("MONEY").toString(),"10000",3));
             }
             if (depositMap.get("PAY_TIME") != null) {
                 deposit.setPayTime(depositMap.get("PAY_TIME").toString());
@@ -2526,7 +2520,7 @@ public class SupplierService {
                 deposit.setPicId(depositMap.get("pay_certificate").toString());
             }
             if (depositMap.get("pre_money") != null) {
-                deposit.setPreMoney(Double.valueOf(depositMap.get("pre_money").toString()).intValue() / 10000 + "");
+                deposit.setPreMoney(BigDecimalUtil.strDiv(depositMap.get("pre_money").toString(),"10000",3 ));
             }
             if (depositMap.get("user_id") != null) {
                 deposit.setPreMoney(depositMap.get("user_id").toString());
