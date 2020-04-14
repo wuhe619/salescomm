@@ -28,6 +28,13 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
         return queryForInt(sql, userId);
     }
 
+    public int todayLeadsNum(String userId) {
+        String sql = "select count(*) from lkcrm_crm_leads " +
+                "  where leads_id not in (IFNULL((select GROUP_CONCAT(types_id) from lkcrm_admin_record where types = 'crm_leads' and to_days(create_time) = to_days(now())),0))\n" +
+                "  and to_days(next_time) = to_days(now()) and owner_user_id = ?";
+        return queryForInt(sql, userId);
+    }
+
     public int followLeadsNum(String userId) {
         String sql = "select count(*) from lkcrm_crm_leads as a\n" +
                 "  where followup = 0\n" +
