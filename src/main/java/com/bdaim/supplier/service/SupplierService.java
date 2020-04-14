@@ -2402,7 +2402,8 @@ public class SupplierService {
             }
             sql.append(" order by create_time desc");
             PageList list = new Pagination().getPageData(sql.toString(), params.toArray(), page, jdbcTemplate);
-            log.info("list::::",list.getList());
+            log.info("list::::"+list.getList());
+            log.info(jdbcTemplate.getDataSource().getConnection().getSchema());
 
             Map<String, Object> map = new HashMap<>();
             List<ApiProperty> rsIds = apiDao.getPropertyAll("rsIds");
