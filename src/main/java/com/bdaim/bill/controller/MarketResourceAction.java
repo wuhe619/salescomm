@@ -1175,10 +1175,10 @@ public class MarketResourceAction extends BasicAction {
     @RequestMapping(value = "/setWorkNum", method = RequestMethod.POST)
     @ResponseBody
     @CacheAnnotation
-    public String setWorkNum(String workNum, String userid) {
+    public String setWorkNum(String workNum, String userid, String source) {
         LoginUser lu = opUser();
         if ("1".equals(lu.getUserType())) {
-            return marketResourceService.setWorkNum(workNum, userid, lu.getCustId());
+            return marketResourceService.setWorkNum(workNum, userid, lu.getCustId(), source);
         }
         return "";
     }
@@ -1551,7 +1551,7 @@ public class MarketResourceAction extends BasicAction {
                 // 更新致电次数
                 /*data = new HashMap();
                 data.put("batch_id","22a6dd6cc3ed4010963d1bcd9e002ead");*/
-                adminFieldService.saveCallSmsCount(String.valueOf(data.get("batch_id")), NumberConvertUtil.parseInt(objType),1,1);
+                adminFieldService.saveCallSmsCount(String.valueOf(data.get("batch_id")), NumberConvertUtil.parseInt(objType), 1, 1);
             }
         } catch (Exception e) {
             LOG.error("保存手动外呼通话记录异常,", e);
