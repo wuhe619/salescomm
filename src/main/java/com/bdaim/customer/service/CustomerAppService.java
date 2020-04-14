@@ -594,7 +594,7 @@ public class CustomerAppService {
     }
 
     public static void main(String[] args) {
-        BigDecimal s=new BigDecimal("1.55");
+        BigDecimal s=new BigDecimal("1.565");
         System.out.println(s.toPlainString());
         BigDecimal b=s.multiply(new BigDecimal("10000"));
         System.out.println(b.toPlainString());

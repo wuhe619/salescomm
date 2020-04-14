@@ -2426,6 +2426,7 @@ public class SupplierService {
             Object collect = list.getList().stream().map(m -> {
                 try {
                     Map map1 = (Map) m;
+                    log.info("map1111:",map1);
                     Map<String, Object> supplierDTOMap = new HashMap<>();
                     supplierDTOMap.put("name", map1.get("name"));
                     supplierDTOMap.put("settlementType", map1.get("settlement_type"));
@@ -2442,6 +2443,8 @@ public class SupplierService {
                         String used_amountstr = BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "10000", 3);
                         supplierDTOMap.put("balance", remain_amount == null ? 0 : remain_amountstr);
                         supplierDTOMap.put("consumption", used_amount == null ? 0 : used_amountstr);
+                        log.info("remain_amountstr:",remain_amountstr);
+                        log.info("used_amountstr:",used_amountstr);
                     } else {
                         String remain_amountstr = BigDecimalUtil.strDiv(remain_amount.getPropertyValue(), "1000", 3);
                         String used_amountstr = BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "1000", 3);
@@ -2451,6 +2454,7 @@ public class SupplierService {
                     supplierDTOMap.put("apiNum", propertyMap.containsKey(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
                     return supplierDTOMap;
                 } catch (Exception e) {
+                    log.error(e.getMessage());
                     e.printStackTrace();
                 }
                 return null;
