@@ -2402,11 +2402,11 @@ public class SupplierService {
             }
             sql.append(" order by create_time desc");
             PageList list = new Pagination().getPageData(sql.toString(), params.toArray(), page, jdbcTemplate);
+            log.info("list::::",list);
+
             Map<String, Object> map = new HashMap<>();
             List<ApiProperty> rsIds = apiDao.getPropertyAll("rsIds");
-
             Map<Integer, List<String>> propertyMap = new HashMap<>();
-
             rsIds.stream().forEach(pro -> {
                 JSONArray.parseArray(pro.getPropertyValue()).stream().forEach(e -> {
                     JSONObject jsonObject = JSONObject.parseObject(e.toString());
