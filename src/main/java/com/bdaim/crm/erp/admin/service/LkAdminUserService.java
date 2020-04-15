@@ -609,13 +609,13 @@ public class LkAdminUserService {
         //1. 校验验证码是否正确
         boolean success = sendSmsService.verificationCode(phone, type, code) == 1;
         if (!success) {
-            throw new ParamValidateException("500", "手机验证码不正确");
+            throw new ParamValidateException("0", "手机验证码不正确");
         }
         //2. 手机号是否已注册
         String selectSql = "SELECT user_id FROM lkcrm_admin_user WHERE mobile = ?";
         List list = crmAdminUserDao.queryListBySql(selectSql, phone);
         if (CollectionUtils.isEmpty(list)) {
-            throw new ParamValidateException("500", "手机号未注册");
+            throw new ParamValidateException("0", "手机号未注册");
         }
         //3. 重置密码
         String newPassword = params.get("newPassword");

@@ -181,10 +181,7 @@ public class BasicAction {
      * @return true-是 false-否
      */
     protected boolean isBackendUser() {
-        if ("ROLE_USER".equals(opUser().getRole()) || "admin".equals(opUser().getRole())) {
-            return true;
-        }
-        return false;
+        return "ROLE_USER".equals(opUser().getRole()) || "admin".equals(opUser().getRole());
     }
 
     /**
@@ -230,7 +227,7 @@ public class BasicAction {
             } else if (ex instanceof ParamException) {
                 out.println(returnError(ex.getMessage()));
             } else if (ex instanceof ParamValidateException) {
-                out.println(returnJson(500, ((ParamValidateException) ex).getMsg()));
+                out.println(returnJson(0, ((ParamValidateException) ex).getMsg()));
             } else {
                 out.println(returnError("系统异常"));
             }
@@ -452,7 +449,7 @@ public class BasicAction {
 
         while (var3.hasNext()) {
             Map.Entry<String, String[]> entry = (Map.Entry) var3.next();
-            String[] values = (String[]) entry.getValue();
+            String[] values = entry.getValue();
             String value = values != null && values.length > 0 ? values[0] : null;
             kv.put(entry.getKey(), "".equals(value) ? null : value);
         }
