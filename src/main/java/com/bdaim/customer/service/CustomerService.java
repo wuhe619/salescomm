@@ -2293,7 +2293,15 @@ public class CustomerService {
                 logger.warn("客户:" + custId + ",渠道ID:" + resourceId + ",未找到" + apparentNumberRule.getPropertyValue() + "外显规则");
             }
         } else {
-            logger.warn("客户:" + custId + ",渠道ID:" + resourceId + "未配置外显号使用规则");
+            logger.warn("客户:" + custId + ",渠道ID:" + resourceId + "未配置外显号使用规则,默认使用第一个有效外显");
+            ApparentNumberQueryParam m = new ApparentNumberQueryParam();
+            m.setCustId(custId);
+            m.setStatus(1);
+            m.setCallChannel(resourceId);
+            List<ApparentNumberDTO> numberList = listApparentNumber(m);
+            if (numberList.size() > 0) {
+               return numberList.get(0).getApparentNumber();
+            }
             return null;
         }
         return null;
