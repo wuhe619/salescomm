@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -62,6 +63,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 @Service
@@ -739,7 +741,8 @@ public class CrmLeadsService {
      * @return
      */
     @Async
-    public int transferToPublicSea(String seaId, String userId, String batchId, LoginUser user, String leadsview) {
+    public Future<Integer> transferToPublicSea(String seaId, String userId, String batchId) {
+        LOG.info("添加到线索私海数据");
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
                 .append("SELECT * FROM lkcrm_crm_leads  WHERE batch_id =? ");
@@ -747,6 +750,9 @@ public class CrmLeadsService {
         int i = 0;
         String insertSql = "REPLACE INTO " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " (`id`, `user_id`, `update_time`, `status`, " +
                 "super_name,super_telphone,super_phone,super_data,create_time,batch_id) VALUES(?,?,?,?,?,?,?,?,?,?)";
+
+        LoginUser user = BaseUtil.getUser();
+        String leadsview = BaseUtil.getViewSql("leadsview");
 
         for (Map<String, Object> m : maps) {
             JSONObject superData = new JSONObject();
@@ -825,7 +831,7 @@ public class CrmLeadsService {
             crmRecordService.updateRecord(jsonArray, superId);
             //adminFieldService.save(jsonArray, superId);
         }
-        return 0;
+        return new AsyncResult<>(i);
     }
 
     /**
@@ -980,7 +986,15 @@ public class CrmLeadsService {
         crmLeads.setMobile(mobile);
         crmLeads.setTelephone(telephone);
         // 查询公海线索的标记信息
-        String batchId = MD5Util.encode32Bit(mobile);
+        String batchId;
+        if (StringUtil.isNotEmpty(mobile)) {
+            batchId = MD5Util.encode32Bit(mobile);
+        } else if (StringUtil.isNotEmpty(telephone)) {
+            batchId = MD5Util.encode32Bit(telephone);
+        } else {
+            batchId = MD5Util.encode32Bit(UUID.randomUUID().toString().replaceAll("-", ""));
+        }
+
         crmLeads.setBatchId(batchId);
         crmLeads.setCustId(user.getCustId());
         crmLeads.setCreateTime(DateUtil.date().toTimestamp());
@@ -1352,7 +1366,8 @@ public class CrmLeadsService {
         return i > 0 ? R.ok() : R.error("公海线索删除失败");
     }
 
-    public int batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
+    @Async
+    public Future<Integer> batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
         // 指定ID退回公海
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
@@ -1375,15 +1390,13 @@ public class CrmLeadsService {
         }
         customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
         int status = customerSeaDao.executeUpdateSQL(sql.toString(), param.toArray());
-        LoginUser user = BaseUtil.getUser();
-        String leadsview = BaseUtil.getViewSql("leadsview");
         for (String id : superIds) {
             List<Map<String, Object>> list = customerSeaDao.sqlQuery("select * from " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " WHERE id = ? ", id);
-            if (list.size() == 0) {
-                transferToPublicSea(seaId, userId.toString(), id, user, leadsview);
+            if (list.size() > 0) {
+                transferToPublicSea(seaId, userId.toString(), id);
             }
         }
-        return status;
+        return new AsyncResult<>(status);
     }
 
     /**
