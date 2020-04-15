@@ -687,6 +687,18 @@ public class SendSmsService {
                 values.add("");
 //                values.add("30");
                 break;
+            case 13:
+                // 联客CRM重置登录密码
+                templateId = "2817";
+                values.add("5");
+//                values.add("30");
+                break;
+            case 14:
+                // 联客CRM登录验证码
+                templateId = "2818";
+                values.add("5");
+//                values.add("30");
+                break;
             default:
                 throw new RuntimeException("type match value！");
         }
