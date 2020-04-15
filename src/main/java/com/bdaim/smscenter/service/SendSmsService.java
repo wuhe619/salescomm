@@ -12,6 +12,7 @@ import com.bdaim.auth.service.UserVerificationCodeService;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.exception.ParamValidateException;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.service.CrmContactsService;
@@ -51,6 +52,7 @@ import org.springframework.expression.ParseException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -450,6 +452,14 @@ public class SendSmsService {
         return 0;
     }
 
+    public void checkIfUserExists(String phone) {
+        String selectSql = "SELECT user_id FROM lkcrm_admin_user WHERE mobile = ?";
+        List list = smsDao.queryListBySql(selectSql, phone);
+        if (CollectionUtils.isEmpty(list)) {
+            throw new ParamValidateException("500", "手机号未注册");
+        }
+    }
+
     class YtxCallbackSmsThread implements Callable<Integer> {
         CallBackSmsDTO dto;
 
@@ -609,7 +619,7 @@ public class SendSmsService {
             if (username.getBytes().length <= 6) {
                 name = username.substring(0, 1) + "*";
             } else {
-                name = username.substring(0, 1) + "**" + username.substring(username.length() - 1, username.length());
+                name = username.substring(0, 1) + "**" + username.substring(username.length() - 1);
             }
         }
         String result, templateId;
