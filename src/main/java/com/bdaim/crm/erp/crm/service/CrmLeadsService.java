@@ -740,7 +740,8 @@ public class CrmLeadsService {
      * @param batchId
      * @return
      */
-    public int transferToPublicSea(String seaId, String userId, String batchId) {
+    @Async
+    public Future<Integer> transferToPublicSea(String seaId, String userId, String batchId) {
         LOG.info("添加到线索私海数据");
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
@@ -830,7 +831,7 @@ public class CrmLeadsService {
             crmRecordService.updateRecord(jsonArray, superId);
             //adminFieldService.save(jsonArray, superId);
         }
-        return 0;
+        return new AsyncResult<>(i);
     }
 
     /**
