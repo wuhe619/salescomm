@@ -740,6 +740,7 @@ public class CrmLeadsService {
      * @param batchId
      * @return
      */
+    @Async
     public Future<Integer> transferToPublicSea(String seaId, String userId, String batchId) {
         LOG.info("添加到线索私海数据");
         //添加到线索私海数据
@@ -1365,6 +1366,7 @@ public class CrmLeadsService {
         return i > 0 ? R.ok() : R.error("公海线索删除失败");
     }
 
+    @Async
     public Future<Integer> batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
         // 指定ID退回公海
         StringBuilder sql = new StringBuilder()
@@ -1390,7 +1392,7 @@ public class CrmLeadsService {
         int status = customerSeaDao.executeUpdateSQL(sql.toString(), param.toArray());
         for (String id : superIds) {
             List<Map<String, Object>> list = customerSeaDao.sqlQuery("select * from " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " WHERE id = ? ", id);
-            if (list.size() > 0) {
+            if (list.size() == 0) {
                 transferToPublicSea(seaId, userId.toString(), id);
             }
         }
