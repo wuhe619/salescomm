@@ -986,7 +986,15 @@ public class CrmLeadsService {
         crmLeads.setMobile(mobile);
         crmLeads.setTelephone(telephone);
         // 查询公海线索的标记信息
-        String batchId = MD5Util.encode32Bit(mobile);
+        String batchId;
+        if (StringUtil.isNotEmpty(mobile)) {
+            batchId = MD5Util.encode32Bit(mobile);
+        } else if (StringUtil.isNotEmpty(telephone)) {
+            batchId = MD5Util.encode32Bit(telephone);
+        } else {
+            batchId = MD5Util.encode32Bit(UUID.randomUUID().toString().replaceAll("-", ""));
+        }
+
         crmLeads.setBatchId(batchId);
         crmLeads.setCustId(user.getCustId());
         crmLeads.setCreateTime(DateUtil.date().toTimestamp());
