@@ -690,12 +690,14 @@ public class SendSmsService {
             case 13:
                 // 联客CRM重置登录密码
                 templateId = "2817";
+                values.add(vCode);
                 values.add("5");
 //                values.add("30");
                 break;
             case 14:
                 // 联客CRM登录验证码
                 templateId = "2818";
+                values.add(vCode);
                 values.add("5");
 //                values.add("30");
                 break;
