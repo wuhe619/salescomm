@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,13 +51,16 @@ public class SendSmsAction extends BasicAction {
     @RequestMapping(value = "/sendSms", method = RequestMethod.POST)
     @ResponseBody
     @CacheAnnotation
-    public Object sendSmsVcode(@RequestBody JSONObject jsonObject) throws Exception {
+    public Object sendSmsVcode(@RequestBody JSONObject jsonObject) {
         String phone = jsonObject.getString("phone");
         int type = Integer.parseInt(jsonObject.getString("state"));
+        //CRM重置密码处，判断该手机号是否存在
+        if (type == 13) {
+            sendSmsService.checkIfUserExists(phone);
+        }
         String username = jsonObject.getString("username");
         Object result = sendSmsService.sendSmsVcCodeByCommChinaAPI(phone, type, username);
         return JSONObject.toJSON(result);
-
     }
 
     /**
@@ -117,7 +121,7 @@ public class SendSmsAction extends BasicAction {
         Map<Object, Object> data = new HashMap<>();
         try {
             sendSmsService.insertSmsLogBackInfo(report);
-            response.getOutputStream().write(JSON.toJSONString(data, SerializerFeature.WriteMapNullValue).getBytes("UTF-8"));
+            response.getOutputStream().write(JSON.toJSONString(data, SerializerFeature.WriteMapNullValue).getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             e.printStackTrace();
             LOG.error("获取筑望短信发送状态推送结果异常", e);
@@ -142,7 +146,7 @@ public class SendSmsAction extends BasicAction {
         }
         if (code == 1001) {
             return R.ok("发送成功");
-        }else if (code == 1002) {
+        } else if (code == 1002) {
             return R.error(code, "未配置售价,请联系管理员");
         } else if (code == 1003) {
             return R.error(code, "余额不足");
@@ -207,7 +211,7 @@ public class SendSmsAction extends BasicAction {
             SeatsInfo seatsInfo = new SeatsInfo();
             seatsInfo.setSeatsAccount(String.valueOf(seatsAccount));
             seatsInfo.setSeatsPassword(seatsPassword);
-            seatsInfo.setExtensionNumber(extensionNumber + String.valueOf(seatsAccount));
+            seatsInfo.setExtensionNumber(extensionNumber + seatsAccount);
             seatsInfo.setExtensionPassword(extensionPassword);
             list.add(seatsInfo);
             ++seatsAccount;

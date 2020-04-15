@@ -612,7 +612,7 @@ public class LkAdminUserService {
             throw new ParamValidateException("500", "手机验证码不正确");
         }
         //2. 手机号是否已注册
-        String selectSql = "SELECT count(*) FROM lkcrm_admin_user WHERE mobile = ?";
+        String selectSql = "SELECT user_id FROM lkcrm_admin_user WHERE mobile = ?";
         List list = crmAdminUserDao.queryListBySql(selectSql, phone);
         if (CollectionUtils.isEmpty(list)) {
             throw new ParamValidateException("500", "手机号未注册");
