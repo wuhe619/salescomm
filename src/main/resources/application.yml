@@ -19,7 +19,7 @@ spring:
       auto-commit: true
       minimum-idle: 5
       maximum-pool-size: 100
-      connection-timeout: 3000
+      connection-timeout: 60000
       connection-test-query: select 1
       validationTimeout: 3000
       idleTimeout: 60000
