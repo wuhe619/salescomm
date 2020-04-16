@@ -545,7 +545,7 @@ public class LkAdminRoleService {
 
     private CustomerUser getUserByPhone(String phone) {
         String hql = "SELECT t1 FROM CustomerUser t1,LkCrmAdminUserEntity t2 WHERE t1.id=t2.userId " +
-                "AND t2.mobile = ?";
+                "AND t2.mobile = ? ORDER BY t1.createTime DESC LIMIT 1";
         CustomerUser user = crmAdminUserDao.findUnique(hql, phone);
         return user;
     }
