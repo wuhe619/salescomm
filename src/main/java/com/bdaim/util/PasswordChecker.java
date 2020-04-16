@@ -22,7 +22,7 @@ public class PasswordChecker {
     /**
      * 密码包含字母数字特殊字符中至少2种规则正则表达式
      */
-    public static final String LETTER_OR_SPECIAL_MATCHES = "(?!^(\\d+|[a-zA-Z]+|[[!@#$%^&*()\\-+=—_]]+)$)^[\\w[!@#$%^&*()\\-+=—_]]{8,20}$";
+    public static final String LETTER_OR_SPECIAL_MATCHES = "(?!^(\\d+|[a-zA-Z]+|[!@#$%^&*()\\-+=—_]+)$)^[\\w[!@#$%^&*()\\-+=—_]]{8,20}$";
 
     public PasswordChecker() {
         this.specialCharSet = defaultSpecialCharSet();
