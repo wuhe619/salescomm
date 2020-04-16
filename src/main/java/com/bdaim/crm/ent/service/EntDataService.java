@@ -19,10 +19,7 @@ import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import io.searchbox.core.CountResult;
 import io.searchbox.core.SearchResult;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermQueryBuilder;
-import org.elasticsearch.index.query.WildcardQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
@@ -709,34 +706,48 @@ public class EntDataService {
                        /* MatchQueryBuilder mpq = QueryBuilders
                                 .matchQuery("entName", text);
                         temp.should(mpq);*/
-                        WildcardQueryBuilder mpq = QueryBuilders
-                                .wildcardQuery("entName", "*" + texts.getString(j) + "*");
+                        MatchPhraseQueryBuilder mpq = QueryBuilders
+                                .matchPhraseQuery("entName", texts.getString(j));
+                        mpq.slop(1);
                         temp.should(mpq);
                     }
+                    qb.must(temp);
                 } else if (typeName == 2) {
                     for (int j = 0; j < texts.size(); j++) {
-                        TermQueryBuilder mpq = QueryBuilders
-                                .termQuery("entName", texts.getString(j));
-                        temp.should(mpq);
+                       /* TermQueryBuilder mpq = QueryBuilders
+                                .termQuery("entName", texts.getString(j));*/
+                        MatchPhraseQueryBuilder mpq = QueryBuilders
+                                .matchPhraseQuery("entName", texts.getString(j));
+                        mpq.slop(1);
+                        temp.must(mpq);
                     }
+                    qb.must(temp);
                 } else if (typeName == 3) {
                     for (int j = 0; j < texts.size(); j++) {
                        /* MatchQueryBuilder mpq = QueryBuilders
                                 .matchQuery("entName", text);
                         temp.should(mpq);*/
-                        WildcardQueryBuilder mpq = QueryBuilders
-                                .wildcardQuery("entName", "*" + texts.getString(j) + "*");
-                        temp.mustNot(mpq);
+                        /*WildcardQueryBuilder mpq = QueryBuilders
+                                .wildcardQuery("entName", "*" + texts.getString(j) + "*");*/
+                        MatchPhraseQueryBuilder mpq = QueryBuilders
+                                .matchPhraseQuery("entName", texts.getString(j));
+                        mpq.slop(1);
+                        temp.must(mpq);
                     }
+                    qb.mustNot(temp);
                 } else if (typeName == 4) {
                     for (int j = 0; j < texts.size(); j++) {
-                        TermQueryBuilder mpq = QueryBuilders
-                                .termQuery("entName", texts.getString(j));
-                        temp.mustNot(mpq);
+                        /*TermQueryBuilder mpq = QueryBuilders
+                                .termQuery("entName", texts.getString(j));*/
+                        MatchPhraseQueryBuilder mpq = QueryBuilders
+                                .matchPhraseQuery("entName", texts.getString(j));
+                        mpq.slop(1);
+                        temp.must(mpq);
                     }
+                    qb.mustNot(temp);
                 }
             }
-            qb.must(temp);
+
         }
 
         // 经营范围 支持多个
@@ -749,31 +760,49 @@ public class EntDataService {
                 JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
                 if (typeScope == 1) {
                     for (int j = 0; j < texts.size(); j++) {
-                        WildcardQueryBuilder mpq = QueryBuilders
-                                .wildcardQuery("opScope", "*" + texts.getString(j) + "*");
+                       /* WildcardQueryBuilder mpq = QueryBuilders
+                                .wildcardQuery("opScope", "*" + texts.getString(j) + "*");*/
+
+                        MatchPhraseQueryBuilder mpq = QueryBuilders
+                                .matchPhraseQuery("opScope", texts.getString(j));
+                        mpq.slop(1);
                         temp.should(mpq);
                     }
+                    qb.must(temp);
                 } else if (typeScope == 2) {
                     for (int j = 0; j < texts.size(); j++) {
-                        TermQueryBuilder mpq = QueryBuilders
-                                .termQuery("opScope", texts.getString(j));
-                        temp.should(mpq);
+                        /*TermQueryBuilder mpq = QueryBuilders
+                                .termQuery("opScope", texts.getString(j));*/
+
+                        MatchPhraseQueryBuilder mpq = QueryBuilders
+                                .matchPhraseQuery("opScope", texts.getString(j));
+                        mpq.slop(1);
+                        temp.must(mpq);
                     }
+                    qb.must(temp);
                 } else if (typeScope == 3) {
                     for (int j = 0; j < texts.size(); j++) {
-                        WildcardQueryBuilder mpq = QueryBuilders
-                                .wildcardQuery("opScope", "*" + texts.getString(j) + "*");
-                        temp.mustNot(mpq);
+                        /*WildcardQueryBuilder mpq = QueryBuilders
+                                .wildcardQuery("opScope", "*" + texts.getString(j) + "*");*/
+                        MatchPhraseQueryBuilder mpq = QueryBuilders
+                                .matchPhraseQuery("opScope", texts.getString(j));
+                        mpq.slop(1);
+                        temp.should(mpq);
                     }
+                    qb.mustNot(temp);
                 } else if (typeScope == 4) {
                     for (int j = 0; j < texts.size(); j++) {
-                        TermQueryBuilder mpq = QueryBuilders
-                                .termQuery("opScope", texts.getString(j));
-                        temp.mustNot(mpq);
+                        /*TermQueryBuilder mpq = QueryBuilders
+                                .termQuery("opScope", texts.getString(j));*/
+                        MatchPhraseQueryBuilder mpq = QueryBuilders
+                                .matchPhraseQuery("opScope", texts.getString(j));
+                        mpq.slop(1);
+                        temp.must(mpq);
                     }
+                    qb.mustNot(temp);
                 }
             }
-            qb.must(temp);
+
         }
         // 经营状态
         if (param.getJSONArray("regStatus") != null && param.getJSONArray("regStatus").size() > 0) {
@@ -903,7 +932,7 @@ public class EntDataService {
                 searchSourceBuilder.sort(_orderby_, SortOrder.valueOf(_sort_.toUpperCase()));
             }
         }
-        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
+        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), "ent_data_test5", AppConfig.getEnt_data_type());
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             List list = new ArrayList<>();
             JSONObject t;
@@ -961,7 +990,7 @@ public class EntDataService {
         params.remove("pageNum");
         params.remove("pageSize");
         SearchSourceBuilder searchSourceBuilder = queryCondition(params);
-        CountResult result = elasticSearchService.count(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
+        CountResult result = elasticSearchService.count(searchSourceBuilder.toString(), "ent_data_test5", AppConfig.getEnt_data_type());
         data.put("total", JSON.parseObject(result.getJsonString()).get("count"));
         return data;
     }
