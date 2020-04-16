@@ -252,6 +252,7 @@ public class CustomerUserService {
         customer.setEnterpriseName(value.getEnterpriseName());
         customer.setStatus(Constant.USER_ACTIVE_STATUS);
         customer.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+        customer.setSource(value.getSource());
         customerDao.save(customer);
 
         CustomerUser cu = new CustomerUser();
