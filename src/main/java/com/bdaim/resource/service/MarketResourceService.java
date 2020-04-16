@@ -5195,7 +5195,7 @@ public class MarketResourceService {
 
         CustomerUser cu = customerUserDao.get(Long.parseLong(userid));
         if (cu == null || cu.getCust_id() == null || !cu.getCust_id().equals(custId)) {
-            map.put("code", "1");
+            map.put("code", 1);
             map.put("message", "失败");
             return map.toJSONString();
         }
@@ -5209,7 +5209,7 @@ public class MarketResourceService {
         this.customerUserDao.saveOrUpdate(work_num);
         this.customerUserDao.saveOrUpdate(work_num_status);
 
-        map.put("code", "0");
+        map.put("code", 0);
         map.put("message", "成功");
         return map.toJSONString();
     }
