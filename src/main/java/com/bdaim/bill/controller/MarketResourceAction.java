@@ -1202,14 +1202,14 @@ public class MarketResourceAction extends BasicAction {
     @RequestMapping(value = "/queryWorkNumList", method = RequestMethod.GET)
     @ResponseBody
     @CacheAnnotation
-    public String queryWorkNumList(String username, Integer pageNum, Integer pageSize) {
+    public String queryWorkNumList(String username, String account, Integer pageNum, Integer pageSize) {
         String cust_id = opUser().getCustId();
         // String cust_id="18888";
         // List<Map<String, Object>> result =
         // marketResourceService.queryRecordVoiceLOG(cust_id,user_type,superId);
         JSONObject json = new JSONObject();
         Map<Object, Object> map = new HashMap<Object, Object>();
-        List<Map<String, Object>> list = marketResourceService.queryWorkNumList(cust_id, "", username, pageNum, pageSize);
+        List<Map<String, Object>> list = marketResourceService.queryWorkNumList(cust_id, "", username, account, pageNum, pageSize);
         long total = marketResourceService.queryWorkNumAllCount(cust_id, "", username);
         map.put("data", list);
         map.put("total", total);
