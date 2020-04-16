@@ -932,7 +932,7 @@ public class EntDataService {
                 searchSourceBuilder.sort(_orderby_, SortOrder.valueOf(_sort_.toUpperCase()));
             }
         }
-        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), "ent_data_test5", AppConfig.getEnt_data_type());
+        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             List list = new ArrayList<>();
             JSONObject t;
@@ -990,7 +990,7 @@ public class EntDataService {
         params.remove("pageNum");
         params.remove("pageSize");
         SearchSourceBuilder searchSourceBuilder = queryCondition(params);
-        CountResult result = elasticSearchService.count(searchSourceBuilder.toString(), "ent_data_test5", AppConfig.getEnt_data_type());
+        CountResult result = elasticSearchService.count(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         data.put("total", JSON.parseObject(result.getJsonString()).get("count"));
         return data;
     }
