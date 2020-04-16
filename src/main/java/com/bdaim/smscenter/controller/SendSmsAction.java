@@ -54,8 +54,8 @@ public class SendSmsAction extends BasicAction {
     public Object sendSmsVcode(@RequestBody JSONObject jsonObject) {
         String phone = jsonObject.getString("phone");
         int type = Integer.parseInt(jsonObject.getString("state"));
-        //CRM重置密码处，判断该手机号是否存在
-        if (type == 13) {
+        //CRM手机验证码登陆/重置密码处，判断该手机号是否存在
+        if (type == 13 || type == 14) {
             sendSmsService.checkIfUserExists(phone);
         }
         String username = jsonObject.getString("username");
