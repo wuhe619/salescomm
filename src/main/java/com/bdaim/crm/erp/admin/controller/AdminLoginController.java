@@ -4,9 +4,12 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.auth.Token;
 import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.auth.service.TokenService;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.crm.common.config.redis.Redis;
 import com.bdaim.crm.common.config.redis.RedisManager;
 import com.bdaim.crm.common.constant.BaseConstant;
@@ -18,21 +21,15 @@ import com.jfinal.aop.Clear;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Db;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 用户登录
- *
  */
 @RequestMapping
 @RestController
@@ -51,15 +48,24 @@ public class AdminLoginController extends BasicAction {
         //redirect("/index.html");
     }
 
+    @PostMapping(value = "/crm/login")
+    public Token login(@RequestBody Map<String, String> params) throws Exception {
+        Token token = adminRoleService.createTokenByPhone(params);
+        if (token != null) {
+            tokenCacheService.saveToken(token);
+        }
+        return token;
+    }
+
     /**
      * @param username 用户名
      * @param password 密码
-     * @author zhangzhiwei
+     * @author Chacker
      * 用户登录
      */
     //@PostMapping("/login")
     //@ResponseBody
-    public String login(@Para("username") String username, @Para("password") String password) {
+    public String loginBak(@Para("username") String username, @Para("password") String password) {
         String key = BaseConstant.USER_LOGIN_ERROR_KEY + username;
         Redis redis = RedisManager.getRedis0();
         long beforeTime = System.currentTimeMillis() - 60 * 5 * 1000;
