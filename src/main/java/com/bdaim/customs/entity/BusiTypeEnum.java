@@ -48,7 +48,11 @@ public enum BusiTypeEnum {
 
     EXPRESS_ORDER("EXPRESS_ORDER","快递订单","express_order"),
 
-    EXPRESS_TRAJECTORY("EXPRESS_TRAJECTORY","快递轨迹","express_trajectory");
+    EXPRESS_TRAJECTORY("EXPRESS_TRAJECTORY","快递轨迹","express_trajectory"),
+    /**
+     * 企业数据检索条件
+     */
+    ENT_SEARCH_CONDITION("ENT_SEARCH_CONDITION", "企业数据检索条件", "ent_search_condition");
 
     private String key;
     private String name;

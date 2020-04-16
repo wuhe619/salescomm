@@ -5194,7 +5194,7 @@ public class MarketResourceService {
     public String setWorkNum(String workNum, String userid, String custId, String source) {
         JSONObject map = new JSONObject();
 
-        CustomerUser cu = customerUserDao.get(Long.parseLong(userid));
+        CustomerUser cu = customerUserDao.get(NumberConvertUtil.parseLong(userid));
         if (cu == null || cu.getCust_id() == null || !cu.getCust_id().equals(custId)) {
             map.put("code", 1);
             map.put("message", "失败");
