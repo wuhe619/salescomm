@@ -229,7 +229,7 @@ public class BasicAction {
             } else if (ex instanceof ParamValidateException) {
                 out.println(returnJson(0, ((ParamValidateException) ex).getMsg()));
             } else {
-                out.println(returnError("系统异常"));
+                out.println(returnError(ex.getMessage()));
             }
 
         } catch (IOException e) {
