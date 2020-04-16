@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.admin.service;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ReUtil;
 import com.alibaba.fastjson.JSON;
@@ -546,7 +547,10 @@ public class LkAdminRoleService {
     private CustomerUser getUserByPhone(String phone) {
         String hql = "SELECT t1 FROM CustomerUser t1,LkCrmAdminUserEntity t2 WHERE t1.id=t2.userId " +
                 "AND t2.mobile = ?";
-        CustomerUser user = crmAdminUserDao.findUnique(hql, phone);
-        return user;
+        List<CustomerUser> userList = crmAdminUserDao.find(hql, phone);
+        if(!CollectionUtil.isEmpty(userList)){
+            return userList.get(0);
+        }
+        return null;
     }
 }
