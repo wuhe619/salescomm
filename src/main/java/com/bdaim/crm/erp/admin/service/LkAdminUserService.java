@@ -225,6 +225,12 @@ public class LkAdminUserService {
         adminUser.setCustId(user.getCustId());
         updateScene(adminUser);
         if (adminUser.getUserId() == 0) {
+            // 检测密码强度
+            boolean b = PasswordChecker.crmPwdCheck(adminUser.getPassword());
+            if (!b) {
+                return R.error("密码至少包含字母、数字、特殊字符中的2种!");
+            }
+
             String sql = "select count(*) from lkcrm_admin_user where username = ?";
             Integer count = crmAdminUserDao.queryForInt(sql, adminUser.getUsername());
             if (count > 0) {
@@ -590,6 +596,11 @@ public class LkAdminUserService {
 
 
     public R resetPassword(String ids, String pwd) {
+        // 检测密码强度
+        boolean b = PasswordChecker.crmPwdCheck(pwd);
+        if (!b) {
+            return R.error("密码至少包含字母、数字、特殊字符中的2种!");
+        }
         for (String id : ids.split(",")) {
             //LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(NumberUtil.parseLong(id));
             //String password = BaseUtil.sign(adminUser.getUsername() + pwd, adminUser.getSalt());
@@ -619,6 +630,11 @@ public class LkAdminUserService {
         }
         //3. 重置密码
         String newPassword = params.get("newPassword");
+        // 检测密码强度
+        boolean b = PasswordChecker.crmPwdCheck(newPassword);
+        if (!b) {
+            throw new ParamValidateException("0", "密码至少包含字母、数字、特殊字符中的2种!");
+        }
         String pwdEncryption = CipherUtil.generatePassword(newPassword);
         String updateSql1 = "UPDATE lkcrm_admin_user SET password = ? WHERE mobile = ?";
         crmAdminUserDao.executeUpdateSQL(updateSql1, pwdEncryption, phone);

@@ -19,15 +19,33 @@ public class PasswordChecker {
     private int minLength = 6; // 最小长度
     private int maxLength = 20; // 最大长度
 
-    public PasswordChecker(){
+    /**
+     * 密码包含字母数字特殊字符中至少2种规则正则表达式
+     */
+    public static final String LETTER_OR_SPECIAL_MATCHES = "(?!^(\\d+|[a-zA-Z]+|[[!@#$%^&*()\\-+=—_]]+)$)^[\\w[!@#$%^&*()\\-+=—_]]{8,20}$";
+
+    public PasswordChecker() {
         this.specialCharSet = defaultSpecialCharSet();
+    }
+
+    /**
+     * CRM用户密码规则校验
+     * <p>描述:密码包含字母数字特殊字符中至少2种规则正则表达式</p>
+     * @param pwd
+     * @return
+     */
+    public static boolean crmPwdCheck(String pwd) {
+        if (StringUtil.isEmpty(pwd)) {
+            return false;
+        }
+        return pwd.matches(LETTER_OR_SPECIAL_MATCHES);
     }
 
     /**
      * 密码符合规则，返回true
      */
-    public boolean check(String password){
-        if(password==null || password.length()<this.minLength || password.length()>this.maxLength){
+    public boolean check(String password) {
+        if (password == null || password.length() < this.minLength || password.length() > this.maxLength) {
             // 长度不符合
             return false;
         }
@@ -38,42 +56,42 @@ public class PasswordChecker {
         boolean containDigit = false;
         boolean containSpecial = false;
 
-        for(char ch : password.toCharArray()){
-            if(Character.isUpperCase(ch)){
+        for (char ch : password.toCharArray()) {
+            if (Character.isUpperCase(ch)) {
                 containUpperCase = true;
                 containLetter = true;
-            }else if(Character.isLowerCase(ch)){
+            } else if (Character.isLowerCase(ch)) {
                 containLowerCase = true;
                 containLetter = true;
-            }else if(Character.isDigit(ch)){
+            } else if (Character.isDigit(ch)) {
                 containDigit = true;
-            }else if(this.specialCharSet.contains(ch)){
+            } else if (this.specialCharSet.contains(ch)) {
                 containSpecial = true;
-            }else{
+            } else {
                 // 非法字符
                 return false;
             }
         }
 
-        if(this.upperCase && !containUpperCase){
+        if (this.upperCase && !containUpperCase) {
             return false;
         }
-        if(this.lowerCase && !containLowerCase){
+        if (this.lowerCase && !containLowerCase) {
             return false;
         }
-        if(this.letter && !containLetter){
+        if (this.letter && !containLetter) {
             return false;
         }
-        if(this.digit && !containDigit){
+        if (this.digit && !containDigit) {
             return false;
         }
-        if(this.special && !containSpecial){
+        if (this.special && !containSpecial) {
             return false;
         }
         return true;
     }
 
-    public static Set<Character> defaultSpecialCharSet(){
+    public static Set<Character> defaultSpecialCharSet() {
         Set<Character> specialChars = new LinkedHashSet<>();
         // 键盘上能找到的符号
         specialChars.add(Character.valueOf('~'));

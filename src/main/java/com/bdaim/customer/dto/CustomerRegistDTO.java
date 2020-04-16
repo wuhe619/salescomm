@@ -55,6 +55,13 @@ public class CustomerRegistDTO implements Serializable {
     private String resource;
     private String createId;
 
+    /**
+     * 注册来源
+     *
+     * 0-后台开户 3-联客官网 4-众麦官网
+     */
+    private String source;
+
 
     /**
      * 营销类型:1-B2C营销  2-B2B营销
@@ -564,5 +571,13 @@ public class CustomerRegistDTO implements Serializable {
 
     public void setMarketingType(Integer marketingType) {
         this.marketingType = marketingType;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 }

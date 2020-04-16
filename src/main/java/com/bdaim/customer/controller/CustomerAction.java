@@ -621,7 +621,7 @@ public class CustomerAction extends BasicAction {
     @RequestMapping(value = "/regist0", method = RequestMethod.POST)
     @ResponseBody
     @CacheAnnotation
-    public Object regist0(CustomerRegistDTO customerRegistDTO) throws Exception {
+    public Object regist0(CustomerRegistDTO customerRegistDTO) {
         Map<String, Object> resultMap = new HashMap<String, Object>();
         try {
             customerUserService.customerRegister(customerRegistDTO);
@@ -629,8 +629,10 @@ public class CustomerAction extends BasicAction {
             resultMap.put("_message", "客户创建成功");
             resultMap.put("data", new JSONArray());
         } catch (Exception e) {
+            logger.error("客户创建失败", e);
             resultMap.put("code", "-1");
             resultMap.put("_message", e.getMessage());
+            resultMap.put("msg", e.getMessage());
             resultMap.put("data", new JSONArray());
         }
         return JSONObject.toJSON(resultMap);
@@ -823,7 +825,15 @@ public class CustomerAction extends BasicAction {
             resultMap.put("code", "1");
             resultMap.put("_message", "更新操作员失败");
         } else {
-            Integer code = customerUserService.updateuser(userDTO);
+            Integer code = null;
+            try {
+                code = customerUserService.updateuser(userDTO);
+            } catch (Exception e) {
+                logger.error("更新用户异常:", e);
+                resultMap.put("code", "1");
+                resultMap.put("_message", e.getMessage());
+                return JSONObject.toJSONString(resultMap);
+            }
             if (code == 1) {
                 resultMap.put("code", "0");
                 resultMap.put("_message", "更新操作员成功");
