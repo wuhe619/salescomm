@@ -740,7 +740,6 @@ public class CrmLeadsService {
      * @param batchId
      * @return
      */
-    @Async
     public Future<Integer> transferToPublicSea(String seaId, String userId, String batchId) {
         LOG.info("添加到线索私海数据");
         //添加到线索私海数据
@@ -1339,7 +1338,6 @@ public class CrmLeadsService {
     /**
      * 根据id 删除线索
      */
-    @Async
     public R deleteByBatchIds(List idsList) {
         if (idsList == null || idsList.size() == 0) {
             return R.error("superIds不能为空");
@@ -1396,6 +1394,8 @@ public class CrmLeadsService {
                 transferToPublicSea(seaId, userId.toString(), id);
             }
         }
+        // 指定ID退回公海时删除私海线索
+        deleteByBatchIds(superIds);
         return new AsyncResult<>(status);
     }
 
