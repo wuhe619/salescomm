@@ -339,18 +339,10 @@ public class CrmLeadsController extends BasicAction {
             param.setCustId(user.getCustId());
             // 同步操作
             synchronized (this) {
-                data = crmLeadsService.distributionClue(param, operate, assignedList).get();
+                data = crmLeadsService.distributionClue(param, operate, assignedList);
             }
             responseJson.setCode(200);
         } catch (TouchException e) {
-            responseJson.setCode(-1);
-            responseJson.setMsg(e.getMessage());
-            LOG.error("线索分配异常,", e);
-        } catch (InterruptedException e) {
-            responseJson.setCode(-1);
-            responseJson.setMsg(e.getMessage());
-            LOG.error("线索分配异常,", e);
-        } catch (ExecutionException e) {
             responseJson.setCode(-1);
             responseJson.setMsg(e.getMessage());
             LOG.error("线索分配异常,", e);

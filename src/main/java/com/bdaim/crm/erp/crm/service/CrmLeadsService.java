@@ -521,8 +521,7 @@ public class CrmLeadsService {
      * @return
      * @throws TouchException
      */
-    @Async
-    public Future<Integer> distributionClue(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
+    public int distributionClue(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
         // 单一负责人分配线索|手动领取所选
         int status = 0;
         if (1 == operate) {
@@ -543,7 +542,7 @@ public class CrmLeadsService {
             //坐席指定数量领取线索
             status= getReceiveClueByNumber(param.getSeaId(), param.getUserIds().get(0), param.getGetClueNumber());
         }
-        return new AsyncResult<>(status);
+        return status;
     }
 
     public com.bdaim.common.dto.Page listPublicSea(CustomerSeaParam param, int pageNum, int pageSize) {
