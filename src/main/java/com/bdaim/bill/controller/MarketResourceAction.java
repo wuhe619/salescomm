@@ -1175,10 +1175,10 @@ public class MarketResourceAction extends BasicAction {
     @RequestMapping(value = "/setWorkNum", method = RequestMethod.POST)
     @ResponseBody
     @CacheAnnotation
-    public String setWorkNum(String workNum, String userid) {
+    public String setWorkNum(String workNum, String userid, String source) {
         LoginUser lu = opUser();
         if ("1".equals(lu.getUserType())) {
-            return marketResourceService.setWorkNum(workNum, userid, lu.getCustId());
+            return marketResourceService.setWorkNum(workNum, userid, lu.getCustId(), source);
         }
         return "";
     }
@@ -1202,14 +1202,14 @@ public class MarketResourceAction extends BasicAction {
     @RequestMapping(value = "/queryWorkNumList", method = RequestMethod.GET)
     @ResponseBody
     @CacheAnnotation
-    public String queryWorkNumList(String username, Integer pageNum, Integer pageSize) {
+    public String queryWorkNumList(String username, String account, Integer pageNum, Integer pageSize) {
         String cust_id = opUser().getCustId();
         // String cust_id="18888";
         // List<Map<String, Object>> result =
         // marketResourceService.queryRecordVoiceLOG(cust_id,user_type,superId);
         JSONObject json = new JSONObject();
         Map<Object, Object> map = new HashMap<Object, Object>();
-        List<Map<String, Object>> list = marketResourceService.queryWorkNumList(cust_id, "", username, pageNum, pageSize);
+        List<Map<String, Object>> list = marketResourceService.queryWorkNumList(cust_id, "", username, account, pageNum, pageSize);
         long total = marketResourceService.queryWorkNumAllCount(cust_id, "", username);
         map.put("data", list);
         map.put("total", total);
@@ -1251,7 +1251,7 @@ public class MarketResourceAction extends BasicAction {
      */
     @RequestMapping(value = "/saveTouchVoiceLog", method = RequestMethod.POST)
     @ResponseBody
-    public String saveTouchVoiceLog(String callId, String callStatus, String touchId) {
+    public String saveTouchVoiceLog(String callId, String callStatus, String touchId,String customerGroupId,String marketTaskId,String superId) {
         Map<Object, Object> map = new HashMap<Object, Object>();
         JSONObject json = new JSONObject();
         String code = "1";
@@ -1264,7 +1264,7 @@ public class MarketResourceAction extends BasicAction {
             dto.setStatus(1001);
         }
         try {
-            marketResourceService.updateVoiceLogStatusV3(touchId, dto.getStatus(), callId);
+            marketResourceService.updateVoiceLogStatusV3(touchId, dto.getStatus(), callId,customerGroupId,marketTaskId,superId);
         } catch (Exception e) {
             LOG.error("更新通话记录通话状态异常", e);
         }
@@ -1463,20 +1463,19 @@ public class MarketResourceAction extends BasicAction {
         String field = param.getString("field");
         String objType = param.getString("objType");
         Map data = null;
-        if (StringUtil.isEmpty(superId)) {
-            // 线索私海
-            if ("1".equals(objType)) {
-                data = crmLeadsService.queryById(NumberConvertUtil.parseInt(objId));
-            } else if ("2".equals(objType)) {
-                //客户私海
-                data = crmCustomerService.queryById(NumberConvertUtil.parseInt(objId));
-            } else if ("3".equals(objType)) {
-                // 联系人
-                data = crmContactsService.queryById(NumberConvertUtil.parseInt(objId));
-            }
-            if (data != null && data.get(field) != null) {
-                superId = phoneService.pnu(String.valueOf(data.get(field)));
-            }
+        // 线索私海
+        if ("1".equals(objType)) {
+            data = crmLeadsService.queryById(NumberConvertUtil.parseInt(objId));
+        } else if ("2".equals(objType)) {
+            //客户私海
+            data = crmCustomerService.queryById(NumberConvertUtil.parseInt(objId));
+        } else if ("3".equals(objType)) {
+            // 联系人
+            data = crmContactsService.queryById(NumberConvertUtil.parseInt(objId));
+        }
+        // 反查uid
+        if (StringUtil.isEmpty(superId) && data != null && data.get(field) != null) {
+            superId = phoneService.pnu(String.valueOf(data.get(field)));
         }
         if (StringUtil.isEmpty(superId)) {
             map.put("code", -1);
@@ -1551,7 +1550,7 @@ public class MarketResourceAction extends BasicAction {
                 // 更新致电次数
                 /*data = new HashMap();
                 data.put("batch_id","22a6dd6cc3ed4010963d1bcd9e002ead");*/
-                adminFieldService.saveCallSmsCount(String.valueOf(data.get("batch_id")), NumberConvertUtil.parseInt(objType),1,1);
+                adminFieldService.saveCallSmsCount(String.valueOf(data.get("batch_id")), NumberConvertUtil.parseInt(objType), 1, 1);
             }
         } catch (Exception e) {
             LOG.error("保存手动外呼通话记录异常,", e);
@@ -1807,6 +1806,203 @@ public class MarketResourceAction extends BasicAction {
 
     }
 
+
+    /**
+     * CRM双呼接口
+     *
+     * @param param
+     * @return
+     */
+    @PostMapping(value = "/crm/call2way")
+    @ResponseBody
+    public String crmCall2Way(@RequestBody JSONObject param) {
+        LoginUser lu = opUser();
+        Long userId = lu.getId();
+        String custId = lu.getCustId();
+        // type资源类型（ 1.voice 2.SMS 3.email）
+        String type = param.getString("type");
+        String touchId = opUser().getId() + IDHelper.getTouchId().toString();
+        Map<Object, Object> map = new HashMap<>();
+        JSONObject json = new JSONObject();
+        String code = "1";
+        String message = "成功";
+        // 判断是余额是否充足
+        boolean amount = marketResourceService.judRemainAmount(custId);
+        if (!amount) {
+            map.put("message", "余额不足");
+            map.put("code", 1003);
+            json.put("data", map);
+            return json.toJSONString();
+        }
+        // 拨打电话
+        if ("1".equals(type)) {
+            String customerGroupId = param.getString("customerGroupId");
+            String marketTaskId = param.getString("marketTaskId");
+            String seaId = param.getString("seaId");
+
+            String objId = param.getString("objId");
+            String superId = param.getString("superId");
+            String field = param.getString("field");
+            String objType = param.getString("objType");
+            Map data = null;
+            // 线索私海
+            if ("1".equals(objType)) {
+                data = crmLeadsService.queryById(NumberConvertUtil.parseInt(objId));
+            } else if ("2".equals(objType)) {
+                // 客户私海
+                data = crmCustomerService.queryById(NumberConvertUtil.parseInt(objId));
+            } else if ("3".equals(objType)) {
+                // 联系人
+                data = crmContactsService.queryById(NumberConvertUtil.parseInt(objId));
+            }
+            // 反查uid
+            if (StringUtil.isEmpty(superId) && data != null && data.get(field) != null) {
+                try {
+                    superId = phoneService.pnu(String.valueOf(data.get(field)));
+                } catch (Exception e) {
+                    LOG.error("通过手机号获取uid异常", e);
+                }
+            }
+            if (StringUtil.isEmpty(superId)) {
+                map.put("code", -1);
+                map.put("message", "superId必填");
+                json.put("data", map);
+                return json.toJSONString();
+            }
+            // 查询用户是否设置主叫号码
+            String workNum = marketResourceService.selectPhoneSet(userId);
+            if (null == workNum || "".equals(workNum) || "000".equals(workNum)) {
+                map.put("message", "未设主叫置电话或者主叫电话状态异常");
+                map.put("code", 1004);
+                json.put("data", map);
+                return json.toJSONString();
+            }
+
+            String resourceId = null;
+            try {
+                resourceId = seatsService.checkSeatConfigStatus(String.valueOf(opUser().getId()), custId);
+            } catch (Exception e) {
+                LOG.error("获取用户配置的呼叫渠道ID异常,", e);
+            }
+            // 查询企业是否设置双向呼叫外显号码
+            String apparentNumber = customerService.getCustomerApparentNumber(opUser().getCustId(), "", resourceId);
+            if (StringUtil.isEmpty(apparentNumber)) {
+                apparentNumber = customerService.getCustomerApparentNumber(opUser().getCustId(), "");
+                if (StringUtil.isEmpty(apparentNumber)) {
+                    // 穿透查询一次之前配置的外显号
+                    apparentNumber = marketResourceService.selectCustCallBackApparentNumber(opUser().getCustId());
+                }
+            }
+            if (StringUtil.isEmpty(apparentNumber)) {
+                map.put("message", "未申请外显号码");
+                map.put("code", 1006);
+                json.put("data", map);
+                return json.toJSONString();
+            }
+            boolean success;
+            // 获取手机号
+            String phone = phoneService.upn(superId);
+            if (StringUtil.isEmpty(phone)) {
+                LOG.warn("被叫为空,superId:" + superId);
+                map.put("message", "被叫为空");
+                map.put("code", 1002);
+                json.put("data", map);
+                return json.toJSONString();
+            }
+
+            CallBackParam callBackParams = new CallBackParam();
+            // 主叫号码
+            callBackParams.setSrc(workNum);
+            callBackParams.setDst(phone);
+            callBackParams.setSrcclid(apparentNumber);
+            callBackParams.setDstclid(apparentNumber);
+            callBackParams.setCustomParm(touchId + "_");
+            // {"statusCode":"0","statusMsg":"提交成功","requestId":"20180835472103517559193600402"}
+            String callBackResult = callCenterService.handleCallBack0(callBackParams, opUser().getCustId(), String.valueOf(opUser().getId()));
+            LogUtil.info("调用api双向回呼接口返回:" + callBackResult);
+            success = false;
+            JSONObject jsonObject = null;
+            if (StringUtil.isNotEmpty(callBackResult)) {
+                jsonObject = JSON.parseObject(callBackResult);
+                // 发送双向呼叫请求成功
+                if ("0".equals(jsonObject.getString("statusCode"))) {
+                    success = true;
+                } else {
+                    message = jsonObject.getString("statusMsg");
+                }
+            }
+
+            MarketResourceLogDTO dto = new MarketResourceLogDTO();
+            dto.setTouch_id(touchId);
+            dto.setType_code("1");
+            dto.setResname("voice");
+            dto.setUser_id(userId);
+            dto.setCust_id(custId);
+            dto.setSuperId(superId);
+            dto.setRemark("");
+            // 当前登录人所属的职场ID
+            dto.setCugId(opUser().getJobMarketId());
+            if (StringUtil.isNotEmpty(customerGroupId)) {
+                dto.setCustomerGroupId(Integer.parseInt(customerGroupId));
+            }
+            // 判断是否管理员进行的外呼
+            if ("1".equals(opUser().getUserType())) {
+                dto.setCallOwner(2);
+            } else {
+                dto.setCallOwner(1);
+            }
+            // 营销任务Id
+            dto.setMarketTaskId(StringUtil.isNotEmpty(marketTaskId) ? marketTaskId : "");
+            // 公海ID
+            dto.setCustomerSeaId(StringUtil.isNotEmpty(seaId) ? seaId : "");
+            dto.setObjType(objId);
+            // 执行成功
+            if (success) {
+                // 唯一请求ID
+                String requestId = jsonObject.getString("requestId");
+                dto.setCallSid(requestId);
+                // 主叫成功
+                dto.setStatus(1001);
+                message = "电话已经拨打";
+            } else {
+                LOG.warn("请求发送双向呼叫失败,返回数据:" + jsonObject);
+                // 主叫失败
+                dto.setStatus(1002);
+                code = "-1";
+            }
+            // 保存通话记录
+            marketResourceService.insertCrmTouchLog(dto);
+            LkCrmAdminRecordEntity record = new LkCrmAdminRecordEntity();
+            record.setTypesId(objId);
+            record.setContent("网络电话");
+            record.setCategory("打电话");
+            record.setIsEvent(0);
+            // 致电时间
+            if (param.get("callTime") != null) {
+                Date callTime = param.getDate("callTime");
+                record.setNextTime(callTime);
+            }
+            // 添加更新记录
+            if ("1".equals(objType)) {
+                crmLeadsService.addRecord(record);
+            } else if ("2".equals(objType)) {
+                //客户私海
+                crmCustomerService.addRecord(record);
+            } else if ("3".equals(objType)) {
+                // 联系人
+                crmContactsService.addRecord(record);
+            }
+            // 更新致电次数
+            adminFieldService.saveCallSmsCount(String.valueOf(data.get("batch_id")), NumberConvertUtil.parseInt(objType), 1, 1);
+
+        }
+        map.put("tranOrderId", touchId);
+        map.put("code", code);
+        map.put("message", message);
+        json.put("data", map);
+        return json.toJSONString();
+
+    }
 
     /**
      * 公海发送短信

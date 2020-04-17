@@ -4,15 +4,11 @@ import cn.hutool.core.date.DateUtil;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.dto.Page;
-import com.bdaim.crm.common.config.JfinalConfig;
-import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.dao.LkCrmAdminRoleDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
 import com.bdaim.crm.dao.LkCrmSqlViewDao;
 import com.bdaim.crm.entity.LkCrmAdminUserEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.LkAdminRoleService;
-import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
@@ -108,9 +104,9 @@ public class BaseUtil {
      *
      * @return true代表为真
      */
-    public static boolean isDevelop() {
+    /*public static boolean isDevelop() {
         return JfinalConfig.prop.getBoolean("jfinal.devMode", Boolean.TRUE);
-    }
+    }*/
 
     /**
      * 获取当前是否是windows系统
@@ -156,9 +152,9 @@ public class BaseUtil {
     public static String getIpAddress() {
         Prop prop = PropKit.use("config/undertow.txt");
         try {
-            if (isDevelop()) {
+           /* if (isDevelop()) {
                 return "http://" + InetAddress.getLocalHost().getHostAddress() + ":" + prop.get("undertow.port", "8080") + "/";
-            }
+            }*/
         } catch (Exception e) {
             // TODO Auto-generated catch block
             Log.getLog(BaseUtil.class).error("", e);

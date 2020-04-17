@@ -2396,6 +2396,263 @@ public class DataExportService {
         }
     }
 
+    public void exportCustomerMarketDataToExcelV4(HttpServletResponse response, String customerId, String value, String startTime, String endTime) {
+        Map<String, String> msg = new HashMap<>();
+        msg.put("value", value);
+
+        OutputStream outputStream = null;
+        try {
+            outputStream = response.getOutputStream();
+            // 处理时间
+            if (customerDataExportTime >= 0 && (System.currentTimeMillis() - customerDataExportTime) < 5 * 60 * 1000) {
+                msg.put("msg", "请稍后重试");
+                msg.put("data", String.valueOf(customerDataExportTime));
+                outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
+                return;
+            }
+            customerDataExportTime = System.currentTimeMillis();
+            // 处理时间
+            String startTimeStr = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).format(DATE_TIME_FORMATTER);
+            String endTimeStr = LocalDateTime.of(LocalDate.now(), LocalTime.MAX).format(DATE_TIME_FORMATTER);
+            if (StringUtil.isNotEmpty(startTime)) {
+                startTimeStr = LocalDateTime.parse(startTime, DATE_TIME_FORMATTER).format(DATE_TIME_FORMATTER);
+            }
+            if (StringUtil.isNotEmpty(endTime)) {
+                endTimeStr = LocalDateTime.parse(endTime, DATE_TIME_FORMATTER).format(DATE_TIME_FORMATTER);
+            }
+            List<String> labelIdList = new ArrayList<>();
+            List<Map<String, Object>> labelNames = dataExportDao.sqlQuery("SELECT label_name, label_id, type FROM t_customer_label WHERE status = 1 AND cust_id = ? ", new Object[]{customerId});
+            // 处理excel表头
+            List<List<String>> headers = new ArrayList<>();
+            List<String> head;
+            Set<String> headNames = new HashSet<>();
+            headNames.add("身份ID");
+            headNames.add("客户群ID");
+            headNames.add("手机号");
+            headNames.add("归属地");
+            headNames.add("操作人");
+            headNames.add("登录账号");
+            headNames.add("时间");
+            headNames.add("录音");
+
+            for (Map<String, Object> map : labelNames) {
+                if (map != null && map.get("label_name") != null) {
+                    head = new ArrayList<>();
+                    if (headNames.contains(String.valueOf(map.get("label_name")))) {
+                        head.add(String.valueOf(map.get("label_name")) + map.get("label_id"));
+                    } else {
+                        head.add(String.valueOf(map.get("label_name")));
+                        headNames.add(String.valueOf(map.get("label_name")));
+                    }
+                    headers.add(head);
+                    labelIdList.add(String.valueOf(map.get("label_id")));
+                }
+            }
+            head = new ArrayList<>();
+            head.add("身份ID");
+            headers.add(head);
+
+            head = new ArrayList<>();
+            head.add("客户群ID");
+            headers.add(head);
+
+            head = new ArrayList<>();
+            head.add("手机号");
+            headers.add(head);
+
+            head = new ArrayList<>();
+            head.add("归属地");
+            headers.add(head);
+
+            head = new ArrayList<>();
+            head.add("操作人");
+            headers.add(head);
+
+            head = new ArrayList<>();
+            head.add("登录账号");
+            headers.add(head);
+
+            head = new ArrayList<>();
+            head.add("时间");
+            headers.add(head);
+
+            head = new ArrayList<>();
+            head.add("录音");
+            headers.add(head);
+
+            if (StringUtil.isNotEmpty(value)) {
+                String nowMonth = DateUtil.getNowMonthToYYYYMM();
+                if (StringUtil.isNotEmpty(startTimeStr) && StringUtil.isNotEmpty(endTimeStr)) {
+                    nowMonth = LocalDateTime.parse(endTimeStr, DATE_TIME_FORMATTER).format(DateTimeFormatter.ofPattern("yyyyMM"));
+                }
+                List<Map<String, Object>> list = null;
+                List<Map<String, Object>> callLogList = new ArrayList<>();
+                String labelDataLikeValue = value;
+                StringBuffer sql = new StringBuffer();
+                // 查询客户下所有客户群
+                List<Map<String, Object>> customerGroupIdList = dataExportDao.sqlQuery("SELECT id FROM customer_group WHERE status = 1 AND cust_id = ?", customerId);
+                for (Map<String, Object> m : customerGroupIdList) {
+                    // 检查通话记录月表是否存在
+                    marketResourceDao.createVoiceLogTableNotExist(nowMonth);
+
+                    // 获取邀约成功,拨打电话成功用户的通话记录
+                    sql.append("SELECT voice.touch_id touchId, voice.user_id, voice.customer_group_id, voice.superid, voice.recordurl, ")
+                            .append(" voice.create_time, voice.callSid, t.super_data, t.super_age, t.super_name, t.super_sex, ")
+                            .append(" t.remark phonearea, t.super_telphone, t.super_phone, t.super_address_province_city, t.super_address_street ")
+                            .append(" FROM " + ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + nowMonth + " voice ")
+                            .append(" JOIN t_customer_group_list_" + m.get("id") + " t ON t.id = voice.superid ")
+                            .append(" WHERE voice.cust_id = ? AND voice.customer_group_id = ? ")
+                            .append(" AND voice.create_time >= ? AND voice.create_time <= ?  ")
+                            .append(" AND t.super_data LIKE ? ");
+                    try {
+                        list = dataExportDao.sqlQuery(sql.toString(), customerId, m.get("id"), startTimeStr, endTimeStr,"%" + labelDataLikeValue + "%");
+                    } catch (SQLGrammarException e) {
+                        log.warn("导出客户下全部营销数据失败:", e);
+                    }
+                    if (list != null && list.size() > 0) {
+                        callLogList.addAll(list);
+                    }
+                    sql.setLength(0);
+                }
+
+                // 有满足条件的营销记录
+                if (callLogList.size() > 0) {
+                    // 组合拼装为map,方便通过label_id和super_id快速查找数据
+                    Map<String, Object> invitationCustGroupSuperMap = new HashMap<>(16);
+                    Map<String, Object> invitationSuperLabelMap = new HashMap<>(16);
+
+                    // 当前客户群下满足条件的身份ID集合
+                    Set<String> superIdSets = new HashSet<>();
+                    Set<String> userIdSets = new HashSet<>();
+                    Map<String, Object> labelData;
+                    String monthYear ="";
+                    for (Map<String, Object> map : callLogList) {
+                        if (map != null) {
+                            if (map.get("superid") != null) {
+                                superIdSets.add(String.valueOf(map.get("superid")));
+                            }
+                            if (map.get("user_id") != null) {
+                                userIdSets.add(String.valueOf(map.get("user_id")));
+                            }
+                            // 拆解用户勾选的自建属性
+                            if (map.get("super_data") != null && StringUtil.isNotEmpty(String.valueOf(map.get("super_data")))) {
+                                labelData = JSON.parseObject(String.valueOf(map.get("super_data")), Map.class);
+                                if (labelData != null && labelData.size() > 0) {
+                                    for (Map.Entry<String, Object> key : labelData.entrySet()) {
+                                        invitationCustGroupSuperMap.put(map.get("customer_group_id") + "_" + map.get("superid"), key.getValue());
+                                        invitationSuperLabelMap.put(map.get("customer_group_id") + "_" + key.getKey() + "_" + map.get("superid"), key.getValue());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // 查询用户姓名
+                    Map<String, Object> realNameMap = new HashMap<>();
+                    Map<String, Object> accountMap = new HashMap<>();
+                    if (userIdSets.size() > 0) {
+                        List<Map<String, Object>> userList = customGroupDao.sqlQuery("SELECT id, REALNAME, account FROM t_customer_user WHERE id IN (" + SqlAppendUtil.sqlAppendWhereIn(userIdSets) + ")");
+                        for (Map<String, Object> map : userList) {
+                            realNameMap.put(String.valueOf(map.get("id")), map.get("REALNAME"));
+                            accountMap.put(String.valueOf(map.get("id")), map.get("account"));
+                        }
+                    }
+
+                    // 根据superId查询手机号
+                    Map<String, Object> phoneMap = phoneService.getPhoneMap(superIdSets);
+
+                    //构造excel返回数据
+                    String fileName;
+                    List<Map<String, Object>> customerList = customGroupDao.sqlQuery("SELECT enterprise_name FROM t_customer WHERE cust_id = ?", new Object[]{customerId});
+                    if (customerList.size() > 0) {
+                        fileName = customerList.get(0).get("enterprise_name") + "";
+                    } else {
+                        fileName = "客户";
+                    }
+
+                    List<List<String>> data = new ArrayList<>();
+                    List<String> columnList;
+
+                    for (Map<String, Object> row : callLogList) {
+                        if (invitationCustGroupSuperMap.get(row.get("customer_group_id") + "_" + row.get("superid")) != null) {
+                            columnList = new ArrayList<>();
+                            for (String header : labelIdList) {
+                                if (invitationSuperLabelMap.get(row.get("customer_group_id") + "_" + header + "_" + row.get("superid")) != null) {
+                                    columnList.add(String.valueOf(invitationSuperLabelMap.get(row.get("customer_group_id") + "_" + header + "_" + row.get("superid"))));
+                                } else {
+                                    columnList.add("");
+                                }
+                            }
+                            columnList.add(String.valueOf(row.get("superid")));
+                            //客户群ID
+                            columnList.add(String.valueOf(row.get("customer_group_id")));
+                            //手机号
+                            columnList.add(PhoneAreaUtil.replacePhone(phoneMap.get(String.valueOf(row.get("superid")))));
+                            //归属地
+                            columnList.add(String.valueOf(row.get("phonearea")));
+                            //姓名
+                            columnList.add(String.valueOf(realNameMap.get(String.valueOf(row.get("user_id")))));
+                            //登录账号
+                            columnList.add(String.valueOf(accountMap.get(String.valueOf(row.get("user_id")))));
+                            // 通话时间
+                            columnList.add(String.valueOf(row.get("create_time")));
+                            if (StringUtil.isNotEmpty(String.valueOf(row.get("create_time")))) {
+                                monthYear = LocalDateTime.parse(String.valueOf(row.get("create_time")), DatetimeUtils.DATE_TIME_FORMATTER_SSS).format(DatetimeUtils.YYYY_MM);
+                            }
+                            columnList.add(CallUtil.generateRecordUrlMp3(monthYear, row.get("user_id"), row.get("touchId")));
+                            data.add(columnList);
+                        }
+                    }
+                    if (data.size() > 0) {
+                        fileName += "-营销数据-" + LocalDateTime.now().format(DATE_TIME_FORMATTER);
+                        final String fileType = ".xlsx";
+                        response.setHeader("Content-Disposition", "attachment; filename=" + new String((fileName).getBytes("gb2312"), "ISO-8859-1") + fileType);
+                        response.setContentType("application/vnd.ms-excel;charset=utf-8");
+                        ExcelWriter writer = new ExcelWriter(outputStream, ExcelTypeEnum.XLSX);
+                        log.info("导出表头:" + JSON.toJSONString(headers));
+                        log.info("导出表头:" + JSON.toJSONString(labelIdList));
+                        Sheet sheet1 = new Sheet(1, 0);
+                        sheet1.setHead(headers);
+                        sheet1.setSheetName("营销数据");
+                        writer.write0(data, sheet1);
+                        writer.finish();
+                        customerDataExportTime = 0;
+                    } else {
+                        msg.put("msg", "客户群下无满足条件的客户数据");
+                        msg.put("data", String.valueOf(customerDataExportTime));
+                        outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
+                        customerDataExportTime = 0;
+                        return;
+                    }
+                } else {
+                    msg.put("msg", "客户群下无满足条件的客户数据");
+                    msg.put("data", String.valueOf(customerDataExportTime));
+                    outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
+                    customerDataExportTime = 0;
+                    return;
+                }
+            } else {
+                msg.put("msg", "无满足条件的自建属性");
+                msg.put("data", String.valueOf(customerDataExportTime));
+                outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
+                customerDataExportTime = 0;
+                return;
+            }
+        } catch (Exception e) {
+            log.error("导出客户下的营销数据异常,", e);
+            customerDataExportTime = 0;
+        } finally {
+            try {
+                if (outputStream != null) {
+                    outputStream.flush();
+                    outputStream.close();
+                }
+                response.flushBuffer();
+            } catch (IOException e) {
+                log.error("导出营销数据异常,", e);
+            }
+        }
+    }
+
     /**
      * 判断用户是否有导出成功单权限
      *

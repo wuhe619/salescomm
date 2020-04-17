@@ -11,20 +11,21 @@ import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminConfigDao;
 import com.bdaim.crm.dao.LkCrmCustomerDao;
 import com.bdaim.crm.dao.LkCrmLeadsDao;
+import com.bdaim.crm.ent.service.EntDataService;
 import com.bdaim.crm.entity.LkCrmAdminConfigEntity;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.StringUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author wyq
@@ -40,6 +41,8 @@ public class CrmBackLogService {
     LkCrmAdminConfigDao crmAdminConfigDao;
     @Resource
     LkCrmLeadsDao crmLeadsDao;
+    @Autowired
+    private EntDataService entDataService;
 
     /**
      * 代办事项数量统计
@@ -47,6 +50,7 @@ public class CrmBackLogService {
     public R num() {
         LoginUser user = BaseUtil.getUser();
         String userId = user.getUserId().toString();
+        Integer todayLeads = crmCustomerDao.todayLeadsNum(userId);
         Integer todayCustomer = crmCustomerDao.todayCustomerNum(userId);
         Integer followLeads = crmCustomerDao.followLeadsNum(userId);
         Integer followCustomer = crmCustomerDao.followCustomerNum(userId);
@@ -58,13 +62,49 @@ public class CrmBackLogService {
         if (1 == adminConfig.getStatus()) {
             endContract = crmCustomerDao.endContractNum(adminConfig.getValue(), userId);
         }
-        Kv kv = Kv.by("todayCustomer", todayCustomer).set("followLeads", followLeads).set("followCustomer", followCustomer)
+        Kv kv = Kv.by("todayLeads", todayLeads).set("todayCustomer", todayCustomer).set("followLeads", followLeads).set("followCustomer", followCustomer)
                 .set("checkReceivables", checkReceivables).set("remindReceivablesPlan", remindReceivablesPlan).set("endContract", endContract);
         //if (config == 1) {
         Integer checkContract = crmCustomerDao.checkContractNum(userId);
         kv.set("checkContract", checkContract);
         // }
         return R.ok().put("data", kv);
+    }
+
+    private void handleCallField(com.bdaim.common.dto.Page page) {
+        if (page.getData() != null && page.getData().size() > 0) {
+            List fList;
+            Map f, value;
+            JSONObject company;
+            for (int i = 0; i < page.getData().size(); i++) {
+                fList = new ArrayList();
+                value = (Map) page.getData().get(i);
+                value.put("entId", "");
+                for (Object k : value.keySet()) {
+                    if ("mobile".equals(k) || "手机号".equals(k) || "手机".equals(k)) {
+                        // 处理手机号类型
+                        f = new HashMap();
+                        f.put("field", k);
+                        f.put("type", 7);
+                        fList.add(f);
+                    } else if ("telephone".equals(k) || "固话".equals(k) || "电话".equals(k)) {
+                        // 处理电话类型
+                        f = new HashMap();
+                        f.put("field", k);
+                        f.put("type", 22);
+                        fList.add(f);
+                    }
+                }
+                // 处理公司名称
+                /*if (value.containsKey("company") && StringUtil.isNotEmpty(String.valueOf(value.get("company")))) {
+                    company = entDataService.getCompanyByName(String.valueOf(value.get("company")));
+                    if (company != null) {
+                        value.put("entId", company.getString("id"));
+                    }
+                }*/
+                value.put("flist", fList);
+            }
+        }
     }
 
     /**
@@ -106,9 +146,17 @@ public class CrmBackLogService {
         }
         //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select * ", stringBuffer.toString());
         com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
+        // 处理联系方式flist字段
+        handleCallField(page);
         return R.ok().put("data", BaseUtil.crmPage(page));
     }
 
+    /**
+     * 今日需联系线索
+     *
+     * @param basePageRequest
+     * @return
+     */
     public R todayCrmLeads(BasePageRequest basePageRequest) {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         Integer type = jsonObject.getInteger("type");
@@ -142,6 +190,8 @@ public class CrmBackLogService {
         }
         //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select * ", stringBuffer.toString());
         com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
+        // 处理联系方式flist字段
+        handleCallField(page);
         return R.ok().put("data", BaseUtil.crmPage(page));
     }
 
@@ -188,6 +238,8 @@ public class CrmBackLogService {
         }
         com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
         //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", stringBuffer.toString());
+        // 处理联系方式flist字段
+        handleCallField(page);
         return R.ok().put("data", BaseUtil.crmPage(page));
     }
 
@@ -210,7 +262,8 @@ public class CrmBackLogService {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         Integer type = jsonObject.getInteger("type");
         Integer isSub = jsonObject.getInteger("isSub");
-        StringBuilder stringBuffer = new StringBuilder("from customerview as a where");
+        String customerview = BaseUtil.getViewSqlNotASName("customerview");
+        StringBuilder stringBuffer = new StringBuilder("from " + customerview + " as a where");
         if (type == 1) {
             stringBuffer.append(" a.followup = 0");
         } else if (type == 2) {
@@ -236,6 +289,8 @@ public class CrmBackLogService {
         }
         com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
         //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", stringBuffer.toString());
+        // 处理联系方式flist字段
+        handleCallField(page);
         return R.ok().put("data", BaseUtil.crmPage(page));
     }
 

@@ -18,6 +18,7 @@ import com.bdaim.common.exception.ParamException;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.crm.entity.LkCrmAdminUserEntity;
 import com.bdaim.crm.erp.admin.service.LkAdminUserService;
+import com.bdaim.crm.utils.R;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dao.CustomerUserPropertyDao;
@@ -226,10 +227,18 @@ public class CustomerUserService {
 //        userDO.setUserPwdLevel(value.getUserPwdLevel());
 //        userInfoDao.save(userDO);
 
-        PasswordChecker checker = new PasswordChecker();
-
-        if (!checker.check(value.getPassword())) {
-            throw new Exception("密码不符合要求");
+        // 3-联客官网 4-众麦官网
+        if ("3".equals(value.getSource()) || "4".equals(value.getSource())) {
+            // 检测密码强度
+            boolean b = PasswordChecker.crmPwdCheck(value.getPassword());
+            if (!b) {
+                throw new Exception("密码至少包含字母、数字、特殊字符中的2种!");
+            }
+        } else {
+            PasswordChecker checker = new PasswordChecker();
+            if (!checker.check(value.getPassword())) {
+                throw new Exception("密码不符合要求");
+            }
         }
         //用户是否已存在
         List<CustomerUser> customerUsers = customerUserDao.findBy("account", value.getUserName());
@@ -243,6 +252,7 @@ public class CustomerUserService {
         customer.setEnterpriseName(value.getEnterpriseName());
         customer.setStatus(Constant.USER_ACTIVE_STATUS);
         customer.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+        customer.setSource(value.getSource());
         customerDao.save(customer);
 
         CustomerUser cu = new CustomerUser();
@@ -334,11 +344,22 @@ public class CustomerUserService {
             realName = userName;
         }
         String password = userDTO.getPassword();
-        PasswordChecker checker = new PasswordChecker();
         try {
-            if (!checker.check(password)) {
-                throw new Exception("密码不符合要求");
+            // 同步创建crm登录账号
+            CustomerProperty service_mode = customerDao.getProperty(custId, "service_mode");
+            if (service_mode != null && "2".equals(service_mode.getPropertyValue())) {
+                // 检测密码强度
+                boolean b = PasswordChecker.crmPwdCheck(password);
+                if (!b) {
+                    throw new Exception("密码至少包含字母、数字、特殊字符中的2种!");
+                }
+            }else{
+                PasswordChecker checker = new PasswordChecker();
+                if (!checker.check(password)) {
+                    throw new Exception("密码不符合要求");
+                }
             }
+
             //String appId = userDTO.getAppId();
             //        String callCenterId = userDTO.getCallCenterId();
             String callType = userDTO.getCallType();
@@ -427,7 +448,6 @@ public class CustomerUserService {
             cu.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
             this.customerUserDao.save(cu);
             // 同步创建crm登录账号
-            CustomerProperty service_mode = customerDao.getProperty(custId, "service_mode");
             if (service_mode != null && "2".equals(service_mode.getPropertyValue())) {
                 LkCrmAdminUserEntity adminUser = new LkCrmAdminUserEntity();
                 adminUser.setUserId(cu.getId());
@@ -710,16 +730,26 @@ public class CustomerUserService {
     }
 
 
-    public Integer updateuser(UserCallConfigDTO userDTO) {
+    public Integer updateuser(UserCallConfigDTO userDTO) throws Exception {
         String Id = userDTO.getId();
         String realName = userDTO.getRealName();
-        try {
+        //try {
             CustomerUser cu = this.customerUserDao.get(Long.valueOf(Id));
             if (cu != null) {
                 if (StringUtil.isNotEmpty(userDTO.getPassword())) {
-                    PasswordChecker checker = new PasswordChecker();
-                    if (!checker.check(userDTO.getPassword())) {
-                        throw new Exception("密码不符合要求");
+                    // 同步创建crm登录账号
+                    CustomerProperty service_mode = customerDao.getProperty(userDTO.getCustomerId(), "service_mode");
+                    if (service_mode != null && "2".equals(service_mode.getPropertyValue())) {
+                        // 检测密码强度
+                        boolean b = PasswordChecker.crmPwdCheck(userDTO.getPassword());
+                        if (!b) {
+                            throw new Exception("密码至少包含字母、数字、特殊字符中的2种!");
+                        }
+                    }else{
+                        PasswordChecker checker = new PasswordChecker();
+                        if (!checker.check(userDTO.getPassword())) {
+                            throw new Exception("密码不符合要求");
+                        }
                     }
                     String password = CipherUtil.generatePassword(userDTO.getPassword());
                     cu.setPassword(password);
@@ -872,10 +902,10 @@ public class CustomerUserService {
                 adminUser.setEmail(userDTO.getEmail());
                 lkAdminUserService.saveUser(adminUser, false, custId, 2, "1");
             }
-        } catch (Exception e) {
+       /* } catch (Exception e) {
             logger.error("更新用户信息失败", e);
             return 0;
-        }
+        }*/
         return 1;
     }
 

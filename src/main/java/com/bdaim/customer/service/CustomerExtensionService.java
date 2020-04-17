@@ -92,6 +92,10 @@ public class CustomerExtensionService {
 //            p.add(info.getString("id"));
             sql.append(" and  id in ("+info.getString("id")+")");
         }
+        if (StringUtil.isNotEmpty(info.getString("src"))) {
+            p.add(info.getString("src"));
+            sql.append(" and content->'$.src' =? ");
+        }
 
         sql.append(" order by create_time desc");
 //        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (page.getPageNum() - 1) * page.getPageSize() + ", " + page.getPageSize());

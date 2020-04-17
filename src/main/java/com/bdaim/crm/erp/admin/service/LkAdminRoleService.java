@@ -1,13 +1,18 @@
 package com.bdaim.crm.erp.admin.service;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ReUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.auth.service.impl.TokenServiceImpl;
+import com.bdaim.common.auth.Token;
+import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.crm.common.config.cache.CaffeineCache;
 import com.bdaim.crm.common.constant.BaseConstant;
+import com.bdaim.crm.common.exception.ParamValidateException;
 import com.bdaim.crm.dao.LkCrmAdminRoleDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
 import com.bdaim.crm.entity.LkCrmAdminMenuEntity;
@@ -18,9 +23,15 @@ import com.bdaim.crm.erp.admin.entity.AdminUserRole;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.dto.*;
 import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
+import com.bdaim.customer.service.CustomerService;
+import com.bdaim.smscenter.service.SendSmsService;
+import com.bdaim.util.CipherUtil;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Record;
@@ -37,18 +48,20 @@ import java.util.*;
 @Service
 @Transactional
 public class LkAdminRoleService {
-
     @Autowired
     private AdminMenuService adminMenuService;
-
     @Autowired
     public LkCrmAdminRoleDao crmAdminRoleDao;
-
     @Autowired
     public LkCrmAdminUserDao crmAdminUserDao;
-
     @Autowired
     public CustomerUserDao customerUserDao;
+    @Autowired
+    private SendSmsService sendSmsService;
+    @Autowired
+    private TokenCacheService tokenCacheService;
+    @Autowired
+    private CustomerService customerService;
 
     /**
      * @author wyq
@@ -428,5 +441,116 @@ public class LkAdminRoleService {
         Integer number = crmAdminRoleDao.queryForInt("select count(*) from lkcrm_admin_role where role_name = ? and role_type = ? and role_id != ? AND cust_id = ?",
                 roleName, roleType, roleId, custId);
         return number;
+    }
+
+    @SuppressWarnings("all")
+    public Token createTokenByPhone(Map<String, String> params) {
+        String phone = params.get("phone");
+        int type = Integer.parseInt(params.get("type"));
+        String code = params.get("code");
+        //1. 校验验证码是否正确
+        boolean success = sendSmsService.verificationCode(phone, type, code) == 1;
+        if (!success) {
+            throw new ParamValidateException("0", "手机验证码不正确");
+        }
+        //2. 根据手机号查询用户信息，返回token
+        LoginUser userdetail = null;
+        CustomerUser u = getUserByPhone(phone);
+        if (u != null) {
+            String username = u.getAccount();
+            String tokenid = (String) TokenServiceImpl.name2token.get(username);
+            if (!StringUtil.isEmpty(tokenid)) {
+                userdetail = (LoginUser) tokenCacheService.getToken(tokenid, LoginUser.class);
+                if (userdetail != null) {
+                    //前台用户权限信息
+                    CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(u.getId()), CustomerUserPropertyEnum.RESOURCE_MENU.getKey());
+                    if (userProperty != null && StringUtil.isNotEmpty(userProperty.getPropertyValue())) {
+                        userdetail.setResourceMenu(userProperty.getPropertyValue());
+                        userdetail.setStatus(u.getStatus().toString());
+                        return userdetail;
+                    }
+                } else {
+                    TokenServiceImpl.name2token.remove(username);
+                }
+            }
+            userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" +
+                    System.currentTimeMillis()));
+            if (1 == u.getStatus()) {
+                userdetail.addAuth("USER_FREEZE");
+            } else if (3 == u.getStatus()) {
+                userdetail.addAuth("USER_NOT_EXIST");
+            } else if (0 == u.getStatus()) {
+                //user_type: 1=管理员 2=普通员工
+                userdetail.addAuth("ROLE_CUSTOMER");
+            }
+            userdetail.setCustId(u.getCust_id());
+            userdetail.setId(u.getId());
+            userdetail.setUserId(u.getId());
+            userdetail.setUserType(String.valueOf(u.getUserType()));
+            userdetail.setRole(userdetail.getAuths().size() > 0 ? userdetail.getAuths().get(0) : "");
+
+            userdetail.setStatus(u.getStatus().toString());
+            userdetail.setStateCode("200");
+            userdetail.setMsg("SUCCESS");
+            userdetail.setAuth(userdetail.getAuths().size() > 0 ? userdetail.getAuths().get(0) : "");
+            userdetail.setUserName(userdetail.getUsername());
+            userdetail.setUser_id(userdetail.getId().toString());
+            // 处理服务权限
+            userdetail.setServiceMode(ServiceModeEnum.MARKET_TASK.getCode());
+            CustomerPropertyDTO cpd = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.SERVICE_MODE.getKey());
+            if (cpd != null && StringUtil.isNotEmpty(cpd.getPropertyValue())) {
+                userdetail.setServiceMode(cpd.getPropertyValue());
+            }
+            CustomerPropertyDTO industry = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.INTEN_INDUCTRY.getKey());
+            if (industry != null && StringUtil.isNotEmpty(industry.getPropertyValue())) {
+                userdetail.setInten_industry(industry.getPropertyValue());
+            }
+            CustomerPropertyDTO apiToken = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.API_TOKEN.getKey());
+            if (apiToken != null && StringUtil.isNotEmpty(apiToken.getPropertyValue())) {
+                userdetail.setApi_token(apiToken.getPropertyValue());
+            }
+
+            //前台用户权限信息
+            CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(u.getId()), CustomerUserPropertyEnum.RESOURCE_MENU.getKey());
+            if (userProperty != null && StringUtil.isNotEmpty(userProperty.getPropertyValue())) {
+                userdetail.setResourceMenu(userProperty.getPropertyValue());
+            }
+            CustomerUserPropertyDO mobile_num = customerUserDao.getProperty(u.getId().toString(), "mobile_num");
+            if (mobile_num != null && StringUtil.isNotEmpty(mobile_num.getPropertyValue())) {
+                userdetail.setMobile_num(mobile_num.getPropertyValue());
+            } else {
+                userdetail.setMobile_num("");
+            }
+            // 查询用户组信息
+            CustomerUserGroupRelDTO cug = customerUserDao.getCustomerUserGroupByUserId(u.getId());
+            userdetail.setUserGroupId("");
+            userdetail.setUserGroupRole("");
+            userdetail.setJobMarketId("");
+            if (cug != null) {
+                userdetail.setUserGroupId(cug.getGroupId());
+                userdetail.setUserGroupRole(String.valueOf(cug.getType()));
+                userdetail.setJobMarketId(cug.getJobMarketId());
+            }
+            // 处理客户营销类型
+            userdetail.setMarketingType(MarketTypeEnum.B2C.getCode());
+            CustomerPropertyDTO marketingType = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.MARKET_TYPE.getKey());
+            if (marketingType != null && StringUtil.isNotEmpty(marketingType.getPropertyValue())) {
+                userdetail.setMarketingType(NumberConvertUtil.parseInt(marketingType.getPropertyValue()));
+            }
+            if (userdetail != null) {
+                TokenServiceImpl.name2token.put(username, userdetail.getTokenid());
+            }
+        }
+        return userdetail;
+    }
+
+    private CustomerUser getUserByPhone(String phone) {
+        String hql = "SELECT t1 FROM CustomerUser t1,LkCrmAdminUserEntity t2 WHERE t1.id=t2.userId " +
+                "AND t2.mobile = ?";
+        List<CustomerUser> userList = crmAdminUserDao.find(hql, phone);
+        if(!CollectionUtil.isEmpty(userList)){
+            return userList.get(0);
+        }
+        return null;
     }
 }

@@ -6,9 +6,11 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.helper.SQLHelper;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
+import com.bdaim.crm.common.exception.ParamValidateException;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
@@ -25,6 +27,7 @@ import com.bdaim.customersea.entity.CustomerSeaProperty;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.marketproject.dto.MarketProjectDTO;
 import com.bdaim.marketproject.service.MarketProjectService;
+import com.bdaim.smscenter.service.SendSmsService;
 import com.bdaim.util.*;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Record;
@@ -32,6 +35,7 @@ import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -67,6 +71,8 @@ public class LkAdminUserService {
     private LkCrmBusinessTypeDao crmBusinessTypeDao;
     @Autowired
     private CrmContractService crmContractService;
+    @Autowired
+    private SendSmsService sendSmsService;
 
     private void saveBpUser(long id, String userName, String realName, String password, String custId, int userType,
                             String callType, String callChannel, UserCallConfigDTO userDTO) {
@@ -130,6 +136,7 @@ public class LkAdminUserService {
 
     /**
      * 保存crm账号,password为加密后的密码
+     *
      * @param adminUser
      * @param custId
      * @param userType
@@ -159,7 +166,7 @@ public class LkAdminUserService {
                     adminUser.setParentId(user.getId());
                 }
             }
-            updateScene(adminUser,true);
+            updateScene(adminUser, true);
             String salt = IdUtil.fastSimpleUUID();
             adminUser.setCustId(custId);
             adminUser.setNum(RandomUtil.randomNumbers(15));
@@ -189,7 +196,7 @@ public class LkAdminUserService {
             if (!username.equals(adminUser.getUsername())) {
                 return R.error("用户名不能修改！");
             }
-            updateScene(adminUser,false);
+            updateScene(adminUser, false);
 //            bol = adminUser.update();
             LkCrmAdminUserEntity entity = crmAdminUserDao.get(adminUser.getUserId());
             BeanUtils.copyProperties(adminUser, entity, JavaBeanUtil.getNullPropertyNames(adminUser));
@@ -218,6 +225,12 @@ public class LkAdminUserService {
         adminUser.setCustId(user.getCustId());
         updateScene(adminUser);
         if (adminUser.getUserId() == 0) {
+            // 检测密码强度
+            boolean b = PasswordChecker.crmPwdCheck(adminUser.getPassword());
+            if (!b) {
+                return R.error("密码至少包含字母、数字、特殊字符中的2种!");
+            }
+
             String sql = "select count(*) from lkcrm_admin_user where username = ?";
             Integer count = crmAdminUserDao.queryForInt(sql, adminUser.getUsername());
             if (count > 0) {
@@ -307,7 +320,7 @@ public class LkAdminUserService {
         //adminUser.setPassword(BaseUtil.sign((adminUser.getUsername().trim() + adminUser.getPassword().trim()), salt));
         adminUser.setPassword(adminUser.getPassword());
         adminUser.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        adminUser.setMobile(adminUser.getUsername());
+        adminUser.setMobile(adminUser.getMobile());
         adminUser.setDeptId(deptId);
         crmAdminUserDao.saveReturnPk(adminUser);
         // 关联管理员角色
@@ -568,7 +581,7 @@ public class LkAdminUserService {
      * @param userId 当前用户id
      */
     public List<Long> queryChileUserIds(Long userId, Integer deepness) {
-        List<Long> query = crmAdminUserDao.queryListBySql("select user_id from lkcrm_admin_user where parent_id = ?" +
+        List<Long> query = crmAdminUserDao.queryListForLong("select user_id from lkcrm_admin_user where parent_id = ?" +
                 " and cust_id = ?", userId, BaseUtil.getCustId());
         if (deepness > 0) {
             for (int i = 0, size = query.size(); i < size; i++) {
@@ -583,6 +596,11 @@ public class LkAdminUserService {
 
 
     public R resetPassword(String ids, String pwd) {
+        // 检测密码强度
+        boolean b = PasswordChecker.crmPwdCheck(pwd);
+        if (!b) {
+            return R.error("密码至少包含字母、数字、特殊字符中的2种!");
+        }
         for (String id : ids.split(",")) {
             //LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(NumberUtil.parseLong(id));
             //String password = BaseUtil.sign(adminUser.getUsername() + pwd, adminUser.getSalt());
@@ -593,6 +611,36 @@ public class LkAdminUserService {
             crmAdminUserDao.executeUpdateSQL(updateSql, password, id);
         }
         return R.ok();
+    }
+
+    public void resetPasswordByPhone(Map<String, String> params) throws TouchException {
+        String phone = params.get("phone");
+        int type = Integer.parseInt(params.get("type"));
+        String code = params.get("code");
+        //1. 校验验证码是否正确
+        boolean success = sendSmsService.verificationCode(phone, type, code) == 1;
+        if (!success) {
+            throw new ParamValidateException("0", "手机验证码不正确");
+        }
+        //2. 手机号是否已注册
+        String selectSql = "SELECT user_id FROM lkcrm_admin_user WHERE mobile = ?";
+        List list = crmAdminUserDao.queryListBySql(selectSql, phone);
+        if (CollectionUtils.isEmpty(list)) {
+            throw new ParamValidateException("0", "手机号未注册");
+        }
+        //3. 重置密码
+        String newPassword = params.get("newPassword");
+        // 检测密码强度
+        boolean b = PasswordChecker.crmPwdCheck(newPassword);
+        if (!b) {
+            throw new ParamValidateException("0", "密码至少包含字母、数字、特殊字符中的2种!");
+        }
+        String pwdEncryption = CipherUtil.generatePassword(newPassword);
+        String updateSql1 = "UPDATE lkcrm_admin_user SET password = ? WHERE mobile = ?";
+        crmAdminUserDao.executeUpdateSQL(updateSql1, pwdEncryption, phone);
+        String updateSql2 = "UPDATE t_customer_user t1 INNER JOIN lkcrm_admin_user t2 ON t1.id = t2.user_id AND t2.mobile = ? " +
+                "SET t1.password = ?";
+        crmAdminUserDao.executeUpdateSQL(updateSql2, phone, pwdEncryption);
     }
 
     public R querySuperior(String realName) {
@@ -730,7 +778,7 @@ public class LkAdminUserService {
         List<Long> adminUsers = new ArrayList<>();
         //查询用户数据权限，从高到低排序
         String sql = "SELECT DISTINCT a.data_type FROM lkcrm_admin_role as a LEFT JOIN lkcrm_admin_user_role as b on a.role_id=b.role_id WHERE b.user_id=?  ORDER BY a.data_type desc";
-        List<Integer> list = crmAdminUserDao.queryListBySql(sql, userId);
+        List<Integer> list = crmAdminUserDao.queryListForInteger(sql, userId);
         if (list.size() == 0) {
             //无权限查询自己的数据
             adminUsers.add(userId);
@@ -771,14 +819,16 @@ public class LkAdminUserService {
         }
         sql += "ORDER BY k.data_type DESC";
         List<Record> userRoleList = JavaBeanUtil.mapToRecords(crmAdminUserDao.sqlQuery(sql, param.toArray()));
-        if (list.size() == 1 && userRoleList.size() == 1) {//如果为1的话 验证是否有最高权限，否则及有多个权限
-            //拥有最高数据权限
+        //如果为1的话 验证是否有最高权限，否则及有多个权限
+        if (list.size() == 1 && userRoleList.size() == 1) {
+            //拥有最高数据权限(数据权限为全部)
             if (list.contains(5)) {
                 return null;
             } else {
                 //AdminUser adminUser = AdminUser.dao.findById(userId);
                 LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(userId);
                 if (list.contains(4)) {
+                    // 本部门以及下属部门
                     List<Record> records = adminDeptService.queryDeptByParentDept(adminUser.getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
                     List<String> deptIds = new ArrayList<>();
                     deptIds.add(adminUser.getDeptId().toString());

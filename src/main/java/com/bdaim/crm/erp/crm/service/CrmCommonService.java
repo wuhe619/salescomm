@@ -31,7 +31,7 @@ public class CrmCommonService {
     public Boolean isValidAccount(LoginUser lu) throws TouchException {
         boolean has_remain = marketResourceService.judRemainAmount(lu.getCustId());
         if (!has_remain && "2".equals(lu.getUserType())) {
-            throw new TouchException("余额不足");
+            throw new TouchException("余额不足,请先充值");
         }
         if ("2".equals(lu.getUserType())) {
             CustomerUserPropertyDO call_channel = customerUserDao.getProperty(lu.getId().toString(), "call_channel");

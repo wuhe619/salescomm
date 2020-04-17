@@ -11,7 +11,7 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.service.SequenceService;
-import com.bdaim.crm.*;
+import com.bdaim.crm.ent.entity.*;
 import com.bdaim.customer.service.B2BTcbLogService;
 import com.bdaim.util.ExcelUtil;
 import com.bdaim.util.MD5Util;
@@ -19,10 +19,7 @@ import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import io.searchbox.core.CountResult;
 import io.searchbox.core.SearchResult;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermQueryBuilder;
-import org.elasticsearch.index.query.WildcardQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
@@ -692,88 +689,75 @@ public class EntDataService {
                     temp.should(QueryBuilders
                             .wildcardQuery("industry", "*" + texts.getString(j) + "*"));
                 }
-
             }
             qb.must(temp);
         }
         // 企业名称 支持多个
         if (param.getJSONArray("entName") != null && param.getJSONArray("entName").size() > 0) {
             JSONArray jsonArray = param.getJSONArray("entName");
-            BoolQueryBuilder temp = QueryBuilders.boolQuery();
+            BoolQueryBuilder condition = QueryBuilders.boolQuery();
             for (int i = 0; i < jsonArray.size(); i++) {
+                BoolQueryBuilder temp = QueryBuilders.boolQuery();
                 // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
                 int typeName = jsonArray.getJSONObject(i).getInteger("typeName");
                 JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
                 if (typeName == 1) {
                     for (int j = 0; j < texts.size(); j++) {
-                       /* MatchQueryBuilder mpq = QueryBuilders
-                                .matchQuery("entName", text);
-                        temp.should(mpq);*/
-                        WildcardQueryBuilder mpq = QueryBuilders
-                                .wildcardQuery("entName", "*" + texts.getString(j) + "*");
-                        temp.should(mpq);
+                        temp.should(QueryBuilders.matchPhraseQuery("entName", texts.getString(j)));
                     }
+                    condition.should(temp);
                 } else if (typeName == 2) {
                     for (int j = 0; j < texts.size(); j++) {
-                        TermQueryBuilder mpq = QueryBuilders
-                                .termQuery("entName", texts.getString(j));
-                        temp.should(mpq);
+                        temp.must(QueryBuilders.matchPhraseQuery("entName", texts.getString(j)));
                     }
+                    condition.should(temp);
                 } else if (typeName == 3) {
                     for (int j = 0; j < texts.size(); j++) {
-                       /* MatchQueryBuilder mpq = QueryBuilders
-                                .matchQuery("entName", text);
-                        temp.should(mpq);*/
-                        WildcardQueryBuilder mpq = QueryBuilders
-                                .wildcardQuery("entName", "*" + texts.getString(j) + "*");
-                        temp.mustNot(mpq);
+                        temp.should(QueryBuilders.matchPhraseQuery("entName", texts.getString(j)));
                     }
+                    condition.should(QueryBuilders.boolQuery().mustNot(temp));
                 } else if (typeName == 4) {
                     for (int j = 0; j < texts.size(); j++) {
-                        TermQueryBuilder mpq = QueryBuilders
-                                .termQuery("entName", texts.getString(j));
-                        temp.mustNot(mpq);
+                        temp.must(QueryBuilders.matchPhraseQuery("entName", texts.getString(j)));
                     }
+                    condition.should(QueryBuilders.boolQuery().mustNot(temp));
                 }
             }
-            qb.must(temp);
+            qb.filter(condition);
         }
 
         // 经营范围 支持多个
         if (param.getJSONArray("compayScope") != null && param.getJSONArray("compayScope").size() > 0) {
             JSONArray jsonArray = param.getJSONArray("compayScope");
-            BoolQueryBuilder temp = QueryBuilders.boolQuery();
+            BoolQueryBuilder condition = QueryBuilders.boolQuery();
             for (int i = 0; i < jsonArray.size(); i++) {
                 // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
+                BoolQueryBuilder temp = QueryBuilders.boolQuery();
                 int typeScope = jsonArray.getJSONObject(i).getInteger("typeScope");
                 JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
                 if (typeScope == 1) {
                     for (int j = 0; j < texts.size(); j++) {
-                        WildcardQueryBuilder mpq = QueryBuilders
-                                .wildcardQuery("opScope", "*" + texts.getString(j) + "*");
-                        temp.should(mpq);
+                        temp.should(QueryBuilders.matchPhraseQuery("opScope", texts.getString(j)));
                     }
+                    condition.should(temp);
                 } else if (typeScope == 2) {
                     for (int j = 0; j < texts.size(); j++) {
-                        TermQueryBuilder mpq = QueryBuilders
-                                .termQuery("opScope", texts.getString(j));
-                        temp.should(mpq);
+                        temp.must(QueryBuilders.matchPhraseQuery("opScope", texts.getString(j)));
                     }
+                    condition.should(temp);
                 } else if (typeScope == 3) {
                     for (int j = 0; j < texts.size(); j++) {
-                        WildcardQueryBuilder mpq = QueryBuilders
-                                .wildcardQuery("opScope", "*" + texts.getString(j) + "*");
-                        temp.mustNot(mpq);
+                        temp.should(QueryBuilders.matchPhraseQuery("opScope", texts.getString(j)));
                     }
+                    condition.should(QueryBuilders.boolQuery().mustNot(temp));
                 } else if (typeScope == 4) {
                     for (int j = 0; j < texts.size(); j++) {
-                        TermQueryBuilder mpq = QueryBuilders
-                                .termQuery("opScope", texts.getString(j));
-                        temp.mustNot(mpq);
+                        temp.must(QueryBuilders.matchPhraseQuery("opScope", texts.getString(j)));
                     }
+                    condition.should(QueryBuilders.boolQuery().mustNot(temp));
                 }
             }
-            qb.must(temp);
+            qb.filter(condition);
         }
         // 经营状态
         if (param.getJSONArray("regStatus") != null && param.getJSONArray("regStatus").size() > 0) {
@@ -804,11 +788,12 @@ public class EntDataService {
                     address.must(QueryBuilders.termQuery("regcity", regLocation.getString("regcity")));
                 }
                 if (StringUtil.isNotEmpty(regLocation.getString("address"))) {
-                    address.must(QueryBuilders.wildcardQuery("address", "*" + regLocation.getString("address") + "*"));
+                    //address.must(QueryBuilders.wildcardQuery("address", "*" + regLocation.getString("address") + "*"));
+                    address.must(QueryBuilders.matchPhraseQuery("address", regLocation.getString("address")));
                 }
                 temp.should(address);
             }
-            qb.must(temp);
+            qb.filter(temp);
         }
         // 注册时间
         if (StringUtil.isNotEmpty(param.getString("startTime")) && StringUtil.isNotEmpty(param.getString("endTime"))) {
@@ -921,7 +906,8 @@ public class EntDataService {
                             sum++;
                         }
                     }
-                } else if (StringUtil.isNotEmpty(t.getString("phone1"))) {
+                }
+                if (StringUtil.isNotEmpty(t.getString("phone1"))) {
                     for (String p : t.getString("phone1").split(",")) {
                         if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
                                 && !"-".equals(p)) {
@@ -1030,15 +1016,16 @@ public class EntDataService {
 
     /**
      * 根据企业名称查询企业详情
+     *
      * @param companyName
      * @return
      */
     public JSONObject getCompanyByName(String companyName) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
-        qb.filter(QueryBuilders.termQuery("entName", companyName));
+        qb.filter(QueryBuilders.matchQuery("entName", companyName));
         searchSourceBuilder.query(qb);
-        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(),AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
+        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         JSONObject t = null;
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             int sum;
@@ -1053,7 +1040,8 @@ public class EntDataService {
                             sum++;
                         }
                     }
-                } else if (StringUtil.isNotEmpty(t.getString("phone1"))) {
+                }
+                if (StringUtil.isNotEmpty(t.getString("phone1"))) {
                     for (String p : t.getString("phone1").split(",")) {
                         if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
                                 && !"-".equals(p)) {

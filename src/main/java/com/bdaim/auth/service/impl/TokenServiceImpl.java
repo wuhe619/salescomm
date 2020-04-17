@@ -67,7 +67,7 @@ public class TokenServiceImpl implements TokenService {
     @Resource
     private CustomerAppService customerAppService;
 
-    private static Map name2token = new HashMap();
+    public static Map name2token = new HashMap();
 
     public static Map listTokens() {
         return name2token;

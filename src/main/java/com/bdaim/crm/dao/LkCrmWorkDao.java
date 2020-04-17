@@ -6,6 +6,7 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmWorkEntity;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.SqlAppendUtil;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.stereotype.Component;
 
@@ -73,8 +74,8 @@ public class LkCrmWorkDao extends SimpleHibernateDao<LkCrmWorkEntity, Integer> {
                 paramList.add(params.get("workId"));
             }
             if (params.containsKey("workIds")) {
-                sql += " and work_id in (?) ";
-                paramList.add(params.get("workIds"));
+                sql += " and work_id in (" + SqlAppendUtil.sqlAppendWhereIn((List) params.get("workIds")) + ") ";
+                //paramList.add();
             }
             if (params.containsKey("mainUserId")) {
                 sql += " and main_user_id = ? ";

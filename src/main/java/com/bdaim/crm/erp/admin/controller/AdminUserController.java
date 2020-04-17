@@ -2,7 +2,9 @@ package com.bdaim.crm.erp.admin.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -89,6 +91,18 @@ public class AdminUserController extends BasicAction {
         String pwd = getPara("password");
 //        renderJson(adminUserService.resetPassword(ids, pwd));
         return adminUserService.resetPassword(ids, pwd);
+    }
+
+    /**
+     * 根据手机号、验证码来重置密码
+     *
+     * @param params
+     * @return
+     */
+    @RequestMapping(value = "/resetPasswordByPhone")
+    public ResponseInfo resetPasswordByPhone(@RequestBody Map<String, String> params) throws TouchException {
+        adminUserService.resetPasswordByPhone(params);
+        return new ResponseInfoAssemble().success(null);
     }
 
     /**

@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -62,6 +63,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 @Service
@@ -519,27 +521,29 @@ public class CrmLeadsService {
      * @return
      * @throws TouchException
      */
-    public int distributionClue(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
+    @Async
+    public Future<Integer> distributionClue(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
         // 单一负责人分配线索|手动领取所选
+        int status = 0;
         if (1 == operate) {
            /* if (BaseUtil.getUserType() == 1) {
                 throw new TouchException("管理员不能领取线索");
             }*/
-            return singleDistributionClue(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
+            status= singleDistributionClue(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
         } else if (2 == operate) {
             /*if (BaseUtil.getUserType() == 1) {
                 throw new TouchException("管理员不能领取线索");
             }*/
             // 坐席根据检索条件批量领取线索
-            return batchReceiveClue(param, param.getUserIds().get(0));
+            status= batchReceiveClue(param, param.getUserIds().get(0));
         } else if (3 == operate) {
             //根据检索条件批量给多人快速分配线索
-            return batchDistributionClue(param, assignedList);
+            status= batchDistributionClue(param, assignedList);
         } else if (4 == operate) {
             //坐席指定数量领取线索
-            return getReceiveClueByNumber(param.getSeaId(), param.getUserIds().get(0), param.getGetClueNumber());
+            status= getReceiveClueByNumber(param.getSeaId(), param.getUserIds().get(0), param.getGetClueNumber());
         }
-        return 0;
+        return new AsyncResult<>(status);
     }
 
     public com.bdaim.common.dto.Page listPublicSea(CustomerSeaParam param, int pageNum, int pageSize) {
@@ -738,8 +742,8 @@ public class CrmLeadsService {
      * @param batchId
      * @return
      */
-    @Async
-    public int transferToPublicSea(String seaId, String userId, String batchId, LoginUser user, String leadsview) {
+    public int transferToPublicSea(String seaId, String userId, String batchId) {
+        LOG.info("添加到线索私海数据");
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
                 .append("SELECT * FROM lkcrm_crm_leads  WHERE batch_id =? ");
@@ -747,6 +751,9 @@ public class CrmLeadsService {
         int i = 0;
         String insertSql = "REPLACE INTO " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " (`id`, `user_id`, `update_time`, `status`, " +
                 "super_name,super_telphone,super_phone,super_data,create_time,batch_id) VALUES(?,?,?,?,?,?,?,?,?,?)";
+
+        LoginUser user = BaseUtil.getUser();
+        String leadsview = BaseUtil.getViewSql("leadsview");
 
         for (Map<String, Object> m : maps) {
             JSONObject superData = new JSONObject();
@@ -780,7 +787,7 @@ public class CrmLeadsService {
                         adminFieldv.setBatchId(superId);
                         adminFieldvList.add(adminFieldv);
                     }
-                    if ("客户来源".equals(seaField.getName()) && "线索来源".equals(leadsFIeld.getStr("name"))) {
+                    if ("线索来源".equals(seaField.getName()) && "线索来源".equals(leadsFIeld.getStr("name"))) {
                         LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(seaField.getFieldId());
@@ -825,7 +832,7 @@ public class CrmLeadsService {
             crmRecordService.updateRecord(jsonArray, superId);
             //adminFieldService.save(jsonArray, superId);
         }
-        return 0;
+        return i;
     }
 
     /**
@@ -843,6 +850,7 @@ public class CrmLeadsService {
                 .append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(" ) ");
         List<Map<String, Object>> maps = customerSeaDao.sqlQuery(sql.toString());
         int i = 0;
+        LoginUser user = BaseUtil.getUser();
         for (Map<String, Object> m : maps) {
             JSONObject superData = JSON.parseObject(String.valueOf(m.get("super_data")));
             LkCrmLeadsEntity crmLeads = BeanUtil.mapToBean(m, LkCrmLeadsEntity.class, true);
@@ -858,7 +866,7 @@ public class CrmLeadsService {
             for (Map<String, Object> field : fieldList) {
                 jsonArray.add(BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true));
             }
-            LoginUser user = BaseUtil.getUser();
+
             String batchId = String.valueOf(m.get("id"));
             crmLeads.setBatchId(batchId);
             crmLeads.setCustId(user.getCustId());
@@ -873,6 +881,59 @@ public class CrmLeadsService {
             crmLeads.setBatchId(batchId);
             crmLeads.setSeaId(seaId);
             int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
+
+            // 复制公海线索字段值
+            Record seaData = JavaBeanUtil.mapToRecord(queryClueById(NumberConvertUtil.parseLong(seaId), String.valueOf(m.get("id"))));
+            List<Record> leadsFields = adminFieldService.list("11");
+            List<LkCrmAdminFieldEntity> seaFields = crmLeadsDao.find("from LkCrmAdminFieldEntity where label = '1' AND custId = ? ", user.getCustId());
+            List<LkCrmAdminFieldvEntity> adminFieldvList = new ArrayList<>();
+            for (Record leadsFIeld : leadsFields) {
+                for (LkCrmAdminFieldEntity seaField : seaFields) {
+                    if (leadsFIeld.getInt("fieldType") != null && !leadsFIeld.getInt("fieldType").equals(0)) {
+                        continue;
+                    }
+                    if (StringUtil.isNotEmpty(seaData.get(leadsFIeld.get("name"))) && leadsFIeld.getStr("name").equals(seaField.getName())) {
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
+                        adminFieldv.setValue(seaData.get(leadsFIeld.get("name")));
+                        adminFieldv.setFieldId(seaField.getFieldId());
+                        adminFieldv.setName(seaField.getName());
+                        adminFieldv.setCustId(user.getCustId());
+                        adminFieldv.setBatchId(batchId);
+                        adminFieldvList.add(adminFieldv);
+                    }
+                    if ("线索来源".equals(seaField.getName()) && "线索来源".equals(leadsFIeld.getStr("name"))) {
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
+                        adminFieldv.setValue(seaData.get(leadsFIeld.get("name")));
+                        adminFieldv.setFieldId(seaField.getFieldId());
+                        adminFieldv.setName(seaField.getName());
+                        adminFieldv.setCustId(user.getCustId());
+                        adminFieldv.setBatchId(batchId);
+                        adminFieldvList.add(adminFieldv);
+                    }
+                    if ("客户行业".equals(seaField.getName()) && "客户行业".equals(leadsFIeld.getStr("name"))) {
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
+                        adminFieldv.setValue(seaData.get(leadsFIeld.get("name")));
+                        adminFieldv.setFieldId(seaField.getFieldId());
+                        adminFieldv.setName(seaField.getName());
+                        adminFieldv.setCustId(user.getCustId());
+                        adminFieldv.setBatchId(batchId);
+                        adminFieldvList.add(adminFieldv);
+                    }
+                    if ("客户级别".equals(seaField.getName()) && "客户级别".equals(leadsFIeld.getStr("name"))) {
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
+                        adminFieldv.setValue(seaData.get(leadsFIeld.get("name")));
+                        adminFieldv.setFieldId(seaField.getFieldId());
+                        adminFieldv.setName(seaField.getName());
+                        adminFieldv.setCustId(user.getCustId());
+                        adminFieldv.setBatchId(batchId);
+                        adminFieldvList.add(adminFieldv);
+                    }
+                }
+            }
+
+            crmLeadsDao.getSession().clear();
+            crmLeadsDao.batchSaveOrUpdate(adminFieldvList);
+
             crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
             // 保存uid对应关系
             phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getMobile(), 1, user.getCustId());
@@ -980,7 +1041,15 @@ public class CrmLeadsService {
         crmLeads.setMobile(mobile);
         crmLeads.setTelephone(telephone);
         // 查询公海线索的标记信息
-        String batchId = MD5Util.encode32Bit(mobile);
+        String batchId;
+        if (StringUtil.isNotEmpty(mobile)) {
+            batchId = MD5Util.encode32Bit(mobile);
+        } else if (StringUtil.isNotEmpty(telephone)) {
+            batchId = MD5Util.encode32Bit(telephone);
+        } else {
+            batchId = MD5Util.encode32Bit(UUID.randomUUID().toString().replaceAll("-", ""));
+        }
+
         crmLeads.setBatchId(batchId);
         crmLeads.setCustId(user.getCustId());
         crmLeads.setCreateTime(DateUtil.date().toTimestamp());
@@ -1325,10 +1394,9 @@ public class CrmLeadsService {
     /**
      * 根据id 删除线索
      */
-    @Async
     public R deleteByBatchIds(List idsList) {
         if (idsList == null || idsList.size() == 0) {
-            R.error("leadsIds不能为空");
+            return R.error("superIds不能为空");
         }
         int i = crmLeadsDao.deleteByBatchIds(idsList);
         if (idsList.size() > 0) {
@@ -1339,7 +1407,7 @@ public class CrmLeadsService {
 
     public R deletePublicClue(List idsList, String seaId) {
         if (idsList == null || idsList.size() == 0) {
-            R.error("leadsIds不能为空");
+            return R.error("superIds不能为空");
         }
         int i = 0;
         if (idsList.size() > 0) {
@@ -1352,7 +1420,8 @@ public class CrmLeadsService {
         return i > 0 ? R.ok() : R.error("公海线索删除失败");
     }
 
-    public int batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
+    @Async
+    public Future<Integer> batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
         // 指定ID退回公海
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
@@ -1375,15 +1444,15 @@ public class CrmLeadsService {
         }
         customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
         int status = customerSeaDao.executeUpdateSQL(sql.toString(), param.toArray());
-        LoginUser user = BaseUtil.getUser();
-        String leadsview = BaseUtil.getViewSql("leadsview");
         for (String id : superIds) {
             List<Map<String, Object>> list = customerSeaDao.sqlQuery("select * from " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " WHERE id = ? ", id);
             if (list.size() == 0) {
-                transferToPublicSea(seaId, userId.toString(), id, user, leadsview);
+                transferToPublicSea(seaId, userId.toString(), id);
             }
         }
-        return status;
+        // 指定ID退回公海时删除私海线索
+        deleteByBatchIds(superIds);
+        return new AsyncResult<>(status);
     }
 
     /**

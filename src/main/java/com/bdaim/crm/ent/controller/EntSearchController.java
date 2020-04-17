@@ -45,7 +45,7 @@ public class EntSearchController extends BasicAction {
             resp.setData(count);
             return resp;
         }
-        if(StringUtil.isEmpty(request.getHeader("Authorization"))){
+        if (StringUtil.isEmpty(request.getHeader("Authorization"))) {
             response.getWriter().write("{code:401,msg:'no auth'}");
             return null;
         }
@@ -78,6 +78,29 @@ public class EntSearchController extends BasicAction {
                 sId = param.getLongValue("seaId");
             }
             baseResult = entDataService.getCompanyDetail(id, param, busiType, sId);
+        } catch (Exception e) {
+            logger.error("查询记录异常,", e);
+            return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
+        }
+        resp.setData(baseResult);
+        return resp;
+    }
+
+
+    @PostMapping(value = "/data")
+    public ResponseInfo getData(@PathVariable(name = "busiType") String busiType, @RequestBody(required = false) String body) {
+        ResponseInfo resp = new ResponseInfo();
+        JSONObject baseResult = null;
+        JSONObject param = null;
+        try {
+            if (body == null || "".equals(body))
+                body = "{}";
+            param = JSONObject.parseObject(body);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常:[" + busiType + "]");
+        }
+        try {
+            baseResult = entDataService.getCompanyByName(param.getString("name"));
         } catch (Exception e) {
             logger.error("查询记录异常,", e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");

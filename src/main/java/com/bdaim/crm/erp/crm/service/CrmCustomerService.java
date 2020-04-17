@@ -205,8 +205,7 @@ public class CrmCustomerService {
     }
 
     /**
-     * @return
-     * 根据客户id查询
+     * @return 根据客户id查询
      */
     public Map<String, Object> queryById(Integer customerId) {
         return crmCustomerDao.queryById(customerId).get(0);
@@ -794,10 +793,12 @@ public class CrmCustomerService {
     /**
      * 客户放入公海
      *
-     * @author zxy
      */
     @Before(Tx.class)
     public R updateCustomerByIds(String ids) {
+        if (StringUtil.isEmpty(ids)) {
+            return R.error("ids必填");
+        }
         crmRecordService.addPutIntoTheOpenSeaRecord(TagUtil.toSet(ids), CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
         StringBuffer sq = new StringBuffer("select count(*) from lkcrm_crm_customer where customer_id in ( ");
         sq.append(ids).append(") and is_lock = 1");

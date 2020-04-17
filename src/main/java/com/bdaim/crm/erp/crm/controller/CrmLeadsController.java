@@ -15,7 +15,6 @@ import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
-import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
@@ -64,6 +63,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 /**
  * 线索公海/私海
@@ -274,7 +274,7 @@ public class CrmLeadsController extends BasicAction {
             if (3 == operate) {
                 crmLeadsService.batchClueBackToSea(param.getUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds(), param.getBackReason(), param.getBackRemark());
                 // 指定ID退回公海时删除私海线索
-                crmLeadsService.deleteByBatchIds(param.getSuperIds());
+                //crmLeadsService.deleteByBatchIds(param.getSuperIds());
             } else {
                 data = seaService.updateClueStatus(param, operate);
             }
@@ -309,12 +309,13 @@ public class CrmLeadsController extends BasicAction {
             responseJson.setData("seaId参数必填");
             responseJson.setMsg("seaId参数必填");
             responseJson.setCode(-1);
+            return responseJson;
         }
-        if (param.getUserIds() == null || param.getUserIds().size() == 0) {
+        /*if (param.getUserIds() == null || param.getUserIds().size() == 0) {
             responseJson.setData("userIds参数必填");
             responseJson.setMsg("userIds参数必填");
             responseJson.setCode(-1);
-        }
+        }*/
         LoginUser user = BaseUtil.getUser();
         // 员工和组长领取线索处理
         if ("2".equals(user.getUserType())) {
@@ -338,10 +339,18 @@ public class CrmLeadsController extends BasicAction {
             param.setCustId(user.getCustId());
             // 同步操作
             synchronized (this) {
-                data = crmLeadsService.distributionClue(param, operate, assignedList);
+                data = crmLeadsService.distributionClue(param, operate, assignedList).get();
             }
             responseJson.setCode(200);
         } catch (TouchException e) {
+            responseJson.setCode(-1);
+            responseJson.setMsg(e.getMessage());
+            LOG.error("线索分配异常,", e);
+        } catch (InterruptedException e) {
+            responseJson.setCode(-1);
+            responseJson.setMsg(e.getMessage());
+            LOG.error("线索分配异常,", e);
+        } catch (ExecutionException e) {
             responseJson.setCode(-1);
             responseJson.setMsg(e.getMessage());
             LOG.error("线索分配异常,", e);
@@ -742,7 +751,6 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 获取线索导入模板
      */
-    @LoginFormCookie
     @RequestMapping(value = "/downloadExcel")
     public void downloadExcel(HttpServletResponse response) {
         List<Record> recordList = adminFieldService.queryAddField(1);
@@ -808,7 +816,6 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 获取线索导入模板
      */
-    @LoginFormCookie
     @RequestMapping(value = "/cluesea/downloadExcel")
     public void clueSeaDownloadExcel(HttpServletResponse response) {
         List<Record> recordList = adminFieldService.queryAddField(11);

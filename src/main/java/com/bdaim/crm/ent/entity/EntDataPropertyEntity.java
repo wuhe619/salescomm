@@ -1,4 +1,4 @@
-package com.bdaim.crm;
+package com.bdaim.crm.ent.entity;
 
 /**
  * 企业基本信息属性
