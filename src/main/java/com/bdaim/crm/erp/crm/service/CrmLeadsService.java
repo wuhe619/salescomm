@@ -521,27 +521,29 @@ public class CrmLeadsService {
      * @return
      * @throws TouchException
      */
-    public int distributionClue(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
+    @Async
+    public Future<Integer> distributionClue(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
         // 单一负责人分配线索|手动领取所选
+        int status = 0;
         if (1 == operate) {
            /* if (BaseUtil.getUserType() == 1) {
                 throw new TouchException("管理员不能领取线索");
             }*/
-            return singleDistributionClue(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
+            status= singleDistributionClue(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
         } else if (2 == operate) {
             /*if (BaseUtil.getUserType() == 1) {
                 throw new TouchException("管理员不能领取线索");
             }*/
             // 坐席根据检索条件批量领取线索
-            return batchReceiveClue(param, param.getUserIds().get(0));
+            status= batchReceiveClue(param, param.getUserIds().get(0));
         } else if (3 == operate) {
             //根据检索条件批量给多人快速分配线索
-            return batchDistributionClue(param, assignedList);
+            status= batchDistributionClue(param, assignedList);
         } else if (4 == operate) {
             //坐席指定数量领取线索
-            return getReceiveClueByNumber(param.getSeaId(), param.getUserIds().get(0), param.getGetClueNumber());
+            status= getReceiveClueByNumber(param.getSeaId(), param.getUserIds().get(0), param.getGetClueNumber());
         }
-        return 0;
+        return new AsyncResult<>(status);
     }
 
     public com.bdaim.common.dto.Page listPublicSea(CustomerSeaParam param, int pageNum, int pageSize) {
@@ -740,7 +742,7 @@ public class CrmLeadsService {
      * @param batchId
      * @return
      */
-    public Future<Integer> transferToPublicSea(String seaId, String userId, String batchId) {
+    public int transferToPublicSea(String seaId, String userId, String batchId) {
         LOG.info("添加到线索私海数据");
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
@@ -830,7 +832,7 @@ public class CrmLeadsService {
             crmRecordService.updateRecord(jsonArray, superId);
             //adminFieldService.save(jsonArray, superId);
         }
-        return new AsyncResult<>(i);
+        return i;
     }
 
     /**
