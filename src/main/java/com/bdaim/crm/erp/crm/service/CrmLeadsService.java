@@ -848,6 +848,7 @@ public class CrmLeadsService {
                 .append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(" ) ");
         List<Map<String, Object>> maps = customerSeaDao.sqlQuery(sql.toString());
         int i = 0;
+        LoginUser user = BaseUtil.getUser();
         for (Map<String, Object> m : maps) {
             JSONObject superData = JSON.parseObject(String.valueOf(m.get("super_data")));
             LkCrmLeadsEntity crmLeads = BeanUtil.mapToBean(m, LkCrmLeadsEntity.class, true);
@@ -863,7 +864,7 @@ public class CrmLeadsService {
             for (Map<String, Object> field : fieldList) {
                 jsonArray.add(BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true));
             }
-            LoginUser user = BaseUtil.getUser();
+
             String batchId = String.valueOf(m.get("id"));
             crmLeads.setBatchId(batchId);
             crmLeads.setCustId(user.getCustId());
@@ -880,13 +881,13 @@ public class CrmLeadsService {
             int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
 
             // 复制公海线索字段值
-            Record seaData = JavaBeanUtil.mapToRecord(m);
+            Record seaData = JavaBeanUtil.mapToRecord(queryClueById(NumberConvertUtil.parseLong(seaId), String.valueOf(m.get("id"))));
             List<Record> leadsFields = adminFieldService.list("11");
             List<LkCrmAdminFieldEntity> seaFields = crmLeadsDao.find("from LkCrmAdminFieldEntity where label = '1' AND custId = ? ", user.getCustId());
             List<LkCrmAdminFieldvEntity> adminFieldvList = new ArrayList<>();
             for (Record leadsFIeld : leadsFields) {
                 for (LkCrmAdminFieldEntity seaField : seaFields) {
-                    if (!seaField.getFieldType().equals(0)) {
+                    if (leadsFIeld.getInt("fieldType") != null && !leadsFIeld.getInt("fieldType").equals(0)) {
                         continue;
                     }
                     if (StringUtil.isNotEmpty(seaData.get(leadsFIeld.get("name"))) && leadsFIeld.getStr("name").equals(seaField.getName())) {
