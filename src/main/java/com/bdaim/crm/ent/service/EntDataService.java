@@ -1023,7 +1023,7 @@ public class EntDataService {
     public JSONObject getCompanyByName(String companyName) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
-        qb.filter(QueryBuilders.termQuery("entName", companyName));
+        qb.filter(QueryBuilders.matchQuery("entName", companyName));
         searchSourceBuilder.query(qb);
         SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         JSONObject t = null;
