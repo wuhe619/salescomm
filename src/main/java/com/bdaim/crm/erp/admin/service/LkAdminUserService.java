@@ -320,7 +320,7 @@ public class LkAdminUserService {
         //adminUser.setPassword(BaseUtil.sign((adminUser.getUsername().trim() + adminUser.getPassword().trim()), salt));
         adminUser.setPassword(adminUser.getPassword());
         adminUser.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        adminUser.setMobile(adminUser.getUsername());
+        adminUser.setMobile(adminUser.getMobile());
         adminUser.setDeptId(deptId);
         crmAdminUserDao.saveReturnPk(adminUser);
         // 关联管理员角色
