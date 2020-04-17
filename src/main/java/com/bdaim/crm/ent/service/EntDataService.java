@@ -696,8 +696,8 @@ public class EntDataService {
         // 企业名称 支持多个
         if (param.getJSONArray("entName") != null && param.getJSONArray("entName").size() > 0) {
             JSONArray jsonArray = param.getJSONArray("entName");
-            BoolQueryBuilder temp = QueryBuilders.boolQuery();
             for (int i = 0; i < jsonArray.size(); i++) {
+                BoolQueryBuilder temp = QueryBuilders.boolQuery();
                 // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
                 int typeName = jsonArray.getJSONObject(i).getInteger("typeName");
                 JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
@@ -709,6 +709,7 @@ public class EntDataService {
                         MatchPhraseQueryBuilder mpq = QueryBuilders
                                 .matchPhraseQuery("entName", texts.getString(j));
                         mpq.slop(1);
+
                         temp.should(mpq);
                     }
                     qb.must(temp);
