@@ -715,7 +715,7 @@ public class EntDataService {
                     for (int j = 0; j < texts.size(); j++) {
                         temp.should(QueryBuilders.matchPhraseQuery("entName", texts.getString(j)));
                     }
-                    condition.should(QueryBuilders.boolQuery().mustNot(temp));
+                    condition.mustNot(temp);
                 } else if (typeName == 4) {
                     for (int j = 0; j < texts.size(); j++) {
                         temp.mustNot(QueryBuilders.matchPhraseQuery("entName", texts.getString(j)));
