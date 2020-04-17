@@ -1251,7 +1251,7 @@ public class MarketResourceAction extends BasicAction {
      */
     @RequestMapping(value = "/saveTouchVoiceLog", method = RequestMethod.POST)
     @ResponseBody
-    public String saveTouchVoiceLog(String callId, String callStatus, String touchId,String customerGroupId,String taskId,String uid) {
+    public String saveTouchVoiceLog(String callId, String callStatus, String touchId,String customerGroupId,String marketTaskId,String superId) {
         Map<Object, Object> map = new HashMap<Object, Object>();
         JSONObject json = new JSONObject();
         String code = "1";
@@ -1264,7 +1264,7 @@ public class MarketResourceAction extends BasicAction {
             dto.setStatus(1001);
         }
         try {
-            marketResourceService.updateVoiceLogStatusV3(touchId, dto.getStatus(), callId,customerGroupId,taskId,uid);
+            marketResourceService.updateVoiceLogStatusV3(touchId, dto.getStatus(), callId,customerGroupId,marketTaskId,superId);
         } catch (Exception e) {
             LOG.error("更新通话记录通话状态异常", e);
         }
