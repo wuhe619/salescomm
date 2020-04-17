@@ -527,13 +527,13 @@ public class AdminSceneService {
                             fList.add(f);
                         }
                     }
-                    // 处理公司名称
+                   /* // 处理公司名称
                     if (value.containsKey("company") && StringUtil.isNotEmpty(value.getString("company"))) {
                         company = entDataService.getCompanyByName(value.getString("company"));
                         if (company != null) {
                             value.put("entId", company.getString("id"));
                         }
-                    }
+                    }*/
                     list.getJSONObject(i).put("flist", fList);
                 }
             }

@@ -96,12 +96,12 @@ public class CrmBackLogService {
                     }
                 }
                 // 处理公司名称
-                if (value.containsKey("company") && StringUtil.isNotEmpty(String.valueOf(value.get("company")))) {
+                /*if (value.containsKey("company") && StringUtil.isNotEmpty(String.valueOf(value.get("company")))) {
                     company = entDataService.getCompanyByName(String.valueOf(value.get("company")));
                     if (company != null) {
                         value.put("entId", company.getString("id"));
                     }
-                }
+                }*/
                 value.put("flist", fList);
             }
         }
