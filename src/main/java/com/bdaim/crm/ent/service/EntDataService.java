@@ -732,7 +732,7 @@ public class EntDataService {
                         MatchPhraseQueryBuilder mpq = QueryBuilders
                                 .matchPhraseQuery("entName", texts.getString(j));
                         mpq.slop(1);
-                        temp.must(mpq);
+                        temp.should(mpq);
                     }
                     qb.mustNot(temp);
                 } else if (typeName == 4) {
