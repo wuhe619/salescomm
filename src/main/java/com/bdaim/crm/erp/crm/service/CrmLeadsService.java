@@ -528,19 +528,19 @@ public class CrmLeadsService {
            /* if (BaseUtil.getUserType() == 1) {
                 throw new TouchException("管理员不能领取线索");
             }*/
-            status= singleDistributionClue(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
+            status = singleDistributionClue(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
         } else if (2 == operate) {
             /*if (BaseUtil.getUserType() == 1) {
                 throw new TouchException("管理员不能领取线索");
             }*/
             // 坐席根据检索条件批量领取线索
-            status= batchReceiveClue(param, param.getUserIds().get(0));
+            status = batchReceiveClue(param, param.getUserIds().get(0));
         } else if (3 == operate) {
             //根据检索条件批量给多人快速分配线索
-            status= batchDistributionClue(param, assignedList);
+            status = batchDistributionClue(param, assignedList);
         } else if (4 == operate) {
             //坐席指定数量领取线索
-            status= getReceiveClueByNumber(param.getSeaId(), param.getUserIds().get(0), param.getGetClueNumber());
+            status = getReceiveClueByNumber(param.getSeaId(), param.getUserIds().get(0), param.getGetClueNumber());
         }
         return status;
     }
@@ -1096,7 +1096,7 @@ public class CrmLeadsService {
             p.add(param.getSearch());
             select.append(" and (super_name like '%?%' or super_telphone like '%?%' or super_phone like '%?%' or super_data like '%?%')");
         }
-        select.append(" LIMIT ? for update; ");
+        //select.append(" LIMIT ? for update; ");
         for (int i = 0; i < assignedList.size(); i++) {
             userId = assignedList.getJSONObject(i).getString("userId");
             number = assignedList.getJSONObject(i).getInteger("number");
@@ -1116,7 +1116,7 @@ public class CrmLeadsService {
                     continue;
                 }
             }
-            List<Map<String, Object>> maps = customerSeaDao.sqlQuery(select.toString(), number, p.toArray());
+            List<Map<String, Object>> maps = customerSeaDao.sqlQuery(select.toString() + " LIMIT " + number + " for update; ", p.toArray());
             List<String> superIds = new ArrayList<>();
             for (Map<String, Object> m : maps) {
                 // 更改线索状态
