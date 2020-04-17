@@ -878,6 +878,59 @@ public class CrmLeadsService {
             crmLeads.setBatchId(batchId);
             crmLeads.setSeaId(seaId);
             int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
+
+            // 复制公海线索字段值
+            Record seaData = JavaBeanUtil.mapToRecord(m);
+            List<Record> leadsFields = adminFieldService.list("11");
+            List<LkCrmAdminFieldEntity> seaFields = crmLeadsDao.find("from LkCrmAdminFieldEntity where label = '1' AND custId = ? ", user.getCustId());
+            List<LkCrmAdminFieldvEntity> adminFieldvList = new ArrayList<>();
+            for (Record leadsFIeld : leadsFields) {
+                for (LkCrmAdminFieldEntity seaField : seaFields) {
+                    if (!seaField.getFieldType().equals(0)) {
+                        continue;
+                    }
+                    if (StringUtil.isNotEmpty(seaData.get(leadsFIeld.get("name"))) && leadsFIeld.getStr("name").equals(seaField.getName())) {
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
+                        adminFieldv.setValue(seaData.get(leadsFIeld.get("name")));
+                        adminFieldv.setFieldId(seaField.getFieldId());
+                        adminFieldv.setName(seaField.getName());
+                        adminFieldv.setCustId(user.getCustId());
+                        adminFieldv.setBatchId(batchId);
+                        adminFieldvList.add(adminFieldv);
+                    }
+                    if ("线索来源".equals(seaField.getName()) && "线索来源".equals(leadsFIeld.getStr("name"))) {
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
+                        adminFieldv.setValue(seaData.get(leadsFIeld.get("name")));
+                        adminFieldv.setFieldId(seaField.getFieldId());
+                        adminFieldv.setName(seaField.getName());
+                        adminFieldv.setCustId(user.getCustId());
+                        adminFieldv.setBatchId(batchId);
+                        adminFieldvList.add(adminFieldv);
+                    }
+                    if ("客户行业".equals(seaField.getName()) && "客户行业".equals(leadsFIeld.getStr("name"))) {
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
+                        adminFieldv.setValue(seaData.get(leadsFIeld.get("name")));
+                        adminFieldv.setFieldId(seaField.getFieldId());
+                        adminFieldv.setName(seaField.getName());
+                        adminFieldv.setCustId(user.getCustId());
+                        adminFieldv.setBatchId(batchId);
+                        adminFieldvList.add(adminFieldv);
+                    }
+                    if ("客户级别".equals(seaField.getName()) && "客户级别".equals(leadsFIeld.getStr("name"))) {
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
+                        adminFieldv.setValue(seaData.get(leadsFIeld.get("name")));
+                        adminFieldv.setFieldId(seaField.getFieldId());
+                        adminFieldv.setName(seaField.getName());
+                        adminFieldv.setCustId(user.getCustId());
+                        adminFieldv.setBatchId(batchId);
+                        adminFieldvList.add(adminFieldv);
+                    }
+                }
+            }
+
+            crmLeadsDao.getSession().clear();
+            crmLeadsDao.batchSaveOrUpdate(adminFieldvList);
+
             crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
             // 保存uid对应关系
             phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getMobile(), 1, user.getCustId());
