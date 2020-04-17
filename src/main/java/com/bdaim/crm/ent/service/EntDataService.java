@@ -712,7 +712,6 @@ public class EntDataService {
 
                         temp.should(mpq);
                     }
-
                     qb.must(temp);
                 } else if (typeName == 2) {
                     for (int j = 0; j < texts.size(); j++) {
