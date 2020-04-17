@@ -21,10 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -178,7 +175,7 @@ public class DataExportAction extends BasicAction {
     }
 
     /**
-     *  TODO 不再使用
+     * TODO 不再使用
      */
     @RequestMapping(value = "/salesCommCustomerGroupExport", method = RequestMethod.GET)
     public void testCustomerGroupExport(HttpServletResponse response, String startTime, String endTime) {
@@ -191,7 +188,7 @@ public class DataExportAction extends BasicAction {
     }
 
     /**
-     *  TODO 不再使用
+     * TODO 不再使用
      */
     @RequestMapping(value = "/salesCommCustomerGroupExport0", method = RequestMethod.GET)
     public void testCustomerGroupExport0(HttpServletResponse response, String startTime, String endTime) {
@@ -204,7 +201,7 @@ public class DataExportAction extends BasicAction {
     }
 
     /**
-     *  TODO 不再使用
+     * TODO 不再使用
      */
     @RequestMapping(value = "/salesCommCustomerGroupExport1", method = RequestMethod.GET)
     public void testCustomerGroupExport1(HttpServletResponse response, String startTime, String endTime) {
@@ -224,7 +221,7 @@ public class DataExportAction extends BasicAction {
         if (status && "1".equals(opUser().getUserType())) {
             dataExportService.exportCustomerMarketDataToExcelV3(response, opUser().getCustId(), null, "邀约状态", "成功",
                     startTime, endTime);
-          } else if (dataExportService.checkCustExportPermission(opUser().getCustId()) && "1".equals(opUser().getUserType())) {
+        } else if (dataExportService.checkCustExportPermission(opUser().getCustId()) && "1".equals(opUser().getUserType())) {
             dataExportService.exportCustomerMarketDataToExcelV3(response, opUser().getCustId(), null, "邀约状态", "成功",
                     startTime, endTime);
         } else {
@@ -236,6 +233,12 @@ public class DataExportAction extends BasicAction {
             }
         }
 
+    }
+
+    @PostMapping(value = "/exportCustData")
+    public void exportCustData(HttpServletResponse response, String startTime, String endTime, String value) {
+        response.setContentType("application/json;charset=utf-8");
+        dataExportService.exportCustomerMarketDataToExcelV4(response, opUser().getCustId(), value, startTime, endTime);
     }
 
     @RequestMapping(value = "/downloadCustomerGroupExcelData_V1_NoPhoneArea", method = RequestMethod.GET)
@@ -275,7 +278,7 @@ public class DataExportAction extends BasicAction {
     }
 
     /**
-     *  TODO 不再使用
+     * TODO 不再使用
      */
     @RequestMapping(value = "/salesCommCustomerGroupExport_V2", method = RequestMethod.GET)
     @CacheAnnotation
@@ -296,7 +299,7 @@ public class DataExportAction extends BasicAction {
     }
 
     /**
-     *  TODO 不再使用
+     * TODO 不再使用
      */
     @RequestMapping(value = "/salesCommCustomerGroupExport_V3", method = RequestMethod.GET)
     @CacheAnnotation
