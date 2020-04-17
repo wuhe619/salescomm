@@ -715,12 +715,12 @@ public class EntDataService {
                     for (int j = 0; j < texts.size(); j++) {
                         temp.should(QueryBuilders.matchPhraseQuery("entName", texts.getString(j)));
                     }
-                    condition.mustNot(temp);
+                    condition.should(QueryBuilders.boolQuery().mustNot(temp));
                 } else if (typeName == 4) {
                     for (int j = 0; j < texts.size(); j++) {
-                        temp.mustNot(QueryBuilders.matchPhraseQuery("entName", texts.getString(j)));
+                        temp.must(QueryBuilders.matchPhraseQuery("entName", texts.getString(j)));
                     }
-                    condition.should(temp);
+                    condition.should(QueryBuilders.boolQuery().mustNot(temp));
                 }
             }
             qb.filter(condition);
@@ -752,9 +752,9 @@ public class EntDataService {
                     condition.should(QueryBuilders.boolQuery().mustNot(temp));
                 } else if (typeScope == 4) {
                     for (int j = 0; j < texts.size(); j++) {
-                        temp.mustNot(QueryBuilders.matchPhraseQuery("opScope", texts.getString(j)));
+                        temp.must(QueryBuilders.matchPhraseQuery("opScope", texts.getString(j)));
                     }
-                    condition.should(temp);
+                    condition.should(QueryBuilders.boolQuery().mustNot(temp));
                 }
             }
             qb.filter(condition);
