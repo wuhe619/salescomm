@@ -1,5 +1,7 @@
 package com.bdaim.common.service;
 
+import cn.hutool.core.lang.Snowflake;
+import cn.hutool.core.util.IdUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,24 +22,29 @@ public class SequenceService {
     @Resource
     private JdbcTemplate jdbcTemplate;
 
+    private Snowflake snowflake = IdUtil.createSnowflake(1, 1);
+
     public Long getSeq(String type) throws Exception {
+        if ("b2b_tcb_log".equals(type)) {
+            return snowflake.nextId();
+        }
         Long seq = 1L;
         Connection conn = null;
         try {
 //            synchronized (type) {
-            	conn = jdbcTemplate.getDataSource().getConnection();
-            	String uuid = UUID.randomUUID().toString().replace("-", "");
-            	
-            	conn.prepareStatement("insert into sys_sequences(name,uuid) value('"+type+"','"+uuid+"')").execute();
-            	ResultSet rs = conn.prepareStatement("select value from sys_sequences where uuid='"+uuid+"'").executeQuery();
-            	
-            	if(rs.next()) {
-            		seq = rs.getLong(1);
-            		rs.close();
-            	}else
-            		throw new Exception("获取主键异常："+type);
-            	
-            	conn.prepareStatement("delete from sys_sequences where uuid='"+uuid+"'").execute();
+            conn = jdbcTemplate.getDataSource().getConnection();
+            String uuid = UUID.randomUUID().toString().replace("-", "");
+
+            conn.prepareStatement("insert into sys_sequences(name,uuid) value('" + type + "','" + uuid + "')").execute();
+            ResultSet rs = conn.prepareStatement("select value from sys_sequences where uuid='" + uuid + "'").executeQuery();
+
+            if (rs.next()) {
+                seq = rs.getLong(1);
+                rs.close();
+            } else
+                throw new Exception("获取主键异常：" + type);
+
+            conn.prepareStatement("delete from sys_sequences where uuid='" + uuid + "'").execute();
 //            	
 //                String sql = "select value from sys_sequences where name='" + type + "'";
 //                List<Map<String, Object>> r = jdbcTemplate.queryForList(sql);
@@ -58,11 +65,13 @@ public class SequenceService {
             e.printStackTrace();
             logger.error("获取主键ID异常:[" + type + "] ", e);
             throw new Exception("获取主键ID异常");
-        }finally {
-        	try {
-	        	if(conn!=null)
-	        		conn.close();
-        	}catch(Exception e) { logger.error("获取主键ID，关闭数据据连接异常:", e);}
+        } finally {
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (Exception e) {
+                logger.error("获取主键ID，关闭数据据连接异常:", e);
+            }
         }
 
         return seq;
@@ -94,5 +103,6 @@ public class SequenceService {
 
         return seq;
     }
+
 }
 
