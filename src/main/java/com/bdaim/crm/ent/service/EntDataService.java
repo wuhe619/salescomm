@@ -661,6 +661,11 @@ public class EntDataService {
         if (StringUtil.isNotEmpty(param.getString("id"))) {
             qb.must(QueryBuilders.idsQuery().addIds(param.getString("id")));
         }
+
+        // 领取标识
+        if (StringUtil.isNotEmpty(param.getString("_receivingStatus"))) {
+            qb.must(QueryBuilders.idsQuery().addIds(param.getString("_receivingStatus")));
+        }
         // 企业子类型
         if (StringUtil.isNotEmpty(param.getString("entType1"))) {
             BoolQueryBuilder temp = QueryBuilders.boolQuery();
