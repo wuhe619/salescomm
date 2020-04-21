@@ -1,11 +1,15 @@
 package com.bdaim.crm.ent.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.BusiService;
+import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -105,5 +109,33 @@ public class EntMsgRemindService implements BusiService {
         all.put("unRead", allCount);
         data.add(all);
         return data;
+    }
+
+
+    /**
+     * 消息读取
+     * @param params
+     * @return
+     */
+    public int readMsg(JSONObject params) {
+        String id = params.getString("id");
+        String msgType = params.getString("msgType");
+        StringBuffer sql = new StringBuffer();
+        LoginUser user = BaseUtil.getUser();
+        List sqlParams = new ArrayList();
+        sqlParams.add("2");
+        sqlParams.add("2");
+        sqlParams.add(user.getCustId());
+        sqlParams.add(user.getId());
+        sql.append("UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.ENT_MSG_REMIND.getType(), "") + " SET ext_3 = ?, content = JSON_SET(content,'$.msgStatus', ?) WHERE cust_id = ? AND create_id = ? ");
+        if (StringUtil.isNotEmpty(id)) {
+            sql.append(" AND id = ? ");
+            sqlParams.add(id);
+        }
+        if (StringUtil.isNotEmpty(msgType)) {
+            sql.append(" AND ext_2 = ? ");
+            sqlParams.add(msgType);
+        }
+        return marketResourceDao.executeUpdateSQL(sql.toString(), sqlParams.toArray());
     }
 }
