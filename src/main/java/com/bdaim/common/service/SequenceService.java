@@ -11,9 +11,7 @@ import javax.annotation.Resource;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class SequenceService {
@@ -24,8 +22,16 @@ public class SequenceService {
 
     private Snowflake snowflake = IdUtil.createSnowflake(1, 1);
 
+    private Set<String> snowflakeTypes = new HashSet() {{
+        add("b2b_tcb_log");
+        add("ent_export_task");
+        add("ent_search_condition");
+        add("ent_msg_remind");
+    }};
+
+
     public Long getSeq(String type) throws Exception {
-        if ("b2b_tcb_log".equals(type)) {
+        if (snowflakeTypes.contains(type)) {
             return snowflake.nextId();
         }
         Long seq = 1L;
