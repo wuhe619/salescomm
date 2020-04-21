@@ -52,7 +52,7 @@ public class EntMsgRemindController extends BasicAction {
         }
         List<Map<String, Object>> data;
         try {
-            data = entMsgRemindService.unMsgData(busiType, opUser().getCustId(), opUser().getUserGroupId(), opUser().getId(), params);
+            data = entMsgRemindService.unReadMsgCount(busiType, opUser().getCustId(), opUser().getUserGroupId(), opUser().getId(), params);
         } catch (Exception e) {
             logger.error("查询记录异常,", e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");

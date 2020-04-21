@@ -88,7 +88,7 @@ public class EntMsgRemindService implements BusiService {
      * @return
      * @throws Exception
      */
-    public List<Map<String, Object>> unMsgData(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params) throws Exception {
+    public List<Map<String, Object>> unReadMsgCount(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params) throws Exception {
         List<Map<String, Object>> data = new ArrayList<>();
         StringBuffer sql = new StringBuffer();
         // 查询所有未读信息
