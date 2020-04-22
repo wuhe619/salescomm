@@ -12,6 +12,7 @@ import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.crm.ent.entity.*;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customer.service.B2BTcbLogService;
 import com.bdaim.util.ExcelUtil;
 import com.bdaim.util.MD5Util;
@@ -19,7 +20,10 @@ import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import io.searchbox.core.CountResult;
 import io.searchbox.core.SearchResult;
+import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.*;
+import org.elasticsearch.join.query.HasChildQueryBuilder;
+import org.elasticsearch.join.query.JoinQueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
@@ -664,7 +668,19 @@ public class EntDataService {
 
         // 领取标识
         if (StringUtil.isNotEmpty(param.getString("_receivingStatus"))) {
-            qb.must(QueryBuilders.idsQuery().addIds(param.getString("_receivingStatus")));
+            // 已领取
+            JSONObject common = new JSONObject();
+            common.put("query", BaseUtil.getCustId());
+            HasChildQueryBuilder next = JoinQueryBuilders.hasChildQuery("next",
+                    QueryBuilders.commonTermsQuery("customId", BaseUtil.getCustId()),
+                    ScoreMode.None);
+            if ("1".equals(param.getString("_receivingStatus"))) {
+                qb.must(next);
+            } else if ("2".equals(param.getString("_receivingStatus"))) {
+                //未领取
+                qb.mustNot(next);
+                qb.must(QueryBuilders.existsQuery("regarea"));
+            }
         }
         // 企业子类型
         if (StringUtil.isNotEmpty(param.getString("entType1"))) {
