@@ -840,20 +840,31 @@ public class EntDataService {
         }
         // 联系电话
         if (StringUtil.isNotEmpty(param.getString("phoneStatus"))) {
+            //phstatus   0全无、1有手机、2有固话、3都有
             JSONArray jsonArray = param.getJSONArray("phoneStatus");
+            Set<String> status = new HashSet<>();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                status.add(jsonArray.getJSONObject(i).getString("value"));
+            }
             BoolQueryBuilder temp = QueryBuilders.boolQuery();
+            // 手机固话都有
+            boolean and = false;
+            if (status.contains("1") && status.contains("2")) {
+                temp.should(QueryBuilders.termQuery("phstatus", "3"));
+                and = true;
+            }
+
             for (int i = 0; i < jsonArray.size(); i++) {
                 String phoneStatus = jsonArray.getJSONObject(i).getString("value");
                 // 有固话
-                if ("1".equals(phoneStatus)) {
-                    temp.should(QueryBuilders.regexpQuery("phone1", "[0-9].+"));
-                } else if ("2".equals(phoneStatus)) {
+                if ("1".equals(phoneStatus) && !and) {
+                    temp.should(QueryBuilders.termQuery("phstatus", "2"));
+                } else if ("2".equals(phoneStatus) && !and) {
                     // 有手机
-                    temp.should(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
+                    temp.should(QueryBuilders.termQuery("phstatus", "1"));
                 } else if ("3".equals(phoneStatus)) {
                     // 无联系方式
-                    temp.mustNot(QueryBuilders.regexpQuery("phone1", "[0-9].+"));
-                    temp.mustNot(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
+                    temp.should(QueryBuilders.termQuery("phstatus", "0"));
                 }
             }
             qb.filter(temp);
@@ -876,11 +887,12 @@ public class EntDataService {
         // 邮箱
         if (StringUtil.isNotEmpty(param.getString("emailStatus"))) {
             // 有邮箱
+            //emailstatus  邮箱状态：0无邮箱 1有邮箱
             if ("1".equals(param.getString("emailStatus"))) {
-                qb.filter(QueryBuilders.regexpQuery("email", "[0-9|a-z|A-Z]@.+"));
+                qb.filter(QueryBuilders.termQuery("emailstatus", "1"));
             } else if ("2".equals(param.getString("emailStatus"))) {
                 // 无邮箱
-                qb.mustNot(QueryBuilders.regexpQuery("email", "[0-9|a-z|A-Z]@.+"));
+                qb.mustNot(QueryBuilders.termQuery("emailstatus", "0"));
             }
         }
         // 其他标签
@@ -1043,7 +1055,7 @@ public class EntDataService {
         return t;
     }
 
-    public Set<String> handlePhones(JSONObject baseResult){
+    public Set<String> handlePhones(JSONObject baseResult) {
         Set phones = new HashSet();
         if (baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone"))) {
             // 手机号
