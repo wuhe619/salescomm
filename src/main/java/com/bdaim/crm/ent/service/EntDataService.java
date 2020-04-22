@@ -924,30 +924,38 @@ public class EntDataService {
         SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             List list = new ArrayList<>();
-            JSONObject t;
+            JSONObject t, phone;
             int sum;
+            JSONArray phones;
             for (SearchResult.Hit<JSONObject, Void> hit : result.getHits(JSONObject.class)) {
                 t = hit.source;
                 t.put("id", hit.id);
                 // 处理企业领取标志
                 t.put("_receivingStatus", b2BTcbLogService.checkClueGetStatus(custId, t.getString("id")));
                 sum = 0;
-                if (StringUtil.isNotEmpty(t.getString("phone"))) {
-                    for (String p : t.getString("phone").split(",")) {
-                        if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
-                                && !"-".equals(p)) {
-                            sum++;
+                phones = t.getJSONArray("phonenest");
+                if (phones != null && phones.size() > 0) {
+                    for (int i = 0; i < phones.size(); i++) {
+                        phone = phones.getJSONObject(i);
+                        if (StringUtil.isEmpty(phone.getString("p"))) {
+                            continue;
+                        }
+                        for (String p : phone.getString("p").split(",")) {
+                            if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
+                                    && !"-".equals(p)) {
+                                sum++;
+                            }
                         }
                     }
                 }
-                if (StringUtil.isNotEmpty(t.getString("phone1"))) {
+               /* if (StringUtil.isNotEmpty(t.getString("phone1"))) {
                     for (String p : t.getString("phone1").split(",")) {
                         if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
                                 && !"-".equals(p)) {
                             sum++;
                         }
                     }
-                }
+                }*/
                 t.put("sum", sum);
                 list.add(t);
             }
@@ -1057,22 +1065,20 @@ public class EntDataService {
 
     public Set<String> handlePhones(JSONObject baseResult) {
         Set phones = new HashSet();
-        if (baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone"))) {
-            // 手机号
-            for (String p : baseResult.getString("phone").split(",")) {
-                if (StringUtil.isEmpty(p) || "-".equals(p)) {
+        JSONArray phoneList = baseResult.getJSONArray("phonenest");
+        JSONObject phone;
+        if (phoneList != null && phoneList.size() > 0) {
+            for (int i = 0; i < phoneList.size(); i++) {
+                phone = phoneList.getJSONObject(i);
+                if (StringUtil.isEmpty(phone.getString("p"))) {
                     continue;
                 }
-                phones.add(p);
-            }
-        }
-        if (baseResult.containsKey("phone1") && StringUtil.isNotEmpty(baseResult.getString("phone1"))) {
-            // 固话
-            for (String p : baseResult.getString("phone1").split(",")) {
-                if (StringUtil.isEmpty(p) || "-".equals(p)) {
-                    continue;
+                for (String p : phone.getString("p").split(",")) {
+                    if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
+                            && !"-".equals(p)) {
+                        phones.add(p);
+                    }
                 }
-                phones.add(p);
             }
         }
         return phones;
