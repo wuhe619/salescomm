@@ -1736,6 +1736,16 @@ public class CrmLeadsService {
             oaEvent.setCreateTime(DateUtil.date().toTimestamp());
             crmOaEventDao.save(oaEvent);
         }
+        // 最后跟进时间
+        if (adminRecord.getNextTime() != null) {
+            Date nextTime = adminRecord.getNextTime();
+            LkCrmLeadsEntity leadsEntity = crmLeadsDao.get(NumberConvertUtil.parseInt(adminRecord.getTypesId()));
+            if (leadsEntity != null) {
+                leadsEntity.setLeadsId(NumberConvertUtil.parseInt(adminRecord.getTypesId()));
+                leadsEntity.setNextTime(new Timestamp(nextTime.getTime()));
+                crmLeadsDao.update(leadsEntity);
+            }
+        }
         // 添加任务
         if (adminRecord.getIsTask() != null && 1 == adminRecord.getIsTask()) {
             LkCrmTaskEntity crmTaskEntity = new LkCrmTaskEntity();
