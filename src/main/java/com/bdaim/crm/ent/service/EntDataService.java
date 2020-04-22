@@ -1007,26 +1007,7 @@ public class EntDataService {
     public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) {
         JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
         if (baseResult != null) {
-            Set phones = new HashSet();
-            if (baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone"))) {
-                // 手机号
-                for (String p : baseResult.getString("phone").split(",")) {
-                    if (StringUtil.isEmpty(p) || "-".equals(p)) {
-                        continue;
-                    }
-                    phones.add(p);
-                }
-            }
-            if (baseResult.containsKey("phone1") && StringUtil.isNotEmpty(baseResult.getString("phone1"))) {
-                // 固话
-                for (String p : baseResult.getString("phone1").split(",")) {
-                    if (StringUtil.isEmpty(p) || "-".equals(p)) {
-                        continue;
-                    }
-                    phones.add(p);
-                }
-            }
-            baseResult.put("phones", phones);
+            baseResult.put("phones", handlePhones(baseResult));
             if (seaId > 0) {
                 //处理公司联系方式是否有意向
                 handleClueFollowStatus(seaId, baseResult);
@@ -1049,32 +1030,40 @@ public class EntDataService {
         SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         JSONObject t = null;
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
-            int sum;
+            Set<String> phones;
             for (SearchResult.Hit<JSONObject, Void> hit : result.getHits(JSONObject.class)) {
                 t = hit.source;
                 t.put("id", hit.id);
-                sum = 0;
-                if (StringUtil.isNotEmpty(t.getString("phone"))) {
-                    for (String p : t.getString("phone").split(",")) {
-                        if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
-                                && !"-".equals(p)) {
-                            sum++;
-                        }
-                    }
-                }
-                if (StringUtil.isNotEmpty(t.getString("phone1"))) {
-                    for (String p : t.getString("phone1").split(",")) {
-                        if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
-                                && !"-".equals(p)) {
-                            sum++;
-                        }
-                    }
-                }
-                t.put("sum", sum);
+                phones = handlePhones(t);
+                t.put("sum", phones.size());
+                t.put("phones", phones);
                 break;
             }
         }
         return t;
+    }
+
+    public Set<String> handlePhones(JSONObject baseResult){
+        Set phones = new HashSet();
+        if (baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone"))) {
+            // 手机号
+            for (String p : baseResult.getString("phone").split(",")) {
+                if (StringUtil.isEmpty(p) || "-".equals(p)) {
+                    continue;
+                }
+                phones.add(p);
+            }
+        }
+        if (baseResult.containsKey("phone1") && StringUtil.isNotEmpty(baseResult.getString("phone1"))) {
+            // 固话
+            for (String p : baseResult.getString("phone1").split(",")) {
+                if (StringUtil.isEmpty(p) || "-".equals(p)) {
+                    continue;
+                }
+                phones.add(p);
+            }
+        }
+        return phones;
     }
 
     /**
