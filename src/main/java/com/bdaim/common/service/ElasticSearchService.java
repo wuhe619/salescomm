@@ -14,8 +14,6 @@ import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.*;
 import io.searchbox.indices.mapping.GetMapping;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -137,6 +135,22 @@ public class ElasticSearchService {
             LOG.info("向es新增记录返回结果:[" + result + "]");
         } catch (Exception e) {
             LOG.error("向es新增记录异常:", e);
+        }
+        return result;
+    }
+
+    public JSONObject addRoutingDocument(String index, String type, String routing, JSONObject jsonObject) {
+        JSONObject result = null;
+        try {
+            LOG.info("向es新增Routing记录:index[" + index + "],type[" + type + "],routing:[" + routing + "],data:[" + jsonObject + "]");
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<JSONObject> entity = new HttpEntity<>(jsonObject, headers);
+            ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, type) + "?routing=" + routing, HttpMethod.POST, entity, JSONObject.class);
+            result = resultEntity.getBody();
+            LOG.info("向es新增Routing记录返回结果:[" + result + "]");
+        } catch (Exception e) {
+            LOG.error("向es新增Routing记录异常:", e);
         }
         return result;
     }

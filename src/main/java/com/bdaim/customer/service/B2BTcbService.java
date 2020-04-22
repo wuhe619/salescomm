@@ -5,6 +5,7 @@ import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.be.service.BusiEntityService;
 import com.bdaim.bill.dto.TransactionTypeEnum;
@@ -649,6 +650,11 @@ public class B2BTcbService implements BusiService {
         log.put("content", content);
         try {
             busiEntityService.saveInfo(custId, "", userId, BusiTypeEnum.B2B_TC_LOG.getType(), 0L, log);
+            // 保存ES领取记录
+            JSONObject param = new JSONObject();
+            param.put("customId", custId);
+            param.put("info", JSON.parseObject("{\"name\":\"next\",\"parent\":\"" + entId + "\"}"));
+            elasticSearchService.addRoutingDocument(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), entId, param);
         } catch (Exception e) {
             LOG.warn("保存B2B领取记录失败", e);
         }
