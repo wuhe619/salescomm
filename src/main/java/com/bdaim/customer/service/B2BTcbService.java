@@ -798,23 +798,6 @@ public class B2BTcbService implements BusiService {
                         LOG.info("客户:{},B2B企业ID:{}已经领取过", custId, id);
                         continue;
                     }
-                    /*Set phones = new HashSet();
-                    if (jsonObject.containsKey("phone") && StringUtil.isNotEmpty(jsonObject.getString("phone"))) {
-                        for (String p : jsonObject.getString("phone").split(",")) {
-                            if (StringUtil.isEmpty(p) || "-".equals(p)) {
-                                continue;
-                            }
-                            phones.add(p);
-                        }
-                    }
-                    if (jsonObject.containsKey("phone1") && StringUtil.isNotEmpty(jsonObject.getString("phone1"))) {
-                        for (String p : jsonObject.getString("phone1").split(",")) {
-                            if (StringUtil.isEmpty(p) || "-".equals(p)) {
-                                continue;
-                            }
-                            phones.add(p);
-                        }
-                    }*/
                     jsonObject.put("phoneNumber", entDataService.handlePhones(jsonObject));
                     if (getNumber > data.size()) {
                         data.put(id, jsonObject);
