@@ -26,10 +26,10 @@ public class B2BTcbLogService implements BusiService {
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
+        info.put("ext_1", info.getString("entId"));
         info.put("ext_2", info.getString("tcbId"));
         info.put("ext_3", info.getString("batchId"));
         info.put("ext_4", info.getString("superId"));
-        info.put("ext_1", info.getString("entId"));
     }
 
     @Override

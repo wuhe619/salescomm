@@ -648,6 +648,8 @@ public class B2BTcbService implements BusiService {
         // 线索ID 扩展字段4
         log.put("superId", superId);
         log.put("content", content);
+        // 领取方式 1-线索私海公海
+        log.put("getType", "1");
         try {
             busiEntityService.saveInfo(custId, "", userId, BusiTypeEnum.B2B_TC_LOG.getType(), 0L, log);
             // 保存ES领取记录
