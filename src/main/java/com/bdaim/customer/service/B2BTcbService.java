@@ -10,6 +10,7 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.be.service.BusiEntityService;
 import com.bdaim.bill.dto.TransactionTypeEnum;
 import com.bdaim.bill.service.TransactionService;
+import com.bdaim.common.PhoneUtil;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
@@ -395,14 +396,23 @@ public class B2BTcbService implements BusiService {
                     && !"-".equals(data.get(entId).getString("email"))) {
                 email = data.get(entId).getString("email");
             }
+            String telephone = "", mobile = "";
             for (int i = 0; i < pNumbers.size(); i++) {
                 if (StringUtil.isEmpty(pNumbers.getString(i))) {
                     LOG.info("B2B企业ID:{}手机号为空:{}", entId, pNumbers.getString(i));
                     continue;
                 }
+                if (pNumbers.getString(i).replaceAll(" ", "").trim().length() == 11
+                        && pNumbers.getString(i).lastIndexOf("-") <= 0
+                        && !pNumbers.getString(i).startsWith("0")
+                        && NumberUtil.isLong(pNumbers.getString(i))) {
+                    mobile = pNumbers.getString(i);
+                } else {
+                    telephone = pNumbers.getString(i);
+                }
                 dto = new CustomSeaTouchInfoDTO("", custId, String.valueOf(userId), "", "",
-                        data.get(entId).getString("entName") + (i + 1), "", "", pNumbers.getString(i),
-                        "", "", "",
+                        data.get(entId).getString("entName") + (i + 1), "", "", mobile,
+                        telephone, "", "",
                         seaId, superData, "", email, "", "",
                         "", "", data.get(entId).getString("entName"),
                         entId, data.get(entId).getString("regLocation"), data.get(entId).getString("regCap"),
@@ -417,15 +427,7 @@ public class B2BTcbService implements BusiService {
                     // 保存公海标记信息  seaType 1公海 2私海
                     JSONArray list = new JSONArray();
                     String[] values = new String[]{"手机", "电话", "线索名称", "公司名称", "线索来源", "邮箱"};
-                    String telephone = "", mobile = "";
-                    if (pNumbers.getString(i).replaceAll(" ", "").trim().length() == 11
-                            && pNumbers.getString(i).lastIndexOf("-") <= 0
-                            && !pNumbers.getString(i).startsWith("0")
-                            && NumberUtil.isLong(pNumbers.getString(i))) {
-                        mobile = pNumbers.getString(i);
-                    } else {
-                        telephone = pNumbers.getString(i);
-                    }
+
                     for (String v : values) {
                         String label = seaType == 1 ? "11" : "1";
                         Map<String, Object> field = marketResourceDao.queryUniqueSql("SELECT * FROM lkcrm_admin_field WHERE name = ? AND cust_id = ? AND label =" + label, v, custId);
