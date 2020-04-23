@@ -34,6 +34,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.zip.ZipEntry;
@@ -1217,7 +1218,8 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             }
             try {
                 response.setHeader("Content-Type", "application/octet-stream");
-                response.setHeader("Content-Disposition", "attachment;filename=" + (fileInfo != null ? fileInfo.getFileName() : ""));
+                response.setHeader("Content-Disposition", "attachment;filename=" +
+                        (fileInfo != null ? new String((fileInfo.getFileName()).getBytes("gb2312"), "ISO-8859-1") : ""));
                 byte[] bytes = mongoFileService.downloadFile(fileId);
                 IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());
             } catch (Exception e) {
