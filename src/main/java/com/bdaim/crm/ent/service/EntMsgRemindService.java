@@ -37,7 +37,7 @@ public class EntMsgRemindService implements BusiService {
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         info.put("ext_1", info.getString("exportTaskId"));
         info.put("ext_2", info.getString("msgType"));
-        info.put("ext_3", info.getString("msgStatus"));
+        info.put("ext_3", info.getIntValue("msgStatus"));
     }
 
     @Override
@@ -126,8 +126,8 @@ public class EntMsgRemindService implements BusiService {
         StringBuffer sql = new StringBuffer();
         LoginUser user = BaseUtil.getUser();
         List sqlParams = new ArrayList();
-        sqlParams.add("2");
-        sqlParams.add("2");
+        sqlParams.add(2);
+        sqlParams.add(2);
         sqlParams.add(user.getCustId());
         sqlParams.add(user.getId());
         sql.append("UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.ENT_MSG_REMIND.getType(), "") + " SET ext_3 = ?, content = JSON_SET(content,'$.msgStatus', ?) WHERE cust_id = ? AND create_id = ? ");

@@ -1228,6 +1228,11 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         }
     }
 
+    /**
+     * 查询mongodb数据
+     * @param response
+     * @param fileId
+     */
     public void getMongoFile(HttpServletResponse response, String fileId) {
         HFile fileInfo = fileDao.selectByServiceId(fileId);
         logger.info("fileId:{}文件信息:{}", fileId, fileInfo);
