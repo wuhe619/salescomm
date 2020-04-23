@@ -1236,7 +1236,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             response.setHeader("Content-Disposition", "attachment;filename=" + (fileInfo != null ? fileInfo.getFileName() : ""));
             byte[] bytes = mongoFileService.downloadFile(fileId);
             String s = Base64.encodeBase64String(bytes);
-            logger.info("文件信息:{}", s);
+            logger.info("mongodb文件信息:{}", s);
             IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());
         } catch (Exception e) {
             logger.error("获取mongodb文件异常", e);
