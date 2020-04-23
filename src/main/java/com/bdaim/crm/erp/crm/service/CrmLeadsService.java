@@ -742,7 +742,7 @@ public class CrmLeadsService {
      * @return
      */
     public int transferToPublicSea(String seaId, String userId, String batchId) {
-        LOG.info("添加到线索私海数据");
+        LOG.info("添加到线索私海[{}]数据,batchId:[{}]", seaId, batchId);
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
                 .append("SELECT * FROM lkcrm_crm_leads  WHERE batch_id =? ");
@@ -753,7 +753,7 @@ public class CrmLeadsService {
 
         LoginUser user = BaseUtil.getUser();
         String leadsview = BaseUtil.getViewSql("leadsview");
-
+        LOG.info("batch_id:{},线索数据为:{}", batchId, JSON.toJSONString(maps));
         for (Map<String, Object> m : maps) {
             JSONObject superData = new JSONObject();
             superData.put("SYS005", m.get("company"));
@@ -765,6 +765,7 @@ public class CrmLeadsService {
                     , m.get("mobile"), m.get("telephone"), superData.toJSONString(), m.get("create_time"), csp.getPropertyValue());
             // 退回到公海线索
             List<Map<String, Object>> list = crmLeadsDao.sqlQuery("select * from " + leadsview + " where batch_id = ?", batchId);
+            LOG.info("2batch_id:{},线索数据为:{}", batchId, JSON.toJSONString(maps));
             if (list == null || list.size() == 0) {
                 continue;
             }
@@ -1419,8 +1420,7 @@ public class CrmLeadsService {
         return i > 0 ? R.ok() : R.error("公海线索删除失败");
     }
 
-    @Async
-    public Future<Integer> batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
+    public int batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
         // 指定ID退回公海
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
@@ -1451,7 +1451,7 @@ public class CrmLeadsService {
         }
         // 指定ID退回公海时删除私海线索
         deleteByBatchIds(superIds);
-        return new AsyncResult<>(status);
+        return status;
     }
 
     /**
