@@ -3,6 +3,7 @@ package com.bdaim.common.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.common.dto.Page;
 import com.bdaim.customs.entity.*;
 import com.bdaim.util.ESUtil;
@@ -146,7 +147,7 @@ public class ElasticSearchService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<JSONObject> entity = new HttpEntity<>(jsonObject, headers);
-            ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, type) + "?routing=" + routing, HttpMethod.POST, entity, JSONObject.class);
+            ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(AppConfig.getEnt_data_url() + "/" + index + "/" + type + "/" + "?routing=" + routing, HttpMethod.POST, entity, JSONObject.class);
             result = resultEntity.getBody();
             LOG.info("向es新增Routing记录返回结果:[" + result + "]");
         } catch (Exception e) {
