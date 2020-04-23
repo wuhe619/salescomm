@@ -52,7 +52,11 @@ public enum BusiTypeEnum {
     /**
      * 企业数据检索条件
      */
-    ENT_SEARCH_CONDITION("ENT_SEARCH_CONDITION", "企业数据检索条件", "ent_search_condition");
+    ENT_SEARCH_CONDITION("ENT_SEARCH_CONDITION", "企业数据检索条件", "ent_search_condition"),
+
+    ENT_MSG_REMIND("ENT_MSG_REMIND", "消息提醒", "ent_msg_remind"),
+
+    ENT_EXPORT_TASK("ENT_EXPORT_TASK", "企业数据导出任务", "ent_export_task");
 
     private String key;
     private String name;

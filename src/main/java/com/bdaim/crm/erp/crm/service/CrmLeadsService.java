@@ -245,7 +245,7 @@ public class CrmLeadsService {
             for (int i = 0; i < list.size(); i++) {
                 Map map = (Map) list.get(i);
                 // 解析super_data中qq 微信等属性
-                getDefaultLabelValue(map);
+                //getDefaultLabelValue(map);
                 map.remove("super_data");
             }
         }
@@ -741,8 +741,9 @@ public class CrmLeadsService {
      * @param batchId
      * @return
      */
+    @Transactional
     public int transferToPublicSea(String seaId, String userId, String batchId) {
-        LOG.info("添加到线索私海数据");
+        LOG.info("添加到线索私海[{}]数据,batchId:[{}]", seaId, batchId);
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
                 .append("SELECT * FROM lkcrm_crm_leads  WHERE batch_id =? ");
@@ -753,7 +754,7 @@ public class CrmLeadsService {
 
         LoginUser user = BaseUtil.getUser();
         String leadsview = BaseUtil.getViewSql("leadsview");
-
+        LOG.info("batch_id:{},线索数据为:{}", batchId, JSON.toJSONString(maps));
         for (Map<String, Object> m : maps) {
             JSONObject superData = new JSONObject();
             superData.put("SYS005", m.get("company"));
@@ -765,6 +766,7 @@ public class CrmLeadsService {
                     , m.get("mobile"), m.get("telephone"), superData.toJSONString(), m.get("create_time"), csp.getPropertyValue());
             // 退回到公海线索
             List<Map<String, Object>> list = crmLeadsDao.sqlQuery("select * from " + leadsview + " where batch_id = ?", batchId);
+            LOG.info("2batch_id:{},线索数据为:{}", batchId, JSON.toJSONString(maps));
             if (list == null || list.size() == 0) {
                 continue;
             }
@@ -1393,6 +1395,7 @@ public class CrmLeadsService {
     /**
      * 根据id 删除线索
      */
+    @Transactional
     public R deleteByBatchIds(List idsList) {
         if (idsList == null || idsList.size() == 0) {
             return R.error("superIds不能为空");
@@ -1420,7 +1423,7 @@ public class CrmLeadsService {
     }
 
     @Async
-    public Future<Integer> batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
+    public void batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
         // 指定ID退回公海
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
@@ -1451,7 +1454,7 @@ public class CrmLeadsService {
         }
         // 指定ID退回公海时删除私海线索
         deleteByBatchIds(superIds);
-        return new AsyncResult<>(status);
+        //return status;
     }
 
     /**
@@ -1735,6 +1738,16 @@ public class CrmLeadsService {
             oaEvent.setEndTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
             oaEvent.setCreateTime(DateUtil.date().toTimestamp());
             crmOaEventDao.save(oaEvent);
+        }
+        // 最后跟进时间
+        if (adminRecord.getNextTime() != null) {
+            Date nextTime = adminRecord.getNextTime();
+            LkCrmLeadsEntity leadsEntity = crmLeadsDao.get(NumberConvertUtil.parseInt(adminRecord.getTypesId()));
+            if (leadsEntity != null) {
+                leadsEntity.setLeadsId(NumberConvertUtil.parseInt(adminRecord.getTypesId()));
+                leadsEntity.setNextTime(new Timestamp(nextTime.getTime()));
+                crmLeadsDao.update(leadsEntity);
+            }
         }
         // 添加任务
         if (adminRecord.getIsTask() != null && 1 == adminRecord.getIsTask()) {

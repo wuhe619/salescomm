@@ -1,5 +1,6 @@
 package com.bdaim.supplier.dao;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
@@ -198,7 +199,7 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
         logger.info("供应商:" + supplierId + "开始扣费,金额:" + amount);
         String sql = "SELECT * FROM t_supplier_property m where m.supplier_id=? and m.property_name=?";
         List<Map<String, Object>> list = this.sqlQuery(sql, supplierId, "remain_amount");
-
+        logger.info("供应商:" + supplierId + "余额:" + JSON.toJSONString(list));
         // 查询是否有授信额度
         List<Map<String, Object>> st = this.sqlQuery(sql, supplierId, "settlement_type");
         int settlementType = 1;
@@ -218,7 +219,7 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
             remainAmount = String.valueOf(list.get(0).get("property_value"));
         }
         // 处理账户不存在
-        if (remainAmount == null) {
+        if (StringUtil.isEmpty(remainAmount)) {
             remainAmount = "0";
             logger.info("供应商:" + supplierId + "账户不存在开始新建账户信息");
             String insertSql = "INSERT INTO `t_supplier_property` (`supplier_id`, `property_name`, `property_value`, `create_time`) VALUES (?, ?, ?, ?);";
@@ -234,7 +235,7 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
             usedAmount = String.valueOf(usedAmountList.get(0).get("property_value"));
         }
 
-        if (usedAmount == null) {
+        if (StringUtil.isEmpty(usedAmount)) {
             // 累计消费 处理账户不存在
             usedAmount = "0";
             logger.info("供应商:" + supplierId + "账户累计消费不存在开始新建账户信息");

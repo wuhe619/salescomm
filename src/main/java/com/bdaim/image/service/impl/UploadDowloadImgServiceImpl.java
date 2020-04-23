@@ -10,6 +10,7 @@ import com.bdaim.image.service.UploadDowloadService;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.util.*;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.tomcat.util.http.fileupload.FileItem;
@@ -33,6 +34,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.zip.ZipEntry;
@@ -1187,7 +1189,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             try (FileInputStream fis = new FileInputStream(file)) {
                 if (file.exists()) {
                     response.setHeader("Content-Type", "application/octet-stream");
-                    response.setHeader("Content-Disposition", "attachment;filename=" + fileName + fileType);
+                    response.setHeader("Content-Disposition", "attachment;filename=" + fileInfo.getFileName());
                     IOUtils.copy(fis, response.getOutputStream());
                     return;
                 }
@@ -1198,7 +1200,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
                 try (FileInputStream fis = new FileInputStream(file)) {
                     if (file.exists()) {
                         response.setHeader("Content-Type", "application/octet-stream");
-                        response.setHeader("Content-Disposition", "attachment;filename=" + fileName + fileType);
+                        response.setHeader("Content-Disposition", "attachment;filename=" + fileInfo.getFileName());
                         IOUtils.copy(fis, response.getOutputStream());
                         return;
                     }
@@ -1216,12 +1218,33 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             }
             try {
                 response.setHeader("Content-Type", "application/octet-stream");
-                response.setHeader("Content-Disposition", "attachment;filename=" + fileId + (fileInfo != null ? fileInfo.getFileType() : ""));
+                response.setHeader("Content-Disposition", "attachment;filename=" +
+                        (fileInfo != null ? new String((fileInfo.getFileName()).getBytes("gb2312"), "ISO-8859-1") : ""));
                 byte[] bytes = mongoFileService.downloadFile(fileId);
                 IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());
             } catch (Exception e) {
                 logger.error("获取mongodb文件异常", e);
             }
+        }
+    }
+
+    /**
+     * 查询mongodb数据
+     * @param response
+     * @param fileId
+     */
+    public void getMongoFile(HttpServletResponse response, String fileId) {
+        HFile fileInfo = fileDao.selectByServiceId(fileId);
+        logger.info("fileId:{}文件信息:{}", fileId, fileInfo);
+        try {
+            response.setHeader("Content-Type", "application/octet-stream");
+            response.setHeader("Content-Disposition", "attachment;filename=" + (fileInfo != null ? fileInfo.getFileName() : ""));
+            byte[] bytes = mongoFileService.downloadFile(fileId);
+            String s = Base64.encodeBase64String(bytes);
+            logger.info("mongodb文件信息:{}", s);
+            IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());
+        } catch (Exception e) {
+            logger.error("获取mongodb文件异常", e);
         }
     }
 }

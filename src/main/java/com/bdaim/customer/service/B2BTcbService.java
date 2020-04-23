@@ -5,6 +5,7 @@ import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.be.service.BusiEntityService;
 import com.bdaim.bill.dto.TransactionTypeEnum;
@@ -616,7 +617,15 @@ public class B2BTcbService implements BusiService {
      * @param consumerNum
      * @param busiType
      */
-    private void updateTbRemain(long id, int consumerNum, String busiType) {
+    public void updateTbRemain(long id, int consumerNum, String busiType) {
+        String updateNumSql = "UPDATE " + HMetaDataDef.getTable(busiType, "")
+                + " set content = JSON_SET(content, '$.consume_num', JSON_EXTRACT(content, '$.consume_num') + ?), " +
+                " content = JSON_SET ( content, '$.remain_num', JSON_EXTRACT(content, '$.remain_num') - ? )" +
+                " where id = ? and type=?";
+        jdbcTemplate.update(updateNumSql, consumerNum, consumerNum, id, busiType);
+    }
+
+    public void updateTbRemain(long id, long consumerNum, String busiType) {
         String updateNumSql = "UPDATE " + HMetaDataDef.getTable(busiType, "")
                 + " set content = JSON_SET(content, '$.consume_num', JSON_EXTRACT(content, '$.consume_num') + ?), " +
                 " content = JSON_SET ( content, '$.remain_num', JSON_EXTRACT(content, '$.remain_num') - ? )" +
@@ -647,8 +656,15 @@ public class B2BTcbService implements BusiService {
         // 线索ID 扩展字段4
         log.put("superId", superId);
         log.put("content", content);
+        // 领取方式 1-线索私海公海
+        log.put("getType", "1");
         try {
             busiEntityService.saveInfo(custId, "", userId, BusiTypeEnum.B2B_TC_LOG.getType(), 0L, log);
+            // 保存ES领取记录
+            JSONObject param = new JSONObject();
+            param.put("customId", custId);
+            param.put("info", JSON.parseObject("{\"name\":\"next\",\"parent\":\"" + entId + "\"}"));
+            elasticSearchService.addRoutingDocument(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), entId, param);
         } catch (Exception e) {
             LOG.warn("保存B2B领取记录失败", e);
         }
@@ -792,24 +808,7 @@ public class B2BTcbService implements BusiService {
                         LOG.info("客户:{},B2B企业ID:{}已经领取过", custId, id);
                         continue;
                     }
-                    Set phones = new HashSet();
-                    if (jsonObject.containsKey("phone") && StringUtil.isNotEmpty(jsonObject.getString("phone"))) {
-                        for (String p : jsonObject.getString("phone").split(",")) {
-                            if (StringUtil.isEmpty(p) || "-".equals(p)) {
-                                continue;
-                            }
-                            phones.add(p);
-                        }
-                    }
-                    if (jsonObject.containsKey("phone1") && StringUtil.isNotEmpty(jsonObject.getString("phone1"))) {
-                        for (String p : jsonObject.getString("phone1").split(",")) {
-                            if (StringUtil.isEmpty(p) || "-".equals(p)) {
-                                continue;
-                            }
-                            phones.add(p);
-                        }
-                    }
-                    jsonObject.put("phoneNumber", phones);
+                    jsonObject.put("phoneNumber", entDataService.handlePhones(jsonObject));
                     if (getNumber > data.size()) {
                         data.put(id, jsonObject);
                     } else {

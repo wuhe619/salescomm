@@ -410,6 +410,11 @@ public class UploadAction extends BasicAction {
         uploadDowloadService.downloadFile(response, userId, fileName, true);
     }
 
+    @RequestMapping(value = "/getMongoFile", method = RequestMethod.GET)
+    public void getMongoFile(String fileId, HttpServletResponse response) {
+        uploadDowloadService.getMongoFile(response, fileId);
+    }
+
     public static void main(String[] args) {
         String tmpName = "http://online.datau.top/audio/1811060826120000/fb792854-5eb5-11e9-a59c-00163e0e3936_00163e0e3936a59c11e95eb5d629e49e.mp3#2019-04-14_21:04:28.0";
         System.out.println(File.separator);

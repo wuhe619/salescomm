@@ -46,6 +46,7 @@ public class AppConfig {
 
 	private static String ent_data_index = null;
 	private static String ent_data_type = null;
+	private static String ent_data_url = null;
 
 	public static String getApp() {
 		return app;
@@ -284,5 +285,13 @@ public class AppConfig {
 	@Value("${ent_data_type:tag}")
 	public void setEnt_data_type(String ent_data_type) {
 		AppConfig.ent_data_type = ent_data_type;
+	}
+
+	public static String getEnt_data_url() {
+		return ent_data_url;
+	}
+	@Value("${spring.elasticsearch.jest.uris:http://ll6:9200}")
+	public void setEnt_data_url(String ent_data_url) {
+		AppConfig.ent_data_url = ent_data_url;
 	}
 }

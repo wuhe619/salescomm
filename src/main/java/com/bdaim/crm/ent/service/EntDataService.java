@@ -12,6 +12,7 @@ import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.crm.ent.entity.*;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customer.service.B2BTcbLogService;
 import com.bdaim.util.ExcelUtil;
 import com.bdaim.util.MD5Util;
@@ -19,7 +20,10 @@ import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import io.searchbox.core.CountResult;
 import io.searchbox.core.SearchResult;
+import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.*;
+import org.elasticsearch.join.query.HasChildQueryBuilder;
+import org.elasticsearch.join.query.JoinQueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
@@ -661,6 +665,23 @@ public class EntDataService {
         if (StringUtil.isNotEmpty(param.getString("id"))) {
             qb.must(QueryBuilders.idsQuery().addIds(param.getString("id")));
         }
+
+        // 领取标识
+        if (StringUtil.isNotEmpty(param.getString("_receivingStatus"))) {
+            // 已领取
+            JSONObject common = new JSONObject();
+            common.put("query", BaseUtil.getCustId());
+            HasChildQueryBuilder next = JoinQueryBuilders.hasChildQuery("next",
+                    QueryBuilders.commonTermsQuery("customId", BaseUtil.getCustId()),
+                    ScoreMode.None);
+            if ("1".equals(param.getString("_receivingStatus"))) {
+                qb.must(next);
+            } else if ("2".equals(param.getString("_receivingStatus"))) {
+                //未领取
+                qb.mustNot(next);
+                qb.must(QueryBuilders.existsQuery("regarea"));
+            }
+        }
         // 企业子类型
         if (StringUtil.isNotEmpty(param.getString("entType1"))) {
             BoolQueryBuilder temp = QueryBuilders.boolQuery();
@@ -819,20 +840,31 @@ public class EntDataService {
         }
         // 联系电话
         if (StringUtil.isNotEmpty(param.getString("phoneStatus"))) {
+            //phstatus   0全无、1有手机、2有固话、3都有
             JSONArray jsonArray = param.getJSONArray("phoneStatus");
+            Set<String> status = new HashSet<>();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                status.add(jsonArray.getJSONObject(i).getString("value"));
+            }
             BoolQueryBuilder temp = QueryBuilders.boolQuery();
+            // 手机固话都有
+            boolean and = false;
+            if (status.contains("1") && status.contains("2")) {
+                temp.should(QueryBuilders.termQuery("phstatus", "3"));
+                and = true;
+            }
+
             for (int i = 0; i < jsonArray.size(); i++) {
                 String phoneStatus = jsonArray.getJSONObject(i).getString("value");
                 // 有固话
-                if ("1".equals(phoneStatus)) {
-                    temp.should(QueryBuilders.regexpQuery("phone1", "[0-9].+"));
-                } else if ("2".equals(phoneStatus)) {
+                if ("1".equals(phoneStatus) && !and) {
+                    temp.should(QueryBuilders.termQuery("phstatus", "2"));
+                } else if ("2".equals(phoneStatus) && !and) {
                     // 有手机
-                    temp.should(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
+                    temp.should(QueryBuilders.termQuery("phstatus", "1"));
                 } else if ("3".equals(phoneStatus)) {
                     // 无联系方式
-                    temp.mustNot(QueryBuilders.regexpQuery("phone1", "[0-9].+"));
-                    temp.mustNot(QueryBuilders.regexpQuery("phone", "1[3|4|5|7|8].*"));
+                    temp.should(QueryBuilders.termQuery("phstatus", "0"));
                 }
             }
             qb.filter(temp);
@@ -855,11 +887,12 @@ public class EntDataService {
         // 邮箱
         if (StringUtil.isNotEmpty(param.getString("emailStatus"))) {
             // 有邮箱
+            //emailstatus  邮箱状态：0无邮箱 1有邮箱
             if ("1".equals(param.getString("emailStatus"))) {
-                qb.filter(QueryBuilders.regexpQuery("email", "[0-9|a-z|A-Z]@.+"));
+                qb.filter(QueryBuilders.termQuery("emailstatus", "1"));
             } else if ("2".equals(param.getString("emailStatus"))) {
                 // 无邮箱
-                qb.mustNot(QueryBuilders.regexpQuery("email", "[0-9|a-z|A-Z]@.+"));
+                qb.mustNot(QueryBuilders.termQuery("emailstatus", "0"));
             }
         }
         // 其他标签
@@ -891,30 +924,38 @@ public class EntDataService {
         SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             List list = new ArrayList<>();
-            JSONObject t;
+            JSONObject t, phone;
             int sum;
+            JSONArray phones;
             for (SearchResult.Hit<JSONObject, Void> hit : result.getHits(JSONObject.class)) {
                 t = hit.source;
                 t.put("id", hit.id);
                 // 处理企业领取标志
                 t.put("_receivingStatus", b2BTcbLogService.checkClueGetStatus(custId, t.getString("id")));
                 sum = 0;
-                if (StringUtil.isNotEmpty(t.getString("phone"))) {
-                    for (String p : t.getString("phone").split(",")) {
-                        if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
-                                && !"-".equals(p)) {
-                            sum++;
+                phones = t.getJSONArray("phonenest");
+                if (phones != null && phones.size() > 0) {
+                    for (int i = 0; i < phones.size(); i++) {
+                        phone = phones.getJSONObject(i);
+                        if (StringUtil.isEmpty(phone.getString("p"))) {
+                            continue;
+                        }
+                        for (String p : phone.getString("p").split(",")) {
+                            if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
+                                    && !"-".equals(p)) {
+                                sum++;
+                            }
                         }
                     }
                 }
-                if (StringUtil.isNotEmpty(t.getString("phone1"))) {
+               /* if (StringUtil.isNotEmpty(t.getString("phone1"))) {
                     for (String p : t.getString("phone1").split(",")) {
                         if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
                                 && !"-".equals(p)) {
                             sum++;
                         }
                     }
-                }
+                }*/
                 t.put("sum", sum);
                 list.add(t);
             }
@@ -986,26 +1027,7 @@ public class EntDataService {
     public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) {
         JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
         if (baseResult != null) {
-            Set phones = new HashSet();
-            if (baseResult.containsKey("phone") && StringUtil.isNotEmpty(baseResult.getString("phone"))) {
-                // 手机号
-                for (String p : baseResult.getString("phone").split(",")) {
-                    if (StringUtil.isEmpty(p) || "-".equals(p)) {
-                        continue;
-                    }
-                    phones.add(p);
-                }
-            }
-            if (baseResult.containsKey("phone1") && StringUtil.isNotEmpty(baseResult.getString("phone1"))) {
-                // 固话
-                for (String p : baseResult.getString("phone1").split(",")) {
-                    if (StringUtil.isEmpty(p) || "-".equals(p)) {
-                        continue;
-                    }
-                    phones.add(p);
-                }
-            }
-            baseResult.put("phones", phones);
+            baseResult.put("phones", handlePhones(baseResult));
             if (seaId > 0) {
                 //处理公司联系方式是否有意向
                 handleClueFollowStatus(seaId, baseResult);
@@ -1028,32 +1050,38 @@ public class EntDataService {
         SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         JSONObject t = null;
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
-            int sum;
+            Set<String> phones;
             for (SearchResult.Hit<JSONObject, Void> hit : result.getHits(JSONObject.class)) {
                 t = hit.source;
                 t.put("id", hit.id);
-                sum = 0;
-                if (StringUtil.isNotEmpty(t.getString("phone"))) {
-                    for (String p : t.getString("phone").split(",")) {
-                        if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
-                                && !"-".equals(p)) {
-                            sum++;
-                        }
-                    }
-                }
-                if (StringUtil.isNotEmpty(t.getString("phone1"))) {
-                    for (String p : t.getString("phone1").split(",")) {
-                        if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
-                                && !"-".equals(p)) {
-                            sum++;
-                        }
-                    }
-                }
-                t.put("sum", sum);
+                phones = handlePhones(t);
+                t.put("sum", phones.size());
+                t.put("phones", phones);
                 break;
             }
         }
         return t;
+    }
+
+    public Set<String> handlePhones(JSONObject baseResult) {
+        Set phones = new HashSet();
+        JSONArray phoneList = baseResult.getJSONArray("phonenest");
+        JSONObject phone;
+        if (phoneList != null && phoneList.size() > 0) {
+            for (int i = 0; i < phoneList.size(); i++) {
+                phone = phoneList.getJSONObject(i);
+                if (StringUtil.isEmpty(phone.getString("p"))) {
+                    continue;
+                }
+                for (String p : phone.getString("p").split(",")) {
+                    if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
+                            && !"-".equals(p)) {
+                        phones.add(p);
+                    }
+                }
+            }
+        }
+        return phones;
     }
 
     /**

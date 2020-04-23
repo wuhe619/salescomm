@@ -1099,7 +1099,7 @@ public class CustomerUserService {
             //sql.append(" ORDER by create_time ASC, id ASC");
             sql.append(" ORDER by account ASC ");
             logger.info(sql.toString());
-            Page page = userDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, p.toArray());
+            Page page = userDao.sqlPageQueryByPageSize(sql.toString(), pageNum, pageSize, p.toArray());
             map.put("total", page.getTotal());
             List users = page.getData();
             CustomerUserGroupRelDTO customerUserGroupRelDTO;
