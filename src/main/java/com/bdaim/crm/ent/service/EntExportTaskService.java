@@ -53,8 +53,8 @@ public class EntExportTaskService implements BusiService {
                 size = b2BTcbQuantity;
             }
         } else if (exportType == 3) {
-            size = (info.getIntValue("pageEnd") * condition.getIntValue("pageSize")) -
-                    (info.getIntValue("pageStart") * condition.getIntValue("pageSize"));
+            size = (info.getIntValue("pageEnd") - info.getIntValue("pageStart"))
+                    * condition.getIntValue("pageSize");
             // 实际导出量大于套餐余量,则导出量为套餐余量
             if (size > b2BTcbQuantity) {
                 size = b2BTcbQuantity;
