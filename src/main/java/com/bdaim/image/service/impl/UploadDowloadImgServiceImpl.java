@@ -1187,7 +1187,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             try (FileInputStream fis = new FileInputStream(file)) {
                 if (file.exists()) {
                     response.setHeader("Content-Type", "application/octet-stream");
-                    response.setHeader("Content-Disposition", "attachment;filename=" + fileName + fileType);
+                    response.setHeader("Content-Disposition", "attachment;filename=" + fileInfo.getFileName());
                     IOUtils.copy(fis, response.getOutputStream());
                     return;
                 }
@@ -1198,7 +1198,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
                 try (FileInputStream fis = new FileInputStream(file)) {
                     if (file.exists()) {
                         response.setHeader("Content-Type", "application/octet-stream");
-                        response.setHeader("Content-Disposition", "attachment;filename=" + fileName + fileType);
+                        response.setHeader("Content-Disposition", "attachment;filename=" + fileInfo.getFileName());
                         IOUtils.copy(fis, response.getOutputStream());
                         return;
                     }
@@ -1216,7 +1216,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             }
             try {
                 response.setHeader("Content-Type", "application/octet-stream");
-                response.setHeader("Content-Disposition", "attachment;filename=" + fileId + (fileInfo != null ? fileInfo.getFileType() : ""));
+                response.setHeader("Content-Disposition", "attachment;filename=" + (fileInfo != null ? fileInfo.getFileName() : ""));
                 byte[] bytes = mongoFileService.downloadFile(fileId);
                 IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());
             } catch (Exception e) {
