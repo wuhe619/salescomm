@@ -741,7 +741,6 @@ public class CrmLeadsService {
      * @param batchId
      * @return
      */
-    @Transactional
     public int transferToPublicSea(String seaId, String userId, String batchId) {
         LOG.info("添加到线索私海[{}]数据,batchId:[{}]", seaId, batchId);
         //添加到线索私海数据
@@ -1395,7 +1394,6 @@ public class CrmLeadsService {
     /**
      * 根据id 删除线索
      */
-    @Transactional
     public R deleteByBatchIds(List idsList) {
         if (idsList == null || idsList.size() == 0) {
             return R.error("superIds不能为空");
@@ -1422,8 +1420,7 @@ public class CrmLeadsService {
         return i > 0 ? R.ok() : R.error("公海线索删除失败");
     }
 
-    @Async
-    public void batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
+    public int batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
         // 指定ID退回公海
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
@@ -1454,7 +1451,7 @@ public class CrmLeadsService {
         }
         // 指定ID退回公海时删除私海线索
         deleteByBatchIds(superIds);
-        //return status;
+        return status;
     }
 
     /**
