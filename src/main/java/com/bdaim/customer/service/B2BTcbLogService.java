@@ -49,7 +49,7 @@ public class B2BTcbLogService implements BusiService {
 
     @Override
     public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
-        StringBuffer sqlstr = new StringBuffer("select t.id , t.cust_id, t.create_id, t.create_date,t.ext_1, t.ext_2, t.ext_3, t.ext_4, count(distinct ext_1 ) as ext_5, u.realname,update_date from "
+        StringBuffer sqlstr = new StringBuffer("select t.id, CAST(t.content->>'$.getType' AS CHAR) AS getType, t.cust_id, t.create_id, t.create_date,t.ext_1, t.ext_2, t.ext_3, t.ext_4, count(distinct ext_1 ) as ext_5, u.realname,update_date from "
                 + HMetaDataDef.getTable(busiType, "") + " t left join t_customer_user u on t.cust_user_id= u.id  where type='").append(busiType).append("'");
         String userName = params.getString("userName");
         String create_date = params.getString("create_date");
