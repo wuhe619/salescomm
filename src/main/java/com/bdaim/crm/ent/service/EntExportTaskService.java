@@ -19,7 +19,8 @@ public class EntExportTaskService implements BusiService {
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
-
+        //文件生成状态 1-未生成 2-已生成
+        info.put("ext_1","1");
     }
 
     @Override
