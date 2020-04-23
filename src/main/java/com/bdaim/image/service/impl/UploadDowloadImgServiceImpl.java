@@ -10,6 +10,7 @@ import com.bdaim.image.service.UploadDowloadService;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.util.*;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.tomcat.util.http.fileupload.FileItem;
@@ -1222,6 +1223,21 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             } catch (Exception e) {
                 logger.error("获取mongodb文件异常", e);
             }
+        }
+    }
+
+    public void getMongoFile(HttpServletResponse response, String fileId) {
+        HFile fileInfo = fileDao.selectByServiceId(fileId);
+        logger.info("fileId:{}文件信息:{}", fileId, fileInfo);
+        try {
+            response.setHeader("Content-Type", "application/octet-stream");
+            response.setHeader("Content-Disposition", "attachment;filename=" + (fileInfo != null ? fileInfo.getFileName() : ""));
+            byte[] bytes = mongoFileService.downloadFile(fileId);
+            String s = Base64.encodeBase64String(bytes);
+            logger.info("文件信息:{}", s);
+            IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());
+        } catch (Exception e) {
+            logger.error("获取mongodb文件异常", e);
         }
     }
 }
