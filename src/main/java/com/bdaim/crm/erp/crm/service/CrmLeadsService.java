@@ -245,7 +245,7 @@ public class CrmLeadsService {
             for (int i = 0; i < list.size(); i++) {
                 Map map = (Map) list.get(i);
                 // 解析super_data中qq 微信等属性
-                getDefaultLabelValue(map);
+                //getDefaultLabelValue(map);
                 map.remove("super_data");
             }
         }

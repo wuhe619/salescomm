@@ -730,7 +730,7 @@ public class AdminSceneService {
         //conditions.append(" order by ").append(viewName).append(".").append(sortField).append(" ").append(orderNum);
         conditions.append(" order by ").append(sortField).append(" ").append(orderNum);
         if (StrUtil.isNotEmpty(basePageRequest.getJsonObject().getString("excel"))) {
-            List<Map<String, Object>> recordList = crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), loginUser.getUser().getCustId());
+            List<Map<String, Object>> recordList = crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), loginUser.getCustId());
             return R.ok().put("excel", JavaBeanUtil.mapToRecords(recordList));
         }
         if (2 == type || 8 == type) {
