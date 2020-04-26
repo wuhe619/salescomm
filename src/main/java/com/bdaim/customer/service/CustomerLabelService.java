@@ -17,6 +17,7 @@ import com.bdaim.customgroup.entity.CustomerGroupProperty;
 import com.bdaim.marketproject.dao.MarketProjectDao;
 import com.bdaim.marketproject.entity.MarketProject;
 import com.bdaim.markettask.dao.MarketTaskDao;
+import com.bdaim.markettask.entity.MarketTaskProperty;
 import com.bdaim.util.*;
 
 import org.slf4j.Logger;
@@ -466,6 +467,27 @@ public class CustomerLabelService {
         }
 
         return code;
+    }
+
+    public int updateSelectedStatus(String customerGroupId, String marketTaskId, List<String> selectedLabels) {
+        if (StringUtil.isNotEmpty(customerGroupId)) {
+            //查询客群对应选中的自建属性 saveOrUpdate()方法
+            CustomerGroupProperty groupProperty = new CustomerGroupProperty();
+            groupProperty.setCustomerGroupId(Integer.parseInt(customerGroupId));
+            groupProperty.setPropertyName("selectedLabels");
+            groupProperty.setPropertyValue(JSON.toJSONString(selectedLabels));
+            groupProperty.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            customGroupDao.saveOrUpdate(groupProperty);
+        } else if (StringUtil.isNotEmpty(marketTaskId)) {
+            //查询任务对应选中的自建属性
+            MarketTaskProperty taskProperty = new MarketTaskProperty();
+            taskProperty.setMarketTaskId(marketTaskId);
+            taskProperty.setPropertyName("selectedLabels");
+            taskProperty.setPropertyValue(JSON.toJSONString(selectedLabels));
+            taskProperty.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            customGroupDao.saveOrUpdate(taskProperty);
+        }
+        return 1;
     }
 
     class SupperDataLog implements Runnable {
