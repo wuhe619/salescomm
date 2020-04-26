@@ -469,13 +469,13 @@ public class CustomerLabelService {
         return code;
     }
 
-    public int updateSelectedStatus(String customerGroupId, String marketTaskId, List<String> selectedLabels) {
+    public int updateSelectedStatus(String customerGroupId, String marketTaskId, JSONArray selectedLabels) {
         if (StringUtil.isNotEmpty(customerGroupId)) {
             //查询客群对应选中的自建属性 saveOrUpdate()方法
             CustomerGroupProperty groupProperty = new CustomerGroupProperty();
             groupProperty.setCustomerGroupId(Integer.parseInt(customerGroupId));
             groupProperty.setPropertyName("selectedLabels");
-            groupProperty.setPropertyValue(JSON.toJSONString(selectedLabels));
+            groupProperty.setPropertyValue(selectedLabels.toString());
             groupProperty.setCreateTime(new Timestamp(System.currentTimeMillis()));
             customGroupDao.saveOrUpdate(groupProperty);
         } else if (StringUtil.isNotEmpty(marketTaskId)) {
@@ -483,7 +483,7 @@ public class CustomerLabelService {
             MarketTaskProperty taskProperty = new MarketTaskProperty();
             taskProperty.setMarketTaskId(marketTaskId);
             taskProperty.setPropertyName("selectedLabels");
-            taskProperty.setPropertyValue(JSON.toJSONString(selectedLabels));
+            taskProperty.setPropertyValue(selectedLabels.toString());
             taskProperty.setCreateTime(new Timestamp(System.currentTimeMillis()));
             customGroupDao.saveOrUpdate(taskProperty);
         }
