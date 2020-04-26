@@ -3452,12 +3452,12 @@ public class MarketResourceAction extends BasicAction {
     @ResponseBody
     @RequestMapping(value = "/updateSelectedStatus", method = RequestMethod.POST)
     public String updateSelectedStatus(String customerGroupId, String marketTaskId,
-                                       @RequestParam(value = "selectedLabels") JSONArray selectedLabels) {
+                                       @RequestParam(value = "selectedLabels") List<String> selectedLabels) {
         if (StringUtil.isEmpty(customerGroupId) && StringUtil.isEmpty(marketTaskId)) {
             return returnError();
         }
         if (CollectionUtils.isEmpty(selectedLabels)) {
-            selectedLabels = new JSONArray();
+            selectedLabels = new ArrayList<>();
         }
         int code = customerLabelService.updateSelectedStatus(customerGroupId, marketTaskId, selectedLabels);
         if (code == 1) {
