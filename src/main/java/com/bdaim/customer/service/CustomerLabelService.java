@@ -474,6 +474,7 @@ public class CustomerLabelService {
             //查询客群对应选中的自建属性 saveOrUpdate()方法
             CustomerGroupProperty groupProperty = new CustomerGroupProperty();
             groupProperty.setCustomerGroupId(Integer.parseInt(customerGroupId));
+            groupProperty.setPropertyName("selectedLabels");
             if(StringUtil.isEmpty(selectedLabels)){
                 groupProperty.setPropertyValue(JSON.toJSONString(new ArrayList<>()));
             }else{
@@ -486,6 +487,7 @@ public class CustomerLabelService {
             //查询任务对应选中的自建属性
             MarketTaskProperty taskProperty = new MarketTaskProperty();
             taskProperty.setMarketTaskId(marketTaskId);
+            taskProperty.setPropertyName("selectedLabels");
             if(StringUtil.isEmpty(selectedLabels)){
                 taskProperty.setPropertyValue(JSON.toJSONString(new ArrayList<>()));
             }else{
