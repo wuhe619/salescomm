@@ -26,6 +26,7 @@ public class CustomerLabel {
     private String marketProjectId;
     private Integer sort;
     private Integer required;
+    private String isShow;
 
     @Id
     @Column(name = "id")
@@ -166,6 +167,15 @@ public class CustomerLabel {
 
     public void setRequired(Integer required) {
         this.required = required;
+    }
+    @Basic
+    @Column(name = "is_show")
+    public String getIsShow() {
+        return isShow;
+    }
+
+    public void setIsShow(String isShow) {
+        this.isShow = isShow;
     }
 
     @Override

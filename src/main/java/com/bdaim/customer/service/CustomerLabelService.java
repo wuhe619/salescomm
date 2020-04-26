@@ -888,7 +888,7 @@ public class CustomerLabelService {
         StringBuffer sql = new StringBuffer();
         List<Object> p = new ArrayList<>();
         sql.append("  SELECT t1.id,t1.cust_id,t1.user_id,t1.label_id,t1.status,t1.label_name, t1.market_project_id, ")
-                .append("  t1.create_time,t1.update_time, t1.label_desc,t1.type, t1.`option`, t1.sort, t1.required ")
+                .append("  t1.create_time,t1.update_time, t1.label_desc,t1.type, t1.`option`, t1.sort, t1.required,t1.is_show ")
                 .append("  FROM  t_customer_label t1")
                 .append("  WHERE (t1.cust_id =?  OR  t1.cust_id = '0')");
         p.add(custId);
