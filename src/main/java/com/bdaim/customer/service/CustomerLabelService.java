@@ -456,7 +456,7 @@ public class CustomerLabelService {
             CustomerLabel dbCstomerLabel = customerLabelDao.getCustomerLabel(customerLabel.getLabelId());
             log.info("当前自建属性 {}", JSON.toJSONString(dbCstomerLabel));
             if (dbCstomerLabel != null) {
-                customerLabel.setIsShow(isShow);
+                dbCstomerLabel.setIsShow(isShow);
                 this.customerDao.saveOrUpdate(dbCstomerLabel);
                 code = 1;
             }
