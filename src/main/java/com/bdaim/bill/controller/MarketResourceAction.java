@@ -3456,7 +3456,7 @@ public class MarketResourceAction extends BasicAction {
         if (StringUtil.isEmpty(customerGroupId) && StringUtil.isEmpty(marketTaskId)) {
             return returnError();
         }
-        if (!CollectionUtils.isEmpty(selectedLabels)) {
+        if (CollectionUtils.isEmpty(selectedLabels)) {
             selectedLabels = new ArrayList<String>();
         }
         int code = customerLabelService.updateSelectedStatus(customerGroupId, marketTaskId, selectedLabels);
