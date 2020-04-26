@@ -449,6 +449,24 @@ public class CustomerLabelService {
         thread.start();
     }
 
+    public int updateDisplayStatus(CustomerLabel customerLabel) {
+        int code = 0;
+        String isShow = customerLabel.getIsShow();
+        try {
+            CustomerLabel dbCstomerLabel = customerLabelDao.getCustomerLabel(customerLabel.getLabelId());
+            if (dbCstomerLabel != null) {
+                customerLabel.setIsShow(isShow);
+                this.customerDao.saveOrUpdate(dbCstomerLabel);
+                code = 1;
+            }
+        } catch (Exception e) {
+            log.error("修改显示状态异常,", e);
+            code = 0;
+        }
+
+        return code;
+    }
+
     class SupperDataLog implements Runnable {
 
         String superId;
