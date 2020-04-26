@@ -469,25 +469,29 @@ public class CustomerLabelService {
         return code;
     }
 
-    public int updateSelectedStatus(String customerGroupId, String marketTaskId, List<String> selectedLabels) {
+    public int updateSelectedStatus(String customerGroupId, String marketTaskId, String selectedLabels) {
         if (StringUtil.isNotEmpty(customerGroupId)) {
             //查询客群对应选中的自建属性 saveOrUpdate()方法
             CustomerGroupProperty groupProperty = new CustomerGroupProperty();
             groupProperty.setCustomerGroupId(Integer.parseInt(customerGroupId));
-            groupProperty.setPropertyName("selectedLabels");
-            String value = JSON.toJSONString(selectedLabels);
-            value = value.replace("\\","");
-            groupProperty.setPropertyValue(value);
+            if(StringUtil.isEmpty(selectedLabels)){
+                groupProperty.setPropertyValue(JSON.toJSONString(new ArrayList<>()));
+            }else{
+                String[] values = selectedLabels.split(",");
+                groupProperty.setPropertyValue(JSON.toJSONString(values));
+            }
             groupProperty.setCreateTime(new Timestamp(System.currentTimeMillis()));
             customGroupDao.saveOrUpdate(groupProperty);
         } else if (StringUtil.isNotEmpty(marketTaskId)) {
             //查询任务对应选中的自建属性
             MarketTaskProperty taskProperty = new MarketTaskProperty();
             taskProperty.setMarketTaskId(marketTaskId);
-            taskProperty.setPropertyName("selectedLabels");
-            String value = JSON.toJSONString(selectedLabels);
-            value = value.replace("\\","");
-            taskProperty.setPropertyValue(value);
+            if(StringUtil.isEmpty(selectedLabels)){
+                taskProperty.setPropertyValue(JSON.toJSONString(new ArrayList<>()));
+            }else{
+                String[] values = selectedLabels.split(",");
+                taskProperty.setPropertyValue(JSON.toJSONString(values));
+            }
             taskProperty.setCreateTime(new Timestamp(System.currentTimeMillis()));
             customGroupDao.saveOrUpdate(taskProperty);
         }
