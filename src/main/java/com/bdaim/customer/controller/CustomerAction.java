@@ -1622,7 +1622,7 @@ public class CustomerAction extends BasicAction {
 
 
     @RequestMapping(value = "/exportExcelListBillByType", method = RequestMethod.GET)
-    @ValidatePermission(role = "admin,ROLE_USER")
+//    @ValidatePermission(role = "admin,ROLE_USER")
     public void exportExcelListBillByType(HttpServletResponse response, String resourceId, String type, String orderNo, String custId, String startTime, String endTime) {
         if (StringUtil.isEmpty(custId)) {
             throw new ParamException("custId参数不能为空");
