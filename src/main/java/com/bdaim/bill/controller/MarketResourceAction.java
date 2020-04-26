@@ -3451,7 +3451,8 @@ public class MarketResourceAction extends BasicAction {
 
     @ResponseBody
     @RequestMapping(value = "/updateSelectedStatus", method = RequestMethod.POST)
-    public String updateSelectedStatus(String customerGroupId, String marketTaskId, List<String> selectedLabels) {
+    public String updateSelectedStatus(String customerGroupId, String marketTaskId,
+                                       @RequestParam(value = "selectedLabels") List<String> selectedLabels) {
         if (StringUtil.isEmpty(customerGroupId) && StringUtil.isEmpty(marketTaskId)) {
             return returnError();
         }
