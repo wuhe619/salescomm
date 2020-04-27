@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -1091,18 +1092,51 @@ public class CustomerLabelService {
         return json.toJSONString();
     }
 
+    @SuppressWarnings("all")
     private void getSelectedLabels(String marketTaskId, String customerGroupId, List<Map<String, Object>> result) {
         if (StringUtil.isNotEmpty(marketTaskId)) {
             MarketTaskProperty taskProperty = marketTaskDao.getProperty(marketTaskId, "selectedLabels");
-            if (taskProperty == null) {
-                result.stream().map(e -> e.put("is_selected", "0")).collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(result)) {
+                for (int i = 0; i < result.size(); i++) {
+                    Map<String, Object> tempMap = result.get(i);
+                    tempMap.put("is_selected", "0");
+                    if (taskProperty != null) {
+                        String propertyValue = taskProperty.getPropertyValue();
+                        JSONArray jsonArray = JSONArray.parseArray(propertyValue);
+                        if (!CollectionUtils.isEmpty(jsonArray)) {
+                            for (int j = 0; j < jsonArray.size(); j++) {
+                                String labelId = jsonArray.getString(j);
+                                String labelIdItem = String.valueOf(tempMap.get("label_id"));
+                                if (labelId.equals(labelIdItem)) {
+                                    tempMap.put("is_selected", "1");
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
         if (StringUtil.isNotEmpty(customerGroupId)) {
             int customerGroupID = Integer.parseInt(customerGroupId);
             CustomerGroupProperty groupProperty = customGroupDao.getProperty(customerGroupID, "selectedLabels");
-            if (groupProperty == null) {
-                result.stream().map(e -> e.put("is_selected", "0")).collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(result)) {
+                for (int i = 0; i < result.size(); i++) {
+                    Map<String, Object> tempMap = result.get(i);
+                    tempMap.put("is_selected", "0");
+                    if (groupProperty != null) {
+                        String propertyValue = groupProperty.getPropertyValue();
+                        JSONArray jsonArray = JSONArray.parseArray(propertyValue);
+                        if (!CollectionUtils.isEmpty(jsonArray)) {
+                            for (int j = 0; j < jsonArray.size(); j++) {
+                                String labelId = jsonArray.getString(j);
+                                String labelIdItem = String.valueOf(tempMap.get("label_id"));
+                                if (labelId.equals(labelIdItem)) {
+                                    tempMap.put("is_selected", "1");
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
