@@ -477,14 +477,34 @@ public class CustomerLabelService {
             CustomerGroupProperty groupProperty = new CustomerGroupProperty();
             groupProperty.setCustomerGroupId(Integer.parseInt(customerGroupId));
             groupProperty.setPropertyName("selectedLabels");
+            String propertyValue;
             if (StringUtil.isEmpty(selectedLabels)) {
-                groupProperty.setPropertyValue(JSON.toJSONString(new ArrayList<>()));
+                propertyValue = JSON.toJSONString(new ArrayList<>());
+                groupProperty.setPropertyValue(propertyValue);
             } else {
                 String[] values = selectedLabels.split(",");
-                groupProperty.setPropertyValue(JSON.toJSONString(values));
+                propertyValue = JSON.toJSONString(values);
+                groupProperty.setPropertyValue(propertyValue);
             }
             groupProperty.setCreateTime(new Timestamp(System.currentTimeMillis()));
             customGroupDao.saveOrUpdate(groupProperty);
+            //在客群下的所有任务中也生效
+            String taskIdsSql = "SELECT id FROM t_market_task WHERE customer_group_id=?";
+            List<String> taskIds = customGroupDao.queryForList(taskIdsSql, customerGroupId);
+            if (!CollectionUtils.isEmpty(taskIds)) {
+                List<MarketTaskProperty> taskProperties = new ArrayList<>();
+                for (int i = 0; i < taskIds.size(); i++) {
+                    MarketTaskProperty taskProperty = new MarketTaskProperty();
+                    taskProperty.setMarketTaskId(taskIds.get(i));
+                    taskProperty.setCreateTime(new Timestamp(System.currentTimeMillis()));
+                    taskProperty.setPropertyName("selectedLabels");
+                    taskProperty.setPropertyValue(propertyValue);
+                    taskProperties.add(taskProperty);
+                }
+                customGroupDao.batchSaveOrUpdate(taskProperties);
+            }
+
+
         } else if (StringUtil.isNotEmpty(marketTaskId)) {
             //查询任务对应选中的自建属性
             MarketTaskProperty taskProperty = new MarketTaskProperty();
