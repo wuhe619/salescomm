@@ -31,6 +31,7 @@ import com.bdaim.customer.user.dto.CustomerUserTypeEnum;
 import com.bdaim.customgroup.dao.CustomGroupDao;
 import com.bdaim.customgroup.dto.CustomGroupDTO;
 import com.bdaim.customgroup.entity.CustomGroup;
+import com.bdaim.customgroup.entity.CustomerGroupProperty;
 import com.bdaim.customgroup.service.CustomGroupService;
 import com.bdaim.marketproject.dao.MarketProjectDao;
 import com.bdaim.marketproject.entity.MarketProject;
@@ -61,6 +62,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -1330,6 +1332,10 @@ public class MarketTaskService {
             LOG.error("查询任务详情列表失败,", e);
             return new Page();
         }
+        //处理自建属性中 被选中展示在列表中的数据
+        //1. 根据任务ID查询出所有被选中展示的自建属性ID
+        MarketTaskProperty marketTaskProperty = marketTaskDao.getProperty(taskId,
+                "selectedLabels");
         CustomerUser user;
         if (page != null && page.getData() != null) {
             Map<String, Object> map, superData, labelData;
@@ -1366,6 +1372,16 @@ public class MarketTaskService {
                 sqlSb.append(" select  custG.super_name, custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone, custG.super_address_province_city, custG.super_address_street, custG.super_data ");
                 sqlSb.append("  from " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + task.getCustomerGroupId() + " custG where id=?");
                 List<Map<String, Object>> groupDetailList = marketTaskDao.sqlQuery(sqlSb.toString(), map.get("id"));
+                //2. key为labelId，value为自建属性对应的值，2.1先赋值为空，2.2如果有则覆盖
+                //2.1 先赋值为空
+                if (marketTaskProperty != null) {
+                    JSONArray jsonArray = JSONArray.parseArray(marketTaskProperty.getPropertyValue());
+                    if (!CollectionUtils.isEmpty(jsonArray)) {
+                        for (int k = 0; k < jsonArray.size(); k++) {
+                            map.put(jsonArray.getString(k), "");
+                        }
+                    }
+                }
                 if (groupDetailList != null && groupDetailList.size() > 0) {
                     Map<String, Object> groupDetail = groupDetailList.get(0);
                     map.put("super_name", groupDetail.getOrDefault("super_name", ""));
@@ -1387,6 +1403,9 @@ public class MarketTaskService {
                                 labelData.put("name", cacheLabel.get(key.getKey()) != null ? cacheLabel.get(key.getKey()).getLabelName() : "");
                                 labelData.put("value", key.getValue());
                                 labelList.add(labelData);
+
+                                //2.2 如果有则覆盖
+                                map.put(key.getKey(), key.getValue());
                             }
                             map.put("labelList", labelList);
                         }

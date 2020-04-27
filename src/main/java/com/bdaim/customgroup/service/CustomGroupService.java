@@ -71,6 +71,7 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -1487,6 +1488,10 @@ public class CustomGroupService {
             log.error("查询客户群列表失败,", e);
             return new Page();
         }
+        //处理自建属性中 被选中展示在列表中的数据
+        //1. 根据客群ID查询出所有被选中展示的自建属性ID
+        CustomerGroupProperty customerGroupProperty = customGroupDao.getProperty(Integer.parseInt(customer_group_id),
+                "selectedLabels");
         CustomerUser user;
         if (page != null && page.getData() != null) {
             Map<String, Object> map, superData, labelData;
@@ -1495,6 +1500,16 @@ public class CustomGroupService {
                 map = (Map<String, Object>) page.getData().get(i);
                 if (map == null) {
                     continue;
+                }
+                //2. key为labelId，value为自建属性对应的值，2.1先赋值为空，2.2如果有则覆盖
+                //2.1 先赋值为空
+                if (customerGroupProperty != null) {
+                    JSONArray jsonArray = JSONArray.parseArray(customerGroupProperty.getPropertyValue());
+                    if (!CollectionUtils.isEmpty(jsonArray)) {
+                        for (int k = 0; k < jsonArray.size(); k++) {
+                            map.put(jsonArray.getString(k), "");
+                        }
+                    }
                 }
                 labelList = new ArrayList<>();
                 // 处理自建属性数据
@@ -1508,6 +1523,9 @@ public class CustomGroupService {
                             labelData.put("name", cacheLabel.get(key.getKey()) != null ? cacheLabel.get(key.getKey()).getLabelName() : "");
                             labelData.put("value", key.getValue());
                             labelList.add(labelData);
+
+                            //2.2 如果有则覆盖
+                            map.put(key.getKey(), key.getValue());
                         }
                         map.put("labelList", labelList);
                     }

@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -476,14 +477,34 @@ public class CustomerLabelService {
             CustomerGroupProperty groupProperty = new CustomerGroupProperty();
             groupProperty.setCustomerGroupId(Integer.parseInt(customerGroupId));
             groupProperty.setPropertyName("selectedLabels");
+            String propertyValue;
             if (StringUtil.isEmpty(selectedLabels)) {
-                groupProperty.setPropertyValue(JSON.toJSONString(new ArrayList<>()));
+                propertyValue = JSON.toJSONString(new ArrayList<>());
+                groupProperty.setPropertyValue(propertyValue);
             } else {
                 String[] values = selectedLabels.split(",");
-                groupProperty.setPropertyValue(JSON.toJSONString(values));
+                propertyValue = JSON.toJSONString(values);
+                groupProperty.setPropertyValue(propertyValue);
             }
             groupProperty.setCreateTime(new Timestamp(System.currentTimeMillis()));
             customGroupDao.saveOrUpdate(groupProperty);
+            //在客群下的所有任务中也生效
+            String taskIdsSql = "SELECT id FROM t_market_task WHERE customer_group_id=?";
+            List<String> taskIds = customGroupDao.queryForList(taskIdsSql, customerGroupId);
+            if (!CollectionUtils.isEmpty(taskIds)) {
+                List<MarketTaskProperty> taskProperties = new ArrayList<>();
+                for (int i = 0; i < taskIds.size(); i++) {
+                    MarketTaskProperty taskProperty = new MarketTaskProperty();
+                    taskProperty.setMarketTaskId(taskIds.get(i));
+                    taskProperty.setCreateTime(new Timestamp(System.currentTimeMillis()));
+                    taskProperty.setPropertyName("selectedLabels");
+                    taskProperty.setPropertyValue(propertyValue);
+                    taskProperties.add(taskProperty);
+                }
+                customGroupDao.batchSaveOrUpdate(taskProperties);
+            }
+
+
         } else if (StringUtil.isNotEmpty(marketTaskId)) {
             //查询任务对应选中的自建属性
             MarketTaskProperty taskProperty = new MarketTaskProperty();
@@ -1091,18 +1112,51 @@ public class CustomerLabelService {
         return json.toJSONString();
     }
 
+    @SuppressWarnings("all")
     private void getSelectedLabels(String marketTaskId, String customerGroupId, List<Map<String, Object>> result) {
-        if (StringUtil.isNotEmpty(marketTaskId)) {
-            MarketTaskProperty taskProperty = marketTaskDao.getProperty(marketTaskId, "selectedLabels");
-            if (taskProperty == null) {
-                result.stream().map(e -> e.put("is_selected", "0")).collect(Collectors.toList());
-            }
-        }
         if (StringUtil.isNotEmpty(customerGroupId)) {
             int customerGroupID = Integer.parseInt(customerGroupId);
             CustomerGroupProperty groupProperty = customGroupDao.getProperty(customerGroupID, "selectedLabels");
-            if (groupProperty == null) {
-                result.stream().map(e -> e.put("is_selected", "0")).collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(result)) {
+                for (int i = 0; i < result.size(); i++) {
+                    Map<String, Object> tempMap = result.get(i);
+                    tempMap.put("is_selected", "0");
+                    if (groupProperty != null) {
+                        String propertyValue = groupProperty.getPropertyValue();
+                        JSONArray jsonArray = JSONArray.parseArray(propertyValue);
+                        if (!CollectionUtils.isEmpty(jsonArray)) {
+                            for (int j = 0; j < jsonArray.size(); j++) {
+                                String labelId = jsonArray.getString(j);
+                                String labelIdItem = String.valueOf(tempMap.get("label_id"));
+                                if (labelId.equals(labelIdItem)) {
+                                    tempMap.put("is_selected", "1");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (StringUtil.isNotEmpty(marketTaskId)) {
+            MarketTaskProperty taskProperty = marketTaskDao.getProperty(marketTaskId, "selectedLabels");
+            if (!CollectionUtils.isEmpty(result)) {
+                for (int i = 0; i < result.size(); i++) {
+                    Map<String, Object> tempMap = result.get(i);
+                    tempMap.put("is_selected", "0");
+                    if (taskProperty != null) {
+                        String propertyValue = taskProperty.getPropertyValue();
+                        JSONArray jsonArray = JSONArray.parseArray(propertyValue);
+                        if (!CollectionUtils.isEmpty(jsonArray)) {
+                            for (int j = 0; j < jsonArray.size(); j++) {
+                                String labelId = jsonArray.getString(j);
+                                String labelIdItem = String.valueOf(tempMap.get("label_id"));
+                                if (labelId.equals(labelIdItem)) {
+                                    tempMap.put("is_selected", "1");
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
