@@ -31,6 +31,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service("/customerLabelService")
 @Transactional
@@ -475,9 +476,9 @@ public class CustomerLabelService {
             CustomerGroupProperty groupProperty = new CustomerGroupProperty();
             groupProperty.setCustomerGroupId(Integer.parseInt(customerGroupId));
             groupProperty.setPropertyName("selectedLabels");
-            if(StringUtil.isEmpty(selectedLabels)){
+            if (StringUtil.isEmpty(selectedLabels)) {
                 groupProperty.setPropertyValue(JSON.toJSONString(new ArrayList<>()));
-            }else{
+            } else {
                 String[] values = selectedLabels.split(",");
                 groupProperty.setPropertyValue(JSON.toJSONString(values));
             }
@@ -488,9 +489,9 @@ public class CustomerLabelService {
             MarketTaskProperty taskProperty = new MarketTaskProperty();
             taskProperty.setMarketTaskId(marketTaskId);
             taskProperty.setPropertyName("selectedLabels");
-            if(StringUtil.isEmpty(selectedLabels)){
+            if (StringUtil.isEmpty(selectedLabels)) {
                 taskProperty.setPropertyValue(JSON.toJSONString(new ArrayList<>()));
-            }else{
+            } else {
                 String[] values = selectedLabels.split(",");
                 taskProperty.setPropertyValue(JSON.toJSONString(values));
             }
@@ -1004,6 +1005,9 @@ public class CustomerLabelService {
                     }
                 }
             }
+            //当按照客群或者营销任务查询时，查询该客群或营销任务被选中显示的labels
+            getSelectedLabels(marketTaskId, customerGroupId, result);
+
             map.put("custGroupOrders", staticCustomerLabels(result, false));
             json.put("staffJson", map);
         } else {
@@ -1085,6 +1089,22 @@ public class CustomerLabelService {
             json.put("staffJson", map);
         }
         return json.toJSONString();
+    }
+
+    private void getSelectedLabels(String marketTaskId, String customerGroupId, List<Map<String, Object>> result) {
+        if (StringUtil.isNotEmpty(marketTaskId)) {
+            MarketTaskProperty taskProperty = marketTaskDao.getProperty(marketTaskId, "selectedLabels");
+            if (taskProperty == null) {
+                result.stream().map(e -> e.put("is_selected", "0")).collect(Collectors.toList());
+            }
+        }
+        if (StringUtil.isNotEmpty(customerGroupId)) {
+            int customerGroupID = Integer.parseInt(customerGroupId);
+            CustomerGroupProperty groupProperty = customGroupDao.getProperty(customerGroupID, "selectedLabels");
+            if (groupProperty == null) {
+                result.stream().map(e -> e.put("is_selected", "0")).collect(Collectors.toList());
+            }
+        }
     }
 
     /**
