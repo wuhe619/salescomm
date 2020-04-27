@@ -1094,14 +1094,15 @@ public class CustomerLabelService {
 
     @SuppressWarnings("all")
     private void getSelectedLabels(String marketTaskId, String customerGroupId, List<Map<String, Object>> result) {
-        if (StringUtil.isNotEmpty(marketTaskId)) {
-            MarketTaskProperty taskProperty = marketTaskDao.getProperty(marketTaskId, "selectedLabels");
+        if (StringUtil.isNotEmpty(customerGroupId)) {
+            int customerGroupID = Integer.parseInt(customerGroupId);
+            CustomerGroupProperty groupProperty = customGroupDao.getProperty(customerGroupID, "selectedLabels");
             if (!CollectionUtils.isEmpty(result)) {
                 for (int i = 0; i < result.size(); i++) {
                     Map<String, Object> tempMap = result.get(i);
                     tempMap.put("is_selected", "0");
-                    if (taskProperty != null) {
-                        String propertyValue = taskProperty.getPropertyValue();
+                    if (groupProperty != null) {
+                        String propertyValue = groupProperty.getPropertyValue();
                         JSONArray jsonArray = JSONArray.parseArray(propertyValue);
                         if (!CollectionUtils.isEmpty(jsonArray)) {
                             for (int j = 0; j < jsonArray.size(); j++) {
@@ -1116,15 +1117,14 @@ public class CustomerLabelService {
                 }
             }
         }
-        if (StringUtil.isNotEmpty(customerGroupId)) {
-            int customerGroupID = Integer.parseInt(customerGroupId);
-            CustomerGroupProperty groupProperty = customGroupDao.getProperty(customerGroupID, "selectedLabels");
+        if (StringUtil.isNotEmpty(marketTaskId)) {
+            MarketTaskProperty taskProperty = marketTaskDao.getProperty(marketTaskId, "selectedLabels");
             if (!CollectionUtils.isEmpty(result)) {
                 for (int i = 0; i < result.size(); i++) {
                     Map<String, Object> tempMap = result.get(i);
                     tempMap.put("is_selected", "0");
-                    if (groupProperty != null) {
-                        String propertyValue = groupProperty.getPropertyValue();
+                    if (taskProperty != null) {
+                        String propertyValue = taskProperty.getPropertyValue();
                         JSONArray jsonArray = JSONArray.parseArray(propertyValue);
                         if (!CollectionUtils.isEmpty(jsonArray)) {
                             for (int j = 0; j < jsonArray.size(); j++) {
