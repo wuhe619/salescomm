@@ -780,6 +780,61 @@ public class EntDataService {
             }
             qb.filter(condition);
         }
+
+        // 产品名称 支持多个
+        if (param.getJSONArray("productName") != null && param.getJSONArray("productName").size() > 0) {
+            JSONArray jsonArray = param.getJSONArray("productName");
+            BoolQueryBuilder condition = QueryBuilders.boolQuery();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                BoolQueryBuilder temp = QueryBuilders.boolQuery();
+                // 1-包含任一词 2-包含全部词 3-排除任一词 4-排除全部词
+                int typeName = jsonArray.getJSONObject(i).getInteger("typeName");
+                JSONArray texts = jsonArray.getJSONObject(i).getJSONArray("value");
+                if (typeName == 1) {
+                    for (int j = 0; j < texts.size(); j++) {
+                        temp.should(QueryBuilders.matchPhraseQuery("entintroduction", texts.getString(j)));
+                        temp.should(QueryBuilders.matchPhraseQuery("opScope", texts.getString(j)));
+                        temp.should(QueryBuilders.matchPhraseQuery("product", texts.getString(j)));
+                    }
+                    condition.should(temp);
+                } else if (typeName == 2) {
+                    for (int j = 0; j < texts.size(); j++) {
+                        BoolQueryBuilder bt = QueryBuilders.boolQuery();
+                        bt.must(QueryBuilders.matchPhraseQuery("entintroduction", texts.getString(j)));
+                        temp.should(bt);
+                        bt = QueryBuilders.boolQuery();
+                        bt.must(QueryBuilders.matchPhraseQuery("opScope", texts.getString(j)));
+                        temp.should(bt);
+                        bt = QueryBuilders.boolQuery();
+                        bt.must(QueryBuilders.matchPhraseQuery("product", texts.getString(j)));
+                        temp.should(bt);
+                    }
+                    condition.should(temp);
+                } else if (typeName == 3) {
+                    for (int j = 0; j < texts.size(); j++) {
+                        temp.should(QueryBuilders.matchPhraseQuery("entintroduction", texts.getString(j)));
+                        temp.should(QueryBuilders.matchPhraseQuery("opScope", texts.getString(j)));
+                        temp.should(QueryBuilders.matchPhraseQuery("product", texts.getString(j)));
+                    }
+                    condition.should(QueryBuilders.boolQuery().mustNot(temp));
+                } else if (typeName == 4) {
+                    for (int j = 0; j < texts.size(); j++) {
+                        BoolQueryBuilder bt = QueryBuilders.boolQuery();
+                        bt.must(QueryBuilders.matchPhraseQuery("entintroduction", texts.getString(j)));
+                        temp.should(bt);
+                        bt = QueryBuilders.boolQuery();
+                        bt.must(QueryBuilders.matchPhraseQuery("opScope", texts.getString(j)));
+                        temp.should(bt);
+                        bt = QueryBuilders.boolQuery();
+                        bt.must(QueryBuilders.matchPhraseQuery("product", texts.getString(j)));
+                        temp.should(bt);
+                    }
+                    condition.should(QueryBuilders.boolQuery().mustNot(temp));
+                }
+            }
+            qb.filter(condition);
+        }
+
         // 经营状态
         if (param.getJSONArray("regStatus") != null && param.getJSONArray("regStatus").size() > 0) {
             JSONArray jsonArray = param.getJSONArray("regStatus");
