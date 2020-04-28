@@ -1082,7 +1082,7 @@ public class EntDataService {
     public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) {
         JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
         if (baseResult != null) {
-            baseResult.put("phones", handlePhones(baseResult));
+            baseResult.put("phones", handlePhonesSrc(baseResult));
             if (seaId > 0) {
                 //处理公司联系方式是否有意向
                 handleClueFollowStatus(seaId, baseResult);
@@ -1105,11 +1105,11 @@ public class EntDataService {
         SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         JSONObject t = null;
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
-            Set<String> phones;
+            List<Map<String, Object>> phones;
             for (SearchResult.Hit<JSONObject, Void> hit : result.getHits(JSONObject.class)) {
                 t = hit.source;
                 t.put("id", hit.id);
-                phones = handlePhones(t);
+                phones = handlePhonesSrc(t);
                 t.put("sum", phones.size());
                 t.put("phones", phones);
                 break;
@@ -1132,6 +1132,36 @@ public class EntDataService {
                     if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
                             && !"-".equals(p)) {
                         phones.add(p);
+                    }
+                }
+            }
+        }
+        return phones;
+    }
+
+    /**
+     * 返回手机号以及来源
+     * @param baseResult
+     * @return
+     */
+    public List<Map<String, Object>> handlePhonesSrc(JSONObject baseResult) {
+        List<Map<String, Object>> phones = new ArrayList<>();
+        JSONArray phoneList = baseResult.getJSONArray("phonenest");
+        JSONObject phone;
+        if (phoneList != null && phoneList.size() > 0) {
+            Map<String, Object> v;
+            for (int i = 0; i < phoneList.size(); i++) {
+                phone = phoneList.getJSONObject(i);
+                if (StringUtil.isEmpty(phone.getString("p"))) {
+                    continue;
+                }
+                for (String p : phone.getString("p").split(",")) {
+                    if (StringUtil.isNotEmpty(p.trim().replaceAll(" ", ""))
+                            && !"-".equals(p)) {
+                        v = new HashMap<>();
+                        v.put("src", phone.getString("src"));
+                        v.put("p", p);
+                        phones.add(v);
                     }
                 }
             }
