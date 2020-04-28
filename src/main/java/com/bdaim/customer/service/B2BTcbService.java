@@ -259,6 +259,21 @@ public class B2BTcbService implements BusiService {
         return JSON.parseObject(String.valueOf(list.get(0).get("content"))).getLongValue("remain_num");
     }
 
+    public long getB2BTcbQuantity0(String custId) throws TouchException {
+        String sql = "select id,content from " + HMetaDataDef.getTable(BusiTypeEnum.B2B_TC.getType(), "") + " where type=? and cust_id = ? ";
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, BusiTypeEnum.B2B_TC.getType(), custId);
+        if (list == null || list.size() == 0) {
+            throw new TouchException("您未开通企业套餐包，请购买开通");
+        }
+
+        sql = "select id,content from " + HMetaDataDef.getTable(BusiTypeEnum.B2B_TC.getType(), "") + " where type=? and cust_id = ? and ext_4 = 1 ";
+        list = jdbcTemplate.queryForList(sql, BusiTypeEnum.B2B_TC.getType(), custId);
+        if (list == null || list.size() == 0) {
+            throw new TouchException("套餐包余量不足，请购买套餐包");
+        }
+        return JSON.parseObject(String.valueOf(list.get(0).get("content"))).getLongValue("remain_num");
+    }
+
     /**
      * 查询企业检索的数据来源
      *
