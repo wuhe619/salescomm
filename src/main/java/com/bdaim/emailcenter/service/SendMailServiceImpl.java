@@ -1,5 +1,6 @@
 package com.bdaim.emailcenter.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.hazelcast.PhoneTobe;
@@ -8,6 +9,8 @@ import com.bdaim.emailcenter.dto.MailBean;
 import com.bdaim.emailcenter.util.MailUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.ParseException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -26,7 +29,7 @@ import java.util.*;
 @Service("sendMailService")
 @Transactional
 public class SendMailServiceImpl implements SendMailService {
-    private static Log logger = LogFactory.getLog(SendMailServiceImpl.class);
+    private static Logger logger = LoggerFactory.getLogger(SendMailServiceImpl.class);
     private static String subject = "触点大数据平台";
     @Autowired
     private JavaMailSender javaMailSender;
@@ -164,6 +167,7 @@ public class SendMailServiceImpl implements SendMailService {
 
     /**
      * 众麦推广线索邮件通知
+     *
      * @param from
      * @param toEmails
      * @param title
@@ -177,6 +181,7 @@ public class SendMailServiceImpl implements SendMailService {
         mailBean.setToEmails(toEmails);
         mailBean.setContext(content);
         try {
+            logger.info("发送众麦推广线索邮件通知数据:{}", JSON.toJSONString(mailBean));
             this.sendMail(mailBean);
         } catch (Exception e) {
             logger.error("发送众麦推广线索邮件通知失败", e);
