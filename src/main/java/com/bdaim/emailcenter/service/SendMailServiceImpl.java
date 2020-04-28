@@ -10,7 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.ParseException;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +29,7 @@ public class SendMailServiceImpl implements SendMailService {
     private static Log logger = LogFactory.getLog(SendMailServiceImpl.class);
     private static String subject = "触点大数据平台";
     @Autowired
-    private JavaMailSenderImpl javaMailSenderImpl;
+    private JavaMailSender javaMailSender;
 
     /**
      * 创建MimeMessage
@@ -41,7 +41,7 @@ public class SendMailServiceImpl implements SendMailService {
      */
     @Override
     public MimeMessage createMimeMessage(MailBean mailBean) {
-        MimeMessage mimeMessage = javaMailSenderImpl.createMimeMessage();
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper messageHelper = null;
         try {
             messageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -64,7 +64,7 @@ public class SendMailServiceImpl implements SendMailService {
     @Override
     public void sendMail(MailBean mailBean) {
         MimeMessage msg = createMimeMessage(mailBean);
-        javaMailSenderImpl.send(msg);
+        javaMailSender.send(msg);
     }
 
     @Override
@@ -160,5 +160,26 @@ public class SendMailServiceImpl implements SendMailService {
         c.set(Calendar.MINUTE, 59);
         c.set(Calendar.SECOND, 59);
         return System.currentTimeMillis() - c.getTimeInMillis() > 0;
+    }
+
+    /**
+     * 众麦推广线索邮件通知
+     * @param from
+     * @param toEmails
+     * @param title
+     * @param content
+     */
+    public void sendZmClueNotice(String from, String[] toEmails, String title, String content) {
+        MailBean mailBean = new MailBean();
+        mailBean.setFrom(from);
+        mailBean.setFromName(title);
+        mailBean.setSubject(title);
+        mailBean.setToEmails(toEmails);
+        mailBean.setContext(content);
+        try {
+            this.sendMail(mailBean);
+        } catch (Exception e) {
+            logger.error("发送众麦推广线索邮件通知失败", e);
+        }
     }
 }
