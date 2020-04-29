@@ -798,17 +798,23 @@ public class EntDataService {
                     }
                     condition.should(temp);
                 } else if (typeName == 2) {
+                    BoolQueryBuilder bt = QueryBuilders.boolQuery();
                     for (int j = 0; j < texts.size(); j++) {
-                        BoolQueryBuilder bt = QueryBuilders.boolQuery();
                         bt.must(QueryBuilders.matchPhraseQuery("entintroduction", texts.getString(j)));
-                        temp.should(bt);
-                        bt = QueryBuilders.boolQuery();
-                        bt.must(QueryBuilders.matchPhraseQuery("opScope", texts.getString(j)));
-                        temp.should(bt);
-                        bt = QueryBuilders.boolQuery();
-                        bt.must(QueryBuilders.matchPhraseQuery("product", texts.getString(j)));
-                        temp.should(bt);
                     }
+                    temp.should(bt);
+
+                    bt = QueryBuilders.boolQuery();
+                    for (int j = 0; j < texts.size(); j++) {
+                        bt.must(QueryBuilders.matchPhraseQuery("opScope", texts.getString(j)));
+                    }
+                    temp.should(bt);
+
+                    bt = QueryBuilders.boolQuery();
+                    for (int j = 0; j < texts.size(); j++) {
+                        bt.must(QueryBuilders.matchPhraseQuery("product", texts.getString(j)));
+                    }
+                    temp.should(bt);
                     condition.should(temp);
                 } else if (typeName == 3) {
                     for (int j = 0; j < texts.size(); j++) {
@@ -818,17 +824,23 @@ public class EntDataService {
                     }
                     condition.should(QueryBuilders.boolQuery().mustNot(temp));
                 } else if (typeName == 4) {
+                    BoolQueryBuilder bt = QueryBuilders.boolQuery();
                     for (int j = 0; j < texts.size(); j++) {
-                        BoolQueryBuilder bt = QueryBuilders.boolQuery();
                         bt.must(QueryBuilders.matchPhraseQuery("entintroduction", texts.getString(j)));
-                        temp.should(bt);
-                        bt = QueryBuilders.boolQuery();
-                        bt.must(QueryBuilders.matchPhraseQuery("opScope", texts.getString(j)));
-                        temp.should(bt);
-                        bt = QueryBuilders.boolQuery();
-                        bt.must(QueryBuilders.matchPhraseQuery("product", texts.getString(j)));
-                        temp.should(bt);
                     }
+                    temp.should(bt);
+
+                    bt = QueryBuilders.boolQuery();
+                    for (int j = 0; j < texts.size(); j++) {
+                        bt.must(QueryBuilders.matchPhraseQuery("opScope", texts.getString(j)));
+                    }
+                    temp.should(bt);
+
+                    bt = QueryBuilders.boolQuery();
+                    for (int j = 0; j < texts.size(); j++) {
+                        bt.must(QueryBuilders.matchPhraseQuery("product", texts.getString(j)));
+                    }
+                    temp.should(bt);
                     condition.should(QueryBuilders.boolQuery().mustNot(temp));
                 }
             }
