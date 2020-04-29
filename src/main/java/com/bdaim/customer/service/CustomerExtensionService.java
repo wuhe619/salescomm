@@ -15,6 +15,7 @@ import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -53,30 +54,43 @@ public class CustomerExtensionService {
             }
             //众麦官网线索发送邮件通知
             if ("zm".equals(info.getString("src"))) {
-                StringBuffer content = new StringBuffer();
+                try {
+                    String content = "";
+                    List<Map<String, Object>> list = jdbcTemplate.queryForList("SELECT property_name, property_value, status, create_time FROM t_system_config WHERE property_name = 'zm_notice_email_content' AND status = 1 LIMIT 1;");
+                    if (list != null && list.size() > 0) {
+                        content = String.valueOf(list.get(0).get("property_value"));
+                    }
+                    if (StringUtil.isEmpty(content)) {
+                        content = "";
+                    }
+                    logger.info("众麦线索手机通知邮箱模板内容{}", content);
+               /* StringBuffer content = new StringBuffer();
                 content.append("您好，您有最新推广线索您查收。<br>");
-                content.append("公司名称：{custName}，姓名：{userName}，手机号：{tel}，类型：{type}，推广渠道：{source},访问设备：{device}，推广计划：{plan}，推广单元：{group}，关键词：{keyword}，提交时间：{time}");
-                String c = content.toString().replace("{custName}", info.getString("custName") != null ? info.getString("custName") : "")
-                        .replace("{userName}", info.getString("userName") != null ? info.getString("userName") : "")
-                        .replace("{tel}", info.getString("tel") != null ? info.getString("tel") : "")
-                        .replace("{type}", info.getString("type") != null ? info.getString("type") : "")
-                        .replace("{source}", info.getString("source") != null ? info.getString("source") : "")
-                        .replace("{device}", info.getString("device") != null ? info.getString("device") : "")
-                        .replace("{plan}", info.getString("plan") != null ? info.getString("plan") : "")
-                        .replace("{group}", info.getString("group") != null ? info.getString("group") : "")
-                        .replace("{keyword}", info.getString("keyword") != null ? info.getString("keyword") : "")
-                        .replace("{time}", DateUtil.formatDateTime(new Date(timestamp.getTime())));
-                // 查询收件人邮箱
-                List<Map<String, Object>> emails = jdbcTemplate.queryForList("SELECT * FROM t_system_config WHERE property_name = 'zm_notice_email' LIMIT 1;");
-                logger.info("众麦线索手机通知邮箱:{}", JSON.toJSONString(emails));
-                if (emails != null && emails.size() > 0
-                        && StringUtil.isNotEmpty(String.valueOf(emails.get(0).get("property_value")))) {
-                    sendMailService.sendZmClueNotice("chengning@bdaim.com", String.valueOf(emails.get(0).get("property_value")).split(","),
-                            "联客crm最新推广线索", c);
+                content.append("公司名称：{custName}，姓名：{userName}，手机号：{tel}，类型：{type}，推广渠道：{source},访问设备：{device}，推广计划：{plan}，推广单元：{group}，关键词：{keyword}，提交时间：{time}");*/
+                    String c = content.replace("{custName}", info.getString("custName") != null ? info.getString("custName") : "")
+                            .replace("{userName}", info.getString("userName") != null ? info.getString("userName") : "")
+                            .replace("{tel}", info.getString("tel") != null ? info.getString("tel") : "")
+                            .replace("{type}", info.getString("type") != null ? info.getString("type") : "")
+                            .replace("{source}", info.getString("source") != null ? info.getString("source") : "")
+                            .replace("{device}", info.getString("device") != null ? info.getString("device") : "")
+                            .replace("{plan}", info.getString("plan") != null ? info.getString("plan") : "")
+                            .replace("{group}", info.getString("group") != null ? info.getString("group") : "")
+                            .replace("{keyword}", info.getString("keyword") != null ? info.getString("keyword") : "")
+                            .replace("{time}", DateUtil.formatDateTime(new Date(timestamp.getTime())));
+                    // 查询收件人邮箱
+                    List<Map<String, Object>> emails = jdbcTemplate.queryForList("SELECT property_name, property_value, status, create_time FROM t_system_config WHERE property_name = 'zm_notice_email' AND status = 1 LIMIT 1;");
+                    logger.info("众麦线索手机通知内容:{},邮箱:{}", c, JSON.toJSONString(emails));
+                    if (StringUtil.isNotEmpty(content) && emails != null && emails.size() > 0
+                            && StringUtil.isNotEmpty(String.valueOf(emails.get(0).get("property_value")))) {
+                        sendMailService.sendZmClueNotice("chengning@bdaim.com", String.valueOf(emails.get(0).get("property_value")).split(","),
+                                "联客crm最新推广线索", c);
+                    }
+                } catch (Exception e) {
+                    logger.error("众麦线索收集邮箱推送异常", e);
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("线索收集异常", e);
         }
         return "Success";
     }
