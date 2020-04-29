@@ -90,7 +90,7 @@ public class CustomerExtensionService {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("线索收集异常", e);
         }
         return "Success";
     }
