@@ -2040,6 +2040,24 @@ public class CustomerAction extends BasicAction {
     }
 
     @ResponseBody
+    @RequestMapping(value = "/getB2BTcbQuantity0", method = RequestMethod.GET)
+    public String getB2BTcbQuantity0(String custId) {
+        ResponseInfo responseJson = new ResponseInfo();
+        try {
+            if (!isBackendUser()) {
+                custId = opUser().getCustId();
+            }
+            long quantity = b2BTcbService.getB2BTcbQuantity0(custId);
+            responseJson.setData(quantity);
+        } catch (TouchException e) {
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return JSON.toJSONString(responseJson);
+
+    }
+
+    @ResponseBody
     @GetMapping(value = "/b2b/search/config")
     public String getB2BSearchConfig(String custId) {
         ResponseInfo responseJson = new ResponseInfo();

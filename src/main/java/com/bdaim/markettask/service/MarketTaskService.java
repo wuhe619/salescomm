@@ -310,12 +310,12 @@ public class MarketTaskService {
             marketTaskDao.saveOrUpdate(callCount);
         }
         //振铃时长
-        if(StringUtil.isNotEmpty(param.getRingingduration())){
+        if (StringUtil.isNotEmpty(param.getRingingduration())) {
             MarketTaskProperty callCount = new MarketTaskProperty(marketTask.getId(), "ringingduration", param.getRingingduration(), new Timestamp(System.currentTimeMillis()));
             marketTaskDao.saveOrUpdate(callCount);
         }
         //时间规则id
-        if(StringUtil.isNotEmpty(param.getTimeruleid())){
+        if (StringUtil.isNotEmpty(param.getTimeruleid())) {
             MarketTaskProperty callCount = new MarketTaskProperty(marketTask.getId(), "timeruleid", param.getTimeruleid(), new Timestamp(System.currentTimeMillis()));
             marketTaskDao.saveOrUpdate(callCount);
         }
@@ -416,7 +416,7 @@ public class MarketTaskService {
         int maxConcurrentNumber = 50;
         LOG.info("讯众企业ID:" + callCenterId + ",最大并发数:" + maxConcurrentNumber);
         Map<String, Object> result = xzCallCenterService.addAutoTask(param.getName() + param.getId(), taskStartTime, taskEndTime, param.getApparentNumber(),
-                param.getCallSpeed(), NumberConvertUtil.parseInt(param.getCallCount()), callCenterId, maxConcurrentNumber,param.getRingingduration(),param.getTimeruleid());
+                param.getCallSpeed(), NumberConvertUtil.parseInt(param.getCallCount()), callCenterId, maxConcurrentNumber, param.getRingingduration(), param.getTimeruleid());
         if (result != null && "0".equals(String.valueOf(result.get("code")))) {
             JSONObject jsonObject = JSON.parseObject(JSON.toJSONString(result));
             xzTaskConfig = JSON.parseObject(jsonObject.getString("data"));
@@ -610,7 +610,7 @@ public class MarketTaskService {
                     String taskId = jsonObject.getString("taskid");
                     LocalDateTime taskEndTime = LocalDateTime.ofEpochSecond(param.getTaskEndTime() / 1000, 0, ZoneOffset.ofHours(8));
                     xzCallCenterService.editAutoTask(taskId, taskEndTime, param.getApparentNumber(),
-                            param.getCallSpeed(), NumberConvertUtil.parseInt(param.getCallCount()), xzCallCenterId,param.getRingingduration(),param.getTimeruleid());
+                            param.getCallSpeed(), NumberConvertUtil.parseInt(param.getCallCount()), xzCallCenterId, param.getRingingduration(), param.getTimeruleid());
                 } else {
                     LOG.warn("营销任务:" + marketTask.getId() + ",未查询到xzTaskConfig配置信息");
                 }
@@ -625,28 +625,29 @@ public class MarketTaskService {
 
     /**
      * 获取时间规则列表
+     *
      * @param resId
      */
-    public JSONArray getCallTimeRuleList(String resId){
+    public JSONArray getCallTimeRuleList(String resId) {
         try {
             String callCenterId = "";
-            MarketResourceDTO dto = marketResourceDao.getInfoProperty(Integer.valueOf(resId),"price_config");
+            MarketResourceDTO dto = marketResourceDao.getInfoProperty(Integer.valueOf(resId), "price_config");
             String propertyv = dto.getResourceProperty();
-            if(StringUtil.isEmpty(propertyv)){
+            if (StringUtil.isEmpty(propertyv)) {
                 return null;
             }
             JSONObject priceConfig = JSON.parseObject(propertyv);
-            if(!priceConfig.containsKey("call_center_config")){
+            if (!priceConfig.containsKey("call_center_config")) {
                 return null;
             }
             JSONObject call_center_config = priceConfig.getJSONObject("call_center_config");
-            if(call_center_config!=null && call_center_config.containsKey("callCenterId")){
+            if (call_center_config != null && call_center_config.containsKey("callCenterId")) {
                 callCenterId = call_center_config.getString("callCenterId");
-            }else{
+            } else {
                 return null;
             }
             JSONObject json = XzCallCenterUtil.callOutTimeRuleList(callCenterId);
-            if("0".equals(json.getString("code"))){
+            if ("0".equals(json.getString("code"))) {
                 return json.getJSONArray("data");
             }
         } catch (Exception e) {
@@ -654,6 +655,7 @@ public class MarketTaskService {
         }
         return null;
     }
+
     /**
      * 异步导入营销任务详情表数据
      *
@@ -1184,7 +1186,7 @@ public class MarketTaskService {
         //map.put("total", marketTaskDao.getSQLQuery(sql.toString()).list().size());
         Page page = marketTaskDao.sqlPageQuery0(sql.toString(), param.getPageNum(), param.getPageSize(), args.toArray());
         map.put("total", page.getTotal());
-        List<Map<String, Object>>   list = page.getData();
+        List<Map<String, Object>> list = page.getData();
         if (list != null && list.size() > 0) {
             for (int i = 0; i < list.size(); i++) {
                 Map<String, Object> model = list.get(i);
@@ -1325,7 +1327,7 @@ public class MarketTaskService {
         }
 
         sb.append(" ORDER BY id ASC ");
-        LOG.info("markettaskdetail:{},{}",sb.toString(),args.toArray());
+        LOG.info("markettaskdetail:{},{}", sb.toString(), args.toArray());
         try {
             page = marketTaskDao.sqlPageQuery0(sb.toString(), pageNum, pageSize, args.toArray());
         } catch (Exception e) {
@@ -2385,9 +2387,9 @@ public class MarketTaskService {
         MarketTaskDTO dto = new MarketTaskDTO(marketTask, apparentNum,
                 StringUtil.isNotEmpty(csp) ? csp : null,
                 StringUtil.isNotEmpty(ccn) ? NumberConvertUtil.parseInt(ccn) : null,
-                StringUtil.isNotEmpty(ringingdurationStr)? ringingdurationStr : null,
-                StringUtil.isNotEmpty(timeruleidStr)? timeruleidStr : null
-                );
+                StringUtil.isNotEmpty(ringingdurationStr) ? ringingdurationStr : null,
+                StringUtil.isNotEmpty(timeruleidStr) ? timeruleidStr : null
+        );
 
 
         // 查询呼叫渠道
@@ -4469,12 +4471,18 @@ public class MarketTaskService {
                     .append(marketTaskId)
                     .append(" like t_customer_group_list");
             marketTaskDao.executeUpdateSQL(sql.toString());
+
+            Map<String, Object> count = marketTaskDao.queryUniqueSql("SELECT COUNT(0) count FROM t_customer_group_list_" + customGroupId + " WHERE base_super_data <>'' ");
+            String selectKey = "super_data";
+            if (count != null && count.get("count") != null && NumberConvertUtil.parseInt(count.get("count")) > 0) {
+                selectKey = "base_super_data";
+            }
             //导入数据
             List args = new ArrayList();
             sql = new StringBuffer();
             sql.append("INSERT INTO " + ConstantsUtil.MARKET_TASK_TABLE_PREFIX + marketTaskId)
-                    .append(" (id,status,remark,super_name,super_age,super_sex,super_telphone,super_phone,super_address_province_city,super_address_street,super_data,intent_level) ")
-                    .append(" SELECT id, '1', remark,super_name,super_age,super_sex,super_telphone,super_phone,super_address_province_city,super_address_street,super_data,intent_level ")
+                    .append(" (id,status,remark,super_name,super_age,super_sex,super_telphone,super_phone,super_address_province_city,super_address_street,super_data,intent_level, base_super_data) ")
+                    .append(" SELECT id, '1', remark,super_name,super_age,super_sex,super_telphone,super_phone,super_address_province_city,super_address_street," + selectKey + ",intent_level, base_super_data ")
                     .append(" FROM t_customer_group_list_" + customGroupId)
                     .append(" WHERE 1=1 ");
             if (StringUtil.isNotEmpty(groupCondition)) {
@@ -4559,7 +4567,7 @@ public class MarketTaskService {
             if (StringUtil.isNotEmpty(pageIndex) && StringUtil.isNotEmpty(pageSize)) {
                 sql.append(" LIMIT ").append(pageIndex).append(",").append(pageSize);
             }
-            LOG.info("入数据到营销任务:"+marketTaskId+";"+sql.toString()+";"+args);
+            LOG.info("入数据到营销任务:" + marketTaskId + ";" + sql.toString() + ";" + args);
             marketTaskDao.executeUpdateSQL(sql.toString(), args.toArray());
         }
 

@@ -1,5 +1,6 @@
 package com.bdaim.emailcenter.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.hazelcast.PhoneTobe;
@@ -8,9 +9,11 @@ import com.bdaim.emailcenter.dto.MailBean;
 import com.bdaim.emailcenter.util.MailUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.ParseException;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
@@ -26,10 +29,10 @@ import java.util.*;
 @Service("sendMailService")
 @Transactional
 public class SendMailServiceImpl implements SendMailService {
-    private static Log logger = LogFactory.getLog(SendMailServiceImpl.class);
+    private static Logger logger = LoggerFactory.getLogger(SendMailServiceImpl.class);
     private static String subject = "触点大数据平台";
     @Autowired
-    private JavaMailSenderImpl javaMailSenderImpl;
+    private JavaMailSender javaMailSender;
 
     /**
      * 创建MimeMessage
@@ -41,7 +44,7 @@ public class SendMailServiceImpl implements SendMailService {
      */
     @Override
     public MimeMessage createMimeMessage(MailBean mailBean) {
-        MimeMessage mimeMessage = javaMailSenderImpl.createMimeMessage();
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper messageHelper = null;
         try {
             messageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -64,7 +67,7 @@ public class SendMailServiceImpl implements SendMailService {
     @Override
     public void sendMail(MailBean mailBean) {
         MimeMessage msg = createMimeMessage(mailBean);
-        javaMailSenderImpl.send(msg);
+        javaMailSender.send(msg);
     }
 
     @Override
@@ -160,5 +163,28 @@ public class SendMailServiceImpl implements SendMailService {
         c.set(Calendar.MINUTE, 59);
         c.set(Calendar.SECOND, 59);
         return System.currentTimeMillis() - c.getTimeInMillis() > 0;
+    }
+
+    /**
+     * 众麦推广线索邮件通知
+     *
+     * @param from
+     * @param toEmails
+     * @param title
+     * @param content
+     */
+    public void sendZmClueNotice(String from, String[] toEmails, String title, String content) {
+        MailBean mailBean = new MailBean();
+        mailBean.setFrom(from);
+        mailBean.setFromName(title);
+        mailBean.setSubject(title);
+        mailBean.setToEmails(toEmails);
+        mailBean.setContext(content);
+        try {
+            logger.info("发送众麦推广线索邮件通知数据:{}", JSON.toJSONString(mailBean));
+            this.sendMail(mailBean);
+        } catch (Exception e) {
+            logger.error("发送众麦推广线索邮件通知失败", e);
+        }
     }
 }

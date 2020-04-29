@@ -104,6 +104,8 @@ public class B2BTcbService implements BusiService {
      * @throws Exception
      */
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
+        // 处理无效套餐
+        handleInvalidTC(cust_id, busiType);
         String sql = "select id,content from " + HMetaDataDef.getTable(busiType, "") + " where type=? and cust_id = ? and ext_4 = 1 ";
         List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql, busiType, cust_id);
         if (countList != null && countList.size() > 0) {
@@ -241,7 +243,10 @@ public class B2BTcbService implements BusiService {
 
     @Override
     public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
-        // TODO Auto-generated method stub
+        //ext_4 =? AND content->'$.remain_num' = ?
+        if ("1".equals(info.getString("ext_4")) && "0".equals(info.getString("remain_num"))) {
+            info.put("status", 2);
+        }
     }
 
     /**
@@ -255,6 +260,21 @@ public class B2BTcbService implements BusiService {
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, BusiTypeEnum.B2B_TC.getType(), custId);
         if (list == null || list.size() == 0) {
             return 0L;
+        }
+        return JSON.parseObject(String.valueOf(list.get(0).get("content"))).getLongValue("remain_num");
+    }
+
+    public long getB2BTcbQuantity0(String custId) throws TouchException {
+        String sql = "select id,content from " + HMetaDataDef.getTable(BusiTypeEnum.B2B_TC.getType(), "") + " where type=? and cust_id = ? ";
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, BusiTypeEnum.B2B_TC.getType(), custId);
+        if (list == null || list.size() == 0) {
+            throw new TouchException("您未开通企业套餐包，请购买开通");
+        }
+
+        sql = "select id,content from " + HMetaDataDef.getTable(BusiTypeEnum.B2B_TC.getType(), "") + " where type=? and cust_id = ? and ext_4 = 1 ";
+        list = jdbcTemplate.queryForList(sql, BusiTypeEnum.B2B_TC.getType(), custId);
+        if (list == null || list.size() == 0) {
+            throw new TouchException("套餐包余量不足，请购买套餐包");
         }
         return JSON.parseObject(String.valueOf(list.get(0).get("content"))).getLongValue("remain_num");
     }
@@ -466,6 +486,8 @@ public class B2BTcbService implements BusiService {
         }
         // 更新套餐余量和消耗量
         updateTbRemain(useB2BTcb.getLong("id"), consumeNum, BusiTypeEnum.B2B_TC.getType());
+        // 处理无效套餐
+        handleInvalidTC(custId, busiType);
         return 0;
     }
 
@@ -942,6 +964,22 @@ public class B2BTcbService implements BusiService {
             }
         }
         return code;
+    }
+
+    /**
+     * 处理失效套餐(套餐余量为0但是有效的套餐变更为无效)
+     *
+     * @param custId
+     * @param busiType
+     */
+    public void handleInvalidTC(String custId, String busiType) {
+        // 查询开通状态为正常但是余量等于0的套餐
+        String sql = "select id from " + HMetaDataDef.getTable(busiType, "") + " where type=? AND cust_id = ? AND ext_4 =? AND (content->'$.remain_num' = ? OR content->'$.remain_num' = ? ) ";
+        List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql, busiType, custId, 1, 0, "0");
+        String updateSql = "UPDATE " + HMetaDataDef.getTable(busiType, "") + " SET ext_4 = ?, content = JSON_SET(content, '$.status', ?) WHERE id = ? ";
+        for (Map<String, Object> m : maps) {
+            jdbcTemplate.update(updateSql, "2", 2, m.get("id"));
+        }
     }
 
 }
