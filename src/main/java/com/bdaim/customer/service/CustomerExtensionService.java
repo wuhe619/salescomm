@@ -53,6 +53,7 @@ public class CustomerExtensionService {
             }
             //众麦官网线索发送邮件通知
             if ("zm".equals(info.getString("src"))) {
+
                 StringBuffer content = new StringBuffer();
                 content.append("您好，您有最新推广线索您查收。<br>");
                 content.append("公司名称：{custName}，姓名：{userName}，手机号：{tel}，类型：{type}，推广渠道：{source},访问设备：{device}，推广计划：{plan}，推广单元：{group}，关键词：{keyword}，提交时间：{time}");
@@ -67,7 +68,7 @@ public class CustomerExtensionService {
                         .replace("{keyword}", info.getString("keyword") != null ? info.getString("keyword") : "")
                         .replace("{time}", DateUtil.formatDateTime(new Date(timestamp.getTime())));
                 // 查询收件人邮箱
-                List<Map<String, Object>> emails = jdbcTemplate.queryForList("SELECT * FROM t_system_config WHERE property_name = 'zm_notice_email' LIMIT 1;");
+                List<Map<String, Object>> emails = jdbcTemplate.queryForList("SELECT property_name, property_value, status, create_time FROM t_system_config WHERE property_name = 'zm_notice_email' AND status = 1 LIMIT 1;");
                 logger.info("众麦线索手机通知邮箱:{}", JSON.toJSONString(emails));
                 if (emails != null && emails.size() > 0
                         && StringUtil.isNotEmpty(String.valueOf(emails.get(0).get("property_value")))) {
