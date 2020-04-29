@@ -63,6 +63,29 @@ spring:
       pool:
         size: 10
       thread-name-prefix: task-pool-
+  #邮箱发送配置
+  mail:
+    #host不配置会注入失败
+    host: smtp.bdaim.com
+    # 端口
+    port: 465
+    username: chengning@bdaim.com
+    password: giant2020tcr.
+    default-encoding: utf-8
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
+          ssl:
+            enable: true
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+            port: 465
+
 logging:
   level:
     #root: Debug

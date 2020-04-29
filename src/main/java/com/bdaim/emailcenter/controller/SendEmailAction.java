@@ -57,10 +57,10 @@ public class SendEmailAction extends BasicAction {
 		// ApplicationContext ac = new
 		// ClassPathXmlApplicationContext("spring-mail.xml");
 		MailBean mailBean = new MailBean();
-		mailBean.setFrom("");
+		mailBean.setFrom("chengning@bdaim.com");
 		mailBean.setFromName("这是发件人的名字");
 		mailBean.setSubject("主题是为了测试");
-		mailBean.setToEmails(new String[] { "" });
+		mailBean.setToEmails(new String[] { "chengning@bdaim.com" });
 		mailBean.setContext("<a href=''>邮件内容点击进入公司首页</a>");
 		sendMailService.sendMail(mailBean);
 		return null;
@@ -223,5 +223,20 @@ public class SendEmailAction extends BasicAction {
 				resultMap.put("data", "1");
 				json.put("data", resultMap);
 				return json.toString();
+	}
+
+	@RequestMapping(value = "/sendZmClue", method = RequestMethod.POST)
+	@ResponseBody
+	@CacheAnnotation
+	public Object sendZmClue(String phone, String state, String username) {
+		MailBean mailBean = new MailBean();
+		mailBean.setFrom("chengning@bdaim.com");
+		mailBean.setFromName("联客crm最新推广线索");
+		mailBean.setSubject("联客crm最新推广线索");
+		mailBean.setToEmails(new String[] { "chengning@bdaim.com" });
+		mailBean.setContext("您好，您有最新推广线索您查收。<br>" +
+				"公司名称：获客，姓名：张三，手机号：18510278787，类型：免费体验，推广渠道：Baidu,访问设备：H5，推广计划：X【lk】qymlhy，推广单元：Xqydh-tyc，关键词：Xqiyemingdanlianxidianhua，提交时间：2020-04-27 14:58:11");
+		sendMailService.sendMail(mailBean);
+		return null;
 	}
 }

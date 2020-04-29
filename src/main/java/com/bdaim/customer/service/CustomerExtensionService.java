@@ -1,22 +1,26 @@
 package com.bdaim.customer.service;
 
+import cn.hutool.core.date.DateUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.emailcenter.service.SendMailService;
+import com.bdaim.emailcenter.service.SendMailServiceImpl;
 import com.bdaim.smscenter.service.SendSmsService;
+import com.bdaim.util.DatetimeUtils;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class CustomerExtensionService {
@@ -33,10 +37,13 @@ public class CustomerExtensionService {
     @Autowired
     private PhoneService phoneService;
 
+    @Autowired
+    private SendMailServiceImpl sendMailService;
+
     public String saveExtension(JSONObject info) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        if(!info.containsKey("clazz")){
-            info.put("clazz","toB");
+        if (!info.containsKey("clazz")) {
+            info.put("clazz", "toB");
         }
         String sql = "insert into op_crm_clue_log(content,create_time,update_time) values (?, ?, ?)";
         jdbcTemplate.update(sql, info.toJSONString(), timestamp, timestamp);
@@ -45,16 +52,53 @@ public class CustomerExtensionService {
                 sendSmsService.sendSmsVcCodeByCommChinaAPI("18888851832", 12, "admin");
                 sendSmsService.sendSmsVcCodeByCommChinaAPI("13601128981", 12, "admin");
             }
-        }catch (Exception e){
-            e.printStackTrace();
+            //众麦官网线索发送邮件通知
+            if ("zm".equals(info.getString("src"))) {
+                try {
+                    String content = "";
+                    List<Map<String, Object>> list = jdbcTemplate.queryForList("SELECT property_name, property_value, status, create_time FROM t_system_config WHERE property_name = 'zm_notice_email_content' AND status = 1 LIMIT 1;");
+                    if (list != null && list.size() > 0) {
+                        content = String.valueOf(list.get(0).get("property_value"));
+                    }
+                    if (StringUtil.isEmpty(content)) {
+                        content = "";
+                    }
+                    logger.info("众麦线索手机通知邮箱模板内容{}", content);
+               /* StringBuffer content = new StringBuffer();
+                content.append("您好，您有最新推广线索您查收。<br>");
+                content.append("公司名称：{custName}，姓名：{userName}，手机号：{tel}，类型：{type}，推广渠道：{source},访问设备：{device}，推广计划：{plan}，推广单元：{group}，关键词：{keyword}，提交时间：{time}");*/
+                    String c = content.replace("{custName}", info.getString("custName") != null ? info.getString("custName") : "")
+                            .replace("{userName}", info.getString("userName") != null ? info.getString("userName") : "")
+                            .replace("{tel}", info.getString("tel") != null ? info.getString("tel") : "")
+                            .replace("{type}", info.getString("type") != null ? info.getString("type") : "")
+                            .replace("{source}", info.getString("source") != null ? info.getString("source") : "")
+                            .replace("{device}", info.getString("device") != null ? info.getString("device") : "")
+                            .replace("{plan}", info.getString("plan") != null ? info.getString("plan") : "")
+                            .replace("{group}", info.getString("group") != null ? info.getString("group") : "")
+                            .replace("{keyword}", info.getString("keyword") != null ? info.getString("keyword") : "")
+                            .replace("{time}", DateUtil.formatDateTime(new Date(timestamp.getTime())));
+                    // 查询收件人邮箱
+                    List<Map<String, Object>> emails = jdbcTemplate.queryForList("SELECT property_name, property_value, status, create_time FROM t_system_config WHERE property_name = 'zm_notice_email' AND status = 1 LIMIT 1;");
+                    logger.info("众麦线索手机通知内容:{},邮箱:{}", c, JSON.toJSONString(emails));
+                    if (StringUtil.isNotEmpty(content) && emails != null && emails.size() > 0
+                            && StringUtil.isNotEmpty(String.valueOf(emails.get(0).get("property_value")))) {
+                        sendMailService.sendZmClueNotice("chengning@bdaim.com", String.valueOf(emails.get(0).get("property_value")).split(","),
+                                "联客crm最新推广线索", c);
+                    }
+                } catch (Exception e) {
+                    logger.error("众麦线索收集邮箱推送异常", e);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("线索收集异常", e);
         }
         return "Success";
     }
 
     public String updateExtension(long id, JSONObject info) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        if(!info.containsKey("clazz")){
-            info.put("clazz","toB");
+        if (!info.containsKey("clazz")) {
+            info.put("clazz", "toB");
         }
         String sql = "update op_crm_clue_log set content = ? ,update_time = ? where id = ? ";
         jdbcTemplate.update(sql, info.toJSONString(), timestamp, id);
@@ -64,10 +108,10 @@ public class CustomerExtensionService {
     public Page query(JSONObject info, PageParam page) {
         StringBuffer sql = new StringBuffer("select id,content,create_time from op_crm_clue_log where 1=1");
         List<Object> p = new ArrayList<>();
-        if(info.containsKey("clazz")) {
+        if (info.containsKey("clazz")) {
             p.add(info.getString("clazz").trim());
             sql.append(" and content->'$.clazz' = ?");
-        }else{
+        } else {
             p.add("other");
             sql.append(" and content->'$.clazz' = ?");
         }
@@ -90,7 +134,7 @@ public class CustomerExtensionService {
         }
         if (StringUtil.isNotEmpty(info.getString("id"))) {
 //            p.add(info.getString("id"));
-            sql.append(" and  id in ("+info.getString("id")+")");
+            sql.append(" and  id in (" + info.getString("id") + ")");
         }
         if (StringUtil.isNotEmpty(info.getString("src"))) {
             p.add(info.getString("src"));
@@ -99,9 +143,9 @@ public class CustomerExtensionService {
 
         sql.append(" order by create_time desc");
 //        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (page.getPageNum() - 1) * page.getPageSize() + ", " + page.getPageSize());
-        logger.info("sql {},param{}",sql.toString(),p.toArray());
+        logger.info("sql {},param{}", sql.toString(), p.toArray());
         Page list = customerDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize(), p.toArray());
-        logger.info("list::{}",list);
+        logger.info("list::{}", list);
         List list1 = new ArrayList();
         list.getData().stream().forEach(m -> {
             Map map = (Map) m;
