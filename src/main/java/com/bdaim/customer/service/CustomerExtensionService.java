@@ -1,6 +1,7 @@
 package com.bdaim.customer.service;
 
 import cn.hutool.core.date.DateUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
@@ -18,10 +19,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class CustomerExtensionService {
@@ -68,8 +66,14 @@ public class CustomerExtensionService {
                         .replace("{group}", info.getString("group") != null ? info.getString("group") : "")
                         .replace("{keyword}", info.getString("keyword") != null ? info.getString("keyword") : "")
                         .replace("{time}", DateUtil.formatDateTime(new Date(timestamp.getTime())));
-                sendMailService.sendZmClueNotice("chengning@bdaim.com", new String[]{"chengning@bdaim.com"},
-                        "联客crm最新推广线索", c);
+                // 查询收件人邮箱
+                List<Map<String, Object>> emails = jdbcTemplate.queryForList("SELECT * FROM t_system_config WHERE property_name = 'zm_notice_email' LIMIT 1;");
+                logger.info("众麦线索手机通知邮箱:{}", JSON.toJSONString(emails));
+                if (emails != null && emails.size() > 0
+                        && StringUtil.isNotEmpty(String.valueOf(emails.get(0).get("property_value")))) {
+                    sendMailService.sendZmClueNotice("chengning@bdaim.com", String.valueOf(emails.get(0).get("property_value")).split(","),
+                            "联客crm最新推广线索", c);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
