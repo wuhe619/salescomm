@@ -131,6 +131,22 @@ public class CustomerRegistDTO implements Serializable {
      */
     private String settlement_method;
 
+    /**
+     * 代理商ID
+     */
+    private String agentId;
+
+    /**
+     * 佣金比例(百分比)
+     */
+    private String commissionRate;
+
+    /**
+     * 余额提醒配置
+     * {"balanceLower":"余额下限","smsConfig":{"status":true,"value":"15166662222"},"emailConfig":{"status":true,"value":"www@qq.com"}}
+     */
+    private String balanceRemind;
+
     public String getSettlement_method() {
         return settlement_method;
     }
@@ -579,5 +595,29 @@ public class CustomerRegistDTO implements Serializable {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public String getAgentId() {
+        return agentId;
+    }
+
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
+    }
+
+    public String getCommissionRate() {
+        return commissionRate;
+    }
+
+    public void setCommissionRate(String commissionRate) {
+        this.commissionRate = commissionRate;
+    }
+
+    public String getBalanceRemind() {
+        return balanceRemind;
+    }
+
+    public void setBalanceRemind(String balanceRemind) {
+        this.balanceRemind = balanceRemind;
     }
 }
