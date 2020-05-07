@@ -817,7 +817,7 @@ public class ApiService {
         //, count(api.API_ID) as countNum
         List args = new ArrayList();
         sql.append(" select api.API_ID as apiId, api.API_NAME as apiName, que.RESPONSE_MSG as body,round(log.CHARGE/10000) as charge," +
-                "SUM(case que.response_msg when que.response_msg->>'$.cost'='1' THEN 1 ELSE 0 END ) monthSuccess,que.SERVICE_TIME as serviceTime");
+                "SUM(case que.response_msg->>'$.cost' when '1' THEN 1 ELSE 0 END ) monthSuccess,que.SERVICE_TIME as serviceTime");
         sql.append(" from rs_log_" + params.getString("callMonth") + " log left join am_api api  on  log.API_ID =api.API_ID");
         sql.append(" left join am_charge_" + params.getString("callMonth") + " que on que.ID=log.API_LOG_ID");
         sql.append(" where 1=1");
