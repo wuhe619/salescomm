@@ -522,24 +522,24 @@ public class CrmLeadsService {
      * @throws TouchException
      */
     public int distributionClue(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
-        // 单一负责人分配线索|手动领取所选
         int status = 0;
+        // 领取所选给自己 普通员工
         if (1 == operate) {
-           /* if (BaseUtil.getUserType() == 1) {
+            /*if (BaseUtil.getUserType() == 1) {
                 throw new TouchException("管理员不能领取线索");
             }*/
             status = singleDistributionClue(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
         } else if (2 == operate) {
+            // 分配所选给坐席 管理员
+            status = batchReceiveClue(param, param.getUserIds().get(0));
+        } else if (3 == operate) {
+            // 快速分配给坐席 管理员
+            status = batchDistributionClue(param, assignedList);
+        } else if (4 == operate) {
+            // 快速领取给自己 普通员工
             /*if (BaseUtil.getUserType() == 1) {
                 throw new TouchException("管理员不能领取线索");
             }*/
-            // 坐席根据检索条件批量领取线索
-            status = batchReceiveClue(param, param.getUserIds().get(0));
-        } else if (3 == operate) {
-            //根据检索条件批量给多人快速分配线索
-            status = batchDistributionClue(param, assignedList);
-        } else if (4 == operate) {
-            //坐席指定数量领取线索
             status = getReceiveClueByNumber(param.getSeaId(), param.getUserIds().get(0), param.getGetClueNumber());
         }
         return status;
