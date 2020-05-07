@@ -1148,7 +1148,7 @@ public class CrmLeadsService {
                 .append("( `user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, `create_time`) VALUES (?,?,?,?,?,?)");
 
         StringBuilder select = new StringBuilder("SELECT * FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
-                .append(" custG WHERE custG.status = 1  ");
+                .append(" custG WHERE custG.status = 1 AND id IN (" + SqlAppendUtil.sqlAppendWhereIn(param.getSuperIds()) + ") ");
         List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(param.getSearch())) {
             p.add(param.getSearch());
@@ -1168,7 +1168,9 @@ public class CrmLeadsService {
             customerSeaDao.executeUpdateSQL(logSql.toString(), userId, m.get("id"), param.getSeaId(), m.get("batch_id"), 5, now);
             superIds.add(String.valueOf(m.get("id")));
         }
+        // 领取到线索私海
         transferToPrivateSea(param.getSeaId(), userId, superIds);
+        // 添加线索公海统计记录
         addPublicSeaStats(userId, superIds, null);
         return count;
     }
