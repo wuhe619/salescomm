@@ -298,6 +298,12 @@ public class CustomerUserService {
             adminUser.setParentId(0L);
             lkAdminUserService.createInitData(adminUser, cu.getId(), customerId);
         }
+        // 代理商ID
+        customerDao.saveOrUpdate(new CustomerProperty(customerId, "agent_id", value.getAgentId()));
+        // 佣金比例
+        customerDao.saveOrUpdate(new CustomerProperty(customerId, "commission_rate", value.getCommissionRate()));
+        // 余额预警提醒
+        customerDao.saveOrUpdate(new CustomerProperty(customerId, "balance_remind", value.getBalanceRemind()));
 
         // 处理用户自建属性
         customerUserDao.saveOrUpdate(new CustomerUserPropertyDO(String.valueOf(cu.getId()), "email", value.getEmail(), new Timestamp(System.currentTimeMillis())));
