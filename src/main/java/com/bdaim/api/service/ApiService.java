@@ -320,14 +320,20 @@ public class ApiService {
             Map dataMap = (Map) m;
             List param = new ArrayList();
             dataMap.put("monthFee", 0);
-            String monCallFeeSql = "select sum(charge)monthCharge," +
-                    "SUM(case response_msg when response_msg->>'$.cost'='1' THEN 1 ELSE 0 END ) monthSuccess from am_charge_" + params.getString("callMonth") + " " +
+            String monCallFeeSql = "select sum(charge)monthCharge" +
+                    " from am_charge_" + params.getString("callMonth") + " " +
                     " where SUBSCRIBER_ID=? and api_id=?";
             param.add(dataMap.get("SUBSCRIBERID"));
             param.add(params.getString("apiId"));
             Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
             String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 3);
             dataMap.put("monthFee", monChargeStr);
+            //SUM(case response_msg when response_msg->>'$.cost'='1' THEN 1 ELSE 0 END ) monthSuccess
+            String monthSuccessSql = "select SUM(case response_msg when response_msg->>'$.cost'='1' THEN 1 ELSE 0 END ) monthSuccess " +
+                    " from am_charge_" + params.getString("callMonth") + " " +
+                    " where SUBSCRIBER_ID=? and api_id=?";
+            Integer monthSuccess = jdbcTemplate.queryForObject(monthSuccessSql, param.toArray(), Integer.class);
+            dataMap.put("monthSuccess", monthSuccess);
             return dataMap;
         }).collect(Collectors.toList());
         map.put("list", collect);
