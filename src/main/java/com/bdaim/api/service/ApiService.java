@@ -268,6 +268,10 @@ public class ApiService {
                     String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 3);
                     dataMap.put("monthFee", monChargeStr);
                 }
+                String monthSuccessSql = "SELECT SUM(case response_msg when response_msg->>'$.cost'='1' THEN 1 ELSE 0 END ) monthSuccess "
+                        + " FROM am_charge_" + params.getString("callMonth") + " WHERE api_id='" + apiId + "'";
+                Integer monthSuccess = jdbcTemplate.queryForObject(monthSuccessSql, Integer.class);
+                dataMap.put("monthSuccess", monthSuccess);
             }
             try {
                 String sql2 = " select  property_value from am_api_property  where api_id = ? and property_name='rsIds'";
