@@ -882,9 +882,7 @@ public class CrmLeadsService {
             crmLeads.setCreateTime(DateUtil.date().toTimestamp());
             crmLeads.setUpdateTime(DateUtil.date().toTimestamp());
             crmLeads.setCreateUserId(user.getUserId());
-            if (crmLeads.getOwnerUserId() == null) {
-                crmLeads.setOwnerUserId(user.getUserId());
-            }
+            crmLeads.setOwnerUserId(NumberConvertUtil.parseLong(userId));
             crmLeads.setBatchId(batchId);
             crmLeads.setSeaId(seaId);
             crmLeads.setIsTransform(0);
