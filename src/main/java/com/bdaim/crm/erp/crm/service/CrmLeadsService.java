@@ -2046,21 +2046,21 @@ public class CrmLeadsService {
                             leadsList.add(null);
                         }
                     }
-                    String superName = leadsList.get(kv.getInt("leads_name")).toString();
+                    String superName = leadsList.get(kv.getInt("leads_name") != null ? kv.getInt("leads_name") : kv.getInt("线索名称")).toString();
                     Integer number = crmLeadsDao.queryForInt("select count(*) from t_customer_sea_list_" + seaId + " where super_name = ?", superName);
                     CustomSeaTouchInfoDTO dto = new CustomSeaTouchInfoDTO();
                     dto.setCustomerSeaId(String.valueOf(seaId));
                     dto.setUser_id(ownerUserId.toString());
                     if (0 == number) {
                         object.fluentPut("leads_name", superName)
-                                .fluentPut("super_telphone", leadsList.get(kv.getInt("super_telphone")))
-                                .fluentPut("super_phone", leadsList.get(kv.getInt("super_phone")))
-                                .fluentPut("super_address_street", leadsList.get(kv.getInt("super_address_street")))
+                                .fluentPut("super_telphone", leadsList.get(kv.getInt("super_telphone") != null ? kv.getInt("super_telphone") : kv.getInt("手机")))
+                                .fluentPut("super_phone", leadsList.get(kv.getInt("super_phone") != null ? kv.getInt("super_phone") : kv.getInt("电话")))
+                                .fluentPut("super_address_street", leadsList.get(kv.getInt("super_address_street") != null ? kv.getInt("super_address_street") : kv.getInt("地址")))
                                 //.fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
-                                .fluentPut("remark", leadsList.get(kv.getInt("remark")))
+                                .fluentPut("remark", leadsList.get(kv.getInt("remark") != null ? kv.getInt("remark") : kv.getInt("备注")))
                                 .fluentPut("owner_user_id", ownerUserId)
                                 .fluentPut("user_id", ownerUserId)
-                                .fluentPut("super_address_province_city", leadsList.get(kv.getInt("super_address_province_city")));
+                                .fluentPut("super_address_province_city", leadsList.get(kv.getInt("super_address_province_city") != null ? kv.getInt("super_address_province_city") : kv.getInt("省市")));
                         if (kv.getInt("qq") != null) {
                             object.fluentPut("qq", leadsList.get(kv.getInt("qq")));
                         }
@@ -2084,15 +2084,15 @@ public class CrmLeadsService {
                         Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select id from t_customer_sea_list_" + seaId + " where super_name = ?", superName).get(0));
                         object.fluentPut("leads_id", leads.getStr("id"))
                                 .fluentPut("leads_name", superName)
-                                .fluentPut("super_telphone", leadsList.get(kv.getInt("super_telphone")))
-                                .fluentPut("super_phone", leadsList.get(kv.getInt("super_phone")))
-                                .fluentPut("super_address_street", leadsList.get(kv.getInt("super_address_street")))
+                                .fluentPut("super_telphone", leadsList.get(kv.getInt("super_telphone") != null ? kv.getInt("super_telphone") : kv.getInt("手机")))
+                                .fluentPut("super_phone", leadsList.get(kv.getInt("super_phone") != null ? kv.getInt("super_phone") : kv.getInt("电话")))
+                                .fluentPut("super_address_street", leadsList.get(kv.getInt("super_address_street") != null ? kv.getInt("super_address_street") : kv.getInt("地址")))
                                 //.fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
-                                .fluentPut("remark", leadsList.get(kv.getInt("remark")))
+                                .fluentPut("remark", leadsList.get(kv.getInt("remark") != null ? kv.getInt("remark") : kv.getInt("备注")))
                                 .fluentPut("owner_user_id", ownerUserId)
                                 .fluentPut("user_id", ownerUserId)
                                 .fluentPut("batch_id", leads.getStr("id"))
-                                .fluentPut("super_address_province_city", leadsList.get(kv.getInt("super_address_province_city")));
+                                .fluentPut("super_address_province_city", leadsList.get(kv.getInt("super_address_province_city") != null ? kv.getInt("super_address_province_city") : kv.getInt("省市")));
                         if (kv.getInt("qq") != null) {
                             object.fluentPut("qq", leadsList.get(kv.getInt("qq")));
                         }

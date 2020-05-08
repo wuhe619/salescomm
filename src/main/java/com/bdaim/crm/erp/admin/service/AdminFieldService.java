@@ -389,6 +389,12 @@ public class AdminFieldService {
                 filedCreate = String.format(" select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
                 create = " select a.*,b.realname as create_user_name,c.realname as owner_user_name,z.* from lkcrm_crm_leads as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join (?) as z on a.batch_id = z.field_batch_id";
                 break;
+            case 11:
+                createName = "";
+                filedCreateName = "seafieldleadsview";
+                filedCreate = String.format(" select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "";
+                break;
             case 2:
                 createName = "customerview";
                 filedCreateName = "fieldcustomerview";
@@ -470,6 +476,12 @@ public class AdminFieldService {
                 filedCreateName = "fieldleadsview";
                 filedCreate = String.format(" select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
                 create = " select a.*,b.realname as create_user_name,c.realname as owner_user_name,z.* from lkcrm_crm_leads as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join (?) as z on a.batch_id = z.field_batch_id";
+                break;
+            case 11:
+                createName = "";
+                filedCreateName = "seafieldleadsview";
+                filedCreate = String.format(" select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "";
                 break;
             case 2:
                 createName = "customerview";

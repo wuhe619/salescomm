@@ -707,6 +707,7 @@ public class CrmLeadsController extends BasicAction {
                 record.remove("custType", "entId", "intentLevel", "lastCallTime", "n_id");
                 record.remove("user_id", "status", "call_empty_count", "call_success_count", "call_fail_count", "data_source", "intent_level", "last_call_time");
                 record.remove("last_called_duration", "pull_status", "status", "super_age", "super_name", "super_sex", "user_get_time", "user_group_id");
+                record.remove("callCount", "last_mark_time", "sms_success_count", "pre_user_id", "super_address_province_city");
                 list.add(record.remove("super_data", "batch_id", "is_transform", "customer_id", "leads_id", "owner_user_id", "create_user_id", "followup", "field_batch_id").getColumns());
             }
             writer.write(list, true);
