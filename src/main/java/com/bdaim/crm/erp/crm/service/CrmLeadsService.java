@@ -199,9 +199,7 @@ public class CrmLeadsService {
     }};
 
     /**
-     * @return
-     * @author wyq
-     * 分页条件查询线索
+     * @return 分页条件查询线索
      */
     public R pageCluePublicSea(BasePageRequest<CrmLeads> basePageRequest, long seaId, String custId) {
         //String leadsName = basePageRequest.getData().getLeadsName();
@@ -226,9 +224,7 @@ public class CrmLeadsService {
     }
 
     /**
-     * @return
-     * @author wyq
-     * 分页条件查询线索
+     * @return 分页条件查询线索
      */
     public List listCluePublicSea(BasePageRequest<CrmLeads> basePageRequest, long seaId, String custId) throws TouchException {
         //String leadsName = basePageRequest.getData().getLeadsName();
@@ -754,15 +750,20 @@ public class CrmLeadsService {
         LoginUser user = BaseUtil.getUser();
         String leadsview = BaseUtil.getViewSql("leadsview");
         LOG.info("batch_id:{},线索数据为:{}", batchId, JSON.toJSONString(maps));
+        String mobile, telephone;
         for (Map<String, Object> m : maps) {
             JSONObject superData = new JSONObject();
             superData.put("SYS005", m.get("company"));
-            String superId = MD5Util.encode32Bit(m.get("leads_id") + "" + m.get("super_telphone"));
+            String superId = MD5Util.encode32Bit(m.get("leads_id") + "" + m.get("mobile"));
 
+            mobile = String.valueOf(m.get("mobile"));
+            mobile = StringUtil.isNotEmpty(mobile) ? mobile : "";
+            telephone = String.valueOf(m.get("telephone"));
+            telephone = StringUtil.isNotEmpty(telephone) ? telephone : "";
             //查询默认客群
             CustomerSeaProperty csp = customerSeaDao.getProperty(String.valueOf(seaId), "defaultClueCgId");
             customerSeaDao.executeUpdateSQL(insertSql, superId, null, new Date(), 1, m.get("leads_name")
-                    , m.get("mobile"), m.get("telephone"), superData.toJSONString(), m.get("create_time"), csp.getPropertyValue());
+                    , mobile, telephone, superData.toJSONString(), m.get("create_time"), csp.getPropertyValue());
             // 退回到公海线索
             List<Map<String, Object>> list = crmLeadsDao.sqlQuery("select * from " + leadsview + " where batch_id = ?", batchId);
             LOG.info("2batch_id:{},线索数据为:{}", batchId, JSON.toJSONString(maps));
@@ -851,12 +852,18 @@ public class CrmLeadsService {
         List<Map<String, Object>> maps = customerSeaDao.sqlQuery(sql.toString());
         int i = 0;
         LoginUser user = BaseUtil.getUser();
+        String mobile, telephone;
         for (Map<String, Object> m : maps) {
             JSONObject superData = JSON.parseObject(String.valueOf(m.get("super_data")));
             LkCrmLeadsEntity crmLeads = BeanUtil.mapToBean(m, LkCrmLeadsEntity.class, true);
             crmLeads.setLeadsName(String.valueOf(m.get("super_name")));
-            crmLeads.setMobile(String.valueOf(m.get("super_telphone")));
-            crmLeads.setTelephone(String.valueOf(m.get("super_phone")));
+
+            mobile = String.valueOf(m.get("super_telphone"));
+            mobile = StringUtil.isNotEmpty(mobile) ? mobile : "";
+            telephone = String.valueOf(m.get("super_phone"));
+            telephone = StringUtil.isNotEmpty(telephone) ? telephone : "";
+            crmLeads.setMobile(mobile);
+            crmLeads.setTelephone(telephone);
             crmLeads.setAddress(String.valueOf(m.get("super_address_province_city")) + String.valueOf(m.get("super_address_street")));
             crmLeads.setCompany(superData.getString("SYS005"));
             crmLeads.setIsTransform(0);
@@ -880,6 +887,8 @@ public class CrmLeadsService {
             }
             crmLeads.setBatchId(batchId);
             crmLeads.setSeaId(seaId);
+            crmLeads.setIsTransform(0);
+            crmLeads.setFollowup(0);
             int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
 
             // 复制公海线索字段值
@@ -1246,7 +1255,9 @@ public class CrmLeadsService {
         if (crmLeads.getIsTransform() == null) {
             crmLeads.setIsTransform(0);
         }
-
+        if (crmLeads.getFollowup() == null) {
+            crmLeads.setFollowup(0);
+        }
         crmLeads.setCompany(object.getJSONObject("entity").getString("company"));
         LoginUser user = BaseUtil.getUser();
         String custId = user.getCustId();
@@ -1424,10 +1435,12 @@ public class CrmLeadsService {
 
     public int batchClueBackToSea(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
         // 指定ID退回公海
+        //List<Map<String, Object>> maps = customerSeaDao.queryUniqueSql(" SELECT leads_name FROM lkcrm_crm_leads  WHERE batch_id =? ", batchId);
+
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
                 //.append(" SET status = 1, pre_user_id = user_id, user_id = NULL, super_data = '{\"SYS007\":\"未跟进\"}' WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
-                .append(" SET status = 1, pre_user_id = user_id, user_id = NULL, super_data = JSON_SET(super_data, '$.SYS007', '未跟进') WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
+                .append(" SET super_name, status = 1, pre_user_id = user_id, user_id = NULL, super_data = JSON_SET(super_data, '$.SYS007', '未跟进') WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, object_code, `create_time`,reason,remark ) ")
                 .append(" SELECT ").append(userId).append(" ,id,").append(seaId).append(",batch_id,").append(7).append(", user_id ,'").append(new Timestamp(System.currentTimeMillis())).append("'").append(" ,? ,? ")
@@ -1443,11 +1456,11 @@ public class CrmLeadsService {
             sql.append(" AND user_id = ? ");
             logSql.append(" AND user_id = ? ");
         }
-        customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
-        int status = customerSeaDao.executeUpdateSQL(sql.toString(), param.toArray());
+        int status = customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
+        //int status = customerSeaDao.executeUpdateSQL(sql.toString(), param.toArray());
         for (String id : superIds) {
             List<Map<String, Object>> list = customerSeaDao.sqlQuery("select * from " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " WHERE id = ? ", id);
-            if (list.size() == 0) {
+            if (list.size() > 0) {
                 transferToPublicSea(seaId, userId.toString(), id);
             }
         }
