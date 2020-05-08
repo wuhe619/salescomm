@@ -161,6 +161,10 @@ public class TokenServiceImpl implements TokenService {
                 userdetail.setName(u.getName());
                 userdetail.setAuthorize(StringUtil.isNotEmpty(u.getAuthorize()) ? u.getAuthorize() : "");
 
+                // 代理商角色
+                if (u.getDeptid() != null && 100000L == u.getDeptid()) {
+                    userdetail.setRole("AGENT_USER");
+                }
                 String defaultUrl = "";
                 if ("admin".equals(u.getName())) {
                     defaultUrl = "/backend/customerGroupManagement/customerGroup.html";
