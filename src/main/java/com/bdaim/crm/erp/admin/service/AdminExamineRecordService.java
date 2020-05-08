@@ -7,6 +7,8 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
+import com.bdaim.crm.erp.crm.common.CrmEnum;
+import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
@@ -661,5 +663,17 @@ public class AdminExamineRecordService {
             jsonObject.put("steps", list);
         }
         return R.ok().put("data", jsonObject);
+    }
+
+    public boolean getExamineObjIdByRecordId(Integer recordId) {
+        boolean auth;
+        int id = crmAdminExamineRecordDao.queryForInt("select contract_id from `lkcrm_crm_contract` where examine_record_id = ?", recordId);
+        if (id > 0) {
+            auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), id);
+        } else {
+            id = crmAdminExamineRecordDao.queryForInt("select receivables_id from `lkcrm_crm_receivables` where examine_record_id = ?", recordId);
+            auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.RECEIVABLES_TYPE_KEY.getSign()), id);
+        }
+        return auth;
     }
 }

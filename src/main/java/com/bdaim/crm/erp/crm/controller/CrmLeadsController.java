@@ -86,8 +86,8 @@ public class CrmLeadsController extends BasicAction {
     @Resource
     private CustomerSeaService seaService;
 
-    @Resource
-    private LkCrmAdminFieldDao crmAdminFieldDao;
+   /* @Resource
+    private LkCrmAdminFieldDao crmAdminFieldDao;*/
 
 
     /**
@@ -396,14 +396,14 @@ public class CrmLeadsController extends BasicAction {
         return responseJson;
     }
 
-    @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
+   /* @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
         String sql = "update h_dic SET p_code = 0 WHERE type = 'INDUSTRY_CODE_1';";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
-    }
+    }*/
 
 
     /**

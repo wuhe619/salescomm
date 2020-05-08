@@ -724,4 +724,42 @@ public class TaskService {
         crmActionRecordDao.batchSaveOrUpdate(adminConfigList);
         return R.ok();
     }
+
+    public R setWorkTask(LkCrmTaskEntity task, String customerIds
+            , String contactsIds
+            , String businessIds
+            , String contractIds
+            , String leadsIds) {
+        if (task.getWorkId() != null) {
+            Integer isOpen = workDao.get(task.getWorkId()).getIsOpen();
+            if (isOpen == 0 && !AuthUtil.isWorkAuth(task.getWorkId().toString(), "task:save")) {
+                return (R.noAuth());
+                //return;
+            }
+        }
+        if (StrUtil.isNotEmpty(task.getOwnerUserId())) {
+            task.setOwnerUserId(TagUtil.fromString(task.getOwnerUserId()));
+        }
+        if (task.getStartTime() != null && task.getStopTime() != null) {
+            if (task.getStartTime().getTime() > task.getStopTime().getTime()) {
+                return (R.error("开始时间不能大于结束时间"));
+                //return;
+            }
+        }
+       /* String customerIds = getPara("customerIds");
+        String contactsIds = getPara("contactsIds");
+        String businessIds = getPara("businessIds");
+        String contractIds = getPara("contractIds");
+        String leadsIds = getPara("leadsIds");*/
+        LkCrmTaskRelationEntity taskRelation = new LkCrmTaskRelationEntity();
+        if (customerIds != null || contactsIds != null || businessIds != null || contractIds != null || leadsIds != null) {
+
+            taskRelation.setBusinessIds(TagUtil.fromString(businessIds));
+            taskRelation.setContactsIds(TagUtil.fromString(contactsIds));
+            taskRelation.setContractIds(TagUtil.fromString(contractIds));
+            taskRelation.setCustomerIds(TagUtil.fromString(customerIds));
+            taskRelation.setLeadsIds(TagUtil.fromString(leadsIds));
+        }
+        return (setTask(task, taskRelation));
+    }
 }

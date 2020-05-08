@@ -4,10 +4,9 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.crm.common.annotation.ClassTypeCheck;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.common.annotation.ClassTypeCheck;
-import com.bdaim.crm.dao.LkCrmWorkDao;
 import com.bdaim.crm.entity.LkCrmTaskEntity;
 import com.bdaim.crm.entity.LkCrmTaskRelationEntity;
 import com.bdaim.crm.entity.LkCrmWorkTaskClassEntity;
@@ -15,15 +14,16 @@ import com.bdaim.crm.erp.admin.service.LkAdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.work.entity.Task;
 import com.bdaim.crm.erp.work.entity.TaskRelation;
-import com.bdaim.crm.erp.work.entity.Work;
 import com.bdaim.crm.erp.work.service.TaskService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
 import com.jfinal.core.paragetter.Para;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -40,8 +40,7 @@ public class TaskController extends BasicAction {
     private TaskService taskService;
     @Resource
     private LkAdminUserService adminUserService;
-    @Autowired
-    private LkCrmWorkDao crmWorkDao;
+
 
     /**
      * @param taskClass 任务类别对象
@@ -105,13 +104,13 @@ public class TaskController extends BasicAction {
 
     @RequestMapping(value = "/setWorkTask", method = RequestMethod.POST)
     public R setWorkTask(LkCrmTaskEntity task) {
-        if (task.getWorkId() != null) {
+        /*if (task.getWorkId() != null) {
             Integer isOpen = crmWorkDao.get(task.getWorkId()).getIsOpen();
             if (isOpen == 0 && !AuthUtil.isWorkAuth(task.getWorkId().toString(), "task:save")) {
                 return (R.noAuth());
                 //return;
             }
-        }
+        }*/
         if (StrUtil.isNotEmpty(task.getOwnerUserId())) {
             task.setOwnerUserId(TagUtil.fromString(task.getOwnerUserId()));
         }
@@ -127,7 +126,7 @@ public class TaskController extends BasicAction {
         String contractIds = getPara("contractIds");
         String leadsIds = getPara("leadsIds");
         LkCrmTaskRelationEntity taskRelation = new LkCrmTaskRelationEntity();
-        if (customerIds != null || contactsIds != null || businessIds != null || contractIds != null|| leadsIds != null ) {
+        if (customerIds != null || contactsIds != null || businessIds != null || contractIds != null || leadsIds != null) {
 
             taskRelation.setBusinessIds(TagUtil.fromString(businessIds));
             taskRelation.setContactsIds(TagUtil.fromString(contactsIds));
@@ -135,7 +134,7 @@ public class TaskController extends BasicAction {
             taskRelation.setCustomerIds(TagUtil.fromString(customerIds));
             taskRelation.setLeadsIds(TagUtil.fromString(leadsIds));
         }
-        return (taskService.setTask(task, taskRelation));
+        return taskService.setWorkTask(task, customerIds, contactsIds, businessIds, contractIds, leadsIds);
     }
 
 
