@@ -1094,6 +1094,18 @@ public class EntDataService {
     public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) {
         JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
         if (baseResult != null) {
+            baseResult.put("phones", handlePhones(baseResult));
+            if (seaId > 0) {
+                //处理公司联系方式是否有意向
+                handleClueFollowStatus(seaId, baseResult);
+            }
+        }
+        return baseResult;
+    }
+
+    public JSONObject getCompanyDetailSrc(String companyId, JSONObject param, String busiType, long seaId) {
+        JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
+        if (baseResult != null) {
             baseResult.put("phones", handlePhonesSrc(baseResult));
             if (seaId > 0) {
                 //处理公司联系方式是否有意向

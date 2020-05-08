@@ -77,7 +77,7 @@ public class EntSearchController extends BasicAction {
             if (StringUtil.isNotEmpty(param.getString("seaId"))) {
                 sId = param.getLongValue("seaId");
             }
-            baseResult = entDataService.getCompanyDetail(id, param, busiType, sId);
+            baseResult = entDataService.getCompanyDetailSrc(id, param, busiType, sId);
         } catch (Exception e) {
             logger.error("查询记录异常,", e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
