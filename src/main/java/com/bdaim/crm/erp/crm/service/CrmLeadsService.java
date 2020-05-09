@@ -857,7 +857,7 @@ public class CrmLeadsService {
             JSONObject superData = JSON.parseObject(String.valueOf(m.get("super_data")));
             LkCrmLeadsEntity crmLeads = BeanUtil.mapToBean(m, LkCrmLeadsEntity.class, true);
             crmLeads.setLeadsName(String.valueOf(m.get("super_name")));
-
+            LOG.info("leadsName:" + crmLeads.getLeadsName());
             mobile = String.valueOf(m.get("super_telphone"));
             mobile = StringUtil.isNotEmpty(mobile) ? mobile : "";
             telephone = String.valueOf(m.get("super_phone"));
@@ -940,7 +940,7 @@ public class CrmLeadsService {
 
             crmLeadsDao.getSession().clear();
             crmLeadsDao.batchSaveOrUpdate(adminFieldvList);
-
+            System.out.println();
             crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
             // 保存uid对应关系
             phoneService.saveObjU(crmLeads.getLeadsId().toString(), crmLeads.getMobile(), 1, user.getCustId());
