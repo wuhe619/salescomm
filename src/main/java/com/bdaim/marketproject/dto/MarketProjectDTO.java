@@ -24,6 +24,15 @@ public class MarketProjectDTO {
     //是否是全局项目  1：是  2：不是
     private String type;
 
+    /**
+     * 1-不需要撞库 2-需要撞库
+     */
+    private int reconciliationStatus;
+    /**
+     * 撞库渠道ID
+     */
+    private String reconciliationId;
+
     public MarketProjectDTO() {
     }
 
@@ -123,6 +132,22 @@ public class MarketProjectDTO {
         this.custId = custId;
     }
 
+    public int getReconciliationStatus() {
+        return reconciliationStatus;
+    }
+
+    public void setReconciliationStatus(int reconciliationStatus) {
+        this.reconciliationStatus = reconciliationStatus;
+    }
+
+    public String getReconciliationId() {
+        return reconciliationId;
+    }
+
+    public void setReconciliationId(String reconciliationId) {
+        this.reconciliationId = reconciliationId;
+    }
+
     @Override
     public String toString() {
         return "MarketProjectDTO{" +
@@ -136,6 +161,8 @@ public class MarketProjectDTO {
                 ", enterpriseName='" + enterpriseName + '\'' +
                 ", custId='" + custId + '\'' +
                 ", type='" + type + '\'' +
+                ", reconciliationStatus=" + reconciliationStatus +
+                ", reconciliationId='" + reconciliationId + '\'' +
                 '}';
     }
 }

@@ -173,6 +173,11 @@ public class MarketProjectService {
                     customerSeaService.save(customerSea);
                 }
             }
+            // 保存撞库属性
+            MarketProjectProperty property = new MarketProjectProperty(String.valueOf(id), "reconciliationStatus", String.valueOf(dto.getReconciliationStatus()), new Timestamp(System.currentTimeMillis()));
+            marketProjectDao.saveOrUpdate(property);
+            property = new MarketProjectProperty(String.valueOf(id), "reconciliationId", dto.getReconciliationId(), new Timestamp(System.currentTimeMillis()));
+            marketProjectDao.saveOrUpdate(property);
             return 1;
         } catch (Exception e) {
             LOG.error("保存营销项目异常,", e);
@@ -181,7 +186,8 @@ public class MarketProjectService {
     }
 
     /**
-     *  创建项目和公海并返回公海ID
+     * 创建项目和公海并返回公海ID
+     *
      * @param dto
      * @param custId
      * @param userId
@@ -384,6 +390,16 @@ public class MarketProjectService {
                 c.setStatus(0);
                 custList = customerDao.listCustomer(c, CustomerPropertyEnum.MARKET_PROJECT_ID_PREFIX.getKey() + marketProject.getId(), String.valueOf(marketProject.getId()));
                 marketProjectDTO.setRelationCustNum(custList.size());
+                // 查询撞库属性
+                MarketProjectProperty reconciliationStatus = marketProjectDao.getProperty(String.valueOf(marketProjectDTO.getId()), "reconciliationStatus");
+                marketProjectDTO.setReconciliationStatus(1);
+                if (reconciliationStatus != null) {
+                    marketProjectDTO.setReconciliationStatus(NumberConvertUtil.parseInt(reconciliationStatus.getPropertyValue()));
+                }
+                MarketProjectProperty reconciliationId = marketProjectDao.getProperty(String.valueOf(marketProjectDTO.getId()), "reconciliationId");
+                if (reconciliationId != null) {
+                    marketProjectDTO.setReconciliationId(reconciliationId.getPropertyValue());
+                }
                 data.add(marketProjectDTO);
             }
             page.setData(data);
