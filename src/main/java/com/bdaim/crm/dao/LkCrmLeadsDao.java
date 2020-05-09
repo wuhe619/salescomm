@@ -1,5 +1,6 @@
 package com.bdaim.crm.dao;
 
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmLeadsEntity;
@@ -86,13 +87,16 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
     }
 
     public Page pageCluePublicSea(int pageNum, int pageSize, long seaId, String search) {
+        LoginUser user = BaseUtil.getUser();
         StringBuffer conditions = new StringBuffer("SELECT custG.id, custG.user_id, custG.status, custG.call_count callCount, DATE_FORMAT(custG.last_call_time,'%Y-%m-%d %H:%i:%s') lastCallTime, custG.intent_level intentLevel,");
         conditions.append(" custG.super_name leads_name , custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone, custG.super_address_province_city, custG.super_address_street, custG.super_data, ");
         conditions.append(" custG.batch_id, custG.last_call_status, custG.data_source, DATE_FORMAT(custG.user_get_time,'%Y-%m-%d %H:%i:%s') user_get_time, DATE_FORMAT(custG.create_time,'%Y-%m-%d %H:%i:%s') create_time, custG.last_called_duration, DATE_FORMAT(custG.last_mark_time,'%Y-%m-%d %H:%i:%s') last_mark_time, ");
         conditions.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count , ");
-        conditions.append(" z.*,c.username as pre_user_id FROM t_customer_sea_list_" + seaId + " AS custG left join lkcrm_admin_user as b on custG.user_id = b.user_id left join lkcrm_admin_user as c on custG.pre_user_id = c.user_id " +
+        conditions.append(" z.*,c.username as pre_user_id FROM t_customer_sea_list_" + seaId + " AS custG left join lkcrm_admin_user as b on custG.user_id = b.user_id AND b.cust_id = ? left join lkcrm_admin_user as c on custG.pre_user_id = c.user_id AND c.cust_id = ? " +
                 " LEFT JOIN (" + BaseUtil.getViewSqlNotASName("seafieldleadsview") + ") AS z ON custG.id = z.field_batch_id WHERE custG.status =1 ");
         List param = new ArrayList();
+        param.add(user.getCustId());
+        param.add(user.getCustId());
         if (StringUtil.isNotEmpty(search)) {
             param.add("%" + search + "%");
             param.add("%" + search + "%");
@@ -107,13 +111,16 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
     }
 
     public List<Map<String, Object>> listCluePublicSea(long seaId, String search) {
+        LoginUser user = BaseUtil.getUser();
         StringBuffer conditions = new StringBuffer("SELECT custG.id, custG.user_id, custG.status, custG.call_count callCount, DATE_FORMAT(custG.last_call_time,'%Y-%m-%d %H:%i:%s') lastCallTime, custG.intent_level intentLevel,");
         conditions.append(" custG.super_name leads_name , custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone, custG.super_address_province_city, custG.super_address_street, custG.super_data, ");
         conditions.append(" custG.batch_id, custG.last_call_status, custG.data_source, DATE_FORMAT(custG.user_get_time,'%Y-%m-%d %H:%i:%s') user_get_time, DATE_FORMAT(custG.create_time,'%Y-%m-%d %H:%i:%s') create_time, custG.last_called_duration, DATE_FORMAT(custG.last_mark_time,'%Y-%m-%d %H:%i:%s') last_mark_time, ");
         conditions.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count , ");
-        conditions.append(" z.*, c.username as pre_user_id FROM t_customer_sea_list_" + seaId + " AS custG left join lkcrm_admin_user as b on custG.user_id = b.user_id left join lkcrm_admin_user as c on custG.pre_user_id = c.user_id " +
+        conditions.append(" z.*, c.username as pre_user_id FROM t_customer_sea_list_" + seaId + " AS custG left join lkcrm_admin_user as b on custG.user_id = b.user_id AND b.cust_id = ? left join lkcrm_admin_user as c on custG.pre_user_id = c.user_id AND c.cust_id = ? " +
                 " LEFT JOIN (" + BaseUtil.getViewSqlNotASName("seafieldleadsview") + ") AS z ON custG.id = z.field_batch_id WHERE custG.status =1 ");
         List param = new ArrayList();
+        param.add(user.getCustId());
+        param.add(user.getCustId());
         if (StringUtil.isNotEmpty(search)) {
             param.add(search);
             param.add(search);
