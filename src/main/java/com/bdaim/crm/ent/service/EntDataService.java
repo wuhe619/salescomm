@@ -18,10 +18,14 @@ import com.bdaim.util.ExcelUtil;
 import com.bdaim.util.MD5Util;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.HikariPoolMXBean;
 import io.searchbox.core.CountResult;
 import io.searchbox.core.SearchResult;
 import org.apache.lucene.search.join.ScoreMode;
-import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.WildcardQueryBuilder;
 import org.elasticsearch.join.query.HasChildQueryBuilder;
 import org.elasticsearch.join.query.JoinQueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -1037,6 +1041,24 @@ public class EntDataService {
         return page;
     }
 
+    private static HikariPoolMXBean hikariPoolMXBean;
+
+    public String hikariMonitor() {
+        HikariDataSource dataSource = (HikariDataSource) jdbcTemplate.getDataSource();
+        hikariPoolMXBean = dataSource.getHikariPoolMXBean();
+        LOG.info("HikariPoolState = "
+                + "Active=[" + String.valueOf(hikariPoolMXBean.getActiveConnections() + "] "
+                + "Idle=[" + String.valueOf(hikariPoolMXBean.getIdleConnections() + "] "
+                + "Wait=[" + hikariPoolMXBean.getThreadsAwaitingConnection() + "] "
+                + "Total=[" + hikariPoolMXBean.getTotalConnections() + "]")));
+        return "HikariPoolState = "
+                + "Active=[" + String.valueOf(hikariPoolMXBean.getActiveConnections() + "] "
+                + "Idle=[" + String.valueOf(hikariPoolMXBean.getIdleConnections() + "] "
+                + "Wait=[" + hikariPoolMXBean.getThreadsAwaitingConnection() + "] "
+                + "Total=[" + hikariPoolMXBean.getTotalConnections() + "]"));
+
+    }
+
     /**
      * 查询指定条件下的数据总量
      *
@@ -1165,6 +1187,7 @@ public class EntDataService {
 
     /**
      * 返回手机号以及来源
+     *
      * @param baseResult
      * @return
      */
