@@ -92,16 +92,20 @@ public class BaseUtil {
     }
 
     public static String getViewSql(String name) {
-        String viewSql = crmSqlViewDao.getViewSql(BaseUtil.getCustId(), name);
+        String custId = BaseUtil.getCustId();
+        String viewSql = crmSqlViewDao.getViewSql(custId, name);
         if (StringUtil.isNotEmpty(name) && !name.startsWith("field")) {
-            String fieldViewSql = crmSqlViewDao.getViewSql(BaseUtil.getCustId(), "field" + name);
+            String fieldViewSql = crmSqlViewDao.getViewSql(custId, "field" + name);
             viewSql = viewSql.replace("?", fieldViewSql);
+            if (StringUtil.isNotEmpty(viewSql) && viewSql.contains("d.field_type = 0")) {
+                viewSql = viewSql.replace("d.field_type = 0", "d.field_type = 0 and d.cust_id = '" + custId + "' ");
+            }
         }
         if (StringUtil.isEmpty(viewSql)) {
             //for (int label = 1; label < 8; label++) {
             int label = getLabelByName(name);
             if (label > 0) {
-                adminFieldService.createView(label, BaseUtil.getCustId());
+                adminFieldService.createView(label, custId);
             }
             //}
             viewSql = getViewSql(name);
@@ -110,16 +114,20 @@ public class BaseUtil {
     }
 
     public static String getViewSqlNotASName(String name) {
-        String viewSql = crmSqlViewDao.getViewSql(BaseUtil.getCustId(), name);
+        String custId = BaseUtil.getCustId();
+        String viewSql = crmSqlViewDao.getViewSql(custId, name);
         if (StringUtil.isNotEmpty(name) && !name.startsWith("field")) {
-            String fieldViewSql = crmSqlViewDao.getViewSql(BaseUtil.getCustId(), "field" + name);
+            String fieldViewSql = crmSqlViewDao.getViewSql(custId, "field" + name);
             viewSql = viewSql.replace("?", fieldViewSql);
+            if (StringUtil.isNotEmpty(viewSql) && viewSql.contains("d.field_type = 0")) {
+                viewSql = viewSql.replace("d.field_type = 0", "d.field_type = 0 and d.cust_id = '" + custId + "' ");
+            }
         }
         if (StringUtil.isEmpty(viewSql)) {
             //for (int label = 1; label < 8; label++) {
             int label = getLabelByName(name);
             if (label > 0) {
-                adminFieldService.createView(label, BaseUtil.getCustId());
+                adminFieldService.createView(label, custId);
             }
             //}
             viewSql = getViewSql(name);
