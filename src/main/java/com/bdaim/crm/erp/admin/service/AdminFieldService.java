@@ -165,8 +165,10 @@ public class AdminFieldService {
             LkCrmAdminFieldEntity entity = TypeUtils.castToJavaBean(adminFields.get(i), LkCrmAdminFieldEntity.class);
             entity.setCustId(user.getCustId());
             entity.setUpdateTime(DateUtil.date().toTimestamp());
-            if (entity.getFieldType() == null || entity.getFieldType() == 0) {
-                entity.setFieldName(entity.getName());
+            if (11 != label) {
+                if (entity.getFieldType() == null || entity.getFieldType() == 0) {
+                    entity.setFieldName(entity.getName());
+                }
             }
             if (label == 10) {
                 entity.setExamineCategoryId(jsonObject.getInteger("categoryId"));
@@ -842,8 +844,14 @@ public class AdminFieldService {
             if (5 == adminFieldSort.getLabel()) {
                 fieldUtil.add("typeName", "商机状态组").add("statusName", "商机阶段");
             }
-            fieldUtil.add("updateTime", "更新时间").add("createTime", "创建时间")
-                    .add("ownerUserName", "负责人").add("createUserName", "创建人");
+            if (11 == adminFieldSort.getLabel()) {
+                fieldUtil.add("updateTime", "更新时间")
+                        .add("userId", "负责人");
+            } else {
+                fieldUtil.add("updateTime", "更新时间").add("createTime", "创建时间")
+                        .add("ownerUserName", "负责人").add("createUserName", "创建人");
+            }
+
             fieldUtil.getAdminFieldSortList().forEach(fieldSort -> {
                 String fieldName = StrUtil.toCamelCase(fieldSort.getFieldName());
                 /*if (11 == adminFieldSort.getLabel()) {
@@ -887,6 +895,15 @@ public class AdminFieldService {
         //return Db.findByCache("field", "listHead:" + adminFieldSort.getLabel() + userId, Db.getSql("admin.field.queryListHead"), adminFieldSort.getLabel(), userId);
     }
 
+    private Set<String> publicSeaSystemLabel(int label) {
+        Set<String> labels = new HashSet<>();
+        List<Map<String, Object>> list = crmAdminFieldDao.sqlQuery("SELECT field_id, field_name, name FROM lkcrm_admin_field WHERE label = ? AND cust_id is NULL", label);
+        for (Map<String, Object> m : list) {
+            labels.add(String.valueOf(m.get("name")));
+        }
+        return labels;
+    }
+
     /**
      * @author wyq
      * 查询字段排序隐藏设置
@@ -895,8 +912,16 @@ public class AdminFieldService {
         Long userId = BaseUtil.getUser().getUserId();
         //查出自定义字段，查看顺序表是否存在该字段，没有则插入，设为隐藏
         List<Record> fieldList = customFieldList(adminFieldSort.getLabel().toString());
+        Set<String> labels = new HashSet<>();
+        if (11 == adminFieldSort.getLabel()) {
+            labels = publicSeaSystemLabel(adminFieldSort.getLabel());
+        }
+
         for (Record record : fieldList) {
             String fieldName = record.getStr("name");
+            if (labels.contains(fieldName)) {
+                continue;
+            }
             Integer number = crmAdminFieldDao.queryForInt("select count(*) as number from lkcrm_admin_field_sort where user_id = ? and label = ? and field_name = ?", userId, adminFieldSort.getLabel(), fieldName);
             if (number.equals(0)) {
                 LkCrmAdminFieldSortEntity newField = new LkCrmAdminFieldSortEntity();
