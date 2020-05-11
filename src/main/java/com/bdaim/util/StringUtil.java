@@ -170,6 +170,9 @@ public class StringUtil {
     }
 
     public static String toCamelCase(String stringWithUnderline) {
+        if(StringUtil.isEmpty(stringWithUnderline)){
+            return stringWithUnderline;
+        }
         if (stringWithUnderline.indexOf(95) == -1) {
             return stringWithUnderline;
         } else {

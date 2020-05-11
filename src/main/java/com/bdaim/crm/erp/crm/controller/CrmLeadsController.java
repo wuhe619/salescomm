@@ -151,7 +151,11 @@ public class CrmLeadsController extends BasicAction {
                 // 处理线索名称
                 if ("leads_name".equals(jsonO.getJSONArray("field").getJSONObject(i).getString("fieldName"))) {
                     dto.setSuper_name(jsonO.getJSONArray("field").getJSONObject(i).getString("value"));
-                    break;
+                    //break;
+                }
+                if ("super_phone".equals(jsonO.getJSONArray("field").getJSONObject(i).getString("fieldName"))) {
+                    dto.setSuper_phone(jsonO.getJSONArray("field").getJSONObject(i).getString("value"));
+                    //break;
                 }
             }
             int status = crmLeadsService.addClueData0(dto, jsonO);

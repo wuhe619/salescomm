@@ -303,6 +303,19 @@ public class AdminFieldService {
             fieldv.setBatchId(batchId);
             crmAdminFieldvDao.save(fieldv);
         });
+        LoginUser user = BaseUtil.getUser();
+        // 创建人
+        List<LkCrmAdminFieldEntity> seaCount = crmAdminFieldvDao.find("from LkCrmAdminFieldEntity where label = '11' AND custId = ? AND name = '创建人' ", user.getCustId());
+        if (seaCount.size() > 0) {
+            LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
+            adminFieldv.setValue(BaseUtil.getUser().getUserName());
+            adminFieldv.setFieldId(seaCount.get(0).getFieldId());
+            adminFieldv.setName(seaCount.get(0).getName());
+            adminFieldv.setCustId(user.getCustId());
+            adminFieldv.setBatchId(batchId);
+            adminFieldv.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            crmAdminFieldvDao.save(adminFieldv);
+        }
         return true;
     }
 

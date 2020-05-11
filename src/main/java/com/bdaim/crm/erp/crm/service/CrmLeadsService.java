@@ -924,6 +924,14 @@ public class CrmLeadsService {
             mobile = StringUtil.isNotEmpty(mobile) ? mobile : "";
             telephone = String.valueOf(m.get("super_phone"));
             telephone = StringUtil.isNotEmpty(telephone) ? telephone : "";
+            // 处理备注
+            List<LkCrmAdminFieldEntity> remark = crmLeadsDao.find("from LkCrmAdminFieldEntity where label = '11' AND custId = ? AND name = '备注' ", user.getCustId());
+            if (remark.size() > 0) {
+                List<LkCrmAdminFieldvEntity> values = crmLeadsDao.find("from LkCrmAdminFieldvEntity where fieldId = ? AND batchId = ? ", remark.get(0).getFieldId(), m.get("id"));
+                if (values.size() > 0) {
+                    crmLeads.setRemark(values.get(0).getValue());
+                }
+            }
             crmLeads.setMobile(mobile);
             crmLeads.setTelephone(telephone);
             crmLeads.setAddress(String.valueOf(m.get("super_address_province_city")) + String.valueOf(m.get("super_address_street")));
