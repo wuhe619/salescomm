@@ -189,7 +189,7 @@ public class AdminFieldService {
                 crmAdminFieldDao.update(lkCrmAdminFieldEntity);
                 if (entity.getFieldType() == 0) {
                     if (label == 11) {
-                        crmAdminFieldDao.updateFieldSortName(entity.getName(), entity.getFieldName(), entity.getFieldId());
+                        crmAdminFieldDao.updateFieldSortName(entity.getName(), StringUtil.toCamelCase(entity.getFieldName()), entity.getFieldId());
                     } else {
                         crmAdminFieldDao.updateFieldSortName(entity.getName(), entity.getFieldId());
                     }
