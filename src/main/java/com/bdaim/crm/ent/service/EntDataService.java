@@ -1045,6 +1045,7 @@ public class EntDataService {
 
     public String hikariMonitor() {
         HikariDataSource dataSource = (HikariDataSource) jdbcTemplate.getDataSource();
+        LOG.info("maxLifetime:" + dataSource.getMaxLifetime());
         hikariPoolMXBean = dataSource.getHikariPoolMXBean();
         LOG.info("HikariPoolState = "
                 + "Active=[" + String.valueOf(hikariPoolMXBean.getActiveConnections() + "] "
