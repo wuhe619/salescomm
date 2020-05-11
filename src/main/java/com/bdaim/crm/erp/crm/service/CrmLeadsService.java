@@ -234,6 +234,7 @@ public class CrmLeadsService {
                 map.put("剩余回收时间", (duration.toDays() > 0 ? duration.toDays() : "0") + "天");
 
                 map.put("seaUseCount", map.get("进入公海次数"));
+                map.put("last_mark_time", map.get("最新跟进时间"));
 
             }
         }
