@@ -2862,6 +2862,7 @@ public class CustomerService {
             Customer customer;
             Map<String, Object> data;
             double amount = 0.0;
+            double profit = 0.0;
             String settlementType = "";
             CustomerProperty settlementCustomerProperty;
             List<CustomerUser> us;
@@ -2878,6 +2879,8 @@ public class CustomerService {
                 data.put("time", yearMonth);
                 amount = billDao.sumCustomerMonthAmount(customer.getCustId(), yearMonth);
                 data.put("amount", amount);
+                profit = billDao.sumCustomerMonthProfit(customer.getCustId(), yearMonth);
+                data.put("profit", profit);
                 sumAmount += amount;
 
                 us = customerUserDao.find("from CustomerUser m where m.cust_id='" + customer.getCustId() + "' and m.userType=1");

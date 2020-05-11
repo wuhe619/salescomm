@@ -20,9 +20,11 @@ import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.customer.user.service.CustomerUserService;
 import com.bdaim.industry.service.CustomerIndustryPoolService;
+import com.bdaim.label.dto.QueryParam;
 import com.bdaim.rbac.DataFromEnum;
 import com.bdaim.rbac.dto.*;
 import com.bdaim.rbac.entity.UserDO;
+import com.bdaim.rbac.entity.UserProperty;
 import com.bdaim.rbac.service.DeptService;
 import com.bdaim.rbac.service.ResourceService;
 import com.bdaim.rbac.service.RoleService;
@@ -96,6 +98,22 @@ public class UserAction extends BasicAction {
     public Object identifyCheck(String type, String condition) throws TouchException {
         Map<String, Object> resultMap = new HashMap<String, Object>();
         resultMap.put("data", JSONObject.toJSON(userInfoService.getUserByCondition(type, condition)));
+        return JSON.toJSONString(resultMap);
+    }
+
+
+
+    @RequestMapping(value = "/propertyIdentify/check", method = RequestMethod.GET)
+    @ResponseBody
+    public Object propertyIdentifyCheck(String name) throws TouchException {
+        UserProperty userProperty = userService.checkProperty("customer_name", name);
+        HashMap resultMap=new HashMap();
+        if(userProperty==null){
+            resultMap.put("code","0" );
+        }else{
+            resultMap.put("code","1" );
+        }
+
         return JSON.toJSONString(resultMap);
     }
 
@@ -1142,5 +1160,79 @@ public class UserAction extends BasicAction {
         }
         userInfoService.updateRegistInfo(identifyType, identifyValue, newValue, String.valueOf(opUser().getId()));
         return JSON.toJSON(resultMap);
+    }
+
+    /**
+     * 查询代理商列表
+     * @return
+     */
+    @GetMapping("/getDlsList")
+    @ResponseBody
+    public Object getDlsList(@Valid PageParam page, BindingResult error, UserDTO userDTO){
+
+        if (error.hasErrors()) {
+            return getErrors(error);
+        }
+        logger.info("查询代理商列表页面传递参数是：" + userDTO.toString());
+        JSONObject result = new JSONObject();
+        LoginUser loginUser = opUser();
+
+       Page page1=userService.getCustomList(page,loginUser,userDTO);
+        result.put("total", page1.getTotal());
+        result.put("list", page1.getData());
+        return  result;
+
+    }
+
+    /**
+     * 查询代理商佣金列表
+     * @return
+     */
+    @GetMapping("/getYjByDls")
+    @ResponseBody
+    public Object getYjByDls(@Valid PageParam page, BindingResult error,AgentDTO agentDTO){
+        if (error.hasErrors()) {
+            return getErrors(error);
+        }
+        logger.info("查询代理商佣金列表页面传递参数是：" + agentDTO.toString());
+
+        HashMap<String,Object> map=new HashMap<>();
+
+        Page yjByMonth = userService.getYjByMonth(page, agentDTO);
+
+        map.put("total", yjByMonth.getTotal());
+        map.put("list", yjByMonth.getData());
+        return  JSONObject.toJSONString(map);
+    }
+
+
+    /**
+     * 查询代理商总金额
+     * @return
+     */
+    @GetMapping("/getYjCount")
+    @ResponseBody
+    public Object getYjCount(String userId){
+        HashMap<String,Object> map=new HashMap<>();
+
+        Map yjCount = userService.getYjCount(userId);
+
+        map.put("data",yjCount);
+        return  JSONObject.toJSONString(map);
+
+    }
+
+    /**
+     * 导出佣金管理列表
+     * @return
+     */
+    @GetMapping("/exportYj")
+    public  void exportYj(AgentDTO agentDTO,HttpServletResponse response) throws  Exception{
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition",
+                "attachment;filename=代理商佣金");
+        response.addHeader("Pargam", "no-cache");
+        response.addHeader("Cache-Control", "no-cache");
+        userService.exportYj(agentDTO,response);
     }
 }
