@@ -42,6 +42,15 @@ public class AgentDTO extends BaseRowModel {
     private BigDecimal callAmcount;//线路佣金金额
     @ExcelProperty(value="短信佣金金额",index = 6)
     private BigDecimal messageAmcount;//短信佣金金额
+    private String yearMonth;
+
+    public String getYearMonth() {
+        return yearMonth;
+    }
+
+    public void setYearMonth(String yearMonth) {
+        this.yearMonth = yearMonth;
+    }
 
     private String statTimeStart;//查询条件中的日期起始时间
 

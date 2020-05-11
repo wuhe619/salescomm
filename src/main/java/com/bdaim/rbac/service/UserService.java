@@ -118,61 +118,7 @@ public class UserService {
                 userDTO.setId(userId);
                 //添加用户信息
                 userDao.insertUser(userDTO);
-                //新增代理商
-                if (userDTO.getDeptId().equals("100000")) {
-                    //代理商名字          Z乡村vbnm。/
-                    if (StringUtil.isNotEmpty(userDTO.getCustomerRegistDTO().getName())) {
-                        userDao.dealUserInfo(userId, "customer_name", userDTO.getCustomerRegistDTO().getName());
-                    }
 
-                    //营业执照注册号
-                    if (StringUtils.isNotEmpty(userDTO.getCustomerRegistDTO().getBliNumber())) {
-                        userDao.dealUserInfo(userId, "bli_number", userDTO.getCustomerRegistDTO().getBliNumber());
-
-                    }
-                    //注册地所在省
-                    if (StringUtil.isNotEmpty(userDTO.getCustomerRegistDTO().getProvince())) {
-                        userDao.dealUserInfo(userId, "province", userDTO.getCustomerRegistDTO().getProvince());
-
-                    }
-                    //注册地所在市
-                    if (StringUtil.isNotEmpty(userDTO.getCustomerRegistDTO().getCity())) {
-                        userDao.dealUserInfo(userId, "city", userDTO.getCustomerRegistDTO().getCity());
-
-                    }
-                    //注册地所在乡镇
-                    if (StringUtil.isNotEmpty(userDTO.getCustomerRegistDTO().getCountry())) {
-                        userDao.dealUserInfo(userId, "county", userDTO.getCustomerRegistDTO().getCountry());
-
-                    }
-                    //统一社会信用代码(纳税人识别号)
-                    if (StringUtil.isNotEmpty(userDTO.getCustomerRegistDTO().getTaxPayerId())) {
-                        userDao.dealUserInfo(userId, "taxpayer_id", userDTO.getCustomerRegistDTO().getTaxPayerId());
-                    }
-                    //营业执照url
-                    if (StringUtil.isNotEmpty(userDTO.getCustomerRegistDTO().getBliPath())) {
-                        userDao.dealUserInfo(userId, "bli_path", userDTO.getCustomerRegistDTO().getBliPath());
-                    }
-                    //银行
-                    if (StringUtil.isNotEmpty(userDTO.getCustomerRegistDTO().getBank())) {
-                        userDao.dealUserInfo(userId, "bank", userDTO.getCustomerRegistDTO().getBank());
-
-                    }
-                    //银行账号
-                    if (StringUtil.isNotEmpty(userDTO.getCustomerRegistDTO().getBankAccount())) {
-                        userDao.dealUserInfo(userId, "bank_account", userDTO.getCustomerRegistDTO().getBank());
-                    }
-                    //银行开户许可证url
-                    if (StringUtil.isNotEmpty(userDTO.getCustomerRegistDTO().getBankAccountCertificate())) {
-                        userDao.dealUserInfo(userId, "bank_account_certificate", userDTO.getCustomerRegistDTO().getBankAccountCertificate());
-                    }
-
-                    //企业注册详细街道地址
-                    if (StringUtil.isNotEmpty(userDTO.getCustomerRegistDTO().getAddress())) {
-                        userDao.dealUserInfo(userId, "reg_address", userDTO.getCustomerRegistDTO().getAddress());
-
-                    }
-                }
             } else {
                 //修改用户基本信息
                 userDao.updateUserMessage(userDTO);
@@ -990,6 +936,86 @@ public class UserService {
             insertCustomerPermission(customerIds, id);
             //insertLabelPermission(labelIds, id);
             //insertCategoryPermission(categoryIds, id);
+
+
+            //新增代理商
+            if (userRoles.getUser().getDeptId().equals("100000")) {
+                //代理商名字          Z乡村vbnm。/
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getName())) {
+                    userDao.dealUserInfo(id, "customer_name", userRoles.getUser().getCustomerRegistDTO().getName());
+                }
+
+                //营业执照注册号
+                if (StringUtils.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBliNumber())) {
+                    userDao.dealUserInfo(id, "bli_number", userRoles.getUser().getCustomerRegistDTO().getBliNumber());
+
+                }
+                //注册地所在省
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getProvince())) {
+                    userDao.dealUserInfo(id, "province", userRoles.getUser().getCustomerRegistDTO().getProvince());
+
+                }
+                //注册地所在市
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getCity())) {
+                    userDao.dealUserInfo(id, "city", userRoles.getUser().getCustomerRegistDTO().getCity());
+
+                }
+                //注册地所在乡镇
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getCountry())) {
+                    userDao.dealUserInfo(id, "county", userRoles.getUser().getCustomerRegistDTO().getCountry());
+
+                }
+                //统一社会信用代码(纳税人识别号)
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTaxPayerId())) {
+                    userDao.dealUserInfo(id, "taxpayer_id", userRoles.getUser().getCustomerRegistDTO().getTaxPayerId());
+                }
+                //营业执照url
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBliPath())) {
+                    userDao.dealUserInfo(id, "bli_path", userRoles.getUser().getCustomerRegistDTO().getBliPath());
+                }
+                //银行
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBank())) {
+                    userDao.dealUserInfo(id, "bank", userRoles.getUser().getCustomerRegistDTO().getBank());
+
+                }
+                //银行账号
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBankAccount())) {
+                    userDao.dealUserInfo(id, "bank_account", userRoles.getUser().getCustomerRegistDTO().getBank());
+                }
+                //银行开户许可证url
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBankAccountCertificate())) {
+                    userDao.dealUserInfo(id, "bank_account_certificate", userRoles.getUser().getCustomerRegistDTO().getBankAccountCertificate());
+                }
+
+                //企业注册详细街道地址
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getAddress())) {
+                    userDao.dealUserInfo(id, "reg_address", userRoles.getUser().getCustomerRegistDTO().getAddress());
+
+                }
+                //企业税务登记url
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTaxpayerCertificatePath())) {
+                    userDao.dealUserInfo(id, "taxpayerCertificatePath", userRoles.getUser().getCustomerRegistDTO().getTaxpayerCertificatePath());
+
+                }
+
+                //联系人手机（联系人姓名使用用户姓名）
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getMobile())) {
+                    userDao.dealUserInfo(id, "mobile", userRoles.getUser().getCustomerRegistDTO().getMobile());
+
+                }
+
+                //联系人邮箱
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getEmail())) {
+                    userDao.dealUserInfo(id, "email", userRoles.getUser().getCustomerRegistDTO().getEmail());
+
+                }
+
+                //联系人职位
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTitle())) {
+                    userDao.dealUserInfo(id, "title", userRoles.getUser().getCustomerRegistDTO().getTitle());
+
+                }
+            }
         } else {
             //更新用户信息
             userDao.update(user);
@@ -1009,6 +1035,9 @@ public class UserService {
             userRoleDao.insert(userRoles);
             //插入用户与客户对应关系
             insertCustomerPermission(customerIds, id);
+
+
+
         }
         return true;
     }
@@ -1624,15 +1653,12 @@ public class UserService {
             params.add(agentDTO.getStatTimeStart());
         }
 
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getStatTimeEnd())) {
-            sql.append("and sbm.stat_time < ?");
-            params.add(agentDTO.getStatTimeEnd());
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
+            sql.append("and sbm.stat_time = ?");
+            params.add(agentDTO.getYearMonth());
         }
 
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
-            sql.append("and tc.enterprise_name like ?");
-            params.add("%"+agentDTO.getCustomName()+"%");
-        }
+
 
         sql.append("  group by tc.cust_id,sbm.stat_time order by sbm.stat_time desc");
 
@@ -1644,7 +1670,7 @@ public class UserService {
         List<Object> params=new ArrayList<>();
 
         sql.append("select ((sum(stm.amount/1000)-sum(stm.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                ")) accout,tp.property_value\n" +
+                ")) accout,tp.property_value agentName\n" +
                 "from t_customer tc,stat_bill_month stm,t_customer_property tcp,t_user_property tp where tc.cust_id=stm.cust_id\n" +
                 "and tcp.cust_id=tc.cust_id and tp.user_id=tcp.property_value and tp.property_name='customer_name' and tcp.property_name=\"agent_id\" and tcp.property_value=?");
         params.add(userId);
