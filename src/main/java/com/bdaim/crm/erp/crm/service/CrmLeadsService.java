@@ -2200,6 +2200,10 @@ public class CrmLeadsService {
                     dto.setSuper_telphone(object.getString("super_telphone"));
                     dto.setSuper_phone(object.getString("super_phone"));
                     dto.setCompany(object.getString("company"));
+                    dto.setSuper_address_province_city(object.getString("super_address_province_city"));
+                    dto.setSuper_address_street(object.getString("super_address_street"));
+                    dto.setSuper_age(object.getString("super_age"));
+                    dto.setSuper_sex(object.getString("super_sex"));
                     // 导入线索
                     if (0 == number) {
                         addClueData0(dto, object);
