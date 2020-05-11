@@ -236,6 +236,9 @@ public class CrmLeadsService {
                 map.put("seaUseCount", map.get("进入公海次数"));
                 map.put("last_mark_time", map.get("最新跟进时间"));
 
+                map.put("super_phone", map.get("电话"));
+                map.put("dept", map.get("部门名称"));
+
             }
         }
         return R.ok().put("data", BaseUtil.crmPage(page));
