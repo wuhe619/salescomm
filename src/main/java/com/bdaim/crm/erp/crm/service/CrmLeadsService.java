@@ -230,7 +230,7 @@ public class CrmLeadsService {
                 // 剩余回收天数
                 create = LocalDateTime.parse(createTime, DatetimeUtils.DATE_TIME_FORMATTER);
                 create = create.plusDays(noFollowDay);
-                Duration duration = Duration.between(now, create);
+                Duration duration = Duration.between(now.minusDays(1), create);
                 map.put("剩余回收时间", (duration.toDays() > 0 ? duration.toDays() : "0") + "天");
 
                 map.put("seaUseCount", map.get("进入公海次数"));
