@@ -233,6 +233,8 @@ public class CrmLeadsService {
                 Duration duration = Duration.between(now, create);
                 map.put("剩余回收时间", (duration.toDays() > 0 ? duration.toDays() : "0") + "天");
 
+                map.put("seaUseCount", map.get("进入公海次数"));
+
             }
         }
         return R.ok().put("data", BaseUtil.crmPage(page));
@@ -810,8 +812,25 @@ public class CrmLeadsService {
             }
             Record crmLeads = JavaBeanUtil.mapToRecord(list.get(0));
             List<Record> leadsFields = adminFieldService.list("1");
-            List<LkCrmAdminFieldEntity> seaFields = crmLeadsDao.find("from LkCrmAdminFieldEntity where label = '11' AND custId = ? ", user.getCustId());
+
             List<LkCrmAdminFieldvEntity> adminFieldvList = new ArrayList<>();
+            //进入公海次数
+            List<LkCrmAdminFieldEntity> seaCount = crmLeadsDao.find("from LkCrmAdminFieldEntity where label = '11' AND custId = ? AND name = '进入公海次数' ", user.getCustId());
+            if (seaCount.size() > 0) {
+                LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
+                List<LkCrmAdminFieldvEntity> values = crmLeadsDao.find("from LkCrmAdminFieldvEntity where fieldId = ? AND batchId = ? ", seaCount.get(0).getFieldId(), superId);
+                int count = 0;
+                if (values.size() > 0) {
+                    count = NumberConvertUtil.parseInt(values.get(0).getValue());
+                }
+                adminFieldv.setValue(String.valueOf(count + 1));
+                adminFieldv.setFieldId(seaCount.get(0).getFieldId());
+                adminFieldv.setName(seaCount.get(0).getFieldName());
+                adminFieldv.setCustId(user.getCustId());
+                adminFieldv.setBatchId(superId);
+                adminFieldvList.add(adminFieldv);
+            }
+            List<LkCrmAdminFieldEntity> seaFields = crmLeadsDao.find("from LkCrmAdminFieldEntity where label = '11' AND custId = ? ", user.getCustId());
             for (Record leadsFIeld : leadsFields) {
                 for (LkCrmAdminFieldEntity seaField : seaFields) {
                     if (!seaField.getFieldType().equals(0)) {
@@ -826,6 +845,7 @@ public class CrmLeadsService {
                         adminFieldv.setBatchId(superId);
                         adminFieldvList.add(adminFieldv);
                     }
+
                     if ("线索来源".equals(seaField.getName()) && "线索来源".equals(leadsFIeld.getStr("name"))) {
                         LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
