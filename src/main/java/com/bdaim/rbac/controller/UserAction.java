@@ -15,6 +15,7 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerService;
@@ -691,6 +692,7 @@ public class UserAction extends BasicAction {
                             @RequestParam(required = false) String password, @RequestParam(required = false) String customerIds,
                             @RequestParam(required = false) String labelIds, @RequestParam(required = false) String categoryIds,
                             @RequestParam String channelIds,
+                            CustomerRegistDTO customerRegistDTO,
                             HttpServletRequest request) {
 //        net.sf.json.JSONObject result = new net.sf.json.JSONObject();
         JSONObject result = new JSONObject();
@@ -720,6 +722,7 @@ public class UserAction extends BasicAction {
         user.setRoleList(roles);
         user.setStatus(0);
         user.setSource(DataFromEnum.SYSTEM.getValue());
+        user.setCustomerRegistDTO(customerRegistDTO);
         if (StringUtils.isEmpty(password)) {
             password = defaultPassword;
         }
