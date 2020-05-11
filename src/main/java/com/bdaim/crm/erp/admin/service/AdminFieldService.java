@@ -156,6 +156,11 @@ public class AdminFieldService {
             crmAdminFieldDao.deleteByChooseId(arr, label, categoryId);
             crmAdminFieldDao.deleteByFieldValue(arr, label, categoryId);
         }
+        Set<String> labels = new HashSet<>();
+        if (11 == label) {
+            labels = publicSeaSystemLabel(label);
+        }
+
         List<Integer> fieldIdList = new ArrayList<>();
         List<String> fieldNameList = new ArrayList<>();
         for (int i = 0; i < adminFields.size(); i++) {
@@ -183,7 +188,11 @@ public class AdminFieldService {
                 BeanUtils.copyProperties(entity, lkCrmAdminFieldEntity, JavaBeanUtil.getNullPropertyNames(entity));
                 crmAdminFieldDao.update(lkCrmAdminFieldEntity);
                 if (entity.getFieldType() == 0) {
-                    crmAdminFieldDao.updateFieldSortName(entity.getName(), entity.getFieldId());
+                    if (label == 11) {
+                        crmAdminFieldDao.updateFieldSortName(entity.getName(), entity.getFieldName(), entity.getFieldId());
+                    } else {
+                        crmAdminFieldDao.updateFieldSortName(entity.getName(), entity.getFieldId());
+                    }
                     //Db.update(Db.getSqlPara("admin.field.updateFieldSortName", entity));
                 } else if (entity.getFieldType() == 1) {
                     crmAdminFieldDao.executeUpdateSQL("update lkcrm_admin_field_sort set name = ? where field_id = ?", entity.getName(), entity.getFieldId());

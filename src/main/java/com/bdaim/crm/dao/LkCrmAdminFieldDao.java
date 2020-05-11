@@ -108,6 +108,14 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
         String sql = "update lkcrm_admin_field_sort set field_name = ?,name = ? where field_id = ? ";
         return executeUpdateSQL(sql, param.toArray());
     }
+    public int updateFieldSortName(String name, String fieldName,int field_id) {
+        List param = new ArrayList();
+        param.add(fieldName);
+        param.add(name);
+        param.add(field_id);
+        String sql = "update lkcrm_admin_field_sort set field_name = ?,name = ? where field_id = ? ";
+        return executeUpdateSQL(sql, param.toArray());
+    }
 
     public List<Map<String, Object>> queryFieldsByBatchId(String batchId, String... name) {
         String sql = "SELECT a.`name` as fieldName,a.`name`,a.type,a.label,a.remark,a.input_tips,a.max_length,a.default_value,a.is_unique as isUnique,a.is_null as isNull,a.sorting,a.`options`,b.`value`,a.operating\n" +
