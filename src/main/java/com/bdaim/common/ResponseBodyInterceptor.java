@@ -104,6 +104,7 @@ public class ResponseBodyInterceptor {
                     }
                     if (json.containsKey("message")) {
                         result.put("msg", json.getString("message"));
+                        result.put("_message", json.getString("message"));
                     }
                     if (json.containsKey("data")) {
                         result.put("data", json.get("data"));

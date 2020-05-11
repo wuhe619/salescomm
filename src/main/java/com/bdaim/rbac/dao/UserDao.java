@@ -1,6 +1,7 @@
 package com.bdaim.rbac.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.entity.User;
 import com.bdaim.rbac.entity.UserDO;
@@ -10,7 +11,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -213,6 +216,16 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
         return cp;
     }
 
+
+    public UserProperty checkProperty(String propertyName, String propertyValue) {
+        UserProperty cp = null;
+        String hql = "from UserProperty m where m.propertyName=? and m.propertyValue=?";
+        List<UserProperty> list = this.find(hql, propertyName, propertyValue);
+        if (list.size() > 0)
+            cp = (UserProperty) list.get(0);
+        return cp;
+    }
+
     public User getUserMessage(long userId) {
         User cp = null;
         String hql = "from User m where m.userId=? and status =0 ";
@@ -221,4 +234,25 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
             cp = (User) list.get(0);
         return cp;
     }
+
+
+
+    /**
+     * 代理商属性编辑与新增
+     */
+    public void dealUserInfo(Long userId, String propertyName,String propertyValue) {
+        UserProperty propertyInfo = this.getProperty(userId,propertyName);
+        if (propertyInfo == null) {
+            propertyInfo = new UserProperty();
+            propertyInfo.setCreateTime(new Timestamp(new Date().getTime()));
+            propertyInfo.setUserId(userId);
+            propertyInfo.setPropertyValue(propertyValue);
+            logger.info(userId + " 属性不存在，新建该属性" + "\tpropertyName:" + propertyName + "\tpropertyValue:" + propertyValue);
+            propertyInfo.setPropertyName(propertyName);
+        } else {
+            propertyInfo.setPropertyValue(propertyValue);
+        }
+        this.saveOrUpdate(propertyInfo);
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.bdaim.crm.ent.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.response.ResponseInfo;
@@ -28,6 +29,13 @@ public class EntSearchController extends BasicAction {
     @Autowired
     EntDataService entDataService;
 
+    @PostMapping(value = "/test")
+    public ResponseInfo test() throws IOException {
+        ResponseInfo resp = new ResponseInfo();
+        resp.setData(entDataService.hikariMonitor());
+        return resp;
+    }
+
     @PostMapping(value = "/search")
     public ResponseInfo pageSearch(@RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType, HttpServletResponse response) throws IOException {
         ResponseInfo resp = new ResponseInfo();
@@ -40,8 +48,9 @@ public class EntSearchController extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "查询条件解析异常[" + busiType + "]");
         }
         // 查询总量
+        LoginUser user = opUser();
         if ("_count".equals(params.getString("_rule_"))) {
-            Map count = entDataService.count(opUser().getCustId(), opUser().getUserGroupId(), opUser().getId(), busiType, params);
+            Map count = entDataService.count(user.getCustId(), user.getUserGroupId(), user.getId(), busiType, params);
             resp.setData(count);
             return resp;
         }
@@ -51,7 +60,7 @@ public class EntSearchController extends BasicAction {
         }
         Page page = null;
         try {
-            page = entDataService.pageSearch(opUser().getCustId(), opUser().getUserGroupId(), opUser().getId(), busiType, params);
+            page = entDataService.pageSearch(user.getCustId(), user.getUserGroupId(), user.getId(), busiType, params);
         } catch (Exception e) {
             logger.error("查询记录异常,", e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
@@ -77,7 +86,7 @@ public class EntSearchController extends BasicAction {
             if (StringUtil.isNotEmpty(param.getString("seaId"))) {
                 sId = param.getLongValue("seaId");
             }
-            baseResult = entDataService.getCompanyDetail(id, param, busiType, sId);
+            baseResult = entDataService.getCompanyDetailSrc(id, param, busiType, sId);
         } catch (Exception e) {
             logger.error("查询记录异常,", e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");

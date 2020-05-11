@@ -1,10 +1,12 @@
 package com.bdaim.crm.erp.admin.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.bdaim.crm.dao.LkCrmAdminMenuDao;
 import com.bdaim.crm.dao.LkCrmAdminRoleDao;
 import com.bdaim.crm.entity.LkCrmAdminMenuEntity;
 import com.bdaim.crm.entity.LkCrmAdminRoleEntity;
 import com.bdaim.crm.entity.LkCrmAdminRoleMenuEntity;
+import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,5 +126,13 @@ public class AdminMenuService {
         }
         return true;
         //});
+    }
+
+    public R getWorkMenuList() {
+        Integer workMenuId = crmAdminMenuDao.queryForInt("select menu_id from `lkcrm_admin_menu` where parent_id = 0 and realm = 'work'");
+        LkCrmAdminMenuEntity entity = crmAdminMenuDao.get(workMenuId);
+        Map root = BeanUtil.beanToMap(entity);
+        root.put("childMenu", getWorkMenuList(entity.getMenuId(), 20));
+        return (R.ok().put("data", root));
     }
 }

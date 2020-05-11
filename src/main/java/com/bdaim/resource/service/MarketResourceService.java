@@ -6382,7 +6382,7 @@ public class MarketResourceService {
     }
 
 
-    public int updateVoiceLogStatusV3(String touchId, Integer status, String callSid,String customerGroupId,String taskId,String uid) {
+    public int updateVoiceLogStatusV3(String touchId, Integer status, String callSid, String customerGroupId, String taskId, String uid) {
         // 检查通话记录月表是否存在
         marketResourceDao.createVoiceLogTableNotExist(DateUtil.getNowMonthToYYYYMM());
 
@@ -6392,13 +6392,13 @@ public class MarketResourceService {
         sb.append(" callSid=?");
         sb.append(" where touch_id = ?");
 
-        if(StringUtil.isNotEmpty(customerGroupId)){
-            String sql = "update "+ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + customerGroupId+" set last_call_time=now() where id=?";
-            this.marketResourceDao.executeUpdateSQL(sql,uid);
+        if (StringUtil.isNotEmpty(customerGroupId)) {
+            String sql = "update " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + customerGroupId + " set last_call_time=now() where id=?";
+            this.marketResourceDao.executeUpdateSQL(sql, uid);
         }
-        if(StringUtil.isNotEmpty(taskId)){
+        if (StringUtil.isNotEmpty(taskId)) {
             String sql = "update " + ConstantsUtil.MARKET_TASK_TABLE_PREFIX + taskId + " set last_call_time=now() where id=?";
-            this.marketResourceDao.executeUpdateSQL(sql,uid);
+            this.marketResourceDao.executeUpdateSQL(sql, uid);
         }
 
         return this.marketResourceDao.executeUpdateSQL(sb.toString(), status, callSid, touchId);
@@ -9336,6 +9336,8 @@ public class MarketResourceService {
         map.put("createTime", marketResource.getCreateTime());
         map.put("apiName", "");
 
+        ResourcePropertyEntity property = sourceDao.getSourceProperty(resourceId);
+        map.put("property", property);
         return map;
     }
 

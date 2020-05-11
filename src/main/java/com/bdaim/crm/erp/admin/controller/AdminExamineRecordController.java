@@ -21,8 +21,8 @@ import javax.annotation.Resource;
 public class AdminExamineRecordController extends BasicAction {
     @Resource
     private AdminExamineRecordService examineRecordService;
-    @Resource
-    private LkCrmAdminExamineRecordDao crmAdminExamineRecordDao;
+   /* @Resource
+    private LkCrmAdminExamineRecordDao crmAdminExamineRecordDao;*/
 
     /**
      * 审核合同或者回款 recordId:审核记录id status:审批状态：审核状态  1 审核通过 2 审核拒绝 4 已撤回
@@ -73,14 +73,14 @@ public class AdminExamineRecordController extends BasicAction {
      * @return
      */
     private boolean getExamineObjIdByRecordId(Integer recordId) {
-        boolean auth;
+       /* boolean auth;
         int id = crmAdminExamineRecordDao.queryForInt("select contract_id from `lkcrm_crm_contract` where examine_record_id = ?", recordId);
         if (id > 0) {
             auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), id);
         } else {
             id = crmAdminExamineRecordDao.queryForInt("select receivables_id from `lkcrm_crm_receivables` where examine_record_id = ?", recordId);
             auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.RECEIVABLES_TYPE_KEY.getSign()), id);
-        }
-        return auth;
+        }*/
+        return examineRecordService.getExamineObjIdByRecordId(recordId);
     }
 }

@@ -1,5 +1,7 @@
 package com.bdaim.rbac.dto;
 
+import com.bdaim.customer.dto.CustomerRegistDTO;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -25,6 +27,25 @@ public class UserDTO implements Serializable, Manager<Long> {
     public String optuser;
     public Date createTime;
     private Date modifyTime;
+    private CustomerRegistDTO customerRegistDTO;//代理商
+    private String customerName;//代理商名字
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public CustomerRegistDTO getCustomerRegistDTO() {
+        return customerRegistDTO;
+    }
+
+    public void setCustomerRegistDTO(CustomerRegistDTO customerRegistDTO) {
+        this.customerRegistDTO = customerRegistDTO;
+    }
+
     public int source;
     /**
      * 场站id

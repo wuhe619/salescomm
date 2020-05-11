@@ -487,7 +487,7 @@ public class B2BTcbService implements BusiService {
         // 更新套餐余量和消耗量
         updateTbRemain(useB2BTcb.getLong("id"), consumeNum, BusiTypeEnum.B2B_TC.getType());
         // 处理无效套餐
-        handleInvalidTC(custId, busiType);
+        handleInvalidTC(custId, "b2b_tcb");
         return 0;
     }
 

@@ -132,6 +132,7 @@ public class CustomerExtensionService {
             p.add(info.getString("source"));
             sql.append(" and content->'$.source' =? ");
         }
+
         if (StringUtil.isNotEmpty(info.getString("id"))) {
 //            p.add(info.getString("id"));
             sql.append(" and  id in (" + info.getString("id") + ")");

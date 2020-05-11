@@ -18,10 +18,14 @@ import com.bdaim.util.ExcelUtil;
 import com.bdaim.util.MD5Util;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.HikariPoolMXBean;
 import io.searchbox.core.CountResult;
 import io.searchbox.core.SearchResult;
 import org.apache.lucene.search.join.ScoreMode;
-import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.WildcardQueryBuilder;
 import org.elasticsearch.join.query.HasChildQueryBuilder;
 import org.elasticsearch.join.query.JoinQueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -1037,6 +1041,25 @@ public class EntDataService {
         return page;
     }
 
+    private static HikariPoolMXBean hikariPoolMXBean;
+
+    public String hikariMonitor() {
+        HikariDataSource dataSource = (HikariDataSource) jdbcTemplate.getDataSource();
+        LOG.info("maxLifetime:" + dataSource.getMaxLifetime());
+        hikariPoolMXBean = dataSource.getHikariPoolMXBean();
+        LOG.info("HikariPoolState = "
+                + "Active=[" + String.valueOf(hikariPoolMXBean.getActiveConnections() + "] "
+                + "Idle=[" + String.valueOf(hikariPoolMXBean.getIdleConnections() + "] "
+                + "Wait=[" + hikariPoolMXBean.getThreadsAwaitingConnection() + "] "
+                + "Total=[" + hikariPoolMXBean.getTotalConnections() + "]")));
+        return "HikariPoolState = "
+                + "Active=[" + String.valueOf(hikariPoolMXBean.getActiveConnections() + "] "
+                + "Idle=[" + String.valueOf(hikariPoolMXBean.getIdleConnections() + "] "
+                + "Wait=[" + hikariPoolMXBean.getThreadsAwaitingConnection() + "] "
+                + "Total=[" + hikariPoolMXBean.getTotalConnections() + "]"));
+
+    }
+
     /**
      * 查询指定条件下的数据总量
      *
@@ -1092,6 +1115,18 @@ public class EntDataService {
     }*/
 
     public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) {
+        JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
+        if (baseResult != null) {
+            baseResult.put("phones", handlePhones(baseResult));
+            if (seaId > 0) {
+                //处理公司联系方式是否有意向
+                handleClueFollowStatus(seaId, baseResult);
+            }
+        }
+        return baseResult;
+    }
+
+    public JSONObject getCompanyDetailSrc(String companyId, JSONObject param, String busiType, long seaId) {
         JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
         if (baseResult != null) {
             baseResult.put("phones", handlePhonesSrc(baseResult));
@@ -1153,6 +1188,7 @@ public class EntDataService {
 
     /**
      * 返回手机号以及来源
+     *
      * @param baseResult
      * @return
      */

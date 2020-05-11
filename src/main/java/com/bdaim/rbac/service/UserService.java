@@ -14,6 +14,7 @@ import com.bdaim.rbac.DataFromEnum;
 import com.bdaim.rbac.dao.RoleDao;
 import com.bdaim.rbac.dao.UserDao;
 import com.bdaim.rbac.dao.UserRoleDao;
+import com.bdaim.rbac.dto.AgentDTO;
 import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.dto.UserRoles;
@@ -24,18 +25,28 @@ import com.bdaim.rbac.vo.QueryDataParam;
 import com.bdaim.rbac.vo.UserInfo;
 import com.bdaim.util.*;
 
+import com.bdaim.util.excel.EasyExcelUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hibernate.transform.Transformers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -45,6 +56,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service("userService")
 @Transactional
@@ -106,6 +118,7 @@ public class UserService {
                 userDTO.setId(userId);
                 //添加用户信息
                 userDao.insertUser(userDTO);
+
             } else {
                 //修改用户基本信息
                 userDao.updateUserMessage(userDTO);
@@ -923,6 +936,86 @@ public class UserService {
             insertCustomerPermission(customerIds, id);
             //insertLabelPermission(labelIds, id);
             //insertCategoryPermission(categoryIds, id);
+
+
+            //新增代理商
+            if (userRoles.getUser().getDeptId().equals("100000")) {
+                //代理商名字          Z乡村vbnm。/
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getName())) {
+                    userDao.dealUserInfo(id, "customer_name", userRoles.getUser().getCustomerRegistDTO().getName());
+                }
+
+                //营业执照注册号
+                if (StringUtils.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBliNumber())) {
+                    userDao.dealUserInfo(id, "bli_number", userRoles.getUser().getCustomerRegistDTO().getBliNumber());
+
+                }
+                //注册地所在省
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getProvince())) {
+                    userDao.dealUserInfo(id, "province", userRoles.getUser().getCustomerRegistDTO().getProvince());
+
+                }
+                //注册地所在市
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getCity())) {
+                    userDao.dealUserInfo(id, "city", userRoles.getUser().getCustomerRegistDTO().getCity());
+
+                }
+                //注册地所在乡镇
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getCountry())) {
+                    userDao.dealUserInfo(id, "county", userRoles.getUser().getCustomerRegistDTO().getCountry());
+
+                }
+                //统一社会信用代码(纳税人识别号)
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTaxPayerId())) {
+                    userDao.dealUserInfo(id, "taxpayer_id", userRoles.getUser().getCustomerRegistDTO().getTaxPayerId());
+                }
+                //营业执照url
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBliPath())) {
+                    userDao.dealUserInfo(id, "bli_path", userRoles.getUser().getCustomerRegistDTO().getBliPath());
+                }
+                //银行
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBank())) {
+                    userDao.dealUserInfo(id, "bank", userRoles.getUser().getCustomerRegistDTO().getBank());
+
+                }
+                //银行账号
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBankAccount())) {
+                    userDao.dealUserInfo(id, "bank_account", userRoles.getUser().getCustomerRegistDTO().getBank());
+                }
+                //银行开户许可证url
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBankAccountCertificate())) {
+                    userDao.dealUserInfo(id, "bank_account_certificate", userRoles.getUser().getCustomerRegistDTO().getBankAccountCertificate());
+                }
+
+                //企业注册详细街道地址
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getAddress())) {
+                    userDao.dealUserInfo(id, "reg_address", userRoles.getUser().getCustomerRegistDTO().getAddress());
+
+                }
+                //企业税务登记url
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTaxpayerCertificatePath())) {
+                    userDao.dealUserInfo(id, "taxpayerCertificatePath", userRoles.getUser().getCustomerRegistDTO().getTaxpayerCertificatePath());
+
+                }
+
+                //联系人手机（联系人姓名使用用户姓名）
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getMobile())) {
+                    userDao.dealUserInfo(id, "mobile", userRoles.getUser().getCustomerRegistDTO().getMobile());
+
+                }
+
+                //联系人邮箱
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getEmail())) {
+                    userDao.dealUserInfo(id, "email", userRoles.getUser().getCustomerRegistDTO().getEmail());
+
+                }
+
+                //联系人职位
+                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTitle())) {
+                    userDao.dealUserInfo(id, "title", userRoles.getUser().getCustomerRegistDTO().getTitle());
+
+                }
+            }
         } else {
             //更新用户信息
             userDao.update(user);
@@ -942,6 +1035,9 @@ public class UserService {
             userRoleDao.insert(userRoles);
             //插入用户与客户对应关系
             insertCustomerPermission(customerIds, id);
+
+
+
         }
         return true;
     }
@@ -1470,5 +1566,222 @@ public class UserService {
                 " LEFT JOIN t_user t3 ON t2.id = t3.id WHERE t3.`name` = '" + userName + "'");
 
         return userDao.getSQLQuery(sql.toString()).list();
+    }
+
+    /**
+     * 校验用户属性表中是否重复
+     *
+     * @param propertyName  属性名
+     * @param propertyValue 属性值
+     * @return
+     */
+    public UserProperty checkProperty(String propertyName, String propertyValue) {
+
+        return userDao.checkProperty(propertyName, propertyValue);
+    }
+
+
+    public Page getCustomList(PageParam pageParam, LoginUser loginUser, UserDTO userDTO) {
+
+        Long loginId = loginUser.getId();
+        boolean ifAdmin = loginUser.isAdmin();
+
+        StringBuilder sql = new StringBuilder();
+        List<Object> params=new ArrayList<>();
+        sql.append("select tu.name,tu.id,tp.property_value agentName,\n" +
+                "\t(select count(1) from t_customer_property t where t.property_name='agent_id' and t.property_value=tu.id) customerCount,\n" +
+                "\t(select sum(((stm.amount/1000-stm.prod_amount/1000)*(select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate'\n" +
+                "))) from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id\n" +
+                "and tp.property_name='agent_id' and tp.property_value=tp.user_id) accountCount \n" +
+                "from t_user tu,t_user_property tp where tp.user_id=tu.id and tp.property_name='customer_name'");
+
+        //admin可以查询所有部门信息  普通用户只能查本部门的
+        if (!ifAdmin) {
+            sql.append(" and  tu.DEPTID ='100000' and tu.id=?");
+            params.add(loginId);
+        }
+
+        if(userDTO!=null&&StringUtils.isNotEmpty(userDTO.getUserName())){
+            sql.append("and tu.name=? ");
+            params.add(userDTO.getName());
+        }
+
+        if(userDTO!=null&&(userDTO.getId()!=null)){
+            sql.append("and tu.id=? ");
+            params.add(userDTO.getId());
+        }
+
+        if(userDTO!=null&&(StringUtils.isNotEmpty(userDTO.getCustomerName()))){
+            sql.append("and tp.property_value like ? ");
+            params.add("%"+userDTO.getCustomerName()+"%");
+        }
+        sql.append("order by tp.create_time desc");
+       return  userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
+    }
+
+
+
+    public Page getYjByMonth(PageParam pageParam,AgentDTO agentDTO){
+
+        StringBuilder sql=new StringBuilder();
+        List<Object> params=new ArrayList<>();
+        sql.append("select\n" +
+                "\ttu.account customAcocunt,tc.enterprise_name customName,sbm.stat_time statTime,\n" +
+                "(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
+                "  (select (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
+                "\t sbm2.bill_type='7') dataAmcount,\n" +
+
+                "\t(select (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
+                " sbm2.bill_type='4') callAmcount,\n" +
+                "\t(select (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
+                " sbm2.bill_type='3') messageAmcount\n" +
+                "from t_customer tc,t_customer_user tu,t_customer_property tcu,stat_bill_month sbm\n" +
+                "where\n" +
+                "\ttc.cust_id=tu.cust_id and  tcu.cust_id=tc.cust_id\n" +
+                "\tand tu.user_type='1'\n" +
+                "\tand tcu.property_name='agent_id' and tcu.property_value=? and tc.cust_id=sbm.cust_id\n");
+                  params.add(agentDTO.getUserId());
+                if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
+                    sql.append("and tc.cust_id=?");
+                    params.add(agentDTO.getCustId());
+                }
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getStatTimeStart())) {
+            sql.append("and sbm.stat_time > ?");
+            params.add(agentDTO.getStatTimeStart());
+        }
+
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
+            sql.append("and sbm.stat_time = ?");
+            params.add(agentDTO.getYearMonth());
+        }
+
+
+
+        sql.append("  group by tc.cust_id,sbm.stat_time order by sbm.stat_time desc");
+
+       return userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
+    }
+
+    public Map getYjCount(String userId){
+        StringBuilder sql=new StringBuilder();
+        List<Object> params=new ArrayList<>();
+
+        sql.append("select ((sum(stm.amount/1000)-sum(stm.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                ")) accout,tp.property_value agentName\n" +
+                "from t_customer tc,stat_bill_month stm,t_customer_property tcp,t_user_property tp where tc.cust_id=stm.cust_id\n" +
+                "and tcp.cust_id=tc.cust_id and tp.user_id=tcp.property_value and tp.property_name='customer_name' and tcp.property_name=\"agent_id\" and tcp.property_value=?");
+        params.add(userId);
+
+        Map<String, Object> stringObjectMap = userDao.queryUniqueSql(sql.toString(), params);
+     return stringObjectMap;
+    }
+
+    public void exportYj(AgentDTO agentDTO,HttpServletResponse response) throws  Exception{
+
+        StringBuilder sql=new StringBuilder();
+        List<Object> params=new ArrayList<>();
+        ServletOutputStream outputStream=null;
+        try {
+             outputStream = response.getOutputStream();
+            sql.append("select\n" +
+                "\ttu.account customAcocunt,tc.enterprise_name customName,sbm.stat_time statTime,\n" +
+                "(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
+                "  (select (IFNULL(sum(sbm2.amount/1000),0)-IFNULL(sum(sbm2.prod_amount/1000),0))*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t),0) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
+                "\t sbm2.bill_type='7') dataAmcount,\n" +
+
+                "\t(select (IFNULL(sum(sbm2.amount/1000),0)-IFNULL(sum(sbm2.prod_amount/1000),0))*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t),0) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
+                " sbm2.bill_type='4') callAmcount,\n" +
+                "\t(select (IFNULL(sum(sbm2.amount/1000),0)-IFNULL(sum(sbm2.prod_amount/1000),0))*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t),0) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
+                " sbm2.bill_type='3') messageAmcount\n" +
+                "from t_customer tc,t_customer_user tu,t_customer_property tcu,stat_bill_month sbm\n" +
+                "where\n" +
+                "\ttc.cust_id=tu.cust_id and  tcu.cust_id=tc.cust_id\n" +
+                "\tand tu.user_type='1'\n" +
+                "\tand tcu.property_name='agent_id' and tcu.property_value=? and tc.cust_id=sbm.cust_id\n");
+        params.add(agentDTO.getUserId());
+        EasyExcelUtil.EasyExcelParams param = new EasyExcelUtil.EasyExcelParams();
+
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
+            sql.append("and tc.cust_id=?");
+            params.add(agentDTO.getCustId());
+        }
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getStatTimeStart())) {
+            sql.append("and sbm.stat_time > ?");
+            params.add(agentDTO.getStatTimeStart());
+        }
+
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getStatTimeEnd())) {
+            sql.append("and sbm.stat_time < ?");
+            params.add(agentDTO.getStatTimeEnd());
+        }
+
+
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
+            sql.append("and tc.enterprise_name like ?");
+            params.add("%"+agentDTO.getCustomName()+"%");
+        }
+
+        sql.append("  group by tc.cust_id,sbm.stat_time order by sbm.stat_time desc");
+
+
+            XSSFWorkbook workBook =new XSSFWorkbook();
+            XSSFSheet sheet = workBook.createSheet();
+            int r=0;
+            XSSFRow row = sheet.createRow(r++);
+            int c=0;
+            XSSFCell cell = row.createCell(c++);
+            cell.setCellValue("企业账号");
+            cell = row.createCell(c++);
+            cell.setCellValue("企业名称");
+            cell = row.createCell(c++);
+            cell.setCellValue("账期");
+            cell = row.createCell(c++);
+            cell.setCellValue("佣金率");
+            cell = row.createCell(c++);
+            cell.setCellValue("数据佣金金额");
+            cell = row.createCell(c++);
+            cell.setCellValue("线路佣金金额");
+            cell = row.createCell(c++);
+            cell.setCellValue("短信佣金金额");
+            cell = row.createCell(c++);
+            cell.setCellValue("总佣金金额");
+
+            List<Map<String, Object>> maps = userDao.queryMapsListBySql(sql.toString(), params.toArray());
+
+            for(Map map:maps){
+                c=0;
+               row=sheet.createRow(r++);
+                cell = row.createCell(c++);
+                cell.setCellValue((String) map.get("customAcocunt"));
+                cell = row.createCell(c++);
+                cell.setCellValue((String) map.get("customName"));
+                cell = row.createCell(c++);
+                cell.setCellValue((String) map.get("statTime"));
+                cell = row.createCell(c++);
+                cell.setCellValue((String) map.get("commision"));
+                cell = row.createCell(c++);
+                cell.setCellValue(((BigDecimal)map.get("dataAmcount")).toString());
+                cell = row.createCell(c++);
+                cell.setCellValue(((BigDecimal) map.get("callAmcount")).toString());
+                cell = row.createCell(c++);
+                ((BigDecimal)map.get("dataAmcount")).add(((BigDecimal)map.get("callAmcount")).add((BigDecimal) map.get("callAmcount")));
+                cell.setCellValue(((BigDecimal) map.get("messageAmcount")).toString());
+                cell = row.createCell(c++);
+                cell.setCellValue(((BigDecimal)map.get("dataAmcount")).add(((BigDecimal)map.get("callAmcount")).add((BigDecimal) map.get("callAmcount"))).toString());
+            }
+
+            workBook.write(outputStream);
+        } catch (Exception e) {
+            log.error("导出佣金异常", e);
+        }finally {
+
+            outputStream.close();
+        }
     }
 }

@@ -151,7 +151,11 @@ public class CrmLeadsController extends BasicAction {
                 // 处理线索名称
                 if ("leads_name".equals(jsonO.getJSONArray("field").getJSONObject(i).getString("fieldName"))) {
                     dto.setSuper_name(jsonO.getJSONArray("field").getJSONObject(i).getString("value"));
-                    break;
+                    //break;
+                }
+                if ("super_phone".equals(jsonO.getJSONArray("field").getJSONObject(i).getString("fieldName"))) {
+                    dto.setSuper_phone(jsonO.getJSONArray("field").getJSONObject(i).getString("value"));
+                    //break;
                 }
             }
             int status = crmLeadsService.addClueData0(dto, jsonO);
@@ -399,7 +403,7 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "update h_dic SET p_code = 0 WHERE type = 'INDUSTRY_CODE_1';";
+        String sql = " DELETE from lkcrm_admin_field_sort;";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
@@ -707,6 +711,7 @@ public class CrmLeadsController extends BasicAction {
                 record.remove("custType", "entId", "intentLevel", "lastCallTime", "n_id");
                 record.remove("user_id", "status", "call_empty_count", "call_success_count", "call_fail_count", "data_source", "intent_level", "last_call_time");
                 record.remove("last_called_duration", "pull_status", "status", "super_age", "super_name", "super_sex", "user_get_time", "user_group_id");
+                record.remove("callCount", "last_mark_time", "sms_success_count", "pre_user_id", "super_address_province_city");
                 list.add(record.remove("super_data", "batch_id", "is_transform", "customer_id", "leads_id", "owner_user_id", "create_user_id", "followup", "field_batch_id").getColumns());
             }
             writer.write(list, true);

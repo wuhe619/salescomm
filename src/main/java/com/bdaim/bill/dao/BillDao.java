@@ -57,6 +57,25 @@ public class BillDao extends SimpleHibernateDao {
         return amount;
     }
 
+
+    /**
+     * 查询客户单个月份的利润
+     *
+     * @param custId
+     * @param yearMonth
+     * @return
+     */
+    public double sumCustomerMonthProfit(String custId, String yearMonth) {
+        double amount = 0.0;
+        String sql = "select  (sum(sb.amount/1000)-sum(sb.prod_amount/1000))-((sum(sb.amount/1000)-sum(sb.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=sb.cust_id and tp.property_name='commission_rate')) profit from stat_bill_month sb \n" +
+                "where sb.cust_id=? and sb.stat_time=?";
+        List<Map<String, Object>> supplierAmount = this.sqlQuery(sql, custId, yearMonth);
+        if (supplierAmount.size() > 0 && supplierAmount.get(0).get("profit") != null) {
+            amount = NumberConvertUtil.parseDouble(String.valueOf(supplierAmount.get(0).get("profit")));
+        }
+        return amount;
+    }
+
     public Page pageCustomerBill(String custId, String startTime, String endTime, String orderNo, int type, int pageNum, int pageSize, String resourceId) {
         TransactionTypeEnum transactionTypeEnum = TransactionTypeEnum.getType(type);
         Page page = null;

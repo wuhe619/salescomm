@@ -253,7 +253,9 @@ public class AdminFieldController extends BasicAction {
     @NotNullValidate(value = "noHideIds", message = "显示列不能为空")
     @RequestMapping(value = "/fieldConfig", method = RequestMethod.POST)
     public R fieldConfig(AdminFieldSort adminFieldSort) {
-        return (adminFieldService.fieldConfig(adminFieldSort));
+        synchronized (this) {
+            return (adminFieldService.fieldConfig(adminFieldSort));
+        }
     }
 
     /**
