@@ -58,6 +58,13 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
         return executeUpdateSQL(sql, param.toArray());
     }
 
+    public int deleteFieldSortByNames(List<String> names, int label) {
+        List param = new ArrayList();
+        param.add(label);
+        String sql = " delete from lkcrm_admin_field_sort where label = ? and name in(" + SqlAppendUtil.sqlAppendWhereIn(names) + ") ";
+        return executeUpdateSQL(sql, param.toArray());
+    }
+
     public List queryFields() {
         String custId = BaseUtil.getCustId();
         String sql = "SELECT IFNULL(label,'1') as label,IFNULL(MAX(update_time),'2000-01-01 00:00:00') as update_time,'线索管理' as name,'crm_leads' as types FROM lkcrm_admin_field WHERE label='1' AND cust_id = '" + custId + "' " +

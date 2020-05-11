@@ -147,6 +147,7 @@ public class AdminFieldService {
         });
         List<LkCrmAdminFieldEntity> fieldSorts = crmAdminFieldDao.find("from LkCrmAdminFieldEntity where label = ? AND custId = ?", label, user.getCustId());
         List<Integer> fieldList = fieldSorts.stream().map(LkCrmAdminFieldEntity::getFieldId).collect(Collectors.toList());
+        List<String> nameList = fieldSorts.stream().map(LkCrmAdminFieldEntity::getName).collect(Collectors.toList());
         if (arr.size() > 0) {
            /* SqlPara sql = Db.getSqlPara("admin.field.deleteByChooseId", Kv.by("ids", arr).set("label", label).set("categoryId", categoryId));
             SqlPara sqlPara = Db.getSqlPara("admin.field.deleteByFieldValue", Kv.by("ids", arr).set("label", label).set("categoryId", categoryId));
@@ -156,6 +157,7 @@ public class AdminFieldService {
             crmAdminFieldDao.deleteByFieldValue(arr, label, categoryId);
         }
         List<Integer> fieldIdList = new ArrayList<>();
+        List<String> fieldNameList = new ArrayList<>();
         for (int i = 0; i < adminFields.size(); i++) {
             adminFields.getJSONObject(i).remove("value");
             Object defaultValue = adminFields.getJSONObject(i).get("defaultValue");
@@ -194,11 +196,14 @@ public class AdminFieldService {
                 crmAdminFieldDao.save(entity);
             }
             fieldIdList.add(entity.getFieldId());
+            fieldNameList.add(entity.getName());
         }
         createView(label);
         fieldList.removeAll(fieldIdList);
+        nameList.removeAll(fieldNameList);
         if (fieldList.size() != 0) {
             crmAdminFieldDao.deleteFieldSort(fieldList, label);
+            crmAdminFieldDao.deleteFieldSortByNames(nameList, label);
             //Db.update(Db.getSqlPara("admin.field.deleteFieldSort", Kv.by("label", label).set("names", nameList)));
         }
         CaffeineCache.ME.removeAll("field");
