@@ -59,6 +59,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -213,14 +214,37 @@ public class CrmLeadsService {
         }
         com.bdaim.common.dto.Page page = crmLeadsDao.pageCluePublicSea(basePageRequest.getPage(), basePageRequest.getLimit(), seaId, search);
         if (page != null && page.getData() != null) {
+            // 配置的公海线索回收天数
+            int noFollowDay = getNoFollowDay(custId);
+            String markTime, createTime;
+            LocalDateTime create, now = LocalDateTime.now();
             for (int i = 0; i < page.getData().size(); i++) {
                 Map map = (Map) page.getData().get(i);
                 // 解析super_data中qq 微信等属性
                 getDefaultLabelValue(map);
                 map.remove("super_data");
+                // 最新跟进时间
+                markTime = getMarkTime(String.valueOf(map.get("id")));
+                createTime = String.valueOf(map.get("create_time"));
+                map.put("最新跟进时间", StringUtil.isNotEmpty(markTime) ? markTime : createTime);
+                // 剩余回收天数
+                create = LocalDateTime.parse(createTime, DatetimeUtils.DATE_TIME_FORMATTER);
+                create = create.plusDays(noFollowDay);
+                Duration duration = Duration.between(now, create);
+                map.put("剩余回收时间", (duration.toDays() > 0 ? duration.toDays() : "0") + "天");
+
             }
         }
         return R.ok().put("data", BaseUtil.crmPage(page));
+    }
+
+    private String getMarkTime(String id) {
+        String sql = "SELECT record_id,cust_id,types,next_time,create_time from lkcrm_admin_record WHERE types = 'crm_leads' and types_id = ? ORDER BY create_time DESC LIMIT 1";
+        Map<String, Object> map = crmLeadsDao.queryUniqueSql(sql, id);
+        if (map != null) {
+            return String.valueOf(map.get("create_time"));
+        }
+        return "";
     }
 
     /**
@@ -582,6 +606,20 @@ public class CrmLeadsService {
             }
         }
         return 1;
+    }
+
+    // 计算剩余回收天数
+    private int getNoFollowDay(String custId) {
+        Map<String, Object> seaRule = crmLeadsDao.queryUniqueSql("SELECT * FROM lkcrm_admin_config WHERE `name` = 'seaRule' AND cust_id = ? ", custId);
+        if (seaRule != null && seaRule.size() > 0) {
+            JSONObject value, recovery;
+            value = JSON.parseObject(String.valueOf(seaRule.get("value")));
+            if (value != null && value.getJSONObject("recovery") != null && value.getJSONObject("recovery").getBooleanValue("status")) {
+                recovery = value.getJSONObject("recovery");
+                return recovery.getIntValue("noFollowDay");
+            }
+        }
+        return 0;
     }
 
     private Long getCustomerSeaGetNum() {
