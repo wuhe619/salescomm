@@ -1559,7 +1559,7 @@ public class UserService {
 
         StringBuilder sql = new StringBuilder();
         List<Object> params=new ArrayList<>();
-        sql.append("select tu.name,tu.id,tp.property_value companyName,\n" +
+        sql.append("select tu.name,tu.id,tp.property_value agentName,\n" +
                 "\t(select count(1) from t_customer_property t where t.property_name='agent_id' and t.property_value=tu.id) customerCount,\n" +
                 "\t(select sum(((stm.amount/1000-stm.prod_amount/1000)*(select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate'\n" +
                 "))) from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id\n" +
@@ -1567,8 +1567,8 @@ public class UserService {
                 "from t_user tu,t_user_property tp where tp.user_id=tu.id and tp.property_name='customer_name'");
 
         //admin可以查询所有部门信息  普通用户只能查本部门的
-        if (ifAdmin) {
-            sql.append(" and  tu.DEPTID in (SELECT u.DEPTID FROM t_user u WHERE u.ID = ?)");
+        if (!ifAdmin) {
+            sql.append(" and  tu.DEPTID ='100000' and tu.id=?");
             params.add(loginId);
         }
 
