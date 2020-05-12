@@ -1668,10 +1668,10 @@ public class UserService {
         StringBuilder sql = new StringBuilder();
         List<Object> params=new ArrayList<>();
         sql.append("select tu.name,tu.id,tp.property_value agentName,\n" +
-                "\t(select count(1) from t_customer_property t where t.property_name='agent_id' and t.property_value=tu.id) customerCount,\n" +
-                "\t(select sum(((stm.amount/1000-stm.prod_amount/1000)*(select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate'\n" +
-                "))) from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id\n" +
-                "and tp.property_name='agent_id' and tp.property_value=tp.user_id) accountCount \n" +
+                " (select count(1) from t_customer_property t where t.property_name='agent_id' and t.property_value=tu.id) customerCount,\n" +
+                " IFNULL((select sum(((stm.amount/1000-stm.prod_amount/1000)*(select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate'\n" +
+                "              ))) from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id\n" +
+                "              and tp.property_name='agent_id' and tp.property_value=tp.user_id),0) accountCount\n" +
                 "from t_user tu,t_user_property tp where tp.user_id=tu.id and tp.property_name='customer_name'");
 
         //admin可以查询所有部门信息  普通用户只能查本部门的
@@ -1682,7 +1682,7 @@ public class UserService {
 
         if(userDTO!=null&&StringUtils.isNotEmpty(userDTO.getUserName())){
             sql.append("and tu.name=? ");
-            params.add(userDTO.getName());
+            params.add(userDTO.getUserName());
         }
 
         if(userDTO!=null&&(userDTO.getId()!=null)){
@@ -1694,7 +1694,7 @@ public class UserService {
             sql.append("and tp.property_value like ? ");
             params.add("%"+userDTO.getCustomerName()+"%");
         }
-        sql.append("order by tp.create_time desc");
+        sql.append("   order by tp.create_time desc  ");
        return  userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
     }
 
@@ -1705,32 +1705,29 @@ public class UserService {
         StringBuilder sql=new StringBuilder();
         List<Object> params=new ArrayList<>();
         sql.append("select\n" +
-                "\ttu.account customAcocunt,tc.enterprise_name customName,sbm.stat_time statTime,\n" +
-                "(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
+                " tu.account customAcocunt,tc.enterprise_name customName,sbm.stat_time statTime,\n" +
+                "  (select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
                 "  (select (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                "\t) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
-                "\t sbm2.bill_type='7') dataAmcount,\n" +
+                "  ) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
+                " sbm2.bill_type='7') dataAmcount,\n" +
 
-                "\t(select (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "  (select (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
                 " sbm2.bill_type='4') callAmcount,\n" +
                 "\t(select (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
                 " sbm2.bill_type='3') messageAmcount\n" +
-                "from t_customer tc,t_customer_user tu,t_customer_property tcu,stat_bill_month sbm\n" +
+                "from t_customer tc,t_customer_user tu,t_customer_property tcu left join stat_bill_month sbm on  tcu.cust_id=sbm.cust_id \n" +
                 "where\n" +
                 "\ttc.cust_id=tu.cust_id and  tcu.cust_id=tc.cust_id\n" +
                 "\tand tu.user_type='1'\n" +
-                "\tand tcu.property_name='agent_id' and tcu.property_value=? and tc.cust_id=sbm.cust_id\n");
+                "\tand tcu.property_name='agent_id' and tcu.property_value=?  \n");
                   params.add(agentDTO.getUserId());
                 if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
                     sql.append("and tc.cust_id=?");
                     params.add(agentDTO.getCustId());
                 }
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getStatTimeStart())) {
-            sql.append("and sbm.stat_time > ?");
-            params.add(agentDTO.getStatTimeStart());
-        }
+
 
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
             sql.append("and sbm.stat_time = ?");
@@ -1750,8 +1747,8 @@ public class UserService {
 
         sql.append("select ((sum(stm.amount/1000)-sum(stm.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 ")) accout,tp.property_value agentName\n" +
-                "from t_customer tc,stat_bill_month stm,t_customer_property tcp,t_user_property tp where tc.cust_id=stm.cust_id\n" +
-                "and tcp.cust_id=tc.cust_id and tp.user_id=tcp.property_value and tp.property_name='customer_name' and tcp.property_name=\"agent_id\" and tcp.property_value=?");
+                " from t_customer_property tcp,t_user_property tp,t_customer tc left join stat_bill_month stm on stm.cust_id=tc.cust_id where " +
+                "and tcp.cust_id=tc.cust_id and tp.user_id=tcp.property_value and tp.property_name='customer_name' and tcp.property_name='agent_id' and tcp.property_value=?");
         params.add(userId);
 
         Map<String, Object> stringObjectMap = userDao.queryUniqueSql(sql.toString(), params);
@@ -1778,11 +1775,11 @@ public class UserService {
                 "\t(select (IFNULL(sum(sbm2.amount/1000),0)-IFNULL(sum(sbm2.prod_amount/1000),0))*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t),0) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
                 " sbm2.bill_type='3') messageAmcount\n" +
-                "from t_customer tc,t_customer_user tu,t_customer_property tcu,stat_bill_month sbm\n" +
+                "from t_customer tc,t_customer_user tu,t_customer_property tcu  left join stat_bill_month sbm on  tcu.cust_id=sbm.cust_id\n" +
                 "where\n" +
                 "\ttc.cust_id=tu.cust_id and  tcu.cust_id=tc.cust_id\n" +
                 "\tand tu.user_type='1'\n" +
-                "\tand tcu.property_name='agent_id' and tcu.property_value=? and tc.cust_id=sbm.cust_id\n");
+                "\tand tcu.property_name='agent_id' and tcu.property_value=? \n");
         params.add(agentDTO.getUserId());
         EasyExcelUtil.EasyExcelParams param = new EasyExcelUtil.EasyExcelParams();
 
