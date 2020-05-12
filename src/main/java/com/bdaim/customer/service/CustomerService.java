@@ -1802,6 +1802,15 @@ public class CustomerService {
         //CustomerProperty industryId = customerDao.getProperty(custId, "industryId");
         CustomerProperty service_mode = customerDao.getProperty(custId, "service_mode");
 
+
+        // 代理商ID
+        CustomerProperty agent_id = customerDao.getProperty(custId, "agent_id");
+        // 佣金比例
+        CustomerProperty commission_rate = customerDao.getProperty(custId, "commission_rate");
+        // 余额预警提醒
+        CustomerProperty balance_remind = customerDao.getProperty(custId, "balance_remind");
+
+
         CustomerDTO cd = new CustomerDTO(c);
         String picServerUrl = "";
         if (bliPic != null) {
@@ -1845,6 +1854,15 @@ public class CustomerService {
         }
         if (service_mode != null) {
             cd.setServiceMode(service_mode.getPropertyValue());
+        }
+        if (agent_id != null) {
+            cd.setAgentId(agent_id.getPropertyValue());
+        }
+        if (commission_rate != null) {
+            cd.setCommissionRate(commission_rate.getPropertyValue());
+        }
+        if (balance_remind != null) {
+            cd.setBalanceRemind(balance_remind.getPropertyValue());
         }
         /*if (industryId != null) {
             cd.setIndustryId(industryId.getPropertyValue());
