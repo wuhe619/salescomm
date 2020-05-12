@@ -1700,10 +1700,46 @@ public class UserService {
 
 
 
-    public Page getYjByMonth(PageParam pageParam,AgentDTO agentDTO){
-
+    public HashMap<String,Object> getYjByMonth(PageParam pageParam,AgentDTO agentDTO){
+        HashMap<String,Object> map=new HashMap<>();
         StringBuilder sql=new StringBuilder();
         List<Object> params=new ArrayList<>();
+
+        StringBuilder sqlu=new StringBuilder();
+        List<Object> paramsu=new ArrayList<>();
+
+        sqlu.append("select\n" +
+                "\t((sum(tt.amount/1000)-sum(tt.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tt.cust_id=tp.cust_id and tp.property_name='commission_rate'\n" +
+                "\t)) accout,tp.property_value agentName\n" +
+                "from t_user_property tp left join (select tcp.cust_id,tcp.property_value,stm.prod_amount,stm.amount from t_customer_property tcp,t_customer tc left join stat_bill_month stm  on stm.cust_id=tc.cust_id where \n" +
+                "  tcp.cust_id=tc.cust_id ");
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
+            sqlu.append("and tc.cust_id=?");
+            paramsu.add(agentDTO.getCustId());
+        }
+
+
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
+            sqlu.append(" and stm.stat_time =? ");
+            paramsu.add(agentDTO.getYearMonth());
+
+        }
+
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
+            sqlu.append("and tc.enterprise_name like ?");
+            paramsu.add("%"+agentDTO.getCustomName()+"%");
+        }
+        sqlu.append("\t\t\tand tcp.property_name=\"agent_id\" ) tt\n" +
+                "\t\ton (tt.cust_id=tp.user_id)\n" +
+                "where tp.user_id=? and  tp.property_name='customer_name'");
+
+
+
+        paramsu.add(agentDTO.getUserId());
+
+
+        Map<String, Object> stringObjectMap = userDao.queryUniqueSql(sqlu.toString(), paramsu.toArray());
+
         sql.append("select\n" +
                 " tu.account customAcocunt,tc.enterprise_name customName,sbm.stat_time statTime,\n" +
                 "  (select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
@@ -1733,12 +1769,17 @@ public class UserService {
             sql.append("and sbm.stat_time = ?");
             params.add(agentDTO.getYearMonth());
         }
-
-
-
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
+            sql.append("and tc.enterprise_name like ?");
+            params.add("%"+agentDTO.getCustomName()+"%");
+        }
+        Page page = userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
+        map.put("total", page.getTotal());
+        map.put("count", stringObjectMap);
+        map.put("list", page.getData());
         sql.append("  group by tc.cust_id,sbm.stat_time order by sbm.stat_time desc");
 
-       return userDao.sqlPageQuery0(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
+       return map ;
     }
 
     public Map getYjCount(String userId){
@@ -1748,7 +1789,7 @@ public class UserService {
         sql.append("select ((sum(stm.amount/1000)-sum(stm.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 ")) accout,tp.property_value agentName\n" +
                 " from t_customer_property tcp,t_user_property tp,t_customer tc left join stat_bill_month stm on stm.cust_id=tc.cust_id where " +
-                "and tcp.cust_id=tc.cust_id and tp.user_id=tcp.property_value and tp.property_name='customer_name' and tcp.property_name='agent_id' and tcp.property_value=?");
+                " tcp.cust_id=tc.cust_id and tp.user_id=tcp.property_value and tp.property_name='customer_name' and tcp.property_name='agent_id' and tcp.property_value=?");
         params.add(userId);
 
         Map<String, Object> stringObjectMap = userDao.queryUniqueSql(sql.toString(), params);
@@ -1787,15 +1828,10 @@ public class UserService {
             sql.append("and tc.cust_id=?");
             params.add(agentDTO.getCustId());
         }
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getStatTimeStart())) {
-            sql.append("and sbm.stat_time > ?");
-            params.add(agentDTO.getStatTimeStart());
-        }
-
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getStatTimeEnd())) {
-            sql.append("and sbm.stat_time < ?");
-            params.add(agentDTO.getStatTimeEnd());
-        }
+            if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
+                sql.append("and sbm.stat_time = ?");
+                params.add(agentDTO.getYearMonth());
+            }
 
 
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
