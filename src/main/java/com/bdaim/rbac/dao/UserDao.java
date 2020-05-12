@@ -255,4 +255,7 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
         this.saveOrUpdate(propertyInfo);
     }
 
+
+
+
 }

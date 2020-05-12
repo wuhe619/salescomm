@@ -1,5 +1,7 @@
 package com.bdaim.rbac.vo;
 
+import com.bdaim.customer.dto.CustomerRegistDTO;
+
 /** 这个是用户查询的Vo
  */
 public class UserInfo {
@@ -20,6 +22,15 @@ public class UserInfo {
     private String password;
     private String oldPassword;
     private int isLocked;
+    private CustomerRegistDTO customerRegistDTO;//代理商
+
+	public CustomerRegistDTO getCustomerRegistDTO() {
+		return customerRegistDTO;
+	}
+
+	public void setCustomerRegistDTO(CustomerRegistDTO customerRegistDTO) {
+		this.customerRegistDTO = customerRegistDTO;
+	}
 
 	public String getId() {
 		return id;

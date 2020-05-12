@@ -8,6 +8,7 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.helper.JDBCHelper;
 import com.bdaim.common.service.DaoService;
 import com.bdaim.common.spring.ConfigPropertiesHolder;
+import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customs.dao.StationDao;
 import com.bdaim.customs.entity.Station;
 import com.bdaim.rbac.DataFromEnum;
@@ -530,6 +531,7 @@ public class UserService {
                 vo.setRealName(String.valueOf(m.get("realname")));
                 vo.setDeptName(String.valueOf(m.get("deptname")));
                 vo.setRoles(String.valueOf(m.get("rolename")));
+
                 if (m.get("create_time") != null
                         && !"null".equals(String.valueOf(m.get("create_time")))) {
                     vo.setCreateTime(LocalDateTime.parse(String.valueOf(m.get("create_time")), YDMHMSS).format(YDMHMS));
@@ -537,6 +539,79 @@ public class UserService {
                 vo.setOptuser(String.valueOf(m.get("optuser")));
                 if (!"null".equals(String.valueOf(m.get("deptId")))) {
                     vo.setDeptId(String.valueOf(m.get("deptId")));
+                    if(vo.getDeptId().toString().equals("100000")){
+                        CustomerRegistDTO customerRegistDTO=new CustomerRegistDTO();
+                        UserProperty  county = userDao.getProperty(Long.parseLong(vo.getId()), "customer_name");
+                        if(county!=null) {
+                            customerRegistDTO.setName(userDao.getProperty(Long.parseLong(vo.getId()), "customer_name").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bli_number");
+
+                        if(county!=null) {
+                            customerRegistDTO.setBliNumber(userDao.getProperty(Long.parseLong(vo.getId()), "bli_number").getPropertyValue());
+                        }
+
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "province");
+                        if(county!=null) {
+                            customerRegistDTO.setProvince(userDao.getProperty(Long.parseLong(vo.getId()), "province").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "city");
+                        if(county!=null) {
+                            customerRegistDTO.setCity(userDao.getProperty(Long.parseLong(vo.getId()), "city").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "county");
+                        if(county!=null){
+                            customerRegistDTO.setCountry(userDao.getProperty(Long.parseLong(vo.getId()),"county").getPropertyValue());
+
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "taxpayer_id");
+                        if(county!=null) {
+                            customerRegistDTO.setTaxPayerId(userDao.getProperty(Long.parseLong(vo.getId()), "taxpayer_id").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bli_path");
+                        if(county!=null) {
+                            customerRegistDTO.setBliPath(userDao.getProperty(Long.parseLong(vo.getId()), "bli_path").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bank");
+                        if(county!=null) {
+                            customerRegistDTO.setBank(userDao.getProperty(Long.parseLong(vo.getId()), "bank").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bank_account");
+
+                        if(county!=null) {
+                            customerRegistDTO.setBankAccount(userDao.getProperty(Long.parseLong(vo.getId()), "bank_account").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bank_account_certificate");
+
+                        if(county!=null) {
+                            customerRegistDTO.setBankAccountCertificate(userDao.getProperty(Long.parseLong(vo.getId()), "bank_account_certificate").getPropertyValue());
+                        }
+
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "reg_address");
+                       if(county!=null){
+                           customerRegistDTO.setAddress(userDao.getProperty(Long.parseLong(vo.getId()),"reg_address").getPropertyValue());
+
+                       }
+
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "taxpayerCertificatePath");
+                        if(county!=null) {
+                            customerRegistDTO.setTaxpayerCertificatePath(userDao.getProperty(Long.parseLong(vo.getId()), "taxpayerCertificatePath").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "mobile");
+                        if(county!=null) {
+                            customerRegistDTO.setMobile(userDao.getProperty(Long.parseLong(vo.getId()), "mobile").getPropertyValue());
+                        }
+
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "email");
+                        if(county!=null) {
+                            customerRegistDTO.setEmail(userDao.getProperty(Long.parseLong(vo.getId()), "email").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "title");
+                        if(county!=null) {
+                            customerRegistDTO.setTitle(userDao.getProperty(Long.parseLong(vo.getId()), "title").getPropertyValue());
+                        }
+                        vo.setCustomerRegistDTO(customerRegistDTO);
+                    }
                 }
                 if (!"null".equals(String.valueOf(m.get("status")))) {
                     vo.setStatus(NumberConvertUtil.parseInt(m.get("status")));
@@ -939,86 +1014,7 @@ public class UserService {
             //insertCategoryPermission(categoryIds, id);
            logger.info("dpedls=========="+userRoles.getUser().getDeptId().toString().equals("100000"));
 
-            //新增代理商
-            if (userRoles.getUser().getDeptId().toString().equals("100000")) {
-                logger.info("dpedlsnul=========="+(userRoles.getUser().getCustomerRegistDTO()==null));
 
-                //代理商名字          Z乡村vbnm。/
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getName())) {
-                    userDao.dealUserInfo(id, "customer_name", userRoles.getUser().getCustomerRegistDTO().getName());
-                }
-
-                //营业执照注册号
-                if (StringUtils.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBliNumber())) {
-                    userDao.dealUserInfo(id, "bli_number", userRoles.getUser().getCustomerRegistDTO().getBliNumber());
-
-                }
-                //注册地所在省
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getProvince())) {
-                    userDao.dealUserInfo(id, "province", userRoles.getUser().getCustomerRegistDTO().getProvince());
-
-                }
-                //注册地所在市
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getCity())) {
-                    userDao.dealUserInfo(id, "city", userRoles.getUser().getCustomerRegistDTO().getCity());
-
-                }
-                //注册地所在乡镇
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getCountry())) {
-                    userDao.dealUserInfo(id, "county", userRoles.getUser().getCustomerRegistDTO().getCountry());
-
-                }
-                //统一社会信用代码(纳税人识别号)
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTaxPayerId())) {
-                    userDao.dealUserInfo(id, "taxpayer_id", userRoles.getUser().getCustomerRegistDTO().getTaxPayerId());
-                }
-                //营业执照url
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBliPath())) {
-                    userDao.dealUserInfo(id, "bli_path", userRoles.getUser().getCustomerRegistDTO().getBliPath());
-                }
-                //银行
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBank())) {
-                    userDao.dealUserInfo(id, "bank", userRoles.getUser().getCustomerRegistDTO().getBank());
-
-                }
-                //银行账号
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBankAccount())) {
-                    userDao.dealUserInfo(id, "bank_account", userRoles.getUser().getCustomerRegistDTO().getBank());
-                }
-                //银行开户许可证url
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBankAccountCertificate())) {
-                    userDao.dealUserInfo(id, "bank_account_certificate", userRoles.getUser().getCustomerRegistDTO().getBankAccountCertificate());
-                }
-
-                //企业注册详细街道地址
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getAddress())) {
-                    userDao.dealUserInfo(id, "reg_address", userRoles.getUser().getCustomerRegistDTO().getAddress());
-
-                }
-                //企业税务登记url
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTaxpayerCertificatePath())) {
-                    userDao.dealUserInfo(id, "taxpayerCertificatePath", userRoles.getUser().getCustomerRegistDTO().getTaxpayerCertificatePath());
-
-                }
-
-                //联系人手机（联系人姓名使用用户姓名）
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getMobile())) {
-                    userDao.dealUserInfo(id, "mobile", userRoles.getUser().getCustomerRegistDTO().getMobile());
-
-                }
-
-                //联系人邮箱
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getEmail())) {
-                    userDao.dealUserInfo(id, "email", userRoles.getUser().getCustomerRegistDTO().getEmail());
-
-                }
-
-                //联系人职位
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTitle())) {
-                    userDao.dealUserInfo(id, "title", userRoles.getUser().getCustomerRegistDTO().getTitle());
-
-                }
-            }
         } else {
             //更新用户信息
             userDao.update(user);
@@ -1041,6 +1037,86 @@ public class UserService {
 
 
 
+        }
+        //新增代理商
+        if (userRoles.getUser().getDeptId().toString().equals("100000")) {
+            logger.info("dpedlsnul=========="+(userRoles.getUser().getCustomerRegistDTO()==null));
+
+            //代理商名字          Z乡村vbnm。/
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getName())) {
+                userDao.dealUserInfo(id, "customer_name", userRoles.getUser().getCustomerRegistDTO().getName());
+            }
+
+            //营业执照注册号
+            if (StringUtils.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBliNumber())) {
+                userDao.dealUserInfo(id, "bli_number", userRoles.getUser().getCustomerRegistDTO().getBliNumber());
+
+            }
+            //注册地所在省
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getProvince())) {
+                userDao.dealUserInfo(id, "province", userRoles.getUser().getCustomerRegistDTO().getProvince());
+
+            }
+            //注册地所在市
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getCity())) {
+                userDao.dealUserInfo(id, "city", userRoles.getUser().getCustomerRegistDTO().getCity());
+
+            }
+            //注册地所在乡镇
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getCountry())) {
+                userDao.dealUserInfo(id, "county", userRoles.getUser().getCustomerRegistDTO().getCountry());
+
+            }
+            //统一社会信用代码(纳税人识别号)
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTaxPayerId())) {
+                userDao.dealUserInfo(id, "taxpayer_id", userRoles.getUser().getCustomerRegistDTO().getTaxPayerId());
+            }
+            //营业执照url
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBliPath())) {
+                userDao.dealUserInfo(id, "bli_path", userRoles.getUser().getCustomerRegistDTO().getBliPath());
+            }
+            //银行
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBank())) {
+                userDao.dealUserInfo(id, "bank", userRoles.getUser().getCustomerRegistDTO().getBank());
+
+            }
+            //银行账号
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBankAccount())) {
+                userDao.dealUserInfo(id, "bank_account", userRoles.getUser().getCustomerRegistDTO().getBank());
+            }
+            //银行开户许可证url
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBankAccountCertificate())) {
+                userDao.dealUserInfo(id, "bank_account_certificate", userRoles.getUser().getCustomerRegistDTO().getBankAccountCertificate());
+            }
+
+            //企业注册详细街道地址
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getAddress())) {
+                userDao.dealUserInfo(id, "reg_address", userRoles.getUser().getCustomerRegistDTO().getAddress());
+
+            }
+            //企业税务登记url
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTaxpayerCertificatePath())) {
+                userDao.dealUserInfo(id, "taxpayerCertificatePath", userRoles.getUser().getCustomerRegistDTO().getTaxpayerCertificatePath());
+
+            }
+
+            //联系人手机（联系人姓名使用用户姓名）
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getMobile())) {
+                userDao.dealUserInfo(id, "mobile", userRoles.getUser().getCustomerRegistDTO().getMobile());
+
+            }
+
+            //联系人邮箱
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getEmail())) {
+                userDao.dealUserInfo(id, "email", userRoles.getUser().getCustomerRegistDTO().getEmail());
+
+            }
+
+            //联系人职位
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTitle())) {
+                userDao.dealUserInfo(id, "title", userRoles.getUser().getCustomerRegistDTO().getTitle());
+
+            }
         }
         return true;
     }

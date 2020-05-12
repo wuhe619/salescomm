@@ -696,7 +696,7 @@ public class UserAction extends BasicAction {
                             HttpServletRequest request) {
 //        net.sf.json.JSONObject result = new net.sf.json.JSONObject();
         JSONObject result = new JSONObject();
-        logger.info("actiond=========="+(customerRegistDTO==null));
+        logger.info("actiond=========="+(customerRegistDTO.getName()));
 
         //校验用户名是否唯一
         boolean checkUsernameUnique = checkUsernameUnique(username, null);
@@ -773,7 +773,7 @@ public class UserAction extends BasicAction {
     @ResponseBody
     public String saveUpdate(@RequestParam Long id,
                              @RequestParam(required = false) String roleIds, @RequestParam(required = false) String password,
-                             @RequestParam(required = false) String customerIds, @RequestParam(required = false) String labelIds, @RequestParam(required = false) String categoryIds, @RequestParam String channelIds, HttpServletRequest request) {
+                             @RequestParam(required = false) String customerIds, @RequestParam(required = false) String labelIds, @RequestParam(required = false) String categoryIds, @RequestParam String channelIds, CustomerRegistDTO customerRegistDTO,HttpServletRequest request) {
 
         List<RoleDTO> roles = null;
         if (StringUtils.isNotBlank(roleIds)) {
