@@ -696,6 +696,8 @@ public class UserAction extends BasicAction {
                             HttpServletRequest request) {
 //        net.sf.json.JSONObject result = new net.sf.json.JSONObject();
         JSONObject result = new JSONObject();
+        logger.info("actiond=========="+(customerRegistDTO==null));
+
         //校验用户名是否唯一
         boolean checkUsernameUnique = checkUsernameUnique(username, null);
         if (!checkUsernameUnique) {

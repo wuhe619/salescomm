@@ -937,11 +937,12 @@ public class UserService {
             insertCustomerPermission(customerIds, id);
             //insertLabelPermission(labelIds, id);
             //insertCategoryPermission(categoryIds, id);
-           logger.info("dpedls=========="+userRoles.getUser().getDeptId());
-           logger.info("dpedls=========="+userRoles.getUser().getDeptId().equals("100000"));
+           logger.info("dpedls=========="+userRoles.getUser().getDeptId().toString().equals("100000"));
 
             //新增代理商
             if (userRoles.getUser().getDeptId().toString().equals("100000")) {
+                logger.info("dpedlsnul=========="+(userRoles.getUser().getCustomerRegistDTO()==null));
+
                 //代理商名字          Z乡村vbnm。/
                 if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getName())) {
                     userDao.dealUserInfo(id, "customer_name", userRoles.getUser().getCustomerRegistDTO().getName());
