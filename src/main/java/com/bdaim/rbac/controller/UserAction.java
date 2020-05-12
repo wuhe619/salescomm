@@ -1206,12 +1206,11 @@ public class UserAction extends BasicAction {
         }
         logger.info("查询代理商佣金列表页面传递参数是：" + agentDTO.toString());
 
-        HashMap<String,Object> map=new HashMap<>();
 
-        Page yjByMonth = userService.getYjByMonth(page, agentDTO);
 
-        map.put("total", yjByMonth.getTotal());
-        map.put("list", yjByMonth.getData());
+        HashMap<String,Object>  map = userService.getYjByMonth(page, agentDTO);
+
+
         return  JSONObject.toJSONString(map);
     }
 
