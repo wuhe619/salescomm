@@ -1668,10 +1668,10 @@ public class UserService {
         StringBuilder sql = new StringBuilder();
         List<Object> params=new ArrayList<>();
         sql.append("select tu.name,tu.id,tp.property_value agentName,\n" +
-                "\t(select count(1) from t_customer_property t where t.property_name='agent_id' and t.property_value=tu.id) customerCount,\n" +
-                "\t(select sum(((stm.amount/1000-stm.prod_amount/1000)*(select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate'\n" +
-                "))) from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id\n" +
-                "and tp.property_name='agent_id' and tp.property_value=tp.user_id) accountCount \n" +
+                " (select count(1) from t_customer_property t where t.property_name='agent_id' and t.property_value=tu.id) customerCount,\n" +
+                " IFNULL((select sum(((stm.amount/1000-stm.prod_amount/1000)*(select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate'\n" +
+                "              ))) from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id\n" +
+                "              and tp.property_name='agent_id' and tp.property_value=tp.user_id),0) accountCount\n" +
                 "from t_user tu,t_user_property tp where tp.user_id=tu.id and tp.property_name='customer_name'");
 
         //admin可以查询所有部门信息  普通用户只能查本部门的
@@ -1682,7 +1682,7 @@ public class UserService {
 
         if(userDTO!=null&&StringUtils.isNotEmpty(userDTO.getUserName())){
             sql.append("and tu.name=? ");
-            params.add(userDTO.getName());
+            params.add(userDTO.getUserName());
         }
 
         if(userDTO!=null&&(userDTO.getId()!=null)){
