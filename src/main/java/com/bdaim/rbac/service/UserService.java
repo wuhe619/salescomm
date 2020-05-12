@@ -1715,17 +1715,17 @@ public class UserService {
                 "\t\t\ttcp.cust_id=tc.cust_id\n");
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
             sqlu.append("and tc.cust_id=?");
-            params.add(agentDTO.getCustId());
+            paramsu.add(agentDTO.getCustId());
         }
 
 
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
             sqlu.append("and sbm.stat_time = ?");
-            params.add(agentDTO.getYearMonth());
+            paramsu.add(agentDTO.getYearMonth());
         }
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
             sqlu.append("and tc.enterprise_name like ?");
-            params.add("%"+agentDTO.getCustomName()+"%");
+            paramsu.add("%"+agentDTO.getCustomName()+"%");
         }
         sqlu.append("\t\t\tand tcp.property_name=\"agent_id\" ) tt\n" +
                 "\t\ton (tt.cust_id=tp.user_id)\n" +
