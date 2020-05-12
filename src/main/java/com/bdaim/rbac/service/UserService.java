@@ -1738,7 +1738,7 @@ public class UserService {
 
         sql.append("  group by tc.cust_id,sbm.stat_time order by sbm.stat_time desc");
 
-       return userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
+       return userDao.sqlPageQuery0(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
     }
 
     public Map getYjCount(String userId){
