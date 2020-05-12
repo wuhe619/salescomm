@@ -1748,7 +1748,7 @@ public class UserService {
         sql.append("select ((sum(stm.amount/1000)-sum(stm.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 ")) accout,tp.property_value agentName\n" +
                 " from t_customer_property tcp,t_user_property tp,t_customer tc left join stat_bill_month stm on stm.cust_id=tc.cust_id where " +
-                "and tcp.cust_id=tc.cust_id and tp.user_id=tcp.property_value and tp.property_name='customer_name' and tcp.property_name='agent_id' and tcp.property_value=?");
+                " tcp.cust_id=tc.cust_id and tp.user_id=tcp.property_value and tp.property_name='customer_name' and tcp.property_name='agent_id' and tcp.property_value=?");
         params.add(userId);
 
         Map<String, Object> stringObjectMap = userDao.queryUniqueSql(sql.toString(), params);
