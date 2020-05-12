@@ -488,8 +488,9 @@ public class UserService {
         builder.append(" group by u.ID,u.status,u.NAME,u.REALNAME,d.id,d.NAME,u.CREATE_TIME,u.OPTUSER ");
         Page page = param.getPage();
         int countPerpage = page.getCountPerPage();
-        int index = page.getPageIndex();
-        int start = index * countPerpage;
+        int start = (page.getPageIndex()+1);
+
+
 
         builder.append(" ) t ");
         builder.append(" where 1=1 ");
@@ -936,7 +937,8 @@ public class UserService {
             insertCustomerPermission(customerIds, id);
             //insertLabelPermission(labelIds, id);
             //insertCategoryPermission(categoryIds, id);
-
+           logger.info("dpedls=========="+userRoles.getUser().getDeptId());
+           logger.info("dpedls=========="+userRoles.getUser().getDeptId().equals("100000"));
 
             //新增代理商
             if (userRoles.getUser().getDeptId().equals("100000")) {
