@@ -541,21 +541,76 @@ public class UserService {
                     vo.setDeptId(String.valueOf(m.get("deptId")));
                     if(vo.getDeptId().toString().equals("100000")){
                         CustomerRegistDTO customerRegistDTO=new CustomerRegistDTO();
-                        customerRegistDTO.setName(userDao.getProperty(Long.parseLong(vo.getId()),"customer_name").getPropertyValue());
-                        customerRegistDTO.setBliNumber(userDao.getProperty(Long.parseLong(vo.getId()),"bli_number").getPropertyValue());
-                        customerRegistDTO.setProvince(userDao.getProperty(Long.parseLong(vo.getId()),"province").getPropertyValue());
-                        customerRegistDTO.setCity(userDao.getProperty(Long.parseLong(vo.getId()),"city").getPropertyValue());
-                        customerRegistDTO.setCountry(userDao.getProperty(Long.parseLong(vo.getId()),"county").getPropertyValue());
-                        customerRegistDTO.setTaxPayerId(userDao.getProperty(Long.parseLong(vo.getId()),"taxpayer_id").getPropertyValue());
-                        customerRegistDTO.setBliPath(userDao.getProperty(Long.parseLong(vo.getId()),"bli_path").getPropertyValue());
-                        customerRegistDTO.setBank(userDao.getProperty(Long.parseLong(vo.getId()),"bank").getPropertyValue());
-                        customerRegistDTO.setBankAccount(userDao.getProperty(Long.parseLong(vo.getId()),"bank_account").getPropertyValue());
-                        customerRegistDTO.setBankAccountCertificate(userDao.getProperty(Long.parseLong(vo.getId()),"bank_account_certificate").getPropertyValue());
-                        customerRegistDTO.setAddress(userDao.getProperty(Long.parseLong(vo.getId()),"reg_address").getPropertyValue());
-                        customerRegistDTO.setTaxpayerCertificatePath(userDao.getProperty(Long.parseLong(vo.getId()),"taxpayerCertificatePath").getPropertyValue());
-                        customerRegistDTO.setMobile(userDao.getProperty(Long.parseLong(vo.getId()),"mobile").getPropertyValue());
-                        customerRegistDTO.setEmail(userDao.getProperty(Long.parseLong(vo.getId()),"email").getPropertyValue());
-                        customerRegistDTO.setTitle(userDao.getProperty(Long.parseLong(vo.getId()),"title").getPropertyValue());
+                        UserProperty  county = userDao.getProperty(Long.parseLong(vo.getId()), "customer_name");
+                        if(county!=null) {
+                            customerRegistDTO.setName(userDao.getProperty(Long.parseLong(vo.getId()), "customer_name").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bli_number");
+
+                        if(county!=null) {
+                            customerRegistDTO.setBliNumber(userDao.getProperty(Long.parseLong(vo.getId()), "bli_number").getPropertyValue());
+                        }
+
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "province");
+                        if(county!=null) {
+                            customerRegistDTO.setProvince(userDao.getProperty(Long.parseLong(vo.getId()), "province").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "city");
+                        if(county!=null) {
+                            customerRegistDTO.setCity(userDao.getProperty(Long.parseLong(vo.getId()), "city").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "county");
+                        if(county!=null){
+                            customerRegistDTO.setCountry(userDao.getProperty(Long.parseLong(vo.getId()),"county").getPropertyValue());
+
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "taxpayer_id");
+                        if(county!=null) {
+                            customerRegistDTO.setTaxPayerId(userDao.getProperty(Long.parseLong(vo.getId()), "taxpayer_id").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bli_path");
+                        if(county!=null) {
+                            customerRegistDTO.setBliPath(userDao.getProperty(Long.parseLong(vo.getId()), "bli_path").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bank");
+                        if(county!=null) {
+                            customerRegistDTO.setBank(userDao.getProperty(Long.parseLong(vo.getId()), "bank").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bank_account");
+
+                        if(county!=null) {
+                            customerRegistDTO.setBankAccount(userDao.getProperty(Long.parseLong(vo.getId()), "bank_account").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bank_account_certificate");
+
+                        if(county!=null) {
+                            customerRegistDTO.setBankAccountCertificate(userDao.getProperty(Long.parseLong(vo.getId()), "bank_account_certificate").getPropertyValue());
+                        }
+
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "reg_address");
+                       if(county!=null){
+                           customerRegistDTO.setAddress(userDao.getProperty(Long.parseLong(vo.getId()),"reg_address").getPropertyValue());
+
+                       }
+
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "taxpayerCertificatePath");
+                        if(county!=null) {
+                            customerRegistDTO.setTaxpayerCertificatePath(userDao.getProperty(Long.parseLong(vo.getId()), "taxpayerCertificatePath").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "mobile");
+                        if(county!=null) {
+                            customerRegistDTO.setMobile(userDao.getProperty(Long.parseLong(vo.getId()), "mobile").getPropertyValue());
+                        }
+
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "email");
+                        if(county!=null) {
+                            customerRegistDTO.setEmail(userDao.getProperty(Long.parseLong(vo.getId()), "email").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "title");
+                        if(county!=null) {
+                            customerRegistDTO.setTitle(userDao.getProperty(Long.parseLong(vo.getId()), "title").getPropertyValue());
+                        }
+                        vo.setCustomerRegistDTO(customerRegistDTO);
                     }
                 }
                 if (!"null".equals(String.valueOf(m.get("status")))) {
