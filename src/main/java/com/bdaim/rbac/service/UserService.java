@@ -1694,7 +1694,7 @@ public class UserService {
             sql.append("and tp.property_value like ? ");
             params.add("%"+userDTO.getCustomerName()+"%");
         }
-        sql.append("order by tp.create_time desc");
+        sql.append("   order by tp.create_time desc  ");
        return  userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
     }
 
@@ -1727,10 +1727,7 @@ public class UserService {
                     sql.append("and tc.cust_id=?");
                     params.add(agentDTO.getCustId());
                 }
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getStatTimeStart())) {
-            sql.append("and sbm.stat_time > ?");
-            params.add(agentDTO.getStatTimeStart());
-        }
+
 
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
             sql.append("and sbm.stat_time = ?");

@@ -1183,8 +1183,11 @@ public class UserAction extends BasicAction {
         LoginUser loginUser = opUser();
 
        Page page1=userService.getCustomList(page,loginUser,userDTO);
-        HashMap map =(HashMap) page1.getData().get(0);
-        logger.info("佣金===：" + map.get("accountCount"));
+       if(page1.getData().size()>0){
+           HashMap map =(HashMap) page1.getData().get(0);
+           logger.info("佣金===：" + map.get("accountCount"));
+       }
+
         result.put("total", page1.getTotal());
         result.put("list", page1.getData());
         return  result;
