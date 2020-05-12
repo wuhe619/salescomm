@@ -1394,9 +1394,9 @@ public class CustomGroupService {
         }
         // 机器人任务查询意向度字段
         if (customGroup.getTaskType() != null && 3 == customGroup.getTaskType()) {
-            sb.append(" select custG.id, custG.user_id, custG.STATUS, custG.call_count callCount, custG.last_call_time lastCallTime, custG.intent_level intentLevel,");
+            sb.append(" select custG.id, custG.user_id, custG.STATUS, custG.call_count callCount, custG.call_success_count callSuccessCount, custG.last_call_time lastCallTime, custG.intent_level intentLevel,");
         } else {
-            sb.append(" select custG.id, custG.user_id, custG.STATUS, custG.call_count callCount, custG.last_call_time lastCallTime, ");
+            sb.append(" select custG.id, custG.user_id, custG.STATUS, custG.call_count callCount, custG.call_success_count callSuccessCount, custG.last_call_time lastCallTime, ");
         }
 
         sb.append(" custG.super_name, custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone, custG.super_address_province_city, custG.super_address_street, custG.super_data ");
