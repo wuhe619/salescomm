@@ -941,7 +941,7 @@ public class UserService {
            logger.info("dpedls=========="+userRoles.getUser().getDeptId().equals("100000"));
 
             //新增代理商
-            if (userRoles.getUser().getDeptId().equals("100000")) {
+            if (userRoles.getUser().getDeptId().toString().equals("100000")) {
                 //代理商名字          Z乡村vbnm。/
                 if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getName())) {
                     userDao.dealUserInfo(id, "customer_name", userRoles.getUser().getCustomerRegistDTO().getName());
