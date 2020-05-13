@@ -948,20 +948,27 @@ public class AdminFieldService {
         Long userId = BaseUtil.getUser().getUserId();
         //查出自定义字段，查看顺序表是否存在该字段，没有则插入，设为隐藏
         List<Record> fieldList = customFieldList(adminFieldSort.getLabel().toString());
-        /*Set<String> labels = new HashSet<>();
+        Set<String> labels = new HashSet<>();
         if (11 == adminFieldSort.getLabel()) {
             labels = publicSeaSystemLabel(adminFieldSort.getLabel());
-        }*/
+        }
 
         for (Record record : fieldList) {
             String fieldName = record.getStr("name");
-            /*if (11 == adminFieldSort.getLabel() && labels.contains(fieldName)) {
-                continue;
-            }*/
-            Integer number = crmAdminFieldDao.queryForInt("select count(*) as number from lkcrm_admin_field_sort where user_id = ? and label = ? and field_name = ?", userId, adminFieldSort.getLabel(), fieldName);
+            Integer number = 0;
+            if (11 == adminFieldSort.getLabel() && labels.contains(fieldName)) {
+                number = crmAdminFieldDao.queryForInt("select count(*) as number from lkcrm_admin_field_sort where user_id = ? and label = ? and field_name = ?", userId, adminFieldSort.getLabel(), StringUtil.toCamelCase(record.getStr("field_name")));
+            } else {
+                number = crmAdminFieldDao.queryForInt("select count(*) as number from lkcrm_admin_field_sort where user_id = ? and label = ? and field_name = ?", userId, adminFieldSort.getLabel(), fieldName);
+            }
+            //Integer number = crmAdminFieldDao.queryForInt("select count(*) as number from lkcrm_admin_field_sort where user_id = ? and label = ? and field_name = ?", userId, adminFieldSort.getLabel(), fieldName);
             if (number.equals(0)) {
                 LkCrmAdminFieldSortEntity newField = new LkCrmAdminFieldSortEntity();
-                newField.setFieldName(fieldName).setName(fieldName).setLabel(adminFieldSort.getLabel()).setIsHide(1).setUserId(userId).setSort(1);
+                if (11 == adminFieldSort.getLabel() && labels.contains(fieldName)) {
+                    newField.setFieldName(StringUtil.toCamelCase(record.getStr("field_name"))).setName(fieldName).setLabel(adminFieldSort.getLabel()).setIsHide(1).setUserId(userId).setSort(1);
+                } else {
+                    newField.setFieldName(fieldName).setName(fieldName).setLabel(adminFieldSort.getLabel()).setIsHide(1).setUserId(userId).setSort(1);
+                }
                 //newField.save();
                 crmAdminFieldDao.saveOrUpdate(newField);
             }
