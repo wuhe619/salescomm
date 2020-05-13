@@ -198,6 +198,8 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
         }
         builder.append(" where id = ?");
         params.add(id);
+        logger.info("updateuser==="+builder.toString());
+        logger.info("updateparam==="+params.toString());
 
         this.executeUpdateSQL(builder.toString());
     }
