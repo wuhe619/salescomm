@@ -1753,8 +1753,13 @@ public class UserService {
                 "\t(select (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
                 " sbm2.bill_type='3') messageAmcount\n" +
-                "from t_customer tc,t_customer_user tu,t_customer_property tcu left join stat_bill_month sbm on  tcu.cust_id=sbm.cust_id \n" +
-                "where\n" +
+                "from t_customer tc,t_customer_user tu,t_customer_property tcu left join stat_bill_month sbm on  tcu.cust_id=sbm.cust_id ");
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
+            sql.append("and sbm.stat_time = ?");
+            params.add(agentDTO.getYearMonth());
+        }
+
+        sql.append("  where\n" +
                 "\ttc.cust_id=tu.cust_id and  tcu.cust_id=tc.cust_id\n" +
                 "\tand tu.user_type='1'\n" +
                 "\tand tcu.property_name='agent_id' and tcu.property_value=?  \n");
@@ -1765,10 +1770,7 @@ public class UserService {
                 }
 
 
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
-            sql.append("and sbm.stat_time = ?");
-            params.add(agentDTO.getYearMonth());
-        }
+
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
             sql.append("and tc.enterprise_name like ?");
             params.add("%"+agentDTO.getCustomName()+"%");
@@ -1786,8 +1788,8 @@ public class UserService {
         StringBuilder sql=new StringBuilder();
         List<Object> params=new ArrayList<>();
 
-        sql.append("select ((sum(stm.amount/1000)-sum(stm.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                ")) accout,tp.property_value agentName\n" +
+        sql.append("select IFNULL(((sum(stm.amount/1000)-sum(stm.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                ")),0) accout,tp.property_value agentName\n" +
                 " from t_customer_property tcp,t_user_property tp,t_customer tc left join stat_bill_month stm on stm.cust_id=tc.cust_id where " +
                 " tcp.cust_id=tc.cust_id and tp.user_id=tcp.property_value and tp.property_name='customer_name' and tcp.property_name='agent_id' and tcp.property_value=?");
         params.add(userId);
@@ -1816,8 +1818,14 @@ public class UserService {
                 "\t(select (IFNULL(sum(sbm2.amount/1000),0)-IFNULL(sum(sbm2.prod_amount/1000),0))*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t),0) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
                 " sbm2.bill_type='3') messageAmcount\n" +
-                "from t_customer tc,t_customer_user tu,t_customer_property tcu  left join stat_bill_month sbm on  tcu.cust_id=sbm.cust_id\n" +
-                "where\n" +
+                "from t_customer tc,t_customer_user tu,t_customer_property tcu  left join stat_bill_month sbm on  tcu.cust_id=sbm.cust_id ");
+
+            if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
+                sql.append("and sbm.stat_time = ?");
+                params.add(agentDTO.getYearMonth());
+            }
+
+            sql.append(" where\n" +
                 "\ttc.cust_id=tu.cust_id and  tcu.cust_id=tc.cust_id\n" +
                 "\tand tu.user_type='1'\n" +
                 "\tand tcu.property_name='agent_id' and tcu.property_value=? \n");
@@ -1828,10 +1836,7 @@ public class UserService {
             sql.append("and tc.cust_id=?");
             params.add(agentDTO.getCustId());
         }
-            if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
-                sql.append("and sbm.stat_time = ?");
-                params.add(agentDTO.getYearMonth());
-            }
+
 
 
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {

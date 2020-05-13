@@ -491,6 +491,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
                 MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
                 Iterator<String> iter = multiRequest.getFileNames();
                 String fileType;
+                logger.info("filename====="+iter.hasNext());
                 while (iter.hasNext()) {
                     MultipartFile f = multiRequest.getFile(iter.next());
                     if (f != null) {
