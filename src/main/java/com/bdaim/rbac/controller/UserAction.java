@@ -1237,7 +1237,7 @@ public class UserAction extends BasicAction {
      */
     @GetMapping("/exportYj")
     public  void exportYj(AgentDTO agentDTO,HttpServletResponse response) throws  Exception{
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setContentType("application/vnd.ms-excel");
         response.setHeader("Content-Disposition",
                 "attachment;filename=代理商佣金");
         response.addHeader("Pargam", "no-cache");
