@@ -1890,7 +1890,7 @@ public class UserService {
                 ((BigDecimal)map.get("dataAmcount")).add(((BigDecimal)map.get("callAmcount")).add((BigDecimal) map.get("callAmcount")));
                 cell.setCellValue(((Double) map.get("messageAmcount")).toString());
                 cell = row.createCell(c++);
-                cell.setCellValue(((BigDecimal)map.get("dataAmcount")).add(((BigDecimal)map.get("callAmcount")).add((BigDecimal) map.get("callAmcount"))).toString());
+                cell.setCellValue((((Double)map.get("dataAmcount"))+(((Double)map.get("callAmcount"))+((Double) map.get("callAmcount"))))+"");
             }
 
             workBook.write(outputStream);
