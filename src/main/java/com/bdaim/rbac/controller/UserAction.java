@@ -771,7 +771,7 @@ public class UserAction extends BasicAction {
      */
     @RequestMapping(value = "/saveUpdate.do")
     @ResponseBody
-    public String saveUpdate(@RequestParam Long id,
+    public String saveUpdate(@RequestParam Long id,@RequestParam Long deptId,
                              @RequestParam(required = false) String roleIds, @RequestParam(required = false) String password,
                              @RequestParam(required = false) String customerIds, @RequestParam(required = false) String labelIds, @RequestParam(required = false) String categoryIds, @RequestParam String channelIds, CustomerRegistDTO customerRegistDTO,HttpServletRequest request) {
 
@@ -800,6 +800,7 @@ public class UserAction extends BasicAction {
 
         user.setOptuser(loginUser.getName());
         user.setModifyTime(new Date());
+        user.setDeptId(deptId);
 
         //封装用户与角色的关系
         UserRoles userRoles = new UserRoles();

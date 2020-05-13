@@ -1039,6 +1039,10 @@ public class UserService {
 
         }
         //新增代理商
+        logger.info("Userlsnul=========="+(userRoles==null));
+        logger.info("Userlsnul=========="+(userRoles.getUser()==null));
+        logger.info("Userlsnul=========="+(userRoles.getUser().getDeptId()==null));
+
         if (userRoles.getUser().getDeptId().toString().equals("100000")) {
             logger.info("dpedlsnul=========="+(userRoles.getUser().getCustomerRegistDTO()==null));
 
