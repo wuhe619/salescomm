@@ -3968,9 +3968,14 @@ public class MarketResourceAction extends BasicAction {
     @RequestMapping(value = "/xzautolog", method = RequestMethod.POST)
     @CacheAnnotation
     public String xzAutoLog(@RequestParam Map param) {
-        LoginUser lu = opUser();
-        LOG.info("用户ID:{},请求参数:{}", lu.getId(), param);
-        return "success";
+        try {
+            LoginUser lu = opUser();
+            LOG.warn("讯众自动外呼回调参数打印用户ID:{},请求参数:{}", lu.getId(), param);
+        } catch (Exception e) {
+            LOG.error("讯众自动外呼回调参数打印异常", e);
+        } finally {
+            return "success";
+        }
     }
 
 }
