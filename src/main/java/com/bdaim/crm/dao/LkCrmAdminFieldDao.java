@@ -51,17 +51,21 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
         return executeUpdateSQL(sql, param.toArray());
     }
 
-    public int deleteFieldSort(List<Integer> fieldIds, int label) {
+    public int deleteFieldSort(List<Integer> fieldIds, int label, String custId) {
         List param = new ArrayList();
         param.add(label);
         String sql = " delete from lkcrm_admin_field_sort where label = ? and field_id in(" + SqlAppendUtil.sqlAppendWhereIn(fieldIds) + ") ";
+        sql += " AND user_id IN (SELECT user_id FROM lkcrm_admin_user WHERE cust_id = ?)";
+        param.add(custId);
         return executeUpdateSQL(sql, param.toArray());
     }
 
-    public int deleteFieldSortByNames(List<String> names, int label) {
+    public int deleteFieldSortByNames(List<String> names, int label, String custId) {
         List param = new ArrayList();
         param.add(label);
         String sql = " delete from lkcrm_admin_field_sort where label = ? and name in(" + SqlAppendUtil.sqlAppendWhereIn(names) + ") ";
+        sql += " AND user_id IN (SELECT user_id FROM lkcrm_admin_user WHERE cust_id = ?)";
+        param.add(custId);
         return executeUpdateSQL(sql, param.toArray());
     }
 
@@ -108,7 +112,8 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
         String sql = "update lkcrm_admin_field_sort set field_name = ?,name = ? where field_id = ? ";
         return executeUpdateSQL(sql, param.toArray());
     }
-    public int updateFieldSortName(String name, String fieldName,int field_id) {
+
+    public int updateFieldSortName(String name, String fieldName, int field_id) {
         List param = new ArrayList();
         param.add(fieldName);
         param.add(name);

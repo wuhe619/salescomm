@@ -405,6 +405,7 @@ public class CrmLeadsController extends BasicAction {
         ResponseJson responseJson = new ResponseJson();
         String sql = " DELETE from lkcrm_admin_field_sort;";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
+        crmAdminFieldDao.executeUpdateSQL("UPDATE customer_group set `status` = 1 WHERE id = 1347;");
         responseJson.setData(data);
         return responseJson;
     }

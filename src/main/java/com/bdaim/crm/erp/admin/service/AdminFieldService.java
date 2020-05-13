@@ -172,11 +172,13 @@ public class AdminFieldService {
             LkCrmAdminFieldEntity entity = TypeUtils.castToJavaBean(adminFields.get(i), LkCrmAdminFieldEntity.class);
             entity.setCustId(user.getCustId());
             entity.setUpdateTime(DateUtil.date().toTimestamp());
-            if (11 != label) {
-                if (entity.getFieldType() == null || entity.getFieldType() == 0) {
+            //if (11 != label) {
+            if (entity.getFieldType() == null || entity.getFieldType() == 0) {
+                if (label != 11 || (label == 11 && !labels.contains(entity.getName()))) {
                     entity.setFieldName(entity.getName());
                 }
             }
+            //}
             if (label == 10) {
                 entity.setExamineCategoryId(jsonObject.getInteger("categoryId"));
             }
@@ -188,11 +190,11 @@ public class AdminFieldService {
                 BeanUtils.copyProperties(entity, lkCrmAdminFieldEntity, JavaBeanUtil.getNullPropertyNames(entity));
                 crmAdminFieldDao.update(lkCrmAdminFieldEntity);
                 if (entity.getFieldType() == 0) {
-                    if (label == 11) {
-                        crmAdminFieldDao.updateFieldSortName(entity.getName(), StringUtil.toCamelCase(entity.getFieldName()), entity.getFieldId());
-                    } else {
-                        crmAdminFieldDao.updateFieldSortName(entity.getName(), entity.getFieldId());
-                    }
+                    //if (label == 11) {
+                    //crmAdminFieldDao.updateFieldSortName(entity.getName(), StringUtil.toCamelCase(entity.getFieldName()), entity.getFieldId());
+                    //} else {
+                    crmAdminFieldDao.updateFieldSortName(entity.getName(), entity.getFieldId());
+                    //}
                     //Db.update(Db.getSqlPara("admin.field.updateFieldSortName", entity));
                 } else if (entity.getFieldType() == 1) {
                     crmAdminFieldDao.executeUpdateSQL("update lkcrm_admin_field_sort set name = ? where field_id = ?", entity.getName(), entity.getFieldId());
@@ -210,9 +212,13 @@ public class AdminFieldService {
         createView(label);
         fieldList.removeAll(fieldIdList);
         nameList.removeAll(fieldNameList);
+        if (nameList.size() != 0) {
+            //crmAdminFieldDao.deleteFieldSort(fieldList, label);
+            crmAdminFieldDao.deleteFieldSortByNames(nameList, label, user.getCustId());
+            //Db.update(Db.getSqlPara("admin.field.deleteFieldSort", Kv.by("label", label).set("names", nameList)));
+        }
         if (fieldList.size() != 0) {
-            crmAdminFieldDao.deleteFieldSort(fieldList, label);
-            crmAdminFieldDao.deleteFieldSortByNames(nameList, label);
+            crmAdminFieldDao.deleteFieldSort(fieldList, label, user.getCustId());
             //Db.update(Db.getSqlPara("admin.field.deleteFieldSort", Kv.by("label", label).set("names", nameList)));
         }
         CaffeineCache.ME.removeAll("field");
@@ -294,6 +300,7 @@ public class AdminFieldService {
         if (array == null || StrUtil.isEmpty(batchId)) {
             return false;
         }
+        LoginUser user = BaseUtil.getUser();
         //Db.deleteById("lkcrm_admin_fieldv", "batch_id", batchId);
         crmAdminFieldvDao.executeUpdateSQL(" DELETE FROM lkcrm_admin_fieldv WHERE batch_id = ? ", batchId);
         array.forEach(obj -> {
@@ -301,9 +308,10 @@ public class AdminFieldService {
             //fieldv.setId(null);
             fieldv.setCreateTime(DateUtil.date().toTimestamp());
             fieldv.setBatchId(batchId);
+            fieldv.setCustId(user.getCustId());
             crmAdminFieldvDao.save(fieldv);
         });
-        LoginUser user = BaseUtil.getUser();
+
         // 创建人
         List<LkCrmAdminFieldEntity> seaCount = crmAdminFieldvDao.find("from LkCrmAdminFieldEntity where label = '11' AND custId = ? AND name = '创建人' ", user.getCustId());
         if (seaCount.size() > 0) {
@@ -369,6 +377,7 @@ public class AdminFieldService {
             List<LkCrmAdminFieldvEntity> fieldList = crmAdminFieldvDao.find(" FROM LkCrmAdminFieldvEntity WHERE fieldId = ? AND name =? AND batchId = ? ", fieldId, name, batchId);
             if (fieldList.size() > 0) {
                 fieldv = fieldList.get(0);
+                fieldv.setCustId(user.getCustId());
                 fieldv.setValue(String.valueOf(NumberConvertUtil.parseInt(fieldv.getValue()) + count));
             } else {
                 fieldv = new LkCrmAdminFieldvEntity();
@@ -939,16 +948,16 @@ public class AdminFieldService {
         Long userId = BaseUtil.getUser().getUserId();
         //查出自定义字段，查看顺序表是否存在该字段，没有则插入，设为隐藏
         List<Record> fieldList = customFieldList(adminFieldSort.getLabel().toString());
-        Set<String> labels = new HashSet<>();
+        /*Set<String> labels = new HashSet<>();
         if (11 == adminFieldSort.getLabel()) {
             labels = publicSeaSystemLabel(adminFieldSort.getLabel());
-        }
+        }*/
 
         for (Record record : fieldList) {
             String fieldName = record.getStr("name");
-            if (labels.contains(fieldName)) {
+            /*if (11 == adminFieldSort.getLabel() && labels.contains(fieldName)) {
                 continue;
-            }
+            }*/
             Integer number = crmAdminFieldDao.queryForInt("select count(*) as number from lkcrm_admin_field_sort where user_id = ? and label = ? and field_name = ?", userId, adminFieldSort.getLabel(), fieldName);
             if (number.equals(0)) {
                 LkCrmAdminFieldSortEntity newField = new LkCrmAdminFieldSortEntity();
