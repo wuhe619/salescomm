@@ -201,7 +201,7 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
         logger.info("updateuser==="+builder.toString());
         logger.info("updateparam==="+params.toString());
 
-        this.executeUpdateSQL(builder.toString());
+        this.executeUpdateSQL(builder.toString(),params.toArray());
     }
 
     public User getObj(User t) {
