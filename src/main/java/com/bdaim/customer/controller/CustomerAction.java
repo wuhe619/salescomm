@@ -1330,6 +1330,8 @@ public class CustomerAction extends BasicAction {
         marketProjectDTO.setIndustryId(jsonObject.getInteger("industryId"));
         marketProjectDTO.setName(jsonObject.getString("name"));
         marketProjectDTO.setStatus(jsonObject.getInteger("status"));
+        marketProjectDTO.setReconciliationStatus(jsonObject.getIntValue("reconciliationStatus"));
+        marketProjectDTO.setReconciliationId(jsonObject.getString("reconciliationId"));
         int operation = 0;
         if (jsonObject.getInteger("operation") != null) {
             operation = jsonObject.getInteger("operation");
