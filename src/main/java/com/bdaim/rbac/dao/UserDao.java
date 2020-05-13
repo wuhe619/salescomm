@@ -253,7 +253,10 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
             propertyInfo.setPropertyName(propertyName);
         } else {
             propertyInfo.setPropertyValue(propertyValue);
+
         }
+        logger.info(userId + " update==" + "\tpropertyName:" + propertyName + "\tpropertyValue:" + propertyValue);
+
         this.saveOrUpdate(propertyInfo);
     }
 
