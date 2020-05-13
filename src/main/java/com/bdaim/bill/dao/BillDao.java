@@ -837,7 +837,8 @@ public class BillDao extends SimpleHibernateDao {
      */
     public List listLabelDataTransactionLog(String supplierId, String custId, String resourceId, String orderNo, String startTime, String endTime) {
         StringBuffer sql = new StringBuffer();
-        sql.append(" SELECT t.id, t.order_id transactionId, t.cust_id custId, 7 type, t.amount/1000 amount, t.remark, t.industry_pool_id, t.create_time createTime, t.user_count userCount ")
+        sql.append("SELECT * FROM ")
+                .append(" ( SELECT t.id, t.order_id transactionId, t.cust_id custId, 7 type, t.amount/1000 amount, t.remark, t.industry_pool_id, t.create_time createTime, t.user_count userCount ")
                 .append(" FROM customer_group t WHERE ");
         sql.append(" t.create_time BETWEEN ? AND ?");
         List<Object> p = new ArrayList<>();
@@ -859,6 +860,33 @@ public class BillDao extends SimpleHibernateDao {
             p.add(orderNo);
             sql.append(" AND t.touch_id =? ");
         }
+
+        LocalDateTime startLocalDateTime = LocalDateTime.parse(startTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String yearMonth = startLocalDateTime.format(DateTimeFormatter.ofPattern("yyyyMM"));
+        //t.id, t.order_id transactionId, t.cust_id custId, 7 type, t.amount/1000 amount, t.remark, t.industry_pool_id, t.create_time createTime, t.user_count userCount
+        sql.append(" UNION ALL SELECT t.transaction_id id, t.transaction_id transactionId,  t.cust_id custId, 7 type, t.amount/1000 amount, t.remark, '' AS industry_pool_id,  t.create_time createTime, '1' AS userCount")
+                .append(" FROM t_transaction_" + yearMonth + " t WHERE t.type = ? ");
+        sql.append(" AND t.create_time BETWEEN ? AND ?");
+        p.add(TransactionTypeEnum.LABEL_DEDUCTION.getType());
+        p.add(startTime);
+        p.add(endTime);
+        if (StringUtil.isNotEmpty(custId)) {
+            p.add(custId);
+            sql.append(" AND t.cust_id = ?");
+        }
+        if (StringUtil.isNotEmpty(resourceId)) {
+            p.add(resourceId);
+            sql.append(" AND t.resource_id = ? ");
+        }
+        if (StringUtil.isNotEmpty(supplierId)) {
+            p.add(supplierId);
+            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id =?) ");
+        }
+        if (StringUtil.isNotEmpty(orderNo)) {
+            p.add(orderNo);
+            sql.append(" AND t.transaction_id = ? ");
+        }
+        sql.append(" ) t ");
         List list = this.sqlQuery(sql.toString(), p.toArray());
         return list;
     }
