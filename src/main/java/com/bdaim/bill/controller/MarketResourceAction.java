@@ -3964,6 +3964,15 @@ public class MarketResourceAction extends BasicAction {
         }
     }
 
+    @ResponseBody
+    @RequestMapping(value = "/xzautolog", method = RequestMethod.POST)
+    @CacheAnnotation
+    public String xzAutoLog(@RequestParam Map param) {
+        LoginUser lu = opUser();
+        LOG.info("用户ID:{},请求参数:{}", lu.getId(), param);
+        return "success";
+    }
+
 }
 
 
