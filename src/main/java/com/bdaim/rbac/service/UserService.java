@@ -1713,7 +1713,7 @@ public class UserService {
         List<Object> paramsu=new ArrayList<>();
 
         sqlu.append("select\n" +
-                "\t((case when tt.amount> tt.prod_amount then (sum(tt.amount/1000)-sum(tt.prod_amount/1000)) else 0)*((select tp.property_value from t_customer_property tp where tt.cust_id=tp.cust_id and tp.property_name='commission_rate'\n" +
+                "\t((case when tt.amount> tt.prod_amount then (sum(tt.amount/1000)-sum(tt.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tt.cust_id=tp.cust_id and tp.property_name='commission_rate'\n" +
                 "\t)/100)) accout,tp.property_value agentName\n" +
                 "from t_user_property tp left join (select tcp.cust_id,tcp.property_value,stm.prod_amount,stm.amount from t_customer_property tcp,t_customer tc left join stat_bill_month stm  on stm.cust_id=tc.cust_id where \n" +
                 "  tcp.cust_id=tc.cust_id ");
@@ -1747,14 +1747,14 @@ public class UserService {
         sql.append("select\n" +
                 " tu.account customAcocunt,tc.enterprise_name customName,? statTime," +
                 "  (select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
-                "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "  )/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
                 " sbm2.bill_type='7'),0) dataAmcount,\n" +
 
-                "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t)/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
                 " sbm2.bill_type='4'),0) callAmcount,\n" +
-                "\t IFNULL((case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t IFNULL((select(case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t)/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
                 " sbm2.bill_type='3'),0) messageAmcount\n" +
                 "from t_customer tc,t_customer_user tu,t_customer_property tcu left join stat_bill_month sbm on  tcu.cust_id=sbm.cust_id ");
@@ -1813,14 +1813,14 @@ public class UserService {
             sql.append("select\n" +
                 "\ttu.account customAcocunt,tc.enterprise_name customName,? statTime,\n" +
                 "(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
-                "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
                 "\t sbm2.bill_type='7'),0) dataAmcount,\n" +
 
-                "\t IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
                 " sbm2.bill_type='4'),0) callAmcount,\n" +
-                "\t IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
                 " sbm2.bill_type='3'),0) messageAmcount\n" +
                 "from t_customer tc,t_customer_user tu,t_customer_property tcu  left join stat_bill_month sbm on  tcu.cust_id=sbm.cust_id ");
