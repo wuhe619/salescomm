@@ -1741,7 +1741,7 @@ public class UserService {
         Map<String, Object> stringObjectMap = userDao.queryUniqueSql(sqlu.toString(), paramsu.toArray());
 
         sql.append("select\n" +
-                " tu.account customAcocunt,tc.enterprise_name customName,sbm.stat_time statTime,\n" +
+                " tu.account customAcocunt,tc.enterprise_name customName,? statTime," +
                 "  (select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
                 "  IFNULL((select (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "  ) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
@@ -1754,6 +1754,7 @@ public class UserService {
                 "\t) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
                 " sbm2.bill_type='3'),0) messageAmcount\n" +
                 "from t_customer tc,t_customer_user tu,t_customer_property tcu left join stat_bill_month sbm on  tcu.cust_id=sbm.cust_id ");
+        params.add(agentDTO.getYearMonth());
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
             sql.append("and sbm.stat_time = ?");
             params.add(agentDTO.getYearMonth());
@@ -1806,7 +1807,7 @@ public class UserService {
         try {
              outputStream = response.getOutputStream();
             sql.append("select\n" +
-                "\ttu.account customAcocunt,tc.enterprise_name customName,sbm.stat_time statTime,\n" +
+                "\ttu.account customAcocunt,tc.enterprise_name customName,? statTime,\n" +
                 "(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
                 "  IFNULL((select (IFNULL(sum(sbm2.amount/1000),0)-IFNULL(sum(sbm2.prod_amount/1000),0))*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t),0) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
@@ -1819,7 +1820,7 @@ public class UserService {
                 "\t),0) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
                 " sbm2.bill_type='3'),0) messageAmcount\n" +
                 "from t_customer tc,t_customer_user tu,t_customer_property tcu  left join stat_bill_month sbm on  tcu.cust_id=sbm.cust_id ");
-
+            params.add(agentDTO.getYearMonth());
             if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
                 sql.append("and sbm.stat_time = ?");
                 params.add(agentDTO.getYearMonth());
