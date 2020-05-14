@@ -350,7 +350,7 @@ public class UserInfoService {
                 "\tGROUP BY\n" +
                 "\t\tt6.industry_pool_id\n" +
                 ") t7 ON t7.industryPoolId = t1.industry_pool_id where t1.`STATUS`= 3 order by t1.create_time DESC, status ");
-        Page page = userInfoDao.sqlPageQuery(sql.toString(), pageNum, pageSize, params);
+        Page page = userInfoDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, params);
         map.put("total", page.getTotal());
         map.put("industryPoolStatusList", page.getData());
         return map;

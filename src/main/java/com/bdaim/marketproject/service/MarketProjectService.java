@@ -255,6 +255,11 @@ public class MarketProjectService {
                         marketProjectDTO.getStatus() != null && marketProjectDTO.getStatus() == 2) {
                     customerSeaDao.updateCustomerSea(custId, NumberConvertUtil.parseInt(result.getId()), 2);
                 }
+                // 保存撞库属性
+                MarketProjectProperty property = new MarketProjectProperty(String.valueOf(marketProjectDTO.getId()), "reconciliationStatus", String.valueOf(marketProjectDTO.getReconciliationStatus()), new Timestamp(System.currentTimeMillis()));
+                marketProjectDao.saveOrUpdate(property);
+                property = new MarketProjectProperty(String.valueOf(marketProjectDTO.getId()), "reconciliationId", marketProjectDTO.getReconciliationId(), new Timestamp(System.currentTimeMillis()));
+                marketProjectDao.saveOrUpdate(property);
                 code = 1;
             } else {
                 LOG.warn("项目id:" + marketProjectDTO.getId() + "未查询到");

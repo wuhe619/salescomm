@@ -696,6 +696,8 @@ public class UserAction extends BasicAction {
                             HttpServletRequest request) {
 //        net.sf.json.JSONObject result = new net.sf.json.JSONObject();
         JSONObject result = new JSONObject();
+        logger.info("actiond=========="+(customerRegistDTO.getName()));
+
         //校验用户名是否唯一
         boolean checkUsernameUnique = checkUsernameUnique(username, null);
         if (!checkUsernameUnique) {
@@ -769,9 +771,9 @@ public class UserAction extends BasicAction {
      */
     @RequestMapping(value = "/saveUpdate.do")
     @ResponseBody
-    public String saveUpdate(@RequestParam Long id,
+    public String saveUpdate(@RequestParam Long id,@RequestParam Long deptId,
                              @RequestParam(required = false) String roleIds, @RequestParam(required = false) String password,
-                             @RequestParam(required = false) String customerIds, @RequestParam(required = false) String labelIds, @RequestParam(required = false) String categoryIds, @RequestParam String channelIds, HttpServletRequest request) {
+                             @RequestParam(required = false) String customerIds, @RequestParam(required = false) String labelIds, @RequestParam(required = false) String categoryIds, @RequestParam String channelIds, CustomerRegistDTO customerRegistDTO,HttpServletRequest request) {
 
         List<RoleDTO> roles = null;
         if (StringUtils.isNotBlank(roleIds)) {
@@ -798,6 +800,8 @@ public class UserAction extends BasicAction {
 
         user.setOptuser(loginUser.getName());
         user.setModifyTime(new Date());
+        user.setDeptId(deptId);
+        logger.info("customerRegistDTO==="+customerRegistDTO);
 
         //封装用户与角色的关系
         UserRoles userRoles = new UserRoles();
@@ -805,6 +809,7 @@ public class UserAction extends BasicAction {
         userRoles.setOptUser(loginUser.getName());
         userRoles.setRoles(roles);
         userRoles.setUser(user);
+        user.setCustomerRegistDTO(customerRegistDTO);
         //boolean flag = userService.saveUser(userRoles, loginUser.getId(), UserHelper.isAdmin(request),customerIds, labelIds, categoryIds);
         boolean flag = false;
         try {
@@ -1181,6 +1186,11 @@ public class UserAction extends BasicAction {
         LoginUser loginUser = opUser();
 
        Page page1=userService.getCustomList(page,loginUser,userDTO);
+       if(page1.getData().size()>0){
+           HashMap map =(HashMap) page1.getData().get(0);
+           logger.info("佣金===：" + map.get("accountCount"));
+       }
+
         result.put("total", page1.getTotal());
         result.put("list", page1.getData());
         return  result;
@@ -1199,12 +1209,11 @@ public class UserAction extends BasicAction {
         }
         logger.info("查询代理商佣金列表页面传递参数是：" + agentDTO.toString());
 
-        HashMap<String,Object> map=new HashMap<>();
 
-        Page yjByMonth = userService.getYjByMonth(page, agentDTO);
 
-        map.put("total", yjByMonth.getTotal());
-        map.put("list", yjByMonth.getData());
+        HashMap<String,Object>  map = userService.getYjByMonth(page, agentDTO);
+
+
         return  JSONObject.toJSONString(map);
     }
 
@@ -1231,7 +1240,7 @@ public class UserAction extends BasicAction {
      */
     @GetMapping("/exportYj")
     public  void exportYj(AgentDTO agentDTO,HttpServletResponse response) throws  Exception{
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setContentType("application/vnd.ms-excel");
         response.setHeader("Content-Disposition",
                 "attachment;filename=代理商佣金");
         response.addHeader("Pargam", "no-cache");

@@ -889,6 +889,7 @@ public class CrmLeadsService {
             for (Map<String, Object> field : fieldList) {
                 fieldvEntity = BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true);
                 fieldvEntity.setBatchId(superId);
+                fieldvEntity.setCustId(user.getCustId());
                 jsonArray.add(fieldvEntity);
             }
             //String batchId = String.valueOf(m.get("leads_id"));

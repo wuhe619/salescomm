@@ -1297,6 +1297,8 @@ public class CustomerAction extends BasicAction {
         MarketProjectDTO dto = new MarketProjectDTO();
         dto.setIndustryId(jsonObject.getInteger("industryId"));
         dto.setName(jsonObject.getString("name"));
+        dto.setReconciliationStatus(jsonObject.getIntValue("reconciliationStatus"));
+        dto.setReconciliationId(jsonObject.getString("reconciliationId"));
         String custId = jsonObject.getString("custId");
         if (StringUtil.isEmpty(custId)) {
             custId = opUser().getCustId();
@@ -1328,6 +1330,8 @@ public class CustomerAction extends BasicAction {
         marketProjectDTO.setIndustryId(jsonObject.getInteger("industryId"));
         marketProjectDTO.setName(jsonObject.getString("name"));
         marketProjectDTO.setStatus(jsonObject.getInteger("status"));
+        marketProjectDTO.setReconciliationStatus(jsonObject.getIntValue("reconciliationStatus"));
+        marketProjectDTO.setReconciliationId(jsonObject.getString("reconciliationId"));
         int operation = 0;
         if (jsonObject.getInteger("operation") != null) {
             operation = jsonObject.getInteger("operation");

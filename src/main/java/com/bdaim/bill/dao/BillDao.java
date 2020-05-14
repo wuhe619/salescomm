@@ -5,7 +5,6 @@ import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
-
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -594,7 +593,9 @@ public class BillDao extends SimpleHibernateDao {
      */
     public Page pageLabelDataTransactionLog(String supplierId, String custId, String resourceId, String orderNo, String startTime, String endTime, int pageNum, int pageSize) {
         StringBuffer sql = new StringBuffer();
-        sql.append(" SELECT t.order_id transactionId, t.id, t.cust_id custId, t2.amount/1000 amount, t2.cost_price/1000 prodAmount, t2.amount/t.user_count/1000 price,  t2.cost_price/t.user_count/1000 cPrice, t.remark, t.industry_pool_id, t.create_time createTime, t.user_count userCount ")
+        sql.append("SELECT * FROM ")
+        .append(" ( SELECT t.order_id transactionId, t.id, t.cust_id custId, t2.amount/1000 amount, t2.cost_price/1000 prodAmount, t2.amount/t.user_count/1000 price,  " +
+                "t2.cost_price/t.user_count/1000 cPrice, t.remark, t.industry_pool_id, t.create_time createTime, t.user_count userCount, (SELECT source_id FROM t_industry_pool WHERE industry_pool_id = t.industry_pool_id) AS resourceId ")
                 .append(" FROM customer_group t  ")
                 .append(" JOIN t_order t2 ON t.order_id = t2.order_id")
                 .append(" WHERE t.create_time BETWEEN ? AND ?");
@@ -617,7 +618,35 @@ public class BillDao extends SimpleHibernateDao {
             p.add(orderNo);
             sql.append(" AND t.order_id = ? ");
         }
-        sql.append(" ORDER BY t.create_time DESC");
+        //sql.append(" ORDER BY t.create_time DESC ");
+
+        LocalDateTime startLocalDateTime = LocalDateTime.parse(startTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String yearMonth = startLocalDateTime.format(DateTimeFormatter.ofPattern("yyyyMM"));
+        sql.append(" UNION ALL SELECT t.transaction_id transactionId, t.remark id , t.cust_id custId, t.amount/1000 amount, t.prod_amount/1000 prodAmount, t.amount/1000 price, " +
+                " t.prod_amount/1000 cPrice, t.remark, '' AS industry_pool_id,  t.create_time createTime, '1' AS userCount, t.resource_id resourceId")
+                .append(" FROM t_transaction_" + yearMonth + " t WHERE t.type = ? ");
+        sql.append(" AND t.create_time BETWEEN ? AND ?");
+        p.add(TransactionTypeEnum.LABEL_DEDUCTION.getType());
+        p.add(startTime);
+        p.add(endTime);
+        if (StringUtil.isNotEmpty(custId)) {
+            p.add(custId);
+            sql.append(" AND t.cust_id = ?");
+        }
+        if (StringUtil.isNotEmpty(resourceId)) {
+            p.add(resourceId);
+            sql.append(" AND t.resource_id = ? ");
+        }
+        if (StringUtil.isNotEmpty(supplierId)) {
+            p.add(supplierId);
+            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id =?) ");
+        }
+        if (StringUtil.isNotEmpty(orderNo)) {
+            p.add(orderNo);
+            sql.append(" AND t.transaction_id = ? ");
+        }
+        sql.append(" ) t ");
+        sql.append(" ORDER BY t. createTime DESC ");
         Page page = this.sqlPageQuery0(sql.toString(), pageNum, pageSize, p.toArray());
         return page;
     }
@@ -808,7 +837,8 @@ public class BillDao extends SimpleHibernateDao {
      */
     public List listLabelDataTransactionLog(String supplierId, String custId, String resourceId, String orderNo, String startTime, String endTime) {
         StringBuffer sql = new StringBuffer();
-        sql.append(" SELECT t.id, t.order_id transactionId, t.cust_id custId, 7 type, t.amount/1000 amount, t.remark, t.industry_pool_id, t.create_time createTime, t.user_count userCount ")
+        sql.append("SELECT * FROM ")
+                .append(" ( SELECT t.id, t.order_id transactionId, t.cust_id custId, 7 type, t.amount/1000 amount, t.remark, t.industry_pool_id, t.create_time createTime, t.user_count userCount, (SELECT source_id FROM t_industry_pool WHERE industry_pool_id = t.industry_pool_id) AS resourceId ")
                 .append(" FROM customer_group t WHERE ");
         sql.append(" t.create_time BETWEEN ? AND ?");
         List<Object> p = new ArrayList<>();
@@ -830,6 +860,33 @@ public class BillDao extends SimpleHibernateDao {
             p.add(orderNo);
             sql.append(" AND t.touch_id =? ");
         }
+
+        LocalDateTime startLocalDateTime = LocalDateTime.parse(startTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String yearMonth = startLocalDateTime.format(DateTimeFormatter.ofPattern("yyyyMM"));
+        //t.id, t.order_id transactionId, t.cust_id custId, 7 type, t.amount/1000 amount, t.remark, t.industry_pool_id, t.create_time createTime, t.user_count userCount
+        sql.append(" UNION ALL SELECT t.transaction_id id, t.transaction_id transactionId,  t.cust_id custId, 7 type, t.amount/1000 amount, t.remark, '' AS industry_pool_id,  t.create_time createTime, '1' AS userCount, t.resource_id resourceId")
+                .append(" FROM t_transaction_" + yearMonth + " t WHERE t.type = ? ");
+        sql.append(" AND t.create_time BETWEEN ? AND ?");
+        p.add(TransactionTypeEnum.LABEL_DEDUCTION.getType());
+        p.add(startTime);
+        p.add(endTime);
+        if (StringUtil.isNotEmpty(custId)) {
+            p.add(custId);
+            sql.append(" AND t.cust_id = ?");
+        }
+        if (StringUtil.isNotEmpty(resourceId)) {
+            p.add(resourceId);
+            sql.append(" AND t.resource_id = ? ");
+        }
+        if (StringUtil.isNotEmpty(supplierId)) {
+            p.add(supplierId);
+            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id =?) ");
+        }
+        if (StringUtil.isNotEmpty(orderNo)) {
+            p.add(orderNo);
+            sql.append(" AND t.transaction_id = ? ");
+        }
+        sql.append(" ) t ");
         List list = this.sqlQuery(sql.toString(), p.toArray());
         return list;
     }

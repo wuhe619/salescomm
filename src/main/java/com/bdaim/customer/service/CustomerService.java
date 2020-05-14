@@ -1802,6 +1802,15 @@ public class CustomerService {
         //CustomerProperty industryId = customerDao.getProperty(custId, "industryId");
         CustomerProperty service_mode = customerDao.getProperty(custId, "service_mode");
 
+
+        // 代理商ID
+        CustomerProperty agent_id = customerDao.getProperty(custId, "agent_id");
+        // 佣金比例
+        CustomerProperty commission_rate = customerDao.getProperty(custId, "commission_rate");
+        // 余额预警提醒
+        CustomerProperty balance_remind = customerDao.getProperty(custId, "balance_remind");
+
+
         CustomerDTO cd = new CustomerDTO(c);
         String picServerUrl = "";
         if (bliPic != null) {
@@ -1845,6 +1854,15 @@ public class CustomerService {
         }
         if (service_mode != null) {
             cd.setServiceMode(service_mode.getPropertyValue());
+        }
+        if (agent_id != null) {
+            cd.setAgentId(agent_id.getPropertyValue());
+        }
+        if (commission_rate != null) {
+            cd.setCommissionRate(commission_rate.getPropertyValue());
+        }
+        if (balance_remind != null) {
+            cd.setBalanceRemind(balance_remind.getPropertyValue());
         }
         /*if (industryId != null) {
             cd.setIndustryId(industryId.getPropertyValue());
@@ -1999,6 +2017,31 @@ public class CustomerService {
             country.setPropertyValue(vo.getCounty());
         }
         customerDao.saveOrUpdate(country);
+
+        // 代理商ID
+        CustomerProperty agentId = customerDao.getProperty(user.getCust_id(), "agent_id");
+        if (agentId == null) {
+            agentId = new CustomerProperty(user.getCust_id(), "agent_id", vo.getAgentId());
+        } else {
+            agentId.setPropertyValue(vo.getAgentId());
+        }
+        customerDao.saveOrUpdate(agentId);
+        // 佣金比例
+        CustomerProperty commission_rate = customerDao.getProperty(user.getCust_id(), "commission_rate");
+        if (commission_rate == null) {
+            commission_rate = new CustomerProperty(user.getCust_id(), "commission_rate", vo.getCommissionRate());
+        } else {
+            commission_rate.setPropertyValue(vo.getCommissionRate());
+        }
+        customerDao.saveOrUpdate(commission_rate);
+        // 余额预警提醒
+        CustomerProperty balance_remind = customerDao.getProperty(user.getCust_id(), "balance_remind");
+        if (balance_remind == null) {
+            balance_remind = new CustomerProperty(user.getCust_id(), "balance_remind", vo.getBalanceRemind());
+        } else {
+            balance_remind.setPropertyValue(vo.getBalanceRemind());
+        }
+        customerDao.saveOrUpdate(balance_remind);
 
       /*  EnterpriseDO enterpriseDO = enterpriseDao.findUniqueBy("custId", user.getCustId());
         enterpriseDO.setProvince(vo.getProvince());
@@ -2300,7 +2343,7 @@ public class CustomerService {
             m.setCallChannel(resourceId);
             List<ApparentNumberDTO> numberList = listApparentNumber(m);
             if (numberList.size() > 0) {
-               return numberList.get(0).getApparentNumber();
+                return numberList.get(0).getApparentNumber();
             }
             return null;
         }
@@ -2898,6 +2941,51 @@ public class CustomerService {
         return result;
     }
 
+    /**
+     * 获取资源的计费方式
+     *
+     * @param custId
+     * @param resourceId
+     * @return
+     */
+    private int getCustomerResourceType(String custId, String resourceId) {
+        CustomerProperty cu = customerDao.getProperty(custId, MarketResourceTypeEnum.LABEL.getPropertyName());
+        if (cu == null || StringUtil.isEmpty(cu.getPropertyValue())) {
+            logger.warn("客户:" + custId + ",未配置数据资源售价");
+            return 0;
+        }
+
+        JSONArray jsonArray = JSON.parseArray(cu.getPropertyValue());
+        JSONObject jsonObject = null;
+        for (int i = 0; i < jsonArray.size(); i++) {
+            if (resourceId.equals(jsonArray.getJSONObject(i).getString("resourceId"))) {
+                jsonObject = jsonArray.getJSONObject(i);
+                break;
+            }
+        }
+        if (jsonObject == null || jsonObject.size() == 0) {
+            logger.warn("客户:" + custId + ",资源ID:" + resourceId + "未配置供应商渠道");
+            return 0;
+        }
+        return jsonObject.getIntValue("type");
+    }
+
+    private String getCustomerResourceTypeName(String custId, String resourceId) {
+        int type = getCustomerResourceType(custId, resourceId);
+        switch (type) {
+            case 1:
+                return "按提取条数计费";
+            case 2:
+                return "按标签计费";
+            case 3:
+                return "按呼通计费";
+            case 4:
+                return "按效果计费";
+            default:
+                return "";
+        }
+    }
+
     public Map<String, Object> listCustomerBill(String custId, String startTime, String endTime, String orderNo, int type, int pageNum, int pageSize, String resource_id) {
         Map<String, Object> result = new HashMap<>();
         Page page = billDao.pageCustomerBill(custId, startTime, endTime, orderNo, type, pageNum, pageSize, resource_id);
@@ -2965,6 +3053,11 @@ public class CustomerService {
                     marketResource = marketResourceDao.get(resourceId);
                 }
                 map.put("resourceName", marketResource != null ? marketResource.getResname() : "");
+                if (type == 7) {
+                    map.put("resourceType", getCustomerResourceType(custId, String.valueOf(map.get("resourceId"))));
+                } else {
+                    map.put("resourceType", "");
+                }
             }
         }
         result.put("total", page.getTotal());
@@ -3093,6 +3186,10 @@ public class CustomerService {
             headers.add(head);
 
             head = new ArrayList<>();
+            head.add("计费方式");
+            headers.add(head);
+
+            head = new ArrayList<>();
             head.add("交易时间");
             headers.add(head);
 
@@ -3162,6 +3259,8 @@ public class CustomerService {
                     columnList.add(String.valueOf(map.get("transactionId")));
                     //交易类型
                     columnList.add(TransactionTypeEnum.getName(type));
+                    // 计费方式
+                    columnList.add(getCustomerResourceTypeName(custId, String.valueOf(map.get("resourceId"))));
                     //交易时间
                     columnList.add(LocalDateTime.parse(String.valueOf(map.get("createTime")), DATE_TIME_FORMATTER_SSS).format(DATE_TIME_FORMATTER));
                     //数量/时长
@@ -3919,7 +4018,7 @@ public class CustomerService {
         allProject = allProject.substring(1);
 
         sql = "select * from t_customer_user where user_type=3 and cust_id= ? ";
-        List<Map<String, Object>> users = customerDao.sqlQuery(sql,custId);
+        List<Map<String, Object>> users = customerDao.sqlQuery(sql, custId);
         if (users != null && users.size() > 0) {
             String ids = "";
             for (Map<String, Object> map : users) {

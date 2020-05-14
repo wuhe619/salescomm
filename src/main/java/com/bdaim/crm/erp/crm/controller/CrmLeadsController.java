@@ -405,6 +405,10 @@ public class CrmLeadsController extends BasicAction {
         ResponseJson responseJson = new ResponseJson();
         String sql = " DELETE from lkcrm_admin_field_sort;";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
+        crmAdminFieldDao.executeUpdateSQL("DELETE FROM lkcrm_admin_field WHERE cust_id ='2005141017020043' AND (label =1 OR label =11);");
+        crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_admin_field` ( `field_name`, `cust_id`, `name`, `type`, `label`, `remark`, `input_tips`, `max_length`, `default_value`, `is_unique`, `is_null`, `sorting`, `options`, `operating`, `update_time`, `examine_category_id`, `field_type`, `relevant`, `add_sort`, `add_hidden` ) SELECT `field_name`, '2005141017020043', `name`, `type`, `label`, `remark`, `input_tips`, `max_length`, `default_value`, `is_unique`, `is_null`, `sorting`, `options`, `operating`, `update_time`, `examine_category_id`, `field_type`, `relevant`, `add_sort`, `add_hidden` FROM lkcrm_admin_field WHERE cust_id is null AND (label =1 OR label =11);");
+        crmAdminFieldDao.executeUpdateSQL("DELETE FROM lkcrm_admin_field WHERE cust_id ='2005140944070037' AND (label =1 OR label =11);");
+        crmAdminFieldDao.executeUpdateSQL("INSERT INTO `lkcrm_admin_field` ( `field_name`, `cust_id`, `name`, `type`, `label`, `remark`, `input_tips`, `max_length`, `default_value`, `is_unique`, `is_null`, `sorting`, `options`, `operating`, `update_time`, `examine_category_id`, `field_type`, `relevant`, `add_sort`, `add_hidden` ) SELECT `field_name`, '2005140944070037', `name`, `type`, `label`, `remark`, `input_tips`, `max_length`, `default_value`, `is_unique`, `is_null`, `sorting`, `options`, `operating`, `update_time`, `examine_category_id`, `field_type`, `relevant`, `add_sort`, `add_hidden` FROM lkcrm_admin_field WHERE cust_id is null AND (label =1 OR label =11);");
         responseJson.setData(data);
         return responseJson;
     }

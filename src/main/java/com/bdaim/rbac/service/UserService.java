@@ -8,6 +8,7 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.helper.JDBCHelper;
 import com.bdaim.common.service.DaoService;
 import com.bdaim.common.spring.ConfigPropertiesHolder;
+import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customs.dao.StationDao;
 import com.bdaim.customs.entity.Station;
 import com.bdaim.rbac.DataFromEnum;
@@ -488,8 +489,9 @@ public class UserService {
         builder.append(" group by u.ID,u.status,u.NAME,u.REALNAME,d.id,d.NAME,u.CREATE_TIME,u.OPTUSER ");
         Page page = param.getPage();
         int countPerpage = page.getCountPerPage();
-        int index = page.getPageIndex();
-        int start = index * countPerpage;
+        int start = (page.getPageIndex()+1);
+
+
 
         builder.append(" ) t ");
         builder.append(" where 1=1 ");
@@ -529,6 +531,7 @@ public class UserService {
                 vo.setRealName(String.valueOf(m.get("realname")));
                 vo.setDeptName(String.valueOf(m.get("deptname")));
                 vo.setRoles(String.valueOf(m.get("rolename")));
+
                 if (m.get("create_time") != null
                         && !"null".equals(String.valueOf(m.get("create_time")))) {
                     vo.setCreateTime(LocalDateTime.parse(String.valueOf(m.get("create_time")), YDMHMSS).format(YDMHMS));
@@ -536,6 +539,79 @@ public class UserService {
                 vo.setOptuser(String.valueOf(m.get("optuser")));
                 if (!"null".equals(String.valueOf(m.get("deptId")))) {
                     vo.setDeptId(String.valueOf(m.get("deptId")));
+                    if(vo.getDeptId().toString().equals("100000")){
+                        CustomerRegistDTO customerRegistDTO=new CustomerRegistDTO();
+                        UserProperty  county = userDao.getProperty(Long.parseLong(vo.getId()), "customer_name");
+                        if(county!=null) {
+                            customerRegistDTO.setName(userDao.getProperty(Long.parseLong(vo.getId()), "customer_name").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bli_number");
+
+                        if(county!=null) {
+                            customerRegistDTO.setBliNumber(userDao.getProperty(Long.parseLong(vo.getId()), "bli_number").getPropertyValue());
+                        }
+
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "province");
+                        if(county!=null) {
+                            customerRegistDTO.setProvince(userDao.getProperty(Long.parseLong(vo.getId()), "province").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "city");
+                        if(county!=null) {
+                            customerRegistDTO.setCity(userDao.getProperty(Long.parseLong(vo.getId()), "city").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "county");
+                        if(county!=null){
+                            customerRegistDTO.setCountry(userDao.getProperty(Long.parseLong(vo.getId()),"county").getPropertyValue());
+
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "taxpayer_id");
+                        if(county!=null) {
+                            customerRegistDTO.setTaxPayerId(userDao.getProperty(Long.parseLong(vo.getId()), "taxpayer_id").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bli_path");
+                        if(county!=null) {
+                            customerRegistDTO.setBliPath(userDao.getProperty(Long.parseLong(vo.getId()), "bli_path").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bank");
+                        if(county!=null) {
+                            customerRegistDTO.setBank(userDao.getProperty(Long.parseLong(vo.getId()), "bank").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bank_account");
+
+                        if(county!=null) {
+                            customerRegistDTO.setBankAccount(userDao.getProperty(Long.parseLong(vo.getId()), "bank_account").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "bank_account_certificate");
+
+                        if(county!=null) {
+                            customerRegistDTO.setBankAccountCertificate(userDao.getProperty(Long.parseLong(vo.getId()), "bank_account_certificate").getPropertyValue());
+                        }
+
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "reg_address");
+                       if(county!=null){
+                           customerRegistDTO.setAddress(userDao.getProperty(Long.parseLong(vo.getId()),"reg_address").getPropertyValue());
+
+                       }
+
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "taxpayerCertificatePath");
+                        if(county!=null) {
+                            customerRegistDTO.setTaxpayerCertificatePath(userDao.getProperty(Long.parseLong(vo.getId()), "taxpayerCertificatePath").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "mobile");
+                        if(county!=null) {
+                            customerRegistDTO.setMobile(userDao.getProperty(Long.parseLong(vo.getId()), "mobile").getPropertyValue());
+                        }
+
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "email");
+                        if(county!=null) {
+                            customerRegistDTO.setEmail(userDao.getProperty(Long.parseLong(vo.getId()), "email").getPropertyValue());
+                        }
+                        county = userDao.getProperty(Long.parseLong(vo.getId()), "title");
+                        if(county!=null) {
+                            customerRegistDTO.setTitle(userDao.getProperty(Long.parseLong(vo.getId()), "title").getPropertyValue());
+                        }
+                        vo.setCustomerRegistDTO(customerRegistDTO);
+                    }
                 }
                 if (!"null".equals(String.valueOf(m.get("status")))) {
                     vo.setStatus(NumberConvertUtil.parseInt(m.get("status")));
@@ -936,86 +1012,9 @@ public class UserService {
             insertCustomerPermission(customerIds, id);
             //insertLabelPermission(labelIds, id);
             //insertCategoryPermission(categoryIds, id);
+           logger.info("dpedls=========="+userRoles.getUser().getDeptId().toString().equals("100000"));
 
 
-            //新增代理商
-            if (userRoles.getUser().getDeptId().equals("100000")) {
-                //代理商名字          Z乡村vbnm。/
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getName())) {
-                    userDao.dealUserInfo(id, "customer_name", userRoles.getUser().getCustomerRegistDTO().getName());
-                }
-
-                //营业执照注册号
-                if (StringUtils.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBliNumber())) {
-                    userDao.dealUserInfo(id, "bli_number", userRoles.getUser().getCustomerRegistDTO().getBliNumber());
-
-                }
-                //注册地所在省
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getProvince())) {
-                    userDao.dealUserInfo(id, "province", userRoles.getUser().getCustomerRegistDTO().getProvince());
-
-                }
-                //注册地所在市
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getCity())) {
-                    userDao.dealUserInfo(id, "city", userRoles.getUser().getCustomerRegistDTO().getCity());
-
-                }
-                //注册地所在乡镇
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getCountry())) {
-                    userDao.dealUserInfo(id, "county", userRoles.getUser().getCustomerRegistDTO().getCountry());
-
-                }
-                //统一社会信用代码(纳税人识别号)
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTaxPayerId())) {
-                    userDao.dealUserInfo(id, "taxpayer_id", userRoles.getUser().getCustomerRegistDTO().getTaxPayerId());
-                }
-                //营业执照url
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBliPath())) {
-                    userDao.dealUserInfo(id, "bli_path", userRoles.getUser().getCustomerRegistDTO().getBliPath());
-                }
-                //银行
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBank())) {
-                    userDao.dealUserInfo(id, "bank", userRoles.getUser().getCustomerRegistDTO().getBank());
-
-                }
-                //银行账号
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBankAccount())) {
-                    userDao.dealUserInfo(id, "bank_account", userRoles.getUser().getCustomerRegistDTO().getBank());
-                }
-                //银行开户许可证url
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBankAccountCertificate())) {
-                    userDao.dealUserInfo(id, "bank_account_certificate", userRoles.getUser().getCustomerRegistDTO().getBankAccountCertificate());
-                }
-
-                //企业注册详细街道地址
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getAddress())) {
-                    userDao.dealUserInfo(id, "reg_address", userRoles.getUser().getCustomerRegistDTO().getAddress());
-
-                }
-                //企业税务登记url
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTaxpayerCertificatePath())) {
-                    userDao.dealUserInfo(id, "taxpayerCertificatePath", userRoles.getUser().getCustomerRegistDTO().getTaxpayerCertificatePath());
-
-                }
-
-                //联系人手机（联系人姓名使用用户姓名）
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getMobile())) {
-                    userDao.dealUserInfo(id, "mobile", userRoles.getUser().getCustomerRegistDTO().getMobile());
-
-                }
-
-                //联系人邮箱
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getEmail())) {
-                    userDao.dealUserInfo(id, "email", userRoles.getUser().getCustomerRegistDTO().getEmail());
-
-                }
-
-                //联系人职位
-                if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTitle())) {
-                    userDao.dealUserInfo(id, "title", userRoles.getUser().getCustomerRegistDTO().getTitle());
-
-                }
-            }
         } else {
             //更新用户信息
             userDao.update(user);
@@ -1038,6 +1037,90 @@ public class UserService {
 
 
 
+        }
+        //新增代理商
+        logger.info("Userlsnul=========="+(userRoles==null));
+        logger.info("Userlsnul=========="+(userRoles.getUser()==null));
+        logger.info("Userlsnul=========="+(userRoles.getUser().getDeptId()==null));
+
+        if (userRoles.getUser().getDeptId().toString().equals("100000")) {
+            logger.info("dpedlsnul=========="+(userRoles.getUser().getCustomerRegistDTO()==null));
+
+            //代理商名字          Z乡村vbnm。/
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getName())) {
+                userDao.dealUserInfo(id, "customer_name", userRoles.getUser().getCustomerRegistDTO().getName());
+            }
+
+            //营业执照注册号
+            if (StringUtils.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBliNumber())) {
+                userDao.dealUserInfo(id, "bli_number", userRoles.getUser().getCustomerRegistDTO().getBliNumber());
+
+            }
+            //注册地所在省
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getProvince())) {
+                userDao.dealUserInfo(id, "province", userRoles.getUser().getCustomerRegistDTO().getProvince());
+
+            }
+            //注册地所在市
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getCity())) {
+                userDao.dealUserInfo(id, "city", userRoles.getUser().getCustomerRegistDTO().getCity());
+
+            }
+            //注册地所在乡镇
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getCountry())) {
+                userDao.dealUserInfo(id, "county", userRoles.getUser().getCustomerRegistDTO().getCountry());
+
+            }
+            //统一社会信用代码(纳税人识别号)
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTaxPayerId())) {
+                userDao.dealUserInfo(id, "taxpayer_id", userRoles.getUser().getCustomerRegistDTO().getTaxPayerId());
+            }
+            //营业执照url
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBliPath())) {
+                userDao.dealUserInfo(id, "bli_path", userRoles.getUser().getCustomerRegistDTO().getBliPath());
+            }
+            //银行
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBank())) {
+                userDao.dealUserInfo(id, "bank", userRoles.getUser().getCustomerRegistDTO().getBank());
+
+            }
+            //银行账号
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBankAccount())) {
+                userDao.dealUserInfo(id, "bank_account", userRoles.getUser().getCustomerRegistDTO().getBankAccount());
+            }
+            //银行开户许可证url
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getBankAccountCertificate())) {
+                userDao.dealUserInfo(id, "bank_account_certificate", userRoles.getUser().getCustomerRegistDTO().getBankAccountCertificate());
+            }
+
+            //企业注册详细街道地址
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getAddress())) {
+                userDao.dealUserInfo(id, "reg_address", userRoles.getUser().getCustomerRegistDTO().getAddress());
+
+            }
+            //企业税务登记url
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTaxpayerCertificatePath())) {
+                userDao.dealUserInfo(id, "taxpayerCertificatePath", userRoles.getUser().getCustomerRegistDTO().getTaxpayerCertificatePath());
+
+            }
+
+            //联系人手机（联系人姓名使用用户姓名）
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getMobile())) {
+                userDao.dealUserInfo(id, "mobile", userRoles.getUser().getCustomerRegistDTO().getMobile());
+
+            }
+
+            //联系人邮箱
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getEmail())) {
+                userDao.dealUserInfo(id, "email", userRoles.getUser().getCustomerRegistDTO().getEmail());
+
+            }
+
+            //联系人职位
+            if (StringUtil.isNotEmpty(userRoles.getUser().getCustomerRegistDTO().getTitle())) {
+                userDao.dealUserInfo(id, "title", userRoles.getUser().getCustomerRegistDTO().getTitle());
+
+            }
         }
         return true;
     }
@@ -1589,10 +1672,10 @@ public class UserService {
         StringBuilder sql = new StringBuilder();
         List<Object> params=new ArrayList<>();
         sql.append("select tu.name,tu.id,tp.property_value agentName,\n" +
-                "\t(select count(1) from t_customer_property t where t.property_name='agent_id' and t.property_value=tu.id) customerCount,\n" +
-                "\t(select sum(((stm.amount/1000-stm.prod_amount/1000)*(select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate'\n" +
-                "))) from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id\n" +
-                "and tp.property_name='agent_id' and tp.property_value=tp.user_id) accountCount \n" +
+                " (select count(1) from t_customer_property t where t.property_name='agent_id' and t.property_value=tu.id) customerCount,\n" +
+                " IFNULL((select sum(((case when stm.amount> stm.prod_amount then (stm.amount/1000-stm.prod_amount/1000) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate'\n" +
+                "              )/100))) from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id\n" +
+                "              and tp.property_name='agent_id' and tp.property_value=tp.user_id),0) accountCount\n" +
                 "from t_user tu,t_user_property tp where tp.user_id=tu.id and tp.property_name='customer_name'");
 
         //admin可以查询所有部门信息  普通用户只能查本部门的
@@ -1603,7 +1686,7 @@ public class UserService {
 
         if(userDTO!=null&&StringUtils.isNotEmpty(userDTO.getUserName())){
             sql.append("and tu.name=? ");
-            params.add(userDTO.getName());
+            params.add(userDTO.getUserName());
         }
 
         if(userDTO!=null&&(userDTO.getId()!=null)){
@@ -1615,64 +1698,104 @@ public class UserService {
             sql.append("and tp.property_value like ? ");
             params.add("%"+userDTO.getCustomerName()+"%");
         }
-        sql.append("order by tp.create_time desc");
+        sql.append("   order by tp.create_time desc  ");
        return  userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
     }
 
 
 
-    public Page getYjByMonth(PageParam pageParam,AgentDTO agentDTO){
-
+    public HashMap<String,Object> getYjByMonth(PageParam pageParam,AgentDTO agentDTO){
+        HashMap<String,Object> map=new HashMap<>();
         StringBuilder sql=new StringBuilder();
         List<Object> params=new ArrayList<>();
-        sql.append("select\n" +
-                "\ttu.account customAcocunt,tc.enterprise_name customName,sbm.stat_time statTime,\n" +
-                "(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
-                "  (select (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                "\t) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
-                "\t sbm2.bill_type='7') dataAmcount,\n" +
 
-                "\t(select (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                "\t) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
-                " sbm2.bill_type='4') callAmcount,\n" +
-                "\t(select (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                "\t) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
-                " sbm2.bill_type='3') messageAmcount\n" +
-                "from t_customer tc,t_customer_user tu,t_customer_property tcu,stat_bill_month sbm\n" +
-                "where\n" +
+        StringBuilder sqlu=new StringBuilder();
+        List<Object> paramsu=new ArrayList<>();
+
+        sqlu.append("select\n" +
+                "\t((case when tt.amount> tt.prod_amount then (sum(tt.amount/1000)-sum(tt.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tt.cust_id=tp.cust_id and tp.property_name='commission_rate'\n" +
+                "\t)/100)) accout,tp.property_value agentName\n" +
+                "from t_user_property tp left join (select tcp.cust_id,tcp.property_value,stm.prod_amount,stm.amount from t_customer_property tcp,t_customer tc left join stat_bill_month stm  on stm.cust_id=tc.cust_id where \n" +
+                "  tcp.cust_id=tc.cust_id ");
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
+            sqlu.append("and tc.cust_id=?");
+            paramsu.add(agentDTO.getCustId());
+        }
+
+
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
+            sqlu.append(" and stm.stat_time =? ");
+            paramsu.add(agentDTO.getYearMonth());
+
+        }
+
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
+            sqlu.append("and tc.enterprise_name like ?");
+            paramsu.add("%"+agentDTO.getCustomName()+"%");
+        }
+        sqlu.append("\t\t\tand tcp.property_name=\"agent_id\" ) tt\n" +
+                "\t\ton (tt.cust_id=tp.user_id)\n" +
+                "where tp.user_id=? and  tp.property_name='customer_name'");
+
+
+
+        paramsu.add(agentDTO.getUserId());
+
+
+        Map<String, Object> stringObjectMap = userDao.queryUniqueSql(sqlu.toString(), paramsu.toArray());
+
+        sql.append("select\n" +
+                " tu.account customAcocunt,tc.enterprise_name customName,? statTime," +
+                "  (select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
+                "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "  )/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
+                " sbm2.bill_type='7'),0) dataAmcount,\n" +
+
+                "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t)/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
+                " sbm2.bill_type='4'),0) callAmcount,\n" +
+                "\t IFNULL((select(case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t)/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
+                " sbm2.bill_type='3'),0) messageAmcount\n" +
+                "from t_customer tc,t_customer_user tu,t_customer_property tcu  ");
+        params.add(agentDTO.getYearMonth());
+        params.add(agentDTO.getYearMonth());
+        params.add(agentDTO.getYearMonth());
+        params.add(agentDTO.getYearMonth());
+
+
+        sql.append("  where\n" +
                 "\ttc.cust_id=tu.cust_id and  tcu.cust_id=tc.cust_id\n" +
                 "\tand tu.user_type='1'\n" +
-                "\tand tcu.property_name='agent_id' and tcu.property_value=? and tc.cust_id=sbm.cust_id\n");
+                "\tand tcu.property_name='agent_id' and tcu.property_value=?  \n");
                   params.add(agentDTO.getUserId());
                 if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
                     sql.append("and tc.cust_id=?");
                     params.add(agentDTO.getCustId());
                 }
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getStatTimeStart())) {
-            sql.append("and sbm.stat_time > ?");
-            params.add(agentDTO.getStatTimeStart());
+
+
+
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
+            sql.append("and tc.enterprise_name like ?");
+            params.add("%"+agentDTO.getCustomName()+"%");
         }
+        Page page = userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
+        map.put("total", page.getTotal());
+        map.put("count", stringObjectMap);
+        map.put("list", page.getData());
 
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
-            sql.append("and sbm.stat_time = ?");
-            params.add(agentDTO.getYearMonth());
-        }
-
-
-
-        sql.append("  group by tc.cust_id,sbm.stat_time order by sbm.stat_time desc");
-
-       return userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
+       return map ;
     }
 
     public Map getYjCount(String userId){
         StringBuilder sql=new StringBuilder();
         List<Object> params=new ArrayList<>();
 
-        sql.append("select ((sum(stm.amount/1000)-sum(stm.prod_amount/1000))*(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                ")) accout,tp.property_value agentName\n" +
-                "from t_customer tc,stat_bill_month stm,t_customer_property tcp,t_user_property tp where tc.cust_id=stm.cust_id\n" +
-                "and tcp.cust_id=tc.cust_id and tp.user_id=tcp.property_value and tp.property_name='customer_name' and tcp.property_name=\"agent_id\" and tcp.property_value=?");
+        sql.append("select IFNULL(((sum(IFNULL(stm.amount,0)/1000)-sum(IFNULL(stm.prod_amount,0)/1000))*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                ")/100)),0) accout,tp.property_value agentName\n" +
+                " from t_customer_property tcp,t_user_property tp,t_customer tc left join stat_bill_month stm on stm.cust_id=tc.cust_id where " +
+                " tcp.cust_id=tc.cust_id and tp.user_id=tcp.property_value and tp.property_name='customer_name' and tcp.property_name='agent_id' and tcp.property_value=?");
         params.add(userId);
 
         Map<String, Object> stringObjectMap = userDao.queryUniqueSql(sql.toString(), params);
@@ -1687,23 +1810,29 @@ public class UserService {
         try {
              outputStream = response.getOutputStream();
             sql.append("select\n" +
-                "\ttu.account customAcocunt,tc.enterprise_name customName,sbm.stat_time statTime,\n" +
+                "\ttu.account customAcocunt,tc.enterprise_name customName,? statTime,\n" +
                 "(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
-                "  (select (IFNULL(sum(sbm2.amount/1000),0)-IFNULL(sum(sbm2.prod_amount/1000),0))*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                "\t),0) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
-                "\t sbm2.bill_type='7') dataAmcount,\n" +
+                "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
+                "\t sbm2.bill_type='7'),0) dataAmcount,\n" +
 
-                "\t(select (IFNULL(sum(sbm2.amount/1000),0)-IFNULL(sum(sbm2.prod_amount/1000),0))*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                "\t),0) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
-                " sbm2.bill_type='4') callAmcount,\n" +
-                "\t(select (IFNULL(sum(sbm2.amount/1000),0)-IFNULL(sum(sbm2.prod_amount/1000),0))*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                "\t),0) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
-                " sbm2.bill_type='3') messageAmcount\n" +
-                "from t_customer tc,t_customer_user tu,t_customer_property tcu,stat_bill_month sbm\n" +
-                "where\n" +
-                "\ttc.cust_id=tu.cust_id and  tcu.cust_id=tc.cust_id\n" +
+                "\t IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
+                " sbm2.bill_type='4'),0) callAmcount,\n" +
+                "\t IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
+                " sbm2.bill_type='3'),0) messageAmcount\n" +
+                "from t_customer tc,t_customer_user tu,t_customer_property tcu  ");
+            params.add(agentDTO.getYearMonth());
+            params.add(agentDTO.getYearMonth());
+            params.add(agentDTO.getYearMonth());
+            params.add(agentDTO.getYearMonth());
+
+
+            sql.append(" where\n" +
+                "\ttc.cust_id=tu.cust_id and  tcu.cust_id=tc.cust_id \n" +
                 "\tand tu.user_type='1'\n" +
-                "\tand tcu.property_name='agent_id' and tcu.property_value=? and tc.cust_id=sbm.cust_id\n");
+                "\tand tcu.property_name='agent_id' and tcu.property_value=? \n");
         params.add(agentDTO.getUserId());
         EasyExcelUtil.EasyExcelParams param = new EasyExcelUtil.EasyExcelParams();
 
@@ -1711,15 +1840,7 @@ public class UserService {
             sql.append("and tc.cust_id=?");
             params.add(agentDTO.getCustId());
         }
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getStatTimeStart())) {
-            sql.append("and sbm.stat_time > ?");
-            params.add(agentDTO.getStatTimeStart());
-        }
 
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getStatTimeEnd())) {
-            sql.append("and sbm.stat_time < ?");
-            params.add(agentDTO.getStatTimeEnd());
-        }
 
 
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
@@ -1727,7 +1848,7 @@ public class UserService {
             params.add("%"+agentDTO.getCustomName()+"%");
         }
 
-        sql.append("  group by tc.cust_id,sbm.stat_time order by sbm.stat_time desc");
+
 
 
             XSSFWorkbook workBook =new XSSFWorkbook();
@@ -1766,14 +1887,18 @@ public class UserService {
                 cell = row.createCell(c++);
                 cell.setCellValue((String) map.get("commision"));
                 cell = row.createCell(c++);
-                cell.setCellValue(((BigDecimal)map.get("dataAmcount")).toString());
+                Double ad=(Double)(map.get("dataAmcount")==null?0:map.get("dataAmcount"));
+                cell.setCellValue((ad).toString());
                 cell = row.createCell(c++);
-                cell.setCellValue(((BigDecimal) map.get("callAmcount")).toString());
+                Double call=(Double)(map.get("callAmcount")==null?0:map.get("callAmcount"));
+
+                cell.setCellValue((call).toString());
                 cell = row.createCell(c++);
-                ((BigDecimal)map.get("dataAmcount")).add(((BigDecimal)map.get("callAmcount")).add((BigDecimal) map.get("callAmcount")));
-                cell.setCellValue(((BigDecimal) map.get("messageAmcount")).toString());
+                Double messageAmcount=(Double)(map.get("messageAmcount")==null?0:map.get("messageAmcount"));
+
+                cell.setCellValue((messageAmcount).toString());
                 cell = row.createCell(c++);
-                cell.setCellValue(((BigDecimal)map.get("dataAmcount")).add(((BigDecimal)map.get("callAmcount")).add((BigDecimal) map.get("callAmcount"))).toString());
+                cell.setCellValue(((call+messageAmcount+ad))+"");
             }
 
             workBook.write(outputStream);

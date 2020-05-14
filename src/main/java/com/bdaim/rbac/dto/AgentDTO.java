@@ -135,4 +135,23 @@ public class AgentDTO extends BaseRowModel {
     public void setCommisionAmount(String commisionAmount) {
         this.commisionAmount = commisionAmount;
     }
+
+    @Override
+    public String toString() {
+        return "AgentDTO{" +
+                "custId='" + custId + '\'' +
+                ", userId='" + userId + '\'' +
+                ", customName='" + customName + '\'' +
+                ", customAcocunt='" + customAcocunt + '\'' +
+                ", statTime='" + statTime + '\'' +
+                ", commision='" + commision + '\'' +
+                ", commisionAmount='" + commisionAmount + '\'' +
+                ", dataAmcount=" + dataAmcount +
+                ", callAmcount=" + callAmcount +
+                ", messageAmcount=" + messageAmcount +
+                ", yearMonth='" + yearMonth + '\'' +
+                ", statTimeStart='" + statTimeStart + '\'' +
+                ", statTimeEnd='" + statTimeEnd + '\'' +
+                '}';
+    }
 }
