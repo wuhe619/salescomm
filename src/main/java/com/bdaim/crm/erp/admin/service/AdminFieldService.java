@@ -178,7 +178,7 @@ public class AdminFieldService {
             entity.setUpdateTime(DateUtil.date().toTimestamp());
             //if (11 != label) {
             if (entity.getFieldType() == null || entity.getFieldType() == 0) {
-                if (label != 11 || (label == 11 && !labels.contains(entity.getName()))) {
+                if (label != 11 || (label == 11 && !fieldNames.contains(entity.getFieldName()))) {
                     entity.setFieldName(entity.getName());
                 }
             }
