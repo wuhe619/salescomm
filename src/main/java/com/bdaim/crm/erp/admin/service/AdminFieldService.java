@@ -190,11 +190,11 @@ public class AdminFieldService {
                 BeanUtils.copyProperties(entity, lkCrmAdminFieldEntity, JavaBeanUtil.getNullPropertyNames(entity));
                 crmAdminFieldDao.update(lkCrmAdminFieldEntity);
                 if (entity.getFieldType() == 0) {
-                    //if (label == 11) {
-                    //crmAdminFieldDao.updateFieldSortName(entity.getName(), StringUtil.toCamelCase(entity.getFieldName()), entity.getFieldId());
-                    //} else {
-                    crmAdminFieldDao.updateFieldSortName(entity.getName(), entity.getFieldId());
-                    //}
+                    if (label != 11 || (label == 11 && !labels.contains(entity.getName()))) {
+                        crmAdminFieldDao.updateFieldSortName(entity.getName(), entity.getFieldId());
+                    } else {
+                        crmAdminFieldDao.updateFieldSortName(entity.getName(), StringUtil.toCamelCase(entity.getFieldName()), entity.getFieldId());
+                    }
                     //Db.update(Db.getSqlPara("admin.field.updateFieldSortName", entity));
                 } else if (entity.getFieldType() == 1) {
                     crmAdminFieldDao.executeUpdateSQL("update lkcrm_admin_field_sort set name = ? where field_id = ?", entity.getName(), entity.getFieldId());
