@@ -1748,21 +1748,21 @@ public class UserService {
                 " tu.account customAcocunt,tc.enterprise_name customName,? statTime," +
                 "  (select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
                 "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                "  )/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
+                "  )/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
                 " sbm2.bill_type='7'),0) dataAmcount,\n" +
 
                 "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                "\t)/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
+                "\t)/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
                 " sbm2.bill_type='4'),0) callAmcount,\n" +
                 "\t IFNULL((select(case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                "\t)/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
+                "\t)/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
                 " sbm2.bill_type='3'),0) messageAmcount\n" +
-                "from t_customer tc,t_customer_user tu,t_customer_property tcu left join stat_bill_month sbm on  tcu.cust_id=sbm.cust_id ");
+                "from t_customer tc,t_customer_user tu,t_customer_property tcu  ");
         params.add(agentDTO.getYearMonth());
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
-            sql.append("and sbm.stat_time = ?");
-            params.add(agentDTO.getYearMonth());
-        }
+        params.add(agentDTO.getYearMonth());
+        params.add(agentDTO.getYearMonth());
+        params.add(agentDTO.getYearMonth());
+
 
         sql.append("  where\n" +
                 "\ttc.cust_id=tu.cust_id and  tcu.cust_id=tc.cust_id\n" +
@@ -1814,21 +1814,21 @@ public class UserService {
                 "\ttu.account customAcocunt,tc.enterprise_name customName,? statTime,\n" +
                 "(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
                 "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
+                "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
                 "\t sbm2.bill_type='7'),0) dataAmcount,\n" +
 
                 "\t IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
+                "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
                 " sbm2.bill_type='4'),0) callAmcount,\n" +
                 "\t IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
-                "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=sbm.stat_time and\n" +
+                "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
                 " sbm2.bill_type='3'),0) messageAmcount\n" +
-                "from t_customer tc,t_customer_user tu,t_customer_property tcu  left join stat_bill_month sbm on  tcu.cust_id=sbm.cust_id ");
+                "from t_customer tc,t_customer_user tu,t_customer_property tcu  ");
             params.add(agentDTO.getYearMonth());
-            if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
-                sql.append("and sbm.stat_time = ?");
-                params.add(agentDTO.getYearMonth());
-            }
+            params.add(agentDTO.getYearMonth());
+            params.add(agentDTO.getYearMonth());
+            params.add(agentDTO.getYearMonth());
+
 
             sql.append(" where\n" +
                 "\ttc.cust_id=tu.cust_id and  tcu.cust_id=tc.cust_id\n" +
