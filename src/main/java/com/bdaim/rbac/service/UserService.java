@@ -1713,21 +1713,22 @@ public class UserService {
         List<Object> paramsu=new ArrayList<>();
 
         sqlu.append("select\n" +
-                "\t((case when tt.amount> tt.prod_amount then (sum(tt.amount/1000)-sum(tt.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tt.cust_id=tp.cust_id and tp.property_name='commission_rate'\n" +
-                "\t)/100)) accout,tp.property_value agentName\n" +
-                "from t_user_property tp left join (select tcp.cust_id,tcp.property_value,stm.prod_amount,stm.amount from t_customer_property tcp,t_customer tc left join stat_bill_month stm  on stm.cust_id=tc.cust_id where \n" +
+                "\t(select (case when sum(tt.amount)> sum(tt.prod_amount) then (sum(tt.amount/1000)-sum(tt.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tt.cust_id=tp.cust_id and tp.property_name='commission_rate'\n" +
+                "\t)/100) accout from stat_bill_month tt where tt.stat_time=? ) accout,tp.property_value agentName\n" +
+                "from t_user_property tp left join (select tcp.cust_id,tcp.property_value from t_customer_property tcp,t_customer tc where \n" +
                 "  tcp.cust_id=tc.cust_id ");
+
+        paramsu.add(agentDTO.getYearMonth());
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
             sqlu.append("and tc.cust_id=?");
             paramsu.add(agentDTO.getCustId());
         }
 
 
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
-            sqlu.append(" and stm.stat_time =? ");
-            paramsu.add(agentDTO.getYearMonth());
 
-        }
+
+
+
 
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
             sqlu.append("and tc.enterprise_name like ?");
