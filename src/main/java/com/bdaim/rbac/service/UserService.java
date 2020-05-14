@@ -1712,11 +1712,21 @@ public class UserService {
         StringBuilder sqlu=new StringBuilder();
         List<Object> paramsu=new ArrayList<>();
 
-        sqlu.append("select\n" +
-                "\t(select (case when sum(tt.amount)> sum(tt.prod_amount) then (sum(tt.amount/1000)-sum(tt.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tt.cust_id=tp.cust_id and tp.property_name='commission_rate'\n" +
-                "\t)/100) accout from stat_bill_month tt where tt.stat_time=? ) accout,tp.property_value agentName\n" +
-                "from t_user_property tp left join (select tcp.cust_id,tcp.property_value from t_customer_property tcp,t_customer tc where \n" +
-                "  tcp.cust_id=tc.cust_id ");
+        sqlu.append("select(select\n" +
+                "  sum((case\n" +
+                " when tm.amount> tm.prod_amount then ((tm.amount/1000)-(tm.prod_amount/1000))\n" +
+                " else 0\n" +
+                " end)*((select\n" +
+                " tp.property_value\n" +
+                " from\n" +
+                " t_customer_property tp\n" +
+                " where\n" +
+                " tm.cust_id=tp.cust_id\n" +
+                " and tp.property_name='commission_rate'  )/100)) accout\n" +
+                " from\n" +
+                "  stat_bill_month tm,t_customer_property tcp,t_customer tc\n" +
+                " where\n" +
+                "  tm.stat_time=? and tcp.cust_id=tm.cust_id and tcp.cust_id=tm.cust_id and tcp.property_name='agent_id' and tcp.property_value=tp.user_id\n" );
 
         paramsu.add(agentDTO.getYearMonth());
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
@@ -1725,18 +1735,13 @@ public class UserService {
         }
 
 
-
-
-
-
-
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
             sqlu.append("and tc.enterprise_name like ?");
             paramsu.add("%"+agentDTO.getCustomName()+"%");
         }
-        sqlu.append("\t\t\tand tcp.property_name=\"agent_id\" ) tt\n" +
-                "\t\ton (tt.cust_id=tp.user_id)\n" +
-                "where tp.user_id=? and  tp.property_name='customer_name'");
+                sqlu.append(" ) accout,tp.property_value agentName from  t_user_property tp where tp.user_id=? and  tp.property_name='customer_name'  ");
+
+
 
 
 
