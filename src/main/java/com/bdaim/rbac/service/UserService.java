@@ -1784,7 +1784,6 @@ public class UserService {
         map.put("total", page.getTotal());
         map.put("count", stringObjectMap);
         map.put("list", page.getData());
-        sql.append("  group by tc.cust_id,sbm.stat_time order by sbm.stat_time desc");
 
        return map ;
     }
@@ -1831,7 +1830,7 @@ public class UserService {
 
 
             sql.append(" where\n" +
-                "\ttc.cust_id=tu.cust_id and  tcu.cust_id=tc.cust_id\n" +
+                "\ttc.cust_id=tu.cust_id and  tcu.cust_id=tc.cust_id \n" +
                 "\tand tu.user_type='1'\n" +
                 "\tand tcu.property_name='agent_id' and tcu.property_value=? \n");
         params.add(agentDTO.getUserId());
@@ -1849,7 +1848,7 @@ public class UserService {
             params.add("%"+agentDTO.getCustomName()+"%");
         }
 
-        sql.append("  group by tc.cust_id,sbm.stat_time order by sbm.stat_time desc");
+
 
 
             XSSFWorkbook workBook =new XSSFWorkbook();
@@ -1888,13 +1887,18 @@ public class UserService {
                 cell = row.createCell(c++);
                 cell.setCellValue((String) map.get("commision"));
                 cell = row.createCell(c++);
-                cell.setCellValue(((Double)map.get("dataAmcount")).toString());
+                Double ad=(Double)(map.get("dataAmcount")==null?0:map.get("dataAmcount"));
+                cell.setCellValue((ad).toString());
                 cell = row.createCell(c++);
-                cell.setCellValue(((Double) map.get("callAmcount")).toString());
+                Double call=(Double)(map.get("callAmcount")==null?0:map.get("callAmcount"));
+
+                cell.setCellValue((call).toString());
                 cell = row.createCell(c++);
-                cell.setCellValue(((Double) map.get("messageAmcount")).toString());
+                Double messageAmcount=(Double)(map.get("messageAmcount")==null?0:map.get("messageAmcount"));
+
+                cell.setCellValue((messageAmcount).toString());
                 cell = row.createCell(c++);
-                cell.setCellValue((((Double)map.get("dataAmcount"))+(((Double)map.get("callAmcount"))+((Double) map.get("callAmcount"))))+"");
+                cell.setCellValue(((call+messageAmcount+ad))+"");
             }
 
             workBook.write(outputStream);
