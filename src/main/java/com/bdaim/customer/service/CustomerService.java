@@ -2018,6 +2018,31 @@ public class CustomerService {
         }
         customerDao.saveOrUpdate(country);
 
+        // 代理商ID
+        CustomerProperty agentId = customerDao.getProperty(user.getCust_id(), "agent_id");
+        if (agentId == null) {
+            agentId = new CustomerProperty(user.getCust_id(), "agent_id", vo.getAgentId());
+        } else {
+            agentId.setPropertyValue(vo.getAgentId());
+        }
+        customerDao.saveOrUpdate(agentId);
+        // 佣金比例
+        CustomerProperty commission_rate = customerDao.getProperty(user.getCust_id(), "commission_rate");
+        if (commission_rate == null) {
+            commission_rate = new CustomerProperty(user.getCust_id(), "commission_rate", vo.getCommissionRate());
+        } else {
+            commission_rate.setPropertyValue(vo.getCommissionRate());
+        }
+        customerDao.saveOrUpdate(commission_rate);
+        // 余额预警提醒
+        CustomerProperty balance_remind = customerDao.getProperty(user.getCust_id(), "balance_remind");
+        if (balance_remind == null) {
+            balance_remind = new CustomerProperty(user.getCust_id(), "balance_remind", vo.getBalanceRemind());
+        } else {
+            balance_remind.setPropertyValue(vo.getBalanceRemind());
+        }
+        customerDao.saveOrUpdate(balance_remind);
+
       /*  EnterpriseDO enterpriseDO = enterpriseDao.findUniqueBy("custId", user.getCustId());
         enterpriseDO.setProvince(vo.getProvince());
         enterpriseDO.setCity(vo.getCity());
