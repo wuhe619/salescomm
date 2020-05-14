@@ -158,7 +158,11 @@ public class AdminFieldService {
         }
         Set<String> labels = new HashSet<>();
         if (11 == label) {
-            labels = publicSeaSystemLabel(label);
+            labels = publicSeaSystemLabelName(label);
+        }
+        Set<String> fieldNames = new HashSet<>();
+        if (11 == label) {
+            fieldNames = publicSeaSystemLabelFieldName(label);
         }
 
         List<Integer> fieldIdList = new ArrayList<>();
@@ -190,7 +194,7 @@ public class AdminFieldService {
                 BeanUtils.copyProperties(entity, lkCrmAdminFieldEntity, JavaBeanUtil.getNullPropertyNames(entity));
                 crmAdminFieldDao.update(lkCrmAdminFieldEntity);
                 if (entity.getFieldType() == 0) {
-                    if (label != 11 || (label == 11 && !labels.contains(entity.getName()))) {
+                    if (label != 11 || (label == 11 && !fieldNames.contains(entity.getFieldName()))) {
                         crmAdminFieldDao.updateFieldSortName(entity.getName(), entity.getFieldId());
                     } else {
                         crmAdminFieldDao.updateFieldSortName(entity.getName(), StringUtil.toCamelCase(entity.getFieldName()), entity.getFieldId());
@@ -931,11 +935,20 @@ public class AdminFieldService {
         //return Db.findByCache("field", "listHead:" + adminFieldSort.getLabel() + userId, Db.getSql("admin.field.queryListHead"), adminFieldSort.getLabel(), userId);
     }
 
-    private Set<String> publicSeaSystemLabel(int label) {
+    private Set<String> publicSeaSystemLabelName(int label) {
         Set<String> labels = new HashSet<>();
         List<Map<String, Object>> list = crmAdminFieldDao.sqlQuery("SELECT field_id, field_name, name FROM lkcrm_admin_field WHERE label = ? AND cust_id is NULL", label);
         for (Map<String, Object> m : list) {
             labels.add(String.valueOf(m.get("name")));
+        }
+        return labels;
+    }
+
+    private Set<String> publicSeaSystemLabelFieldName(int label) {
+        Set<String> labels = new HashSet<>();
+        List<Map<String, Object>> list = crmAdminFieldDao.sqlQuery("SELECT field_id, field_name, name FROM lkcrm_admin_field WHERE label = ? AND cust_id is NULL", label);
+        for (Map<String, Object> m : list) {
+            labels.add(String.valueOf(m.get("field_name")));
         }
         return labels;
     }
@@ -950,7 +963,7 @@ public class AdminFieldService {
         List<Record> fieldList = customFieldList(adminFieldSort.getLabel().toString());
         Set<String> labels = new HashSet<>();
         if (11 == adminFieldSort.getLabel()) {
-            labels = publicSeaSystemLabel(adminFieldSort.getLabel());
+            labels = publicSeaSystemLabelName(adminFieldSort.getLabel());
         }
 
         for (Record record : fieldList) {
