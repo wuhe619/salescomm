@@ -2318,7 +2318,7 @@ public class CustomerService {
             m.setCallChannel(resourceId);
             List<ApparentNumberDTO> numberList = listApparentNumber(m);
             if (numberList.size() > 0) {
-               return numberList.get(0).getApparentNumber();
+                return numberList.get(0).getApparentNumber();
             }
             return null;
         }
@@ -2916,6 +2916,51 @@ public class CustomerService {
         return result;
     }
 
+    /**
+     * 获取资源的计费方式
+     *
+     * @param custId
+     * @param resourceId
+     * @return
+     */
+    private int getCustomerResourceType(String custId, String resourceId) {
+        CustomerProperty cu = customerDao.getProperty(custId, MarketResourceTypeEnum.LABEL.getPropertyName());
+        if (cu == null || StringUtil.isEmpty(cu.getPropertyValue())) {
+            logger.warn("客户:" + custId + ",未配置数据资源售价");
+            return 0;
+        }
+
+        JSONArray jsonArray = JSON.parseArray(cu.getPropertyValue());
+        JSONObject jsonObject = null;
+        for (int i = 0; i < jsonArray.size(); i++) {
+            if (resourceId.equals(jsonArray.getJSONObject(i).getString("resourceId"))) {
+                jsonObject = jsonArray.getJSONObject(i);
+                break;
+            }
+        }
+        if (jsonObject == null || jsonObject.size() == 0) {
+            logger.warn("客户:" + custId + ",资源ID:" + resourceId + "未配置供应商渠道");
+            return 0;
+        }
+        return jsonObject.getIntValue("type");
+    }
+
+    private String getCustomerResourceTypeName(String custId, String resourceId) {
+        int type = getCustomerResourceType(custId, resourceId);
+        switch (type) {
+            case 1:
+                return "按提取条数计费";
+            case 2:
+                return "按标签计费";
+            case 3:
+                return "按呼通计费";
+            case 4:
+                return "按效果计费";
+            default:
+                return "";
+        }
+    }
+
     public Map<String, Object> listCustomerBill(String custId, String startTime, String endTime, String orderNo, int type, int pageNum, int pageSize, String resource_id) {
         Map<String, Object> result = new HashMap<>();
         Page page = billDao.pageCustomerBill(custId, startTime, endTime, orderNo, type, pageNum, pageSize, resource_id);
@@ -2983,6 +3028,11 @@ public class CustomerService {
                     marketResource = marketResourceDao.get(resourceId);
                 }
                 map.put("resourceName", marketResource != null ? marketResource.getResname() : "");
+                if (type == 7) {
+                    map.put("resourceType", getCustomerResourceType(custId, String.valueOf(map.get("resourceId"))));
+                } else {
+                    map.put("resourceType", "");
+                }
             }
         }
         result.put("total", page.getTotal());
@@ -3111,6 +3161,10 @@ public class CustomerService {
             headers.add(head);
 
             head = new ArrayList<>();
+            head.add("计费方式");
+            headers.add(head);
+
+            head = new ArrayList<>();
             head.add("交易时间");
             headers.add(head);
 
@@ -3180,6 +3234,8 @@ public class CustomerService {
                     columnList.add(String.valueOf(map.get("transactionId")));
                     //交易类型
                     columnList.add(TransactionTypeEnum.getName(type));
+                    // 计费方式
+                    columnList.add(getCustomerResourceTypeName(custId, String.valueOf(map.get("resourceId"))));
                     //交易时间
                     columnList.add(LocalDateTime.parse(String.valueOf(map.get("createTime")), DATE_TIME_FORMATTER_SSS).format(DATE_TIME_FORMATTER));
                     //数量/时长
@@ -3937,7 +3993,7 @@ public class CustomerService {
         allProject = allProject.substring(1);
 
         sql = "select * from t_customer_user where user_type=3 and cust_id= ? ";
-        List<Map<String, Object>> users = customerDao.sqlQuery(sql,custId);
+        List<Map<String, Object>> users = customerDao.sqlQuery(sql, custId);
         if (users != null && users.size() > 0) {
             String ids = "";
             for (Map<String, Object> map : users) {
