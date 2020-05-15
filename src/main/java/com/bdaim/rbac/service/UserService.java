@@ -1744,7 +1744,8 @@ public class UserService {
                 BigDecimal acc=(datagObjectMap==null|| (BigDecimal)datagObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) datagObjectMap.get("accountCount");
                 BigDecimal accCall=(callObjectMap==null||(BigDecimal) callObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) callObjectMap.get("accountCount");
                 BigDecimal accmess=(messageObjectMap==null||(BigDecimal) messageObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) messageObjectMap.get("accountCount");
-                 accountCount.add(acc.add(accCall.add(accmess)));
+                logger.info("ac=="+acc+"=="+accCall+"=="+accmess);
+                accountCount.add(acc.add(accCall.add(accmess)));
             }
             map.put("accountCount",accountCount.toString());
 
