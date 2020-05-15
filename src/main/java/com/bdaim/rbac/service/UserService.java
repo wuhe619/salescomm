@@ -1722,7 +1722,7 @@ public class UserService {
                         "  and (stm.bill_type='4') ");
                 list.add(cuId);
                 list.add(cuId);
-
+                logger.info("sqlaccot==="+accot.toString());
                 Map<String, Object> datagObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
                 accot = new StringBuilder();
                 accot.append(" select round(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
