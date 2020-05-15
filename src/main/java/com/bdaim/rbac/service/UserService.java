@@ -1790,7 +1790,7 @@ public class UserService {
 
 
         List<Map<String, Object>> maps = userDao.queryMapsListBySql(csql, cs.toArray());
-        Double accountCount=0.000;
+        BigDecimal accountCount=BigDecimal.valueOf(0.000);
         for(Map<String, Object> map1:maps) {
             List list=new ArrayList();
             StringBuilder accot=new StringBuilder();
@@ -1851,10 +1851,10 @@ public class UserService {
 
             Map<String, Object> messageObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
 
-            Double acc=(datagObjectMap==null|| (Double)datagObjectMap.get("accountCount")==null)?0:(Double) datagObjectMap.get("accountCount");
-            Double accCall=(callObjectMap==null||(Double) callObjectMap.get("accountCount")==null)?0:(Double) callObjectMap.get("accountCount");
-            Double accmess=(messageObjectMap==null||(Double) messageObjectMap.get("accountCount")==null)?0:(Double) messageObjectMap.get("accountCount");
-            accountCount+= (acc+accCall+accmess);
+            BigDecimal acc=(datagObjectMap==null|| (BigDecimal)datagObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) datagObjectMap.get("accountCount");
+            BigDecimal accCall=(callObjectMap==null||(BigDecimal) callObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) callObjectMap.get("accountCount");
+            BigDecimal accmess=(messageObjectMap==null||(BigDecimal) messageObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) messageObjectMap.get("accountCount");
+            accountCount= accountCount.add(acc.add(accCall.add(accmess)));
         }
         stringObjectMap.put("accout",accountCount.toString());
 
@@ -2004,14 +2004,14 @@ public class UserService {
                 cell = row.createCell(c++);
                 cell.setCellValue((String) map.get("commision"));
                 cell = row.createCell(c++);
-                BigDecimal ad=(BigDecimal)(map.get("dataAmcount")==null?0:map.get("dataAmcount"));
+                BigDecimal ad=(BigDecimal)(map.get("dataAmcount")==null?BigDecimal.valueOf(0):map.get("dataAmcount"));
                 cell.setCellValue((ad).toString());
                 cell = row.createCell(c++);
-                BigDecimal call=(BigDecimal)(map.get("callAmcount")==null?0:map.get("callAmcount"));
+                BigDecimal call=(BigDecimal)(map.get("callAmcount")==null?BigDecimal.valueOf(0):map.get("callAmcount"));
 
                 cell.setCellValue((call).toString());
                 cell = row.createCell(c++);
-                BigDecimal messageAmcount=(BigDecimal)(map.get("messageAmcount")==null?0:map.get("messageAmcount"));
+                BigDecimal messageAmcount=(BigDecimal)(map.get("messageAmcount")==null?BigDecimal.valueOf(0):map.get("messageAmcount"));
 
                 cell.setCellValue((messageAmcount).toString());
                 cell = row.createCell(c++);
