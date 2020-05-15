@@ -1785,8 +1785,18 @@ public class UserService {
 
 
         List cs=new ArrayList();
-        String csql="select  tp.cust_id cusId from t_customer_property tp where tp.property_name='agent_id'  and tp.property_value=?";
+        String csql="select  tp.cust_id cusId from t_customer_property tp,t_customer tc where tp.property_name='agent_id'  and tp.property_value=?";
         cs.add(userId);
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
+            csql+=("and tp.cust_id=?");
+            cs.add(agentDTO.getCustId());
+        }
+
+
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
+            csql+=("and tc.enterprise_name like ?");
+            cs.add("%"+agentDTO.getCustomName()+"%");
+        }
 
 
         List<Map<String, Object>> maps = userDao.queryMapsListBySql(csql, cs.toArray());
@@ -1795,58 +1805,31 @@ public class UserService {
             List list=new ArrayList();
             StringBuilder accot=new StringBuilder();
             String cuId=map1.get("cusId").toString();
-            accot.append(" select CAST((( sum(stm.amount-stm.prod_amount) )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
-                    " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm,t_customer tc where tc.cust_id = stm.cust_id AND stm.cust_id=? " +
+            accot.append(" select CAST((( sum(stm.amount-stm.prod_amount) )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=stm.cust_id and tcp.property_name='commission_rate' " +
+                    " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm  where  stm.cust_id=? " +
                     "  and (stm.bill_type='4') and stm.stat_time=? ");
             list.add(cuId);
-            list.add(cuId);
+
 
             list.add(agentDTO.getYearMonth());
-            if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
-                accot.append("and tc.cust_id=?");
-                list.add(agentDTO.getCustId());
-            }
 
-
-            if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
-                accot.append("and tc.enterprise_name like ?");
-                list.add("%"+agentDTO.getCustomName()+"%");
-            }
 
             Map<String, Object> datagObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
             accot = new StringBuilder();
-            accot.append(" select CAST(((sum(stm.amount-stm.prod_amount))*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
-                    " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm,t_customer_property,t_customer tc where tc.cust_id = stm.cust_id AND stm.cust_id=? " +
+            accot.append(" select CAST(((sum(stm.amount-stm.prod_amount))*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=stm.cust_id and tcp.property_name='commission_rate' " +
+                    " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm,t_customer_property,t_customer tc where  stm.cust_id=? " +
                     " and (stm.bill_type='3')  and stm.stat_time=? ");
-            if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
-                accot.append("and tc.cust_id=?");
 
-            }
-
-
-            if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
-                accot.append("and tc.enterprise_name like ?");
-
-            }
 
 
             Map<String, Object> callObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
 
             accot = new StringBuilder();
-            accot.append(" select CAST((( sum(stm.amount-stm.prod_amount) )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
-                    " )/100))/1000  as decimal(64,3)) accountCount  from stat_bill_month stm,t_customer_property tp ,t_customer tc where tc.cust_id = stm.cust_id AND stm.cust_id=? " +
+            accot.append(" select CAST((( sum(stm.amount-stm.prod_amount) )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=stm.cust_id and tcp.property_name='commission_rate' " +
+                    " )/100))/1000  as decimal(64,3)) accountCount  from stat_bill_month stm,t_customer_property tp  where  AND stm.cust_id=? " +
                     "  and (stm.bill_type='7') and stm.stat_time=? ");
 
-            if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
-                accot.append("and tc.cust_id=?");
 
-            }
-
-
-            if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
-                accot.append("and tc.enterprise_name like ?");
-
-            }
 
 
             Map<String, Object> messageObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
