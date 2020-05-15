@@ -1714,7 +1714,7 @@ public class UserService {
 
 
             List<Map<String, Object>> maps = userDao.queryMapsListBySql(csql, cs.toArray());
-            Double accountCount=0.000;
+            BigDecimal accountCount=BigDecimal.valueOf(0);
             for(Map<String, Object> map1:maps) {
                 List list=new ArrayList();
                 StringBuilder accot=new StringBuilder();
@@ -1727,24 +1727,24 @@ public class UserService {
                 logger.info("sqlaccot==="+accot.toString());
                 Map<String, Object> datagObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
                 accot = new StringBuilder();
-                accot.append(" select round(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
-                        " )/100))/1000,3) accountCount  from stat_bill_month stm,t_customer_property tp where stm.cust_id=? " +
+                accot.append(" select CAST(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
+                        " )/100))/1000 as decimal(64,3)) accountCount accountCount  from stat_bill_month stm,t_customer_property tp where stm.cust_id=? " +
                         " and (stm.bill_type='3')  ");
 
 
                 Map<String, Object> callObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
 
                 accot = new StringBuilder();
-                accot.append(" select round(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
-                        " )/100))/1000,3) accountCount  from stat_bill_month stm,t_customer_property tp where stm.cust_id=? " +
+                accot.append(" select CAST(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
+                        " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm,t_customer_property tp where stm.cust_id=? " +
                         "  and (stm.bill_type='7') ");
 
 
                 Map<String, Object> messageObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
-                Double acc=(datagObjectMap==null|| (Double)datagObjectMap.get("accountCount")==null)?0:(Double) datagObjectMap.get("accountCount");
-                Double accCall=(callObjectMap==null||(Double) callObjectMap.get("accountCount")==null)?0:(Double) callObjectMap.get("accountCount");
-                Double accmess=(messageObjectMap==null||(Double) messageObjectMap.get("accountCount")==null)?0:(Double) messageObjectMap.get("accountCount");
-                 accountCount+= (acc+accCall+accmess);
+                BigDecimal acc=(datagObjectMap==null|| (BigDecimal)datagObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) datagObjectMap.get("accountCount");
+                BigDecimal accCall=(callObjectMap==null||(BigDecimal) callObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) callObjectMap.get("accountCount");
+                BigDecimal accmess=(messageObjectMap==null||(BigDecimal) messageObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) messageObjectMap.get("accountCount");
+                 accountCount.add(acc.add(accCall.add(accmess)));
             }
             map.put("accountCount",accountCount.toString());
 
