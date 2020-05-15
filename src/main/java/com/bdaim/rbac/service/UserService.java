@@ -1892,6 +1892,7 @@ public class UserService {
             sql.append("and tc.enterprise_name like ?");
             params.add("%"+agentDTO.getCustomName()+"%");
         }
+        logger.info("yjlb"+sql.toString());
         Page page = userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
         map.put("total", page.getTotal());
         map.put("count", stringObjectMap);
