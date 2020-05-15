@@ -1741,12 +1741,13 @@ public class UserService {
 
 
                 Map<String, Object> messageObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
-                BigDecimal acc=(datagObjectMap==null|| (BigDecimal)datagObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) datagObjectMap.get("accountCount");
-                BigDecimal accCall=(callObjectMap==null||(BigDecimal) callObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) callObjectMap.get("accountCount");
-                BigDecimal accmess=(messageObjectMap==null||(BigDecimal) messageObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) messageObjectMap.get("accountCount");
+                BigDecimal acc=(datagObjectMap==null|| (BigDecimal)datagObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0.000):(BigDecimal) datagObjectMap.get("accountCount");
+                BigDecimal accCall=(callObjectMap==null||(BigDecimal) callObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0.000):(BigDecimal) callObjectMap.get("accountCount");
+                BigDecimal accmess=(messageObjectMap==null||(BigDecimal) messageObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0.000):(BigDecimal) messageObjectMap.get("accountCount");
                 logger.info("ac=="+acc+"=="+accCall+"=="+accmess);
                 accountCount.add(acc.add(accCall.add(accmess)));
-                logger.info("ac=="+acc+"=="+accountCount.toString()+"===="+accountCount);
+                logger.info("ac1=="+acc+"=="+acc.add(accCall.add(accmess))+"===="+accountCount);
+                logger.info("ac3=="+acc+"=="+accountCount.toString()+"===="+accountCount);
             }
             map.put("accountCount",accountCount.toString());
 
