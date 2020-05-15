@@ -1707,7 +1707,7 @@ public class UserService {
             String id=map.get("id").toString();
 
             List list=new ArrayList();
-            StringBuilder accot=new StringBuilder();
+
             List cs=new ArrayList();
             String csql="select  tp.cust_id cusId from t_customer_property tp where tp.property_name='agent_id'  and tp.property_value=?";
             cs.add(id);
@@ -1716,8 +1716,9 @@ public class UserService {
             List<Map<String, Object>> maps = userDao.queryMapsListBySql(csql, cs.toArray());
             Double accountCount=0.000;
             for(Map<String, Object> map1:maps) {
+                StringBuilder accot=new StringBuilder();
                String cuId=map1.get("cusId").toString();
-                accot.append(" select round(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
+                accot.append(" select round(((case when stm.amount > stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
                         " )/100)),3) accountCount  from stat_bill_month stm  where stm.cust_id=? " +
                         "  and (stm.bill_type='4') ");
                 list.add(cuId);
@@ -1777,7 +1778,7 @@ public class UserService {
 
 
         List list=new ArrayList();
-        StringBuilder accot=new StringBuilder();
+
         List cs=new ArrayList();
         String csql="select  tp.cust_id cusId from t_customer_property tp where tp.property_name='agent_id'  and tp.property_value=?";
         cs.add(userId);
@@ -1786,6 +1787,7 @@ public class UserService {
         List<Map<String, Object>> maps = userDao.queryMapsListBySql(csql, cs.toArray());
         Double accountCount=0.000;
         for(Map<String, Object> map1:maps) {
+            StringBuilder accot=new StringBuilder();
             String cuId=map1.get("cusId").toString();
             accot.append(" select round(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
                     " )/100)),3) accountCount  from stat_bill_month stm  where stm.cust_id=? " +
