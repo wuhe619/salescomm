@@ -1826,7 +1826,7 @@ public class UserService {
 
             accot = new StringBuilder();
             accot.append(" select CAST((( sum(stm.amount-stm.prod_amount) )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=stm.cust_id and tcp.property_name='commission_rate' " +
-                    " )/100))/1000  as decimal(64,3)) accountCount  from stat_bill_month stm,t_customer_property tp  where  AND stm.cust_id=? " +
+                    " )/100))/1000  as decimal(64,3)) accountCount  from stat_bill_month stm  where   stm.cust_id=? " +
                     "  and (stm.bill_type='7') and stm.stat_time=? ");
 
 
