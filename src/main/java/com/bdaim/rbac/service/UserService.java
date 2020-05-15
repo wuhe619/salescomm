@@ -1672,11 +1672,11 @@ public class UserService {
         StringBuilder sql = new StringBuilder();
         List<Object> params=new ArrayList<>();
         sql.append("select tu.name,tu.id,tp.property_value agentName,\n" +
-                " (select count(1) from t_customer_property t where t.property_name='agent_id' and t.property_value=tu.id) customerCount,\n" +
-                " IFNULL((select sum(((case when stm.amount> stm.prod_amount then (stm.amount/1000-stm.prod_amount/1000) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate'\n" +
-                "              )/100))) from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id\n" +
-                "              and tp.property_name='agent_id' and tp.property_value=tp.user_id),0) accountCount\n" +
-                "from t_user tu,t_user_property tp where tp.user_id=tu.id and tp.property_name='customer_name'");
+                " (select count(1) from t_customer_property t where t.property_name='agent_id' and t.property_value=tu.id) customerCount" +
+//                " IFNULL((select sum(((case when stm.amount> stm.prod_amount then (stm.amount/1000-stm.prod_amount/1000) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate'\n" +
+//                "              )/100))) from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id\n" +
+//                "              and tp.property_name='agent_id' and (stm.bill_type='3' or stm.bill_type='7' or stm.bill_type='4') and tp.property_value=tp.user_id),0) accountCount\n" +
+                "   from t_user tu,t_user_property tp where tp.user_id=tu.id and tp.property_name='customer_name'");
 
         //admin可以查询所有部门信息  普通用户只能查本部门的
         if (!ifAdmin) {
@@ -1699,7 +1699,29 @@ public class UserService {
             params.add("%"+userDTO.getCustomerName()+"%");
         }
         sql.append("   order by tp.create_time desc  ");
-       return  userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
+      Page page=userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
+
+
+        List<HashMap<String,Object>> data = page.getData();
+        for(HashMap<String,Object> map:data){
+            Long id =(Long) map.get("id");
+
+            List list=new ArrayList();
+            StringBuilder accot=new StringBuilder();
+            accot.append(" select round(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate' " +
+                    " )/100)),3) accountCount  from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id " +
+                    " and tp.property_name='agent_id' and (stm.bill_type='3' or stm.bill_type='7' or stm.bill_type='4') and tp.property_value=? ");
+            list.add(id);
+
+            Map<String, Object> stringObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
+
+            map.putAll(stringObjectMap);
+
+        }
+
+
+        return page;
+
     }
 
 
