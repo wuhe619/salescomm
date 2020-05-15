@@ -1739,8 +1739,10 @@ public class UserService {
 
 
                 Map<String, Object> messageObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
-
-                 accountCount+= (Double) datagObjectMap.get("accountCount") + (Double) callObjectMap.get("accountCount") + (Double) messageObjectMap.get("accountCount");
+                Double acc=(Double) datagObjectMap.get("accountCount")==null?0:(Double) datagObjectMap.get("accountCount");
+                Double accCall=(Double) callObjectMap.get("accountCount")==null?0:(Double) callObjectMap.get("accountCount");
+                Double accmess=(Double) messageObjectMap.get("accountCount")==null?0:(Double) messageObjectMap.get("accountCount");
+                 accountCount+= (acc+accCall+accmess);
             }
             map.put("accountCount",accountCount.toString());
 
@@ -1761,34 +1763,7 @@ public class UserService {
         StringBuilder sqlu=new StringBuilder();
         List<Object> paramsu=new ArrayList<>();
 
-        sqlu.append("select(select\n" +
-                "  sum((case\n" +
-                " when tm.amount> tm.prod_amount then ((tm.amount/1000)-(tm.prod_amount/1000))\n" +
-                " else 0\n" +
-                " end)*((select\n" +
-                " tp.property_value\n" +
-                " from\n" +
-                " t_customer_property tp\n" +
-                " where\n" +
-                " tm.cust_id=tp.cust_id\n" +
-                " and tp.property_name='commission_rate'  )/100)) accout\n" +
-                " from\n" +
-                "  stat_bill_month tm,t_customer_property tcp,t_customer tc\n" +
-                " where\n" +
-                "  tm.stat_time=? and tcp.cust_id=tm.cust_id and tcp.cust_id=tm.cust_id and tcp.property_name='agent_id' and tcp.property_value=tp.user_id\n" );
-
-        paramsu.add(agentDTO.getYearMonth());
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
-            sqlu.append("and tc.cust_id=?");
-            paramsu.add(agentDTO.getCustId());
-        }
-
-
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
-            sqlu.append("and tc.enterprise_name like ?");
-            paramsu.add("%"+agentDTO.getCustomName()+"%");
-        }
-                sqlu.append(" ) accout,tp.property_value agentName from  t_user_property tp where tp.user_id=? and  tp.property_name='customer_name'  ");
+        sqlu.append("select tp.property_value agentName from  t_user_property tp where tp.user_id=? and  tp.property_name='customer_name'  ");
 
 
 
@@ -1868,9 +1843,12 @@ public class UserService {
 
             Map<String, Object> messageObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
 
-            accountCount+= ((Double) datagObjectMap.get("accountCount") + (Double) callObjectMap.get("accountCount") + (Double) messageObjectMap.get("accountCount"));
+            Double acc=(Double) datagObjectMap.get("accountCount")==null?0:(Double) datagObjectMap.get("accountCount");
+            Double accCall=(Double) callObjectMap.get("accountCount")==null?0:(Double) callObjectMap.get("accountCount");
+            Double accmess=(Double) messageObjectMap.get("accountCount")==null?0:(Double) messageObjectMap.get("accountCount");
+            accountCount+= (acc+accCall+accmess);
         }
-        map.put("accountCount",accountCount.toString());
+        stringObjectMap.put("accountCount",accountCount.toString());
 
 
 
