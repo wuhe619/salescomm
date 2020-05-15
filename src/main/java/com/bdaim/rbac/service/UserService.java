@@ -1708,31 +1708,42 @@ public class UserService {
 
             List list=new ArrayList();
             StringBuilder accot=new StringBuilder();
-            accot.append(" select round(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate' " +
-                    " )/100)),3) accountCount  from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id " +
-                    " and tp.property_name='agent_id' and (stm.bill_type='4') and tp.property_value=? ");
-            list.add(id);
-
-            Map<String, Object> datagObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
-            accot=new StringBuilder();
-            accot.append(" select round(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate' " +
-                    " )/100)),3) accountCount  from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id " +
-                    " and tp.property_name='agent_id' and (stm.bill_type='3') and tp.property_value=? ");
+            List cs=new ArrayList();
+            String csql="select  tp.cust_id cusId from t_customer_property tp where tp.property_name='agent_id'  and tp.property_value=?";
+            cs.add(id);
 
 
-            Map<String, Object> callObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
+            List<Map<String, Object>> maps = userDao.queryMapsListBySql(csql, cs.toArray());
+            Double accountCount=0.000;
+            for(Map<String, Object> map1:maps) {
+               String cuId=map1.get("cusId").toString();
+                accot.append(" select round(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
+                        " )/100)),3) accountCount  from stat_bill_month stm  where stm.cust_id=? " +
+                        "  and (stm.bill_type='4') ");
+                list.add(cuId);
+                list.add(cuId);
 
-            accot=new StringBuilder();
-            accot.append(" select round(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate' " +
-                    " )/100)),3) accountCount  from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id " +
-                    " and tp.property_name='agent_id' and (stm.bill_type='7') and tp.property_value=? ");
+                Map<String, Object> datagObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
+                accot = new StringBuilder();
+                accot.append(" select round(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
+                        " )/100)),3) accountCount  from stat_bill_month stm,t_customer_property tp where stm.cust_id=? " +
+                        " and (stm.bill_type='3')  ");
 
 
-            Map<String, Object> messageObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
+                Map<String, Object> callObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
 
-           Double accountCount=(Double)datagObjectMap.get("accountCount")+(Double)callObjectMap.get("accountCount")+(Double)messageObjectMap.get("accountCount");
+                accot = new StringBuilder();
+                accot.append(" select round(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
+                        " )/100)),3) accountCount  from stat_bill_month stm,t_customer_property tp where stm.cust_id=? " +
+                        "  and (stm.bill_type='7') ");
 
-            map.put("accountCount",accountCount);
+
+                Map<String, Object> messageObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
+
+                 accountCount = (Double) datagObjectMap.get("accountCount") + (Double) callObjectMap.get("accountCount") + (Double) messageObjectMap.get("accountCount");
+            }
+            map.put("accountCount",accountCount.toString());
+
         }
 
 
