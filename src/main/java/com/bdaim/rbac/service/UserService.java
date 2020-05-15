@@ -1704,7 +1704,7 @@ public class UserService {
 
         List<HashMap<String,Object>> data = page.getData();
         for(HashMap<String,Object> map:data){
-            Long id =(Long) map.get("id");
+            String id=map.get("id").toString();
 
             List list=new ArrayList();
             StringBuilder accot=new StringBuilder();
@@ -1787,6 +1787,9 @@ public class UserService {
 
 
         Map<String, Object> stringObjectMap = userDao.queryUniqueSql(sqlu.toString(), paramsu.toArray());
+
+
+
 
         sql.append("select\n" +
                 " tu.account customAcocunt,tc.enterprise_name customName,? statTime," +
