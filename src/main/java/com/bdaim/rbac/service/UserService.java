@@ -1706,7 +1706,7 @@ public class UserService {
         for(HashMap<String,Object> map:data){
             String id=map.get("id").toString();
 
-            List list=new ArrayList();
+
 
             List cs=new ArrayList();
             String csql="select  tp.cust_id cusId from t_customer_property tp where tp.property_name='agent_id'  and tp.property_value=?";
@@ -1716,6 +1716,7 @@ public class UserService {
             List<Map<String, Object>> maps = userDao.queryMapsListBySql(csql, cs.toArray());
             Double accountCount=0.000;
             for(Map<String, Object> map1:maps) {
+                List list=new ArrayList();
                 StringBuilder accot=new StringBuilder();
                String cuId=map1.get("cusId").toString();
                 accot.append(" select round(((case when stm.amount > stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
@@ -1777,7 +1778,7 @@ public class UserService {
         String userId = agentDTO.getUserId();
 
 
-        List list=new ArrayList();
+
 
         List cs=new ArrayList();
         String csql="select  tp.cust_id cusId from t_customer_property tp where tp.property_name='agent_id'  and tp.property_value=?";
@@ -1787,6 +1788,7 @@ public class UserService {
         List<Map<String, Object>> maps = userDao.queryMapsListBySql(csql, cs.toArray());
         Double accountCount=0.000;
         for(Map<String, Object> map1:maps) {
+            List list=new ArrayList();
             StringBuilder accot=new StringBuilder();
             String cuId=map1.get("cusId").toString();
             accot.append(" select round(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
