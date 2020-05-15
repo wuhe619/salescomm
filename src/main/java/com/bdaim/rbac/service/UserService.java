@@ -1785,7 +1785,7 @@ public class UserService {
 
 
         List cs=new ArrayList();
-        String csql="select  tp.cust_id cusId from t_customer_property tp,t_customer tc where tp.property_name='agent_id'  and tp.property_value=?";
+        String csql="select  tp.cust_id cusId from t_customer_property tp,t_customer tc where tp.property_name='agent_id' and tp.cust_id=tc.cust_id  and tp.property_value=?";
         cs.add(userId);
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
             csql+=("and tp.cust_id=?");
