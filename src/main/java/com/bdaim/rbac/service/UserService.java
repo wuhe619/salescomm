@@ -1719,8 +1719,8 @@ public class UserService {
                 List list=new ArrayList();
                 StringBuilder accot=new StringBuilder();
                String cuId=map1.get("cusId").toString();
-                accot.append(" select round(((case when stm.amount > stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
-                        " )/100))/1000,3) accountCount  from stat_bill_month stm  where stm.cust_id=? " +
+                accot.append(" select  CAST(((case when stm.amount > stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
+                        " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm  where stm.cust_id=? " +
                         "  and (stm.bill_type='4') ");
                 list.add(cuId);
                 list.add(cuId);
