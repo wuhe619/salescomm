@@ -1802,6 +1802,7 @@ public class UserService {
         List<Map<String, Object>> maps = userDao.queryMapsListBySql(csql, cs.toArray());
         BigDecimal accountCount=BigDecimal.valueOf(0.000);
         for(Map<String, Object> map1:maps) {
+
             List list=new ArrayList();
             StringBuilder accot=new StringBuilder();
             String cuId=map1.get("cusId").toString();
@@ -1839,7 +1840,10 @@ public class UserService {
             BigDecimal accmess=(messageObjectMap==null||(BigDecimal) messageObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) messageObjectMap.get("accountCount");
             logger.info("account"+acc+"==="+accmess+"==="+accmess);
             accountCount= accountCount.add(acc.add(accCall.add(accmess)));
+
+
         }
+        logger.info("accountEND=="+accountCount);
         if (stringObjectMap!=null&&accountCount != null) {
             stringObjectMap.put("accout",accountCount.toString());
 
