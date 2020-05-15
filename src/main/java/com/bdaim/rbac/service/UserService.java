@@ -1871,14 +1871,14 @@ public class UserService {
         sql.append("select\n" +
                 " tu.account customAcocunt,tc.enterprise_name customName,? statTime," +
                 "  (select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
-                "  CAST(IFNULL((select ((sum(sbm2.amount)-sum(sbm2.prod_amount)))*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "  CAST(IFNULL((select ((sum(sbm2.amount-sbm2.prod_amount)))*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "  )/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
                 " sbm2.bill_type='7'),0)/1000 as decimal(64,3)) dataAmcount,\n" +
 
-                "  CAST(IFNULL((select ((sum(sbm2.amount)-sum(sbm2.prod_amount)) )*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "  CAST(IFNULL((select ((sum(sbm2.amount-sbm2.prod_amount)) )*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t)/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
                 " sbm2.bill_type='4'),0)/1000 as decimal(64,3)) callAmcount,\n" +
-                "\t CAST(IFNULL((select((sum(sbm2.amount)-sum(sbm2.prod_amount)))*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t CAST(IFNULL((select((sum(sbm2.amount-sbm2.prod_amount)))*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t)/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
                 " sbm2.bill_type='3'),0)/1000 as decimal(64,3)) messageAmcount\n" +
                 "from t_customer tc,t_customer_user tu,t_customer_property tcu  ");
@@ -1937,14 +1937,14 @@ public class UserService {
             sql.append("select\n" +
                 "\ttu.account customAcocunt,tc.enterprise_name customName,? statTime,\n" +
                 "(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
-                "  CAST(IFNULL((select ((sum(sbm2.amount)-sum(sbm2.prod_amount)) )*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "  CAST(IFNULL((select ((sum(sbm2.amount-sbm2.prod_amount)) )*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
                 "\t sbm2.bill_type='7'),0)/1000 as decimal(64,3)) dataAmcount,\n" +
 
-                "\t CAST(IFNULL((select ( (sum(sbm2.amount)-sum(sbm2.prod_amount)) )*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t CAST(IFNULL((select ( (sum(sbm2.amount-sbm2.prod_amount)) )*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
                 " sbm2.bill_type='4'),0)/1000 as decimal(64,3)) callAmcount,\n" +
-                "\t  CAST(IFNULL((select ( (sum(sbm2.amount)-sum(sbm2.prod_amount)))*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t  CAST(IFNULL((select ( (sum(sbm2.amount-sbm2.prod_amount)))*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
                 " sbm2.bill_type='3'),0)/1000 as decimal(64,3)) messageAmcount\n" +
                 "from t_customer tc,t_customer_user tu,t_customer_property tcu  ");
