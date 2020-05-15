@@ -1720,7 +1720,7 @@ public class UserService {
                 StringBuilder accot=new StringBuilder();
                String cuId=map1.get("cusId").toString();
                 accot.append(" select  CAST((( (stm.amount-stm.prod_amount) )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
-                        " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm  where stm.cust_id=? and user " +
+                        " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm  where stm.cust_id=?  " +
                         "  and (stm.bill_type='4') ");
                 list.add(cuId);
                 list.add(cuId);
@@ -1856,7 +1856,14 @@ public class UserService {
             BigDecimal accmess=(messageObjectMap==null||(BigDecimal) messageObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) messageObjectMap.get("accountCount");
             accountCount= accountCount.add(acc.add(accCall.add(accmess)));
         }
-        stringObjectMap.put("accout",accountCount.toString());
+        if (accountCount != null) {
+            stringObjectMap.put("accout",accountCount.toString());
+
+        }else{
+            stringObjectMap.put("accout",0);
+
+        }
+
 
 
 
