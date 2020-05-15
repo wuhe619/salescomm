@@ -1796,7 +1796,7 @@ public class UserService {
             StringBuilder accot=new StringBuilder();
             String cuId=map1.get("cusId").toString();
             accot.append(" select CAST(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
-                    " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm  where stm.cust_id=? " +
+                    " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm,t_customer tc where tc.cust_id = stm.cust_id AND stm.cust_id=? " +
                     "  and (stm.bill_type='4') and stm.stat_time=? ");
             list.add(cuId);
             list.add(cuId);
@@ -1816,7 +1816,7 @@ public class UserService {
             Map<String, Object> datagObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
             accot = new StringBuilder();
             accot.append(" select CAST(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
-                    " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm,t_customer_property tp where stm.cust_id=? " +
+                    " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm,t_customer_property,t_customer tc where tc.cust_id = stm.cust_id AND stm.cust_id=? " +
                     " and (stm.bill_type='3')  and stm.stat_time=? ");
             if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
                 accot.append("and tc.cust_id=?");
@@ -1834,7 +1834,7 @@ public class UserService {
 
             accot = new StringBuilder();
             accot.append(" select CAST(((case when stm.amount> stm.prod_amount then (stm.amount-stm.prod_amount) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
-                    " )/100))/1000  as decimal(64,3)) accountCount  from stat_bill_month stm,t_customer_property tp where stm.cust_id=? " +
+                    " )/100))/1000  as decimal(64,3)) accountCount  from stat_bill_month stm,t_customer_property tp ,t_customer tc where tc.cust_id = stm.cust_id AND stm.cust_id=? " +
                     "  and (stm.bill_type='7') and stm.stat_time=? ");
 
             if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
