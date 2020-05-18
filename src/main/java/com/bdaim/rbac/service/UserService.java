@@ -1672,11 +1672,11 @@ public class UserService {
         StringBuilder sql = new StringBuilder();
         List<Object> params=new ArrayList<>();
         sql.append("select tu.name,tu.id,tp.property_value agentName,\n" +
-                " (select count(1) from t_customer_property t where t.property_name='agent_id' and t.property_value=tu.id) customerCount,\n" +
-                " IFNULL((select sum(((case when stm.amount> stm.prod_amount then (stm.amount/1000-stm.prod_amount/1000) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate'\n" +
-                "              )/100))) from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id\n" +
-                "              and tp.property_name='agent_id' and tp.property_value=tp.user_id),0) accountCount\n" +
-                "from t_user tu,t_user_property tp where tp.user_id=tu.id and tp.property_name='customer_name'");
+                " (select count(1) from t_customer_property t where t.property_name='agent_id' and t.property_value=tu.id) customerCount" +
+//                " IFNULL((select sum(((case when stm.amount> stm.prod_amount then (stm.amount/1000-stm.prod_amount/1000) else 0 end )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=tp.cust_id and tcp.property_name='commission_rate'\n" +
+//                "              )/100))) from stat_bill_month stm,t_customer_property tp where stm.cust_id=tp.cust_id\n" +
+//                "              and tp.property_name='agent_id' and (stm.bill_type='3' or stm.bill_type='7' or stm.bill_type='4') and tp.property_value=tp.user_id),0) accountCount\n" +
+                "   from t_user tu,t_user_property tp where tp.user_id=tu.id and tp.property_name='customer_name'");
 
         //admin可以查询所有部门信息  普通用户只能查本部门的
         if (!ifAdmin) {
@@ -1699,7 +1699,64 @@ public class UserService {
             params.add("%"+userDTO.getCustomerName()+"%");
         }
         sql.append("   order by tp.create_time desc  ");
-       return  userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
+      Page page=userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
+
+
+        List<HashMap<String,Object>> data = page.getData();
+        for(HashMap<String,Object> map:data){
+            String id=map.get("id").toString();
+
+
+
+            List cs=new ArrayList();
+            String csql="select  tp.cust_id cusId from t_customer_property tp where tp.property_name='agent_id'  and tp.property_value=?";
+            cs.add(id);
+
+
+            List<Map<String, Object>> maps = userDao.queryMapsListBySql(csql, cs.toArray());
+            BigDecimal accountCount=BigDecimal.valueOf(0.000);
+            for(Map<String, Object> map1:maps) {
+                List list=new ArrayList();
+                StringBuilder accot=new StringBuilder();
+               String cuId=map1.get("cusId").toString();
+                accot.append(" select  CAST((( sum(stm.amount-stm.prod_amount) )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
+                        " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm  where stm.cust_id=?  " +
+                        "  and (stm.bill_type='4') ");
+                list.add(cuId);
+                list.add(cuId);
+                logger.info("sqlaccot==="+accot.toString());
+                Map<String, Object> datagObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
+                accot = new StringBuilder();
+                accot.append(" select CAST((sum( stm.amount-stm.prod_amount)*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
+                        " )/100))/1000 as decimal(64,3)) accountCount   from stat_bill_month stm  where stm.cust_id=? " +
+                        " and (stm.bill_type='3')  ");
+
+
+                Map<String, Object> callObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
+
+                accot = new StringBuilder();
+                accot.append(" select CAST((( sum(stm.amount-stm.prod_amount))*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=? and tcp.property_name='commission_rate' " +
+                        " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm  where stm.cust_id=? " +
+                        "  and (stm.bill_type='7') ");
+
+
+                Map<String, Object> messageObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
+                BigDecimal acc=(datagObjectMap==null|| (BigDecimal)datagObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0.000):(BigDecimal) datagObjectMap.get("accountCount");
+                BigDecimal accCall=(callObjectMap==null||(BigDecimal) callObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0.000):(BigDecimal) callObjectMap.get("accountCount");
+                BigDecimal accmess=(messageObjectMap==null||(BigDecimal) messageObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0.000):(BigDecimal) messageObjectMap.get("accountCount");
+                accountCount=accountCount.add(acc.add(accCall.add(accmess)));
+                logger.info("ac==4"+acc+"=="+accmess+"=="+accCall.add(accmess));
+
+                logger.info("accCall=="+acc+"=="+acc.add(accCall.add(accmess))+"===="+accountCount);
+                logger.info("ac3=="+acc+"=="+accountCount.toString()+"===="+accountCount);
+            }
+            map.put("accountCount",accountCount.toString());
+
+        }
+
+
+        return page;
+
     }
 
 
@@ -1712,30 +1769,9 @@ public class UserService {
         StringBuilder sqlu=new StringBuilder();
         List<Object> paramsu=new ArrayList<>();
 
-        sqlu.append("select\n" +
-                "\t((case when tt.amount> tt.prod_amount then (sum(tt.amount/1000)-sum(tt.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tt.cust_id=tp.cust_id and tp.property_name='commission_rate'\n" +
-                "\t)/100)) accout,tp.property_value agentName\n" +
-                "from t_user_property tp left join (select tcp.cust_id,tcp.property_value,stm.prod_amount,stm.amount from t_customer_property tcp,t_customer tc left join stat_bill_month stm  on stm.cust_id=tc.cust_id where \n" +
-                "  tcp.cust_id=tc.cust_id ");
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
-            sqlu.append("and tc.cust_id=?");
-            paramsu.add(agentDTO.getCustId());
-        }
+        sqlu.append("select tp.property_value agentName from  t_user_property tp where tp.user_id=? and  tp.property_name='customer_name'  ");
 
 
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getYearMonth())) {
-            sqlu.append(" and stm.stat_time =? ");
-            paramsu.add(agentDTO.getYearMonth());
-
-        }
-
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
-            sqlu.append("and tc.enterprise_name like ?");
-            paramsu.add("%"+agentDTO.getCustomName()+"%");
-        }
-        sqlu.append("\t\t\tand tcp.property_name=\"agent_id\" ) tt\n" +
-                "\t\ton (tt.cust_id=tp.user_id)\n" +
-                "where tp.user_id=? and  tp.property_name='customer_name'");
 
 
 
@@ -1743,20 +1779,95 @@ public class UserService {
 
 
         Map<String, Object> stringObjectMap = userDao.queryUniqueSql(sqlu.toString(), paramsu.toArray());
+        String userId = agentDTO.getUserId();
+
+
+
+
+        List cs=new ArrayList();
+        String csql="select  tp.cust_id cusId from t_customer_property tp,t_customer tc where tp.property_name='agent_id' and tp.cust_id=tc.cust_id  and tp.property_value=?";
+        cs.add(userId);
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
+            csql+=("and tp.cust_id=?");
+            cs.add(agentDTO.getCustId());
+        }
+
+
+        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
+            csql+=("and tc.enterprise_name like ?");
+            cs.add("%"+agentDTO.getCustomName()+"%");
+        }
+
+
+        List<Map<String, Object>> maps = userDao.queryMapsListBySql(csql, cs.toArray());
+        BigDecimal accountCount=BigDecimal.valueOf(0.000);
+        for(Map<String, Object> map1:maps) {
+
+            List list=new ArrayList();
+            StringBuilder accot=new StringBuilder();
+            String cuId=map1.get("cusId").toString();
+            accot.append(" select CAST((( sum(stm.amount-stm.prod_amount) )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=stm.cust_id and tcp.property_name='commission_rate' " +
+                    " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm  where  stm.cust_id=? " +
+                    "  and (stm.bill_type='4') and stm.stat_time=? ");
+            list.add(cuId);
+
+
+            list.add(agentDTO.getYearMonth());
+
+
+            Map<String, Object> datagObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
+            accot = new StringBuilder();
+            accot.append(" select CAST(((sum(stm.amount-stm.prod_amount))*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=stm.cust_id and tcp.property_name='commission_rate' " +
+                    " )/100))/1000 as decimal(64,3)) accountCount  from stat_bill_month stm,t_customer_property,t_customer tc where  stm.cust_id=? " +
+                    " and (stm.bill_type='3')  and stm.stat_time=? ");
+
+
+
+            Map<String, Object> callObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
+
+            accot = new StringBuilder();
+            accot.append(" select CAST((( sum(stm.amount-stm.prod_amount) )*((select tcp.property_value from t_customer_property tcp where tcp.cust_id=stm.cust_id and tcp.property_name='commission_rate' " +
+                    " )/100))/1000  as decimal(64,3)) accountCount  from stat_bill_month stm  where   stm.cust_id=? " +
+                    "  and (stm.bill_type='7') and stm.stat_time=? ");
+
+
+
+
+            Map<String, Object> messageObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
+
+            BigDecimal acc=(datagObjectMap==null|| (BigDecimal)datagObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) datagObjectMap.get("accountCount");
+            BigDecimal accCall=(callObjectMap==null||(BigDecimal) callObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) callObjectMap.get("accountCount");
+            BigDecimal accmess=(messageObjectMap==null||(BigDecimal) messageObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) messageObjectMap.get("accountCount");
+            logger.info("account"+acc+"==="+accmess+"==="+accmess);
+            accountCount= accountCount.add(acc.add(accCall.add(accmess)));
+
+
+        }
+        logger.info("accountEND=="+accountCount);
+        if (stringObjectMap!=null&&accountCount != null) {
+            stringObjectMap.put("accout",accountCount.toString());
+
+        }else{
+            stringObjectMap.put("accout",0);
+
+        }
+
+
+
 
         sql.append("select\n" +
                 " tu.account customAcocunt,tc.enterprise_name customName,? statTime," +
                 "  (select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
-                "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "  CAST(IFNULL((select ((sum(sbm2.amount-sbm2.prod_amount)))*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "  )/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
-                " sbm2.bill_type='7'),0) dataAmcount,\n" +
+                " sbm2.bill_type='7'),0)/1000 as decimal(64,3)) dataAmcount,\n" +
 
-                "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "  CAST(IFNULL((select ((sum(sbm2.amount-sbm2.prod_amount)) )*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t)/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
-                " sbm2.bill_type='4'),0) callAmcount,\n" +
-                "\t IFNULL((select(case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                " sbm2.bill_type='4'),0)/1000 as decimal(64,3)) callAmcount,\n" +
+                "\t CAST(IFNULL((select((sum(sbm2.amount-sbm2.prod_amount)))*((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t)/100) from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
-                " sbm2.bill_type='3'),0) messageAmcount\n" +
+                " sbm2.bill_type='3'),0)/1000 as decimal(64,3)) messageAmcount\n" +
                 "from t_customer tc,t_customer_user tu,t_customer_property tcu  ");
         params.add(agentDTO.getYearMonth());
         params.add(agentDTO.getYearMonth());
@@ -1780,6 +1891,7 @@ public class UserService {
             sql.append("and tc.enterprise_name like ?");
             params.add("%"+agentDTO.getCustomName()+"%");
         }
+        logger.info("yjlb"+sql.toString());
         Page page = userDao.sqlPageQuery(sql.toString(), pageParam.getPageNum(), pageParam.getPageSize(), params.toArray());
         map.put("total", page.getTotal());
         map.put("count", stringObjectMap);
@@ -1812,16 +1924,16 @@ public class UserService {
             sql.append("select\n" +
                 "\ttu.account customAcocunt,tc.enterprise_name customName,? statTime,\n" +
                 "(select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate')commision,"+
-                "  IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "  CAST(IFNULL((select ((sum(sbm2.amount-sbm2.prod_amount)) )*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
-                "\t sbm2.bill_type='7'),0) dataAmcount,\n" +
+                "\t sbm2.bill_type='7'),0)/1000 as decimal(64,3)) dataAmcount,\n" +
 
-                "\t IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                "\t CAST(IFNULL((select ( (sum(sbm2.amount-sbm2.prod_amount)) )*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
-                " sbm2.bill_type='4'),0) callAmcount,\n" +
-                "\t IFNULL((select (case when sbm2.amount> sbm2.prod_amount then (sum(sbm2.amount/1000)-sum(sbm2.prod_amount/1000)) else 0 end)*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
+                " sbm2.bill_type='4'),0)/1000 as decimal(64,3)) callAmcount,\n" +
+                "\t  CAST(IFNULL((select ( (sum(sbm2.amount-sbm2.prod_amount)))*IFNULL((select tp.property_value from t_customer_property tp where tp.cust_id=tc.cust_id and tp.property_name='commission_rate'\n" +
                 "\t),0)/100 from stat_bill_month sbm2 where sbm2.cust_id=tc.cust_id and sbm2.stat_time=? and\n" +
-                " sbm2.bill_type='3'),0) messageAmcount\n" +
+                " sbm2.bill_type='3'),0)/1000 as decimal(64,3)) messageAmcount\n" +
                 "from t_customer tc,t_customer_user tu,t_customer_property tcu  ");
             params.add(agentDTO.getYearMonth());
             params.add(agentDTO.getYearMonth());
@@ -1887,18 +1999,18 @@ public class UserService {
                 cell = row.createCell(c++);
                 cell.setCellValue((String) map.get("commision"));
                 cell = row.createCell(c++);
-                Double ad=(Double)(map.get("dataAmcount")==null?0:map.get("dataAmcount"));
+                BigDecimal ad=(BigDecimal)(map.get("dataAmcount")==null?BigDecimal.valueOf(0):map.get("dataAmcount"));
                 cell.setCellValue((ad).toString());
                 cell = row.createCell(c++);
-                Double call=(Double)(map.get("callAmcount")==null?0:map.get("callAmcount"));
+                BigDecimal call=(BigDecimal)(map.get("callAmcount")==null?BigDecimal.valueOf(0):map.get("callAmcount"));
 
                 cell.setCellValue((call).toString());
                 cell = row.createCell(c++);
-                Double messageAmcount=(Double)(map.get("messageAmcount")==null?0:map.get("messageAmcount"));
+                BigDecimal messageAmcount=(BigDecimal)(map.get("messageAmcount")==null?BigDecimal.valueOf(0):map.get("messageAmcount"));
 
                 cell.setCellValue((messageAmcount).toString());
                 cell = row.createCell(c++);
-                cell.setCellValue(((call+messageAmcount+ad))+"");
+                cell.setCellValue(((call.add(messageAmcount.add(ad)).toString()))+"");
             }
 
             workBook.write(outputStream);
