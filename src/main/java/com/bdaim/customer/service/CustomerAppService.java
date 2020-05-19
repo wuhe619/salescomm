@@ -15,6 +15,7 @@ import com.bdaim.customer.entity.AmApplicationEntity;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.util.*;
+import com.bdaim.util.redis.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -37,6 +38,8 @@ public class CustomerAppService {
     CustomerUserDao customerUserDao;
     @Resource
     AmApplicationDao amApplicationDao;
+    @Resource
+    private RedisUtil redisUtil;
 
 
     public synchronized String registerOrUpdateCustomer(CustomerRegistDTO vo, LoginUser lu) {
@@ -204,6 +207,43 @@ public class CustomerAppService {
             customerDao.dealCustomerInfo(vo.getCustId(), "email", vo.getEmail());
         } else {
             customerDao.dealCustomerInfo(customerId, "email", vo.getEmail());
+        }
+
+        if (StringUtil.isNotEmpty(vo.getEmail())) {
+            customerDao.dealCustomerInfo(vo.getCustId(), "email", vo.getEmail());
+        } else {
+            customerDao.dealCustomerInfo(customerId, "email", vo.getEmail());
+        }
+
+        if (StringUtil.isNotEmpty(vo.getAgentApiId())) {
+            Long cusAgentNum=redisUtil.incre("cusAgentNum");
+            CustomerProperty cusAgentNum1 = customerDao.getProperty(customerId, "cusAgentNum");
+            String cusnum="";
+            if(cusAgentNum1==null){
+
+                if(cusAgentNum.toString().length()<8){
+                    int i=8-cusAgentNum.toString().length();
+                    while(i>0){
+                        cusnum+="0";
+                        i--;
+                    }
+                    cusnum+=cusAgentNum.toString();
+                }else{
+                    cusnum=cusAgentNum1+"";
+                }
+                customerDao.dealCustomerInfo(vo.getCustId(), "cusAgentNum", cusnum);
+
+            }
+
+            customerDao.dealCustomerInfo(vo.getCustId(), "agent_api_id", vo.getAgentApiId());
+        } else {
+            customerDao.dealCustomerInfo(customerId, "agent_api_id", vo.getAgentApiId());
+        }
+
+        if (StringUtil.isNotEmpty(vo.getAgentApiName())) {
+            customerDao.dealCustomerInfo(vo.getCustId(), "agent_api_name", vo.getAgentApiName());
+        } else {
+            customerDao.dealCustomerInfo(customerId, "agent_api_name", vo.getAgentApiName());
         }
 
         //创建企业id
@@ -404,6 +444,12 @@ public class CustomerAppService {
                     break;
                 case "settlement_method":
                     vo.setSettlement_method(property_value);
+                    break;
+                case "agent_api_id":
+                    vo.setAgentApiId(property_value);
+                    break;
+                 case "agent_api_name":
+                    vo.setAgentApiName(property_value);
                     break;
                 case "remain_amount":
                     if (property_value == null)
