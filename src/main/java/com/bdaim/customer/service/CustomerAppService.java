@@ -1,11 +1,13 @@
 package com.bdaim.customer.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.bill.dto.TransactionTypeEnum;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
+import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.customer.dao.AmApplicationDao;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -14,7 +16,11 @@ import com.bdaim.customer.dto.Deposit;
 import com.bdaim.customer.entity.AmApplicationEntity;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.rbac.entity.AgentAccountRecorde;
+import com.bdaim.rbac.entity.AgentConfirm;
+import com.bdaim.rbac.entity.AgentParamter;
 import com.bdaim.util.*;
+import com.bdaim.util.http.HttpUtil;
 import com.bdaim.util.redis.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +30,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -637,6 +645,101 @@ public class CustomerAppService {
         arr.add(params.get("type"));
         arr.add(params.get("statTime"));
         customerDao.executeUpdateSQL(updateSql,arr.toArray());
+    }
+
+    public AgentAccountRecorde getAgentAccount(String custId){
+       DateTimeFormatter yyyymmhh = DateTimeFormatter.ofPattern("YYYYMM");
+       String month= LocalDate.now().minusDays(1).format(yyyymmhh);
+
+       String sql="select id,account_cost,account_profit,profit_rate,total_count,confirm_state,account_time  from agent_account_recorde where account_time=? and customer_Id=? ";
+       List list=new ArrayList();
+       list.add(month);
+       list.add(custId);
+       AgentAccountRecorde unique = (AgentAccountRecorde)customerDao.findUnique(sql, list.toArray());
+
+        return  unique;
+
+    }
+
+    public ResponseInfo monthSucess(String id,String userId){
+
+
+        String usql=" update agent_account_recorde set  confirm_state=2,confirm_time=now(),confirm_user=? where id=? ";
+        List list=new ArrayList();
+        list.add(userId);
+        list.add(id);
+
+        int i = customerDao.executeUpdateSQL(usql, list.toArray());
+
+        AgentConfirm agentConfirm=new AgentConfirm();
+        List<AgentParamter> list1=new ArrayList();
+        AgentParamter agentParamter=new AgentParamter();
+        agentParamter.setBusinessType("11");
+        agentParamter.setUniqueID(id);
+        agentParamter.setAffirmState("3");
+        list1.add(agentParamter);
+        agentConfirm.setParmeter(list1);
+        String s = JSON.toJSONString(agentConfirm);
+        logger.info("dd=="+s);
+        confimAgent(s,id);
+        ResponseInfo responseInfo=new ResponseInfo();
+        if(i>0){
+            responseInfo.setCode(200);
+        }else{
+            responseInfo.setCode(500);
+        }
+        return  responseInfo;
+
+    }
+
+
+    public ResponseInfo monthFail(AgentAccountRecorde agentAccountRecorde,String userId){
+
+        String usql=" update agent_account_recorde set  confirm_state=3,fail_money=?,fai_remark=?,confirm_time=now(),confirm_user=? where id=? ";
+        List list=new ArrayList();
+        list.add(agentAccountRecorde.getFailMoney());
+        list.add(agentAccountRecorde.getFailMoney());
+        list.add(userId);
+        list.add(agentAccountRecorde.getId());
+
+
+        int i = customerDao.executeUpdateSQL(usql, list.toArray());
+
+        AgentConfirm agentConfirm=new AgentConfirm();
+        List<AgentParamter> list1=new ArrayList();
+        AgentParamter agentParamter=new AgentParamter();
+        agentParamter.setBusinessType("11");
+        agentParamter.setUniqueID(agentAccountRecorde.getId().toString());
+        agentParamter.setAffirmState("2");
+        list1.add(agentParamter);
+        agentConfirm.setParmeter(list1);
+        String s = JSON.toJSONString(agentConfirm);
+        logger.info("dd=="+s);
+        confimAgent(s,agentAccountRecorde.getId().toString());
+        ResponseInfo responseInfo=new ResponseInfo();
+        if(i>0){
+            responseInfo.setCode(200);
+        }else{
+            responseInfo.setCode(500);
+        }
+        return  responseInfo;
+    }
+
+    public void confimAgent(String req,String id){
+        try {
+
+            String s = HttpUtil.httpsPost(" http://192.168.188.68:8036/BillServer.ashx?Method=UpdateAffirmState", req);
+            String usql=" update agent_account_recorde set  confirm_re_msg=? where id=? ";
+            List list=new ArrayList();
+
+            list.add(s);
+            list.add(id);
+
+             customerDao.executeUpdateSQL(usql, list.toArray());
+
+        }catch (Exception e){
+              e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {

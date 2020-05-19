@@ -11,6 +11,7 @@ import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.dto.Deposit;
 import com.bdaim.customer.service.CustomerAppService;
+import com.bdaim.rbac.entity.AgentAccountRecorde;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -262,5 +263,57 @@ public class CustomerController extends BasicAction {
             resp.setCode(-1);
         }
         return resp;
+    }
+
+    /**
+     * agent月账单
+     *
+     *
+     * @return
+     */
+    @PostMapping("/getAgentAccount")
+    public ResponseInfo getAgentAccount(){
+        LoginUser lu = opUser();
+        String custId = lu.getCustId();
+
+      AgentAccountRecorde agentAccount = customerAppService.getAgentAccount(custId);
+        ResponseInfo responseInfo=new ResponseInfo();
+        responseInfo.setCode(200);
+        responseInfo.setData(agentAccount);
+        return  responseInfo;
+    }
+
+
+    /**
+     * 确认金额有误时
+     *
+     *
+     * @return
+     */
+    @PostMapping("/moneyFail")
+    public ResponseInfo moneyFail(@RequestBody AgentAccountRecorde agentAccountRecorde ){
+        LoginUser lu = opUser();
+
+
+        ResponseInfo responseInfo = customerAppService.monthFail(agentAccountRecorde,lu.getUser_id().toString());
+
+        return  responseInfo;
+    }
+
+
+    /**
+     * 确认金额无误时
+     *
+     *
+     * @return
+     */
+    @PostMapping("/moneyTrue")
+    public ResponseInfo moneyTrue(@RequestBody AgentAccountRecorde agentAccountRecorde ){
+        LoginUser lu = opUser();
+
+
+        ResponseInfo responseInfo = customerAppService.monthSucess(agentAccountRecorde.getId().toString(),lu.getUser_id().toString());
+
+        return  responseInfo;
     }
 }
