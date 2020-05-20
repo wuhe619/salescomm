@@ -9400,8 +9400,8 @@ public class MarketResourceService {
             // 查询通话记录
             if (type == 2) {
                 LocalDateTime nowTime = LocalDateTime.now();
-                String sql = "SELECT touch_id FROM t_touch_voice_log_" + nowTime.format(YYYYMM) + " WHERE called_duration >0 AND superid = ? customer_group_id = ? " +
-                        " union all SELECT touch_id FROM t_touch_voice_log_" + nowTime.minusMonths(1).format(YYYYMM) + " WHERE called_duration >0 AND superid = ? customer_group_id = ? ";
+                String sql = "SELECT touch_id FROM t_touch_voice_log_" + nowTime.format(YYYYMM) + " WHERE called_duration >0 AND superid = ? AND customer_group_id = ? " +
+                        " union all SELECT touch_id FROM t_touch_voice_log_" + nowTime.minusMonths(1).format(YYYYMM) + " WHERE called_duration >0 AND superid = ? AND customer_group_id = ? ";
                 Map<String, Object> log = customerDao.queryUniqueSql(sql, superId, customerGroupId, superId, customerGroupId);
                 if (log == null || log.size() == 0) {
                     LOG.warn("身份ID:{},客群:{}未查询到最近2个月的通话记录:{}", superId, customerGroupId);
@@ -9491,8 +9491,8 @@ public class MarketResourceService {
         // 查询通话记录
         if (type == 2) {
             LocalDateTime nowTime = LocalDateTime.now();
-            String sql = "SELECT touch_id FROM t_touch_voice_log_" + nowTime.format(YYYYMM) + " WHERE called_duration >0 AND superid = ? customer_group_id = ? " +
-                    " union all SELECT touch_id FROM t_touch_voice_log_" + nowTime.minusMonths(1).format(YYYYMM) + " WHERE called_duration >0 AND superid = ? customer_group_id = ? ";
+            String sql = "SELECT touch_id FROM t_touch_voice_log_" + nowTime.format(YYYYMM) + " WHERE called_duration >0 AND superid = ? AND customer_group_id = ? " +
+                    " union all SELECT touch_id FROM t_touch_voice_log_" + nowTime.minusMonths(1).format(YYYYMM) + " WHERE called_duration >0 AND superid = ? AND customer_group_id = ? ";
             Map<String, Object> log = customerDao.queryUniqueSql(sql, superId, customerGroupId, superId, customerGroupId);
             if (log == null || log.size() == 0) {
                 LOG.warn("身份ID:{},客群:{}未查询到最近2个月的通话记录:{}", superId, customerGroupId);
