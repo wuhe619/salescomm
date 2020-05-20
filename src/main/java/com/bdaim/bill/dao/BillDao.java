@@ -672,7 +672,7 @@ public class BillDao extends SimpleHibernateDao {
         sql.append(" SELECT SUM(t2.amount)/1000 sumAmount, SUM(t2.cost_price)/1000 sumProdAmount ")
                 .append(" FROM customer_group t  ")
                 .append(" JOIN t_order t2 ON t.order_id = t2.order_id")
-                .append(" WHERE t.create_time BETWEEN ? AND ?");
+                .append(" WHERE t.create_time BETWEEN ? AND ? AND t2.order_state=2 ");
         List<Object> p = new ArrayList<>();
         p.add(startTime);
         p.add(endTime);
