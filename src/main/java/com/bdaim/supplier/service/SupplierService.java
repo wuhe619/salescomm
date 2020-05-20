@@ -2485,8 +2485,11 @@ public class SupplierService {
                     SupplierPropertyEntity used_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "used_amount");
                     SupplierPropertyEntity agent_api_name = supplierDao.getProperty(map1.get("supplier_id").toString(), "agent_api_name");
                     SupplierPropertyEntity agent_api_id = supplierDao.getProperty(map1.get("supplier_id").toString(), "agent_api_id");
-                    supplierDTOMap.put("agentApiName", agent_api_name.getPropertyValue());
-                    supplierDTOMap.put("agentApiId", agent_api_id.getPropertyValue());
+                    if(agent_api_name!=null&&agent_api_id!=null){
+                        supplierDTOMap.put("agentApiName", agent_api_name.getPropertyValue());
+                        supplierDTOMap.put("agentApiId", agent_api_id.getPropertyValue());
+                    }
+
 
                     if ("5".equals(map1.get("type").toString())) {//api 供应商
                         supplierDTOMap.put("balance", remain_amount == null ? 0 : BigDecimalUtil.strDiv(remain_amount.getPropertyValue(), "10000", 3));
