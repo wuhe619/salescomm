@@ -394,7 +394,7 @@ public class CustomGroupAction extends BasicAction {
             rsd.setSourceId(0);
             IndustryPoolPriceDTO salePrice = industryService.getIndustryPoolPrice(groupCondition, industryPoolId, opUser().getCustId());
             // 计费价格/人
-            rsd.setSalePrice(new BigDecimal(salePrice.getPrice()).divide(new BigDecimal(100)));
+            rsd.setSalePrice(new BigDecimal(salePrice.getPrice()).divide(new BigDecimal(1000)));
             // 标签池-客户资源配置
             rsd.setDataCustConfig(salePrice.getDataCustConfig());
             list.add(rsd);

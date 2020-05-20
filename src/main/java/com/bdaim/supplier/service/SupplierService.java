@@ -2346,9 +2346,29 @@ public class SupplierService {
         supplierDO.setStatus(1);
         supplierDO.setCreateTime(new Timestamp(System.currentTimeMillis()));
         int supplierId = (int) supplierDao.saveReturnPk(supplierDO);
+        if(supplierId>0){//保存供应商属性
+            if(StringUtils.isNotEmpty(supplierDTO.getAgentId())){
+                SupplierPropertyEntity supplierPropertyEntity=new SupplierPropertyEntity();
+                supplierPropertyEntity.setSupplierId(supplierId+"");
+                supplierPropertyEntity.setPropertyName("agent_api_id");
+                supplierPropertyEntity.setPropertyValue(supplierDTO.getAgentId());
+                supplierPropertyEntity.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+                supplierDao.saveOrUpdate(supplierPropertyEntity);
+
+            }
+            if(StringUtils.isNotEmpty(supplierDTO.getAgentName())){
+                SupplierPropertyEntity supplierPropertyEntity=new SupplierPropertyEntity();
+                supplierPropertyEntity.setSupplierId(supplierId+"");
+                supplierPropertyEntity.setPropertyName("agent_api_name");
+                supplierPropertyEntity.setPropertyValue(supplierDTO.getAgentName());
+                supplierPropertyEntity.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+                supplierDao.saveOrUpdate(supplierPropertyEntity);
+            }
+
+        }
         if (supplierId == 0) throw new RuntimeException("供应商保存异常");
-        return supplierId;
-    }
+          return supplierId;
+       }
 
     public SupplierDTO updateSupplierPrice1(SupplierDTO supplierDTO) {
         if (supplierDTO == null) {
@@ -2366,6 +2386,27 @@ public class SupplierService {
 //        supplierDO.setStatus(2);
         try {
             supplierDao.saveOrUpdate(supplierDO);
+            String supplierId=supplierDTO.getSupplierId().toString();
+
+            if(StringUtils.isNotEmpty(supplierDTO.getAgentId())){
+
+
+                SupplierPropertyEntity supplierPropertyEntity=new SupplierPropertyEntity();
+                supplierPropertyEntity.setSupplierId(supplierId);
+                supplierPropertyEntity.setPropertyName("agent_api_id");
+                supplierPropertyEntity.setPropertyValue(supplierDTO.getAgentId());
+                supplierPropertyEntity.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+                supplierDao.saveOrUpdate(supplierPropertyEntity);
+
+            }
+            if(StringUtils.isNotEmpty(supplierDTO.getAgentName())){
+                SupplierPropertyEntity supplierPropertyEntity=new SupplierPropertyEntity();
+                supplierPropertyEntity.setSupplierId(supplierId);
+                supplierPropertyEntity.setPropertyName("agent_api_name");
+                supplierPropertyEntity.setPropertyValue(supplierDTO.getAgentName());
+                supplierPropertyEntity.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+                supplierDao.saveOrUpdate(supplierPropertyEntity);
+            }
         } catch (Exception e) {
             throw new RuntimeException("供应商修改异常");
         }
@@ -2387,6 +2428,11 @@ public class SupplierService {
         supplierDTO.setContactPosition(StringUtil.isEmpty(supplierDO.getContactPosition()) ? "" : supplierDO.getContactPosition());
         supplierDTO.setStatus(supplierDO.getStatus());
         supplierDTO.setCreateTime(supplierDO.getCreateTime());
+        SupplierPropertyEntity agent_api_name = supplierDao.getProperty(id + "", "agent_api_name");
+        supplierDTO.setAgentName(agent_api_name.getPropertyValue());
+        SupplierPropertyEntity agent_api_id = supplierDao.getProperty(id + "", "agent_api_id");
+        supplierDTO.setAgentId(agent_api_id.getPropertyValue());
+
         return supplierDTO;
     }
 
@@ -2437,6 +2483,14 @@ public class SupplierService {
                     supplierDTOMap.put("supplierId", map1.get("supplier_id"));
                     SupplierPropertyEntity remain_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "remain_amount");
                     SupplierPropertyEntity used_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "used_amount");
+                    SupplierPropertyEntity agent_api_name = supplierDao.getProperty(map1.get("supplier_id").toString(), "agent_api_name");
+                    SupplierPropertyEntity agent_api_id = supplierDao.getProperty(map1.get("supplier_id").toString(), "agent_api_id");
+                    if(agent_api_name!=null&&agent_api_id!=null){
+                        supplierDTOMap.put("agentApiName", agent_api_name.getPropertyValue());
+                        supplierDTOMap.put("agentApiId", agent_api_id.getPropertyValue());
+                    }
+
+
                     if ("5".equals(map1.get("type").toString())) {//api 供应商
                         supplierDTOMap.put("balance", remain_amount == null ? 0 : BigDecimalUtil.strDiv(remain_amount.getPropertyValue(), "10000", 3));
                         supplierDTOMap.put("consumption", used_amount == null ? 0 : BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "10000", 3));
@@ -2447,7 +2501,7 @@ public class SupplierService {
                     supplierDTOMap.put("apiNum", propertyMap.containsKey(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
                     return supplierDTOMap;
                 } catch (Exception e) {
-                    log.error("supplier列表查询："+e.getMessage());
+                    log.error("supplier=======："+e.getMessage());
                     e.printStackTrace();
                 }
                 return null;

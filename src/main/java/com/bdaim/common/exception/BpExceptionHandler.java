@@ -33,6 +33,7 @@ public class BpExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseInfo handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
         log.error("could_not_read_json", e);
+
         return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "could_not_read_json");
     }
 
@@ -77,6 +78,7 @@ public class BpExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseInfo handleException(Exception e) {
         log.error("Internal Server Error...", e);
+
         if (e instanceof org.springframework.web.servlet.NoHandlerFoundException) {
             return new ResponseInfoAssemble().failure(HttpStatus.NOT_FOUND.value(),
                     "Not Found Exception");

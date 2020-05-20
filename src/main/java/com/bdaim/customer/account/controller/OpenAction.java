@@ -3,6 +3,7 @@ package com.bdaim.customer.account.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.batch.dao.BatchDetailDao;
 import com.bdaim.batch.dto.FixInfo;
 import com.bdaim.batch.entity.BatchDetail;
@@ -13,6 +14,8 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
+import com.bdaim.common.service.ElasticSearchService;
+import com.bdaim.crm.ent.service.EntDataService;
 import com.bdaim.customer.account.service.OpenService;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerExtensionService;
@@ -56,6 +59,9 @@ public class OpenAction extends BasicAction {
 
     @Autowired
     private CustomerExtensionService customerExtensionService;
+
+    @Autowired
+    private ElasticSearchService elasticSearchService;
 
 
     /**
@@ -682,6 +688,7 @@ public class OpenAction extends BasicAction {
 
     /**
      * 添加推广线索
+     *
      * @return
      */
     @PostMapping("/extension")
@@ -704,16 +711,17 @@ public class OpenAction extends BasicAction {
 
     /**
      * 接收上行短信信息
+     *
      * @param body
      * @return
      */
     @PostMapping("/sms/uploadinfo")
-    public String  smsUploadInfo(@RequestBody String body){
-        log.info("smsUploadInfo.param{}",body);
-        JSONObject result=new JSONObject();
-        result.put("status",0);
-        result.put("desc","ok");
-        if(StringUtil.isEmpty(body)){
+    public String smsUploadInfo(@RequestBody String body) {
+        log.info("smsUploadInfo.param{}", body);
+        JSONObject result = new JSONObject();
+        result.put("status", 0);
+        result.put("desc", "ok");
+        if (StringUtil.isEmpty(body)) {
             log.error("参数不能为空");
             return result.toJSONString();
         }
@@ -721,10 +729,28 @@ public class OpenAction extends BasicAction {
             openService.saveSmsuploadinfo(body);
         } catch (Exception e) {
             e.printStackTrace();
-            result.put("status",-1);
-            result.put("desc","error");
+            result.put("status", -1);
+            result.put("desc", "error");
         }
         return result.toJSONString();
+    }
+
+    @GetMapping("/entdata/{companyId}")
+    public ResponseInfo getCompanyDetail(@PathVariable("companyId") String companyId, @RequestBody(required = false) JSONObject param) {
+        ResponseInfo resp = new ResponseInfo();
+        if (StringUtil.isEmpty(companyId)) {
+            return new ResponseInfoAssemble().failure(-1, "企业ID必传");
+        }
+        try {
+            JSONObject data = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
+            resp.setData(data);
+            if (data == null || data.size() == 0) {
+                resp.setCode(0);
+            }
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常");
+        }
+        return resp;
     }
 }
 

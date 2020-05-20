@@ -3978,6 +3978,22 @@ public class MarketResourceAction extends BasicAction {
         }
     }
 
+    @PostMapping(value = "/cluePush")
+    @ResponseBody
+    public String cluePush(@RequestParam Map map) {
+        int pushType = NumberConvertUtil.parseInt(map.get("pushType"));
+        int type = NumberConvertUtil.parseInt(map.get("type"));
+        String superId = String.valueOf(map.get("superId"));
+        String customerGroupId = String.valueOf(map.get("customerGroupId"));
+        String marketTaskId = String.valueOf(map.get("marketTaskId"));
+        LOG.info("线索推送参数:" + map);
+        LoginUser user = opUser();
+        int code = marketResourceService.cluePush(pushType, superId, user.getCustId(), user.getId().toString(), customerGroupId, marketTaskId, type);
+        JSONObject json = new JSONObject();
+        json.put("code", code);
+        return json.toJSONString();
+    }
+
 }
 
 

@@ -48,6 +48,8 @@ public class AppConfig {
 	private static String ent_data_type = null;
 	private static String ent_data_url = null;
 
+	private static String email_username = null;
+
 	public static String getApp() {
 		return app;
 	}
@@ -293,5 +295,13 @@ public class AppConfig {
 	@Value("${spring.elasticsearch.jest.uris:http://ll6:9200}")
 	public void setEnt_data_url(String ent_data_url) {
 		AppConfig.ent_data_url = ent_data_url;
+	}
+
+	public static String getEmail_username() {
+		return email_username;
+	}
+	@Value("${spring.mail.username}")
+	public void setEmail_username(String email_username) {
+		AppConfig.email_username = email_username;
 	}
 }
