@@ -65,6 +65,26 @@ public class SupplierDTO {
     private int balance;//余额
     private int consumption;//消费
 
+    private String agentId; //agentId
+
+    private String agentName; //agentname
+
+    public String getAgentId() {
+        return agentId;
+    }
+
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
+    }
+
+    public String getAgentName() {
+        return agentName;
+    }
+
+    public void setAgentName(String agentName) {
+        this.agentName = agentName;
+    }
+
     public int getBalance() {
         return balance;
     }

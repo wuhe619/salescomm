@@ -55,6 +55,26 @@ public class CustomerRegistDTO implements Serializable {
     private String resource;
     private String createId;
 
+    private String agentApiId;
+
+    private String agentApiName;
+
+    public String getAgentApiId() {
+        return agentApiId;
+    }
+
+    public void setAgentApiId(String agentApiId) {
+        this.agentApiId = agentApiId;
+    }
+
+    public String getAgentApiName() {
+        return agentApiName;
+    }
+
+    public void setAgentApiName(String agentApiName) {
+        this.agentApiName = agentApiName;
+    }
+
     /**
      * 注册来源
      *

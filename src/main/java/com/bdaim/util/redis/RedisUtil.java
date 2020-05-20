@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -36,6 +37,7 @@ public class RedisUtil {
     public String get(String key) {
         String value = null;
         try {
+
             value = String.valueOf(redisTemplate.opsForValue().get(key));
         } catch (Exception e) {
             LOG.error("获取指定key的值异常,", e);
@@ -138,6 +140,13 @@ public class RedisUtil {
             return false;
         }
         return true;
+    }
+
+    public long incre(String key){
+
+        RedisAtomicLong entityIdCounter = new RedisAtomicLong(key, redisTemplate.getConnectionFactory());
+        Long increment = entityIdCounter.getAndIncrement();
+        return increment;
     }
 
 }

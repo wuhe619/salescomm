@@ -647,6 +647,7 @@ public class SupplierAction extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "供应商保存参数异常");
         }
         try {
+            System.out.println("property=="+supplierDTO.getAgentId()+"anme=="+supplierDTO.getAgentName());
             if (id == null || id == 0) {
                 resp.setData(supplierService.saveSupplier1(supplierDTO));
             } else {
