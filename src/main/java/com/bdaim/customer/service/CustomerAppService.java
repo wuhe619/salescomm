@@ -651,7 +651,7 @@ public class CustomerAppService {
        DateTimeFormatter yyyymmhh = DateTimeFormatter.ofPattern("YYYYMM");
        String month= LocalDate.now().minusDays(1).format(yyyymmhh);
 
-       String sql=" FROM agent_account_recorde where account_time=? and customer_Id=? ";
+       String sql=" FROM AgentAccountRecorde where account_time=? and customer_Id=? ";
        List list=new ArrayList();
        list.add(month);
        list.add(custId);
