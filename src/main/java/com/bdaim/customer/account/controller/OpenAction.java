@@ -742,11 +742,14 @@ public class OpenAction extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "企业ID必传");
         }
         try {
-            resp.setData(elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId));
+            JSONObject data = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
+            resp.setData(data);
+            if (data == null || data.size() == 0) {
+                resp.setCode(0);
+            }
         } catch (Exception e) {
             return new ResponseInfoAssemble().failure(-1, "记录解析异常");
         }
-
         return resp;
     }
 }
