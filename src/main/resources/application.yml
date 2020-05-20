@@ -66,11 +66,11 @@ spring:
   #邮箱发送配置
   mail:
     #host不配置会注入失败
-    host: smtp.bdaim.com
+    host: smtp.exmail.qq.com
     # 端口
     port: 465
-    username: chengning@bdaim.com
-    password: giant2020tcr.
+    username: yunying@salescomm.net
+    password: aD!9223
     default-encoding: utf-8
     protocol: smtp
     properties:

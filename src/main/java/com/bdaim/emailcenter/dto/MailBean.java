@@ -10,6 +10,18 @@ public class MailBean {
     private String[] toEmails;    
     private String subject;  
     private String context;
+
+	public MailBean() {
+	}
+
+	public MailBean(String from, String fromName, String[] toEmails, String subject, String context) {
+		this.from = from;
+		this.fromName = fromName;
+		this.toEmails = toEmails;
+		this.subject = subject;
+		this.context = context;
+	}
+
 	public String getFrom() {
 		return from;
 	}
