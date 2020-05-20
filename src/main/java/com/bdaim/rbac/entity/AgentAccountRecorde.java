@@ -32,6 +32,10 @@ public class AgentAccountRecorde {
     @Basic
     @Column(name = "fail_money")
     private BigDecimal failMoney;
+
+    @Basic
+    @Column(name = "total_amount")
+    private BigDecimal totalAmount;
     @Basic
     @Column(name = "confirm_re_msg")
     private String confirmReMsg;
