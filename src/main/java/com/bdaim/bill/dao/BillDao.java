@@ -598,7 +598,7 @@ public class BillDao extends SimpleHibernateDao {
                 "t2.cost_price/t.user_count/1000 cPrice, t.remark, t.industry_pool_id, t.create_time createTime, t.user_count userCount, (SELECT source_id FROM t_industry_pool WHERE industry_pool_id = t.industry_pool_id) AS resourceId ")
                 .append(" FROM customer_group t  ")
                 .append(" JOIN t_order t2 ON t.order_id = t2.order_id")
-                .append(" WHERE t.create_time BETWEEN ? AND ?");
+                .append(" WHERE t.create_time BETWEEN ? AND ? AND t2.order_state=2 ");
         List<Object> p = new ArrayList<>();
         p.add(startTime);
         p.add(endTime);
@@ -839,8 +839,10 @@ public class BillDao extends SimpleHibernateDao {
         StringBuffer sql = new StringBuffer();
         sql.append("SELECT * FROM ")
                 .append(" ( SELECT t.id, t.order_id transactionId, t.cust_id custId, 7 type, t.amount/1000 amount, t.remark, t.industry_pool_id, t.create_time createTime, t.user_count userCount, (SELECT source_id FROM t_industry_pool WHERE industry_pool_id = t.industry_pool_id) AS resourceId ")
-                .append(" FROM customer_group t WHERE ");
-        sql.append(" t.create_time BETWEEN ? AND ?");
+                .append(" FROM customer_group t ")
+                .append(" JOIN t_order t2 ON t.order_id = t2.order_id")
+                .append(" WHERE t.create_time BETWEEN ? AND ? AND t2.order_state=2 ");
+        //.append(" t.create_time BETWEEN ? AND ? AND t2.order_state=2 ");
         List<Object> p = new ArrayList<>();
         p.add(startTime);
         p.add(endTime);
