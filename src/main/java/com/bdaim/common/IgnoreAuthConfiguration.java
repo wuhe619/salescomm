@@ -39,6 +39,6 @@ public class IgnoreAuthConfiguration extends WebSecurityConfigurerAdapter {
                 "/open/unicom/callBack", "/open/unicom/recordCallBack", "/open/unicom/recordCallBack0", "/customs/pageDic",
                 "/wechat/testAuto", "/transfer/**", "/open/sms/uploadinfo", "/customer/regist0", "/supplier/pageShowExtension",
                 "/packages/getAliPayResult", "/auth/checkout", "/ent/**/search","/system/user/resetPasswordByPhone",
-                "/crm/login","/user/getYjByDls");
+                "/crm/login");
     }
 }
