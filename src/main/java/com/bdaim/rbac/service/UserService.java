@@ -27,6 +27,7 @@ import com.bdaim.rbac.vo.UserInfo;
 import com.bdaim.util.*;
 
 import com.bdaim.util.excel.EasyExcelUtil;
+import com.drew.metadata.StringValue;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -1836,9 +1837,9 @@ public class UserService {
 
             Map<String, Object> messageObjectMap = userDao.queryUniqueSql(accot.toString(), list.toArray());
 
-            BigDecimal acc=(datagObjectMap==null|| (BigDecimal)datagObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) datagObjectMap.get("accountCount");
-            BigDecimal accCall=(callObjectMap==null||(BigDecimal) callObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) callObjectMap.get("accountCount");
-            BigDecimal accmess=(messageObjectMap==null||(BigDecimal) messageObjectMap.get("accountCount")==null)?BigDecimal.valueOf(0):(BigDecimal) messageObjectMap.get("accountCount");
+            BigDecimal acc=(datagObjectMap==null|| (BigDecimal)datagObjectMap.get("accountCount")==null)?new BigDecimal("0.000"):new BigDecimal(String.valueOf(datagObjectMap.get("accountCount")));
+            BigDecimal accCall=(callObjectMap==null||(BigDecimal) callObjectMap.get("accountCount")==null)?new BigDecimal("0.000"):new BigDecimal(String.valueOf(callObjectMap.get("accountCount")));
+            BigDecimal accmess=(messageObjectMap==null||(BigDecimal) messageObjectMap.get("accountCount")==null)?new BigDecimal("0.000"):new BigDecimal(String.valueOf( messageObjectMap.get("accountCount")));
             logger.info("account"+acc+"==="+accmess+"==="+accmess);
             accountCount= accountCount.add(acc.add(accCall.add(accmess)));
 
