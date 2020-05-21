@@ -225,6 +225,7 @@ public class CustomerAppService {
 
         if (StringUtil.isNotEmpty(vo.getAgentApiId())) {
             Long cusAgentNum=redisUtil.incre("cusAgentNum");
+           logger.info("cusAgentNum=="+cusAgentNum);
             CustomerProperty cusAgentNum1 = customerDao.getProperty(customerId, "cusAgentNum");
             String cusnum="";
             if(cusAgentNum1==null){
@@ -677,7 +678,7 @@ public class CustomerAppService {
         ResponseInfo responseInfo = new ResponseInfo();
         boolean b = confimAgent(s, id);
         if(b) {
-            String usql = " update agent_account_recorde set  confirm_state=2,confirm_time=now(),confirm_user=? where id=? ";
+            String usql = " update agent_account_recorde set  confirm_state=2,confirm_time=now(),confirm_user=?,agent_confirm=2 where id=? ";
             List list = new ArrayList();
             list.add(userId);
             list.add(id);
@@ -690,9 +691,16 @@ public class CustomerAppService {
                 responseInfo.setCode(200);
             } else {
                 responseInfo.setCode(600);
+                responseInfo.setMessage("操作失败");
             }
         }else{
-            responseInfo.setCode(601);
+            String usql = " update agent_account_recorde set  confirm_state=2,confirm_time=now(),confirm_user=?,agent_confirm=1 where id=? ";
+            List list = new ArrayList();
+            list.add(userId);
+            list.add(id);
+
+            int i = customerDao.executeUpdateSQL(usql, list.toArray());
+            responseInfo.setCode(200);
         }
         return  responseInfo;
 
@@ -716,7 +724,7 @@ public class CustomerAppService {
 
 
        if(b) {
-           String usql = " update agent_account_recorde set  confirm_state=3,fail_money=?,fai_remark=?,confirm_time=now(),confirm_user=? where id=? ";
+           String usql = " update agent_account_recorde set  confirm_state=3,fail_money=?,fai_remark=?,confirm_time=now(),confirm_user=?,agent_confirm=2 where id=? ";
            List list = new ArrayList();
            list.add(agentAccountRecorde.getFailMoney());
            list.add(agentAccountRecorde.getFaiRemark());
@@ -731,9 +739,19 @@ public class CustomerAppService {
                responseInfo.setCode(200);
            } else {
                responseInfo.setCode(600);
+               responseInfo.setMessage("操作失败");
            }
        }else{
-           responseInfo.setCode(601);
+           String usql = " update agent_account_recorde set  confirm_state=3,fail_money=?,fai_remark=?,confirm_time=now(),confirm_user=?,agent_confirm=1 where id=? ";
+           List list = new ArrayList();
+           list.add(agentAccountRecorde.getFailMoney());
+           list.add(agentAccountRecorde.getFaiRemark());
+           list.add(userId);
+           list.add(agentAccountRecorde.getId());
+
+
+           int i = customerDao.executeUpdateSQL(usql, list.toArray());
+           responseInfo.setCode(200);
        }
         return  responseInfo;
     }
