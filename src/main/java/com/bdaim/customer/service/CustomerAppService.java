@@ -760,7 +760,7 @@ public class CustomerAppService {
         try {
 
             String s = HttpUtil.httpsPost("http://124.204.33.186:8036/BillServer.ashx?Method=UpdateAffirmState", req);
-            logger.info("agent=="+s);
+            logger.info("agent=="+req);
             String usql=" update agent_account_recorde set  confirm_re_msg=? where id=? ";
             List list=new ArrayList();
             logger.info("agetnconfirm=="+s);
