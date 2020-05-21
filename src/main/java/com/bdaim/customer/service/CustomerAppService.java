@@ -652,7 +652,7 @@ public class CustomerAppService {
        String month= LocalDate.now().minusDays(1).format(yyyymmhh);
 
 //       String sql="select id,total_amount,confirm_state, FROM bp.AgentAccountRecorde where account_time=? and customer_Id=? ";
-       String sql=" FROM bp.AgentAccountRecorde where account_time=? and customer_Id=? ";
+       String sql=" FROM AgentAccountRecorde where account_time=? and customer_Id=? ";
        List list=new ArrayList();
        list.add(month);
        list.add(custId);
