@@ -759,7 +759,8 @@ public class CustomerAppService {
     public boolean confimAgent(String req,String id){
         try {
 
-            String s = HttpUtil.httpsPost("http://124.204.33.186:8036/BillServer.ashx?Method=UpdateAffirmState", req);
+            String s = HttpUtil.httpsPost("http://124.204.33.186:8036/BillServer.ashx?Method=UpdateAffirmState", req);//测试
+//            String s = HttpUtil.httpsPost("https://agent.commchina.net/BillServer.ashx?Method=UpdateAffirmState", req);
             logger.info("agent=="+req);
             String usql=" update agent_account_recorde set  confirm_re_msg=? where id=? ";
             List list=new ArrayList();
