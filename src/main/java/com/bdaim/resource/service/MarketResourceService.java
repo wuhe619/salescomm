@@ -9411,6 +9411,7 @@ public class MarketResourceService {
             } else if (type == 1) {
                 success = true;
             }
+
             // 发送邮件
             LOG.info("邮件发送superId:{},customerGroupId:{}判断是否要发送邮件的状态:{}", superId, customerGroupId, success);
             if (success) {
