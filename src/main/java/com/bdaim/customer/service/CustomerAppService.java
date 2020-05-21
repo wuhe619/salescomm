@@ -664,14 +664,6 @@ public class CustomerAppService {
 
     public ResponseInfo monthSucess(String id,String userId){
 
-
-        String usql=" update agent_account_recorde set  confirm_state=2,confirm_time=now(),confirm_user=? where id=? ";
-        List list=new ArrayList();
-        list.add(userId);
-        list.add(id);
-
-        int i = customerDao.executeUpdateSQL(usql, list.toArray());
-
         AgentConfirm agentConfirm=new AgentConfirm();
         List<AgentParamter> list1=new ArrayList();
         AgentParamter agentParamter=new AgentParamter();
@@ -682,12 +674,25 @@ public class CustomerAppService {
         agentConfirm.setParmeter(list1);
         String s = JSON.toJSONString(agentConfirm);
         logger.info("dd=="+s);
-        confimAgent(s,id);
-        ResponseInfo responseInfo=new ResponseInfo();
-        if(i>0){
-            responseInfo.setCode(200);
+        ResponseInfo responseInfo = new ResponseInfo();
+        boolean b = confimAgent(s, id);
+        if(b) {
+            String usql = " update agent_account_recorde set  confirm_state=2,confirm_time=now(),confirm_user=? where id=? ";
+            List list = new ArrayList();
+            list.add(userId);
+            list.add(id);
+
+            int i = customerDao.executeUpdateSQL(usql, list.toArray());
+
+
+
+            if (i > 0) {
+                responseInfo.setCode(200);
+            } else {
+                responseInfo.setCode(600);
+            }
         }else{
-            responseInfo.setCode(500);
+            responseInfo.setCode(601);
         }
         return  responseInfo;
 
@@ -695,16 +700,6 @@ public class CustomerAppService {
 
 
     public ResponseInfo monthFail(AgentAccountRecorde agentAccountRecorde,String userId){
-
-        String usql=" update agent_account_recorde set  confirm_state=3,fail_money=?,fai_remark=?,confirm_time=now(),confirm_user=? where id=? ";
-        List list=new ArrayList();
-        list.add(agentAccountRecorde.getFailMoney());
-        list.add(agentAccountRecorde.getFailMoney());
-        list.add(userId);
-        list.add(agentAccountRecorde.getId());
-
-
-        int i = customerDao.executeUpdateSQL(usql, list.toArray());
 
         AgentConfirm agentConfirm=new AgentConfirm();
         List<AgentParamter> list1=new ArrayList();
@@ -716,20 +711,38 @@ public class CustomerAppService {
         agentConfirm.setParmeter(list1);
         String s = JSON.toJSONString(agentConfirm);
         logger.info("dd=="+s);
-        confimAgent(s,agentAccountRecorde.getId().toString());
+        boolean b = confimAgent(s, agentAccountRecorde.getId().toString());
         ResponseInfo responseInfo=new ResponseInfo();
-        if(i>0){
-            responseInfo.setCode(200);
-        }else{
-            responseInfo.setCode(500);
-        }
+
+
+       if(b) {
+           String usql = " update agent_account_recorde set  confirm_state=3,fail_money=?,fai_remark=?,confirm_time=now(),confirm_user=? where id=? ";
+           List list = new ArrayList();
+           list.add(agentAccountRecorde.getFailMoney());
+           list.add(agentAccountRecorde.getFaiRemark());
+           list.add(userId);
+           list.add(agentAccountRecorde.getId());
+
+
+           int i = customerDao.executeUpdateSQL(usql, list.toArray());
+
+
+           if (i > 0) {
+               responseInfo.setCode(200);
+           } else {
+               responseInfo.setCode(600);
+           }
+       }else{
+           responseInfo.setCode(601);
+       }
         return  responseInfo;
     }
 
-    public void confimAgent(String req,String id){
+    public boolean confimAgent(String req,String id){
         try {
 
             String s = HttpUtil.httpsPost("http://124.204.33.186:8036/BillServer.ashx?Method=UpdateAffirmState", req);
+            logger.info("agent=="+s);
             String usql=" update agent_account_recorde set  confirm_re_msg=? where id=? ";
             List list=new ArrayList();
 
@@ -738,8 +751,17 @@ public class CustomerAppService {
 
              customerDao.executeUpdateSQL(usql, list.toArray());
 
+             String code=JSONObject.parseObject(s).get("code").toString();
+
+             if(code!=null&&code.equals("1")){
+                 return true;
+             }else{
+                 return false;
+             }
+
         }catch (Exception e){
               e.printStackTrace();
+            return false;
         }
     }
 
