@@ -3,6 +3,7 @@ package com.bdaim.customer.service;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.service.PhoneService;
@@ -82,7 +83,8 @@ public class CustomerExtensionService {
                     logger.info("众麦线索手机通知内容:{},邮箱:{}", c, JSON.toJSONString(emails));
                     if (StringUtil.isNotEmpty(content) && emails != null && emails.size() > 0
                             && StringUtil.isNotEmpty(String.valueOf(emails.get(0).get("property_value")))) {
-                        sendMailService.sendZmClueNotice("chengning@bdaim.com", String.valueOf(emails.get(0).get("property_value")).split(","),
+                        String fromName = AppConfig.getEmail_username();
+                        sendMailService.sendZmClueNotice(fromName, String.valueOf(emails.get(0).get("property_value")).split(","),
                                 "联客crm最新推广线索", c);
                     }
                 } catch (Exception e) {

@@ -1788,10 +1788,7 @@ public class UserService {
         List cs=new ArrayList();
         String csql="select  tp.cust_id cusId from t_customer_property tp,t_customer tc where tp.property_name='agent_id' and tp.cust_id=tc.cust_id  and tp.property_value=?";
         cs.add(userId);
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
-            csql+=("and tp.cust_id=?");
-            cs.add(agentDTO.getCustId());
-        }
+
 
 
         if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustomName())) {
@@ -1882,10 +1879,7 @@ public class UserService {
                 "\tand tu.user_type='1'\n" +
                 "\tand tcu.property_name='agent_id' and tcu.property_value=?  \n");
                   params.add(agentDTO.getUserId());
-                if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
-                    sql.append("and tc.cust_id=?");
-                    params.add(agentDTO.getCustId());
-                }
+
 
 
 
@@ -1950,10 +1944,7 @@ public class UserService {
         params.add(agentDTO.getUserId());
         EasyExcelUtil.EasyExcelParams param = new EasyExcelUtil.EasyExcelParams();
 
-        if(agentDTO!=null&&StringUtils.isNotEmpty(agentDTO.getCustId())) {
-            sql.append("and tc.cust_id=?");
-            params.add(agentDTO.getCustId());
-        }
+
 
 
 
