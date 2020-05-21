@@ -745,6 +745,7 @@ public class CustomerAppService {
             logger.info("agent=="+s);
             String usql=" update agent_account_recorde set  confirm_re_msg=? where id=? ";
             List list=new ArrayList();
+            logger.info("agetnconfirm=="+s);
 
             list.add(s);
             list.add(id);
