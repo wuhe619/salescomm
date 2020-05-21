@@ -651,7 +651,8 @@ public class CustomerAppService {
        DateTimeFormatter yyyymmhh = DateTimeFormatter.ofPattern("YYYYMM");
        String month= LocalDate.now().minusDays(1).format(yyyymmhh);
 
-       String sql=" FROM AgentAccountRecorde where account_time=? and customer_Id=? ";
+//       String sql="select id,total_amount,confirm_state, FROM bp.AgentAccountRecorde where account_time=? and customer_Id=? ";
+       String sql=" FROM bp.AgentAccountRecorde where account_time=? and customer_Id=? ";
        List list=new ArrayList();
        list.add(month);
        list.add(custId);
@@ -728,7 +729,7 @@ public class CustomerAppService {
     public void confimAgent(String req,String id){
         try {
 
-            String s = HttpUtil.httpsPost(" http://192.168.188.68:8036/BillServer.ashx?Method=UpdateAffirmState", req);
+            String s = HttpUtil.httpsPost("http://124.204.33.186:8036/BillServer.ashx?Method=UpdateAffirmState", req);
             String usql=" update agent_account_recorde set  confirm_re_msg=? where id=? ";
             List list=new ArrayList();
 
