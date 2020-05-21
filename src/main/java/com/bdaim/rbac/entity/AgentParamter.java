@@ -5,17 +5,17 @@ import com.alibaba.fastjson.annotation.JSONField;
 public class AgentParamter {
 
 
-    private String uniqueID;
+    private String UniqueID;
     private String BusinessType;
     private String AffirmState;
 
     @JSONField(name = "UniqueID")
     public String getUniqueID() {
-        return uniqueID;
+        return UniqueID;
     }
 
     public void setUniqueID(String uniqueID) {
-        uniqueID = uniqueID;
+        UniqueID = uniqueID;
     }
     @JSONField(name = "BusinessType")
     public String getBusinessType() {
