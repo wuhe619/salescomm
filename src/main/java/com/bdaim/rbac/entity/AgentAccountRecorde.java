@@ -36,6 +36,15 @@ public class AgentAccountRecorde {
     @Basic
     @Column(name = "total_amount")
     private BigDecimal totalAmount;
+
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
     @Basic
     @Column(name = "confirm_re_msg")
     private String confirmReMsg;
