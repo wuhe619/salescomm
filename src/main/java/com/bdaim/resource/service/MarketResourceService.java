@@ -9440,9 +9440,9 @@ public class MarketResourceService {
                     content = content.replace("{id}", superId).replace("{p}", phone);
                     LOG.info("众麦线索手机通知标题:{},内容:{},邮箱:{}", title, content, email);
                     if (StringUtil.isNotEmpty(content) && email != null && StringUtil.isNotEmpty(email.getPropertyValue())) {
-                        MailBean mail = new MailBean(fromName, fromName, email.getPropertyValue().split(","), title, content);
-                        sendMailService.sendMail(mail);
-                        LOG.info("线索邮件userId:{}接收人:{},标题:{},内容:{},发送成功", userId, email.getPropertyValue().split(","), title, content);
+                        //MailBean mail = new MailBean(fromName, fromName, email.getPropertyValue().split(","), title, content);
+                        boolean status = sendMailService.sendEmailPureJava(email.getPropertyValue(), title, content, 1, "zm_clue_email_from");
+                        LOG.info("线索邮件userId:{}接收人:{},标题:{},内容:{},发送状态:{}", userId, email.getPropertyValue().split(","), title, content, status);
                         return 1;
                     }
                 } catch (Exception e) {

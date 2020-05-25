@@ -3986,7 +3986,7 @@ public class MarketResourceAction extends BasicAction {
         String superId = String.valueOf(map.get("superId"));
         String customerGroupId = String.valueOf(map.get("customerGroupId"));
         String marketTaskId = String.valueOf(map.get("marketTaskId"));
-        LOG.info("线索推送参数:" + map);
+        LOG.info("呼叫线索推送参数:" + map);
         LoginUser user = opUser();
         int code = marketResourceService.cluePush(pushType, superId, user.getCustId(), user.getId().toString(), customerGroupId, marketTaskId, type);
         JSONObject json = new JSONObject();
@@ -4001,7 +4001,7 @@ public class MarketResourceAction extends BasicAction {
         String superId = String.valueOf(map.get("superId"));
         String customerGroupId = String.valueOf(map.get("customerGroupId"));
         String marketTaskId = String.valueOf(map.get("marketTaskId"));
-        LOG.info("线索推送参数:" + map);
+        LOG.info("呼叫线索推送判断参数:" + map);
         LoginUser user = opUser();
         int code = marketResourceService.checkCluePush(type, superId, user.getCustId(), user.getId().toString(), customerGroupId, marketTaskId);
         JSONObject json = new JSONObject();

@@ -1,21 +1,24 @@
 package com.bdaim.emailcenter.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.hazelcast.PhoneTobe;
 import com.bdaim.common.hazelcast.ToBeRegisterDB;
 import com.bdaim.emailcenter.dto.MailBean;
+import com.bdaim.emailcenter.util.EmailUtil;
 import com.bdaim.emailcenter.util.MailUtil;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.ParseException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -33,6 +36,8 @@ public class SendMailServiceImpl implements SendMailService {
     private static String subject = "触点大数据平台";
     @Autowired
     private JavaMailSender javaMailSender;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     /**
      * 创建MimeMessage
@@ -186,5 +191,57 @@ public class SendMailServiceImpl implements SendMailService {
         } catch (Exception e) {
             logger.error("发送众麦推广线索邮件通知失败", e);
         }
+    }
+
+    private static int fromEmailIndex = 1;
+
+    public boolean sendEmailPureJava(String toEmail, String title, String content, int type, String emailFromPropertyName) {
+        Assert.hasText(emailFromPropertyName, "emailFromPropertyName不能为空");
+        List<Map<String, Object>> smtpList = jdbcTemplate.queryForList("SELECT property_value FROM t_system_config WHERE property_name = ? AND status = 1 ", "zm_email_source");
+        if (smtpList == null || smtpList.size() == 0) {
+            logger.error("smtp发件配置为空");
+            return false;
+        }
+        JSONObject smtpConfig = new JSONObject();
+        JSONArray configs = JSON.parseArray(String.valueOf(smtpList.get(0).get("property_value")));
+        for (int i = 0; i < configs.size(); i++) {
+            smtpConfig.put(configs.getJSONObject(i).getString("source"), configs.getJSONObject(i));
+        }
+        List<Map<String, Object>> fromList = jdbcTemplate.queryForList("SELECT property_value FROM t_system_config WHERE property_name = ? AND status = 1 ", emailFromPropertyName);
+        if (fromList == null || fromList.size() == 0) {
+            logger.error("发件人邮箱配置为空");
+            return false;
+        }
+        String fromEmail = String.valueOf(fromList.get(0).get("property_value"));
+        if (StringUtil.isEmpty(fromEmail)) {
+            logger.error("发件人邮箱配置property_value为空");
+            return false;
+        }
+        List<String> from = Arrays.asList(fromEmail.split("\\$"));
+        if (from.size() == 0) {
+            logger.error("发件人邮箱列表为空");
+            return false;
+        }
+        if (from.size() < fromEmailIndex) {
+            // 获取最后1个
+            fromEmailIndex = 1;
+        }
+        String value = from.get(fromEmailIndex - 1);
+        fromEmailIndex++;
+        String[] values = value.split(",");
+        String userName = values[0];
+        String pwd = values[1];
+        String source = values[2];
+        logger.info("多邮件发送当前发送人{},密码:{},接收人:{},配置:{}", userName, pwd, toEmail, smtpConfig.getJSONObject(source));
+        boolean b = false;
+        try {
+            b = new EmailUtil(userName, pwd, smtpConfig.getJSONObject(source).getString("smtp"),
+                    smtpConfig.getJSONObject(source).getString("port"), smtpConfig.getJSONObject(source).getBooleanValue("ssl"))
+                    .sendText(title, content, toEmail);
+            logger.info("多邮件发送当前发送人{},接收人:{}发送状态:{}", userName, toEmail, b);
+        } catch (Exception e) {
+            logger.error("多邮件发送异常,发送人{},接收人:{}发送状态:{}", userName, toEmail, b, e);
+        }
+        return b;
     }
 }
