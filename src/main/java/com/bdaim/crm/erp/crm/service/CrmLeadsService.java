@@ -1995,6 +1995,7 @@ public class CrmLeadsService {
         //AdminFieldService adminFieldService = new AdminFieldService();
         Kv kv = new Kv();
         Integer errNum = 0;
+        LoginUser user = BaseUtil.getUser();
         try (ExcelReader reader = ExcelUtil.getReader(file.getInputStream())) {
             List<List<Object>> read = reader.read();
             List<Object> list = read.get(1);
@@ -2027,7 +2028,7 @@ public class CrmLeadsService {
                         }
                     }
                     String leadsName = leadsList.get(kv.getInt("leads_name")).toString();
-                    Integer number = crmLeadsDao.queryForInt("select count(*) from lkcrm_crm_leads where leads_name = ?", leadsName);
+                    Integer number = crmLeadsDao.queryForInt("select count(*) from lkcrm_crm_leads where leads_name = ? AND cust_id = ? ", leadsName, user.getCustId());
                     if (0 == number) {
                         object.fluentPut("entity", new JSONObject().fluentPut("leads_name", leadsName)
                                 .fluentPut("company", leadsList.get(kv.getInt("company")))
@@ -2038,7 +2039,7 @@ public class CrmLeadsService {
                                 .fluentPut("remark", leadsList.get(kv.getInt("remark")))
                                 .fluentPut("owner_user_id", ownerUserId));
                     } else if (number > 0 && repeatHandling == 1) {
-                        Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select leads_id,batch_id from lkcrm_crm_leads where leads_name = ?", leadsName).get(0));
+                        Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select leads_id,batch_id from lkcrm_crm_leads where leads_name = ? AND cust_id = ? ", leadsName, user.getCustId()).get(0));
                         object.fluentPut("entity", new JSONObject().fluentPut("leads_id", leads.getInt("leads_id"))
                                 .fluentPut("leads_name", leadsName)
                                 .fluentPut("company", leadsList.get(kv.getInt("company")))

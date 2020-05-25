@@ -37,6 +37,7 @@ import com.bdaim.customersea.dto.CustomerSeaSmsSearch;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customgroup.dto.CustomerGrpOrdParam;
 import com.bdaim.customgroup.service.CustomGroupService;
+import com.bdaim.emailcenter.service.SendMailServiceImpl;
 import com.bdaim.markettask.service.MarketTaskService;
 import com.bdaim.order.service.OrderService;
 import com.bdaim.rbac.dto.UserQueryParam;
@@ -52,7 +53,6 @@ import com.bdaim.supplier.dto.SupplierListParam;
 import com.bdaim.template.dto.MarketTemplateDTO;
 import com.bdaim.template.dto.TemplateParam;
 import com.bdaim.util.*;
-
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
@@ -62,7 +62,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BindingResult;
@@ -78,6 +77,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author yanls@bdaim.com
@@ -707,6 +707,9 @@ public class MarketResourceAction extends BasicAction {
 
     @Resource
     private CustomerSeaService customerSeaService;
+
+    @Autowired
+    private SendMailServiceImpl sendMailService;
 
     /**
      * 营销资源查询（短信，电话，邮件剩余量）
@@ -3986,9 +3989,16 @@ public class MarketResourceAction extends BasicAction {
         String superId = String.valueOf(map.get("superId"));
         String customerGroupId = String.valueOf(map.get("customerGroupId"));
         String marketTaskId = String.valueOf(map.get("marketTaskId"));
-        LOG.info("线索推送参数:" + map);
+        LOG.info("呼叫线索推送参数:" + map);
         LoginUser user = opUser();
-        int code = marketResourceService.cluePush(pushType, superId, user.getCustId(), user.getId().toString(), customerGroupId, marketTaskId, type);
+        int code = 0;
+        try {
+            code = sendMailService.cluePush(pushType, superId, user.getCustId(), user.getId().toString(), customerGroupId, marketTaskId, type).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
         JSONObject json = new JSONObject();
         json.put("code", code);
         return json.toJSONString();
@@ -4001,9 +4011,9 @@ public class MarketResourceAction extends BasicAction {
         String superId = String.valueOf(map.get("superId"));
         String customerGroupId = String.valueOf(map.get("customerGroupId"));
         String marketTaskId = String.valueOf(map.get("marketTaskId"));
-        LOG.info("线索推送参数:" + map);
+        LOG.info("呼叫线索推送判断参数:" + map);
         LoginUser user = opUser();
-        int code = marketResourceService.checkCluePush(type, superId, user.getCustId(), user.getId().toString(), customerGroupId, marketTaskId);
+        int code = sendMailService.checkCluePush(type, superId, user.getCustId(), user.getId().toString(), customerGroupId, marketTaskId);
         JSONObject json = new JSONObject();
         json.put("code", code);
         return json.toJSONString();
