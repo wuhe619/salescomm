@@ -230,12 +230,13 @@ public class SendMailServiceImpl implements SendMailService {
 
     private static int fromEmailIndex = 1;
 
-    public boolean sendEmailPureJava(String toEmail, String title, String content, int type, String emailFromPropertyName) {
+    @Async
+    public Future<Boolean> sendEmailPureJava(String toEmail, String title, String content, int type, String emailFromPropertyName) {
         Assert.hasText(emailFromPropertyName, "emailFromPropertyName不能为空");
         List<Map<String, Object>> smtpList = jdbcTemplate.queryForList("SELECT property_value FROM t_system_config WHERE property_name = ? AND status = 1 ", "zm_email_source");
         if (smtpList == null || smtpList.size() == 0) {
             logger.error("smtp发件配置为空");
-            return false;
+            return AsyncResult.forValue(false);
         }
         JSONObject smtpConfig = new JSONObject();
         JSONArray configs = JSON.parseArray(String.valueOf(smtpList.get(0).get("property_value")));
@@ -245,19 +246,19 @@ public class SendMailServiceImpl implements SendMailService {
         List<Map<String, Object>> fromList = jdbcTemplate.queryForList("SELECT property_value FROM t_system_config WHERE property_name = ? AND status = 1 ", emailFromPropertyName);
         if (fromList == null || fromList.size() == 0) {
             logger.error("发件人邮箱配置为空");
-            return false;
+            return AsyncResult.forValue(false);
         }
         String fromEmail = String.valueOf(fromList.get(0).get("property_value"));
         if (StringUtil.isEmpty(fromEmail)) {
             logger.error("发件人邮箱配置property_value为空");
-            return false;
+            return AsyncResult.forValue(false);
         }
         String value = null;
         try {
             List<String> from = Arrays.asList(fromEmail.split("\\$"));
             if (from.size() == 0) {
                 logger.error("发件人邮箱列表为空");
-                return false;
+                return AsyncResult.forValue(false);
             }
             if (from.size() < fromEmailIndex) {
                 // 获取最后1个
@@ -282,7 +283,7 @@ public class SendMailServiceImpl implements SendMailService {
         } catch (Exception e) {
             logger.error("多邮件发送异常,发送人{},接收人:{}发送状态:{}", userName, toEmail, b, e);
         }
-        return b;
+        return AsyncResult.forValue(b);
     }
 
     /**
@@ -300,6 +301,7 @@ public class SendMailServiceImpl implements SendMailService {
         // 邮件
         if (pushType == 2) {
             String phone = phoneService.getPhoneBySuperId(superId);
+            //phone = "3232323";
             if (StringUtil.isEmpty(phone)) {
                 logger.warn("线索通知手机号为空superId:{},phone:{}", superId, phone);
                 return AsyncResult.forValue(-1);
@@ -382,9 +384,9 @@ public class SendMailServiceImpl implements SendMailService {
                     logger.info("众麦线索手机通知标题:{},内容:{},邮箱:{}", title, content, email);
                     if (StringUtil.isNotEmpty(content) && email != null && StringUtil.isNotEmpty(email.getPropertyValue())) {
                         //MailBean mail = new MailBean(fromName, fromName, email.getPropertyValue().split(","), title, content);
-                        boolean status = sendEmailPureJava(email.getPropertyValue(), title, content, 1, "zm_clue_email_from");
+                        boolean status = sendEmailPureJava(email.getPropertyValue(), title, content, 1, "zm_clue_email_from").get();
                         logger.info("线索邮件userId:{}接收人:{},标题:{},内容:{},发送状态:{}", userId, email.getPropertyValue().split(","), title, content, status);
-                        return AsyncResult.forValue(1);
+                        return AsyncResult.forValue(status ? 1 : 0);
                     }
                 } catch (Exception e) {
                     logger.error("线索邮件userId:{}接收人:{},标题:{},内容:{},发送异常", userId, email.getPropertyValue().split(","), title, content, e);
