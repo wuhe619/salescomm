@@ -217,17 +217,22 @@ public class SendMailServiceImpl implements SendMailService {
             logger.error("发件人邮箱配置property_value为空");
             return false;
         }
-        List<String> from = Arrays.asList(fromEmail.split("\\$"));
-        if (from.size() == 0) {
-            logger.error("发件人邮箱列表为空");
-            return false;
-        }
-        if (from.size() < fromEmailIndex) {
-            // 获取最后1个
+        String value = null;
+        try {
+            List<String> from = Arrays.asList(fromEmail.split("\\$"));
+            if (from.size() == 0) {
+                logger.error("发件人邮箱列表为空");
+                return false;
+            }
+            if (from.size() < fromEmailIndex) {
+                // 获取最后1个
+                fromEmailIndex = 1;
+            }
+            value = from.get(fromEmailIndex - 1);
+            fromEmailIndex++;
+        } catch (Exception e) {
             fromEmailIndex = 1;
         }
-        String value = from.get(fromEmailIndex - 1);
-        fromEmailIndex++;
         String[] values = value.split(",");
         String userName = values[0];
         String pwd = values[1];
