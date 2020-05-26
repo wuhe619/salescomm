@@ -658,7 +658,10 @@ public class CustomerAppService {
        list.add(month);
        list.add(custId);
        List<AgentAccountRecorde> agents = customerDao.find(sql, list.toArray());
-        AgentAccountRecorde unique=agents.get(0);
+        AgentAccountRecorde unique=null;
+       if(agents!=null&&agents.size()>0) {
+           unique = agents.get(0);
+       }
         return  unique;
 
     }
