@@ -66,7 +66,7 @@ public class BillDao extends SimpleHibernateDao {
      */
     public double sumCustomerMonthProfit(String custId, String yearMonth) {
         double amount = 0.0;
-        String sql = "select  CAST((sum(sb.amount-sb.prod_amount)/1000)-((sum(sb.amount-sb.prod_amount)/1000)*((select tp.property_value from t_customer_property tp where tp.cust_id=sb.cust_id and tp.property_name='commission_rate')/100))as decimal(64,3)) profit from stat_bill_month sb \n" +
+        String sql = "select  CAST((sum(sb.amount-sb.prod_amount)/1000)-((sum(sb.amount-sb.prod_amount)/1000)*((ifnull((select tp.property_value from t_customer_property tp where tp.cust_id=sb.cust_id and tp.property_name='commission_rate'),0)/100))) as decimal(64,3)) profit from stat_bill_month sb \n" +
                 "where sb.cust_id=? and sb.stat_time=?";
         List<Map<String, Object>> supplierAmount = this.sqlQuery(sql, custId, yearMonth);
         if (supplierAmount.size() > 0 && supplierAmount.get(0).get("profit") != null) {

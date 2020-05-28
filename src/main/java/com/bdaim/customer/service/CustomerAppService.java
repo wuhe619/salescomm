@@ -333,6 +333,14 @@ public class CustomerAppService {
                 logger.info("mobile:{" + mobile + "}");
                 map.put("mobile", mobile.getPropertyValue());
             }
+
+            CustomerProperty cusAgentNum = customerDao.getProperty(cust_id, "cusAgentNum");
+
+            if (cusAgentNum != null) {
+                logger.info("cusAgentNum:{" + cusAgentNum + "}");
+                map.put("cusAgentNum", cusAgentNum.getPropertyValue());
+            }
+
             CustomerProperty sale_person = customerDao.getProperty(cust_id, "sale_person");
             if (sale_person != null) {
                 logger.info("sale_person:{" + sale_person + "}");
