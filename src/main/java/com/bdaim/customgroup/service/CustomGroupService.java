@@ -803,8 +803,10 @@ public class CustomGroupService {
         JSONArray tmp = new JSONArray();
         // 获取具体特征发现
         JSONArray _tmp = json.getJSONArray("data");
+        log.info("te"+_tmp.toJSONString());
         for (int i = 0; i < _tmp.size(); i++) {
             JSONObject _json = _tmp.getJSONObject(i);
+            log.info("te"+_json.toJSONString());
             String labelID = _json.getString("labelID");
             LabelInfo label = labelInfoService.getLabelInfoByLabelId(labelID);
             String path = label.getPath();
