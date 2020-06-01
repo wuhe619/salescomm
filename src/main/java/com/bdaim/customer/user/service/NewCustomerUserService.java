@@ -91,7 +91,13 @@ public class NewCustomerUserService {
         vo.setUserId(customerUser.getId() + "");
         vo.setPassword(customerUser.getPassword());
         CustomerProperty property = customerDao.getProperty(customerUser.getCust_id(), "mobile");
-        vo.setMobile(property.getPropertyValue());
+        if(property!=null) { //联系人电话
+            vo.setMobile(property.getPropertyValue());
+        }
+        CustomerUserPropertyDO propertyDO =customerUserDao.getProperty(customerUser.getId()+"","mobile_num");
+        if(propertyDO!=null) {//二次验证手机号
+            vo.setMobile_num(propertyDO.getPropertyValue());
+        }
         return vo;
 
     }
