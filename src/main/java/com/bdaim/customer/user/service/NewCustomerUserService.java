@@ -70,12 +70,12 @@ public class NewCustomerUserService {
 
         //账号绑定手机号
         if (StringUtil.isNotEmpty(vo.getMobile_num())) {
-            CustomerUserPropertyDO customerUserPropertyDO=new CustomerUserPropertyDO();
-            customerUserPropertyDO.setPropertyName("mobile_num");
-            customerUserPropertyDO.setPropertyValue(vo.getMobile_num());
+//            CustomerUserPropertyDO customerUserPropertyDO=new CustomerUserPropertyDO();
+//            customerUserPropertyDO.setPropertyName("mobile_num");
+//            customerUserPropertyDO.setPropertyValue(vo.getMobile_num());
 //            customerUserPropertyDO.setCreateTime(new Date().getTime());
-            customerUserDao.saveOrUpdate(customerUserPropertyDO);
-//            customerDao.dealCustomerInfo(vo.getCustId(), "mobile_num", vo.getMobile_num());
+//            customerUserDao.saveOrUpdate(customerUserPropertyDO);
+            customerUserDao.dealCustomerInfo(vo.getUserId(), "mobile_num", vo.getMobile_num());
         }
         return 1;
     }
