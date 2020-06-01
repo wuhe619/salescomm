@@ -59,13 +59,17 @@ public class NewCustomerUserService {
                 customerUserDO.setStatus(Constant.USER_ACTIVE_STATUS);
                 customerUserDO.setCreateTime(String.valueOf(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)));
                 customerUserDao.saveOrUpdate(customerUserDO);
-
             }
         }
 
         //联系人电话
         if (StringUtil.isNotEmpty(vo.getMobile())) {
             customerDao.dealCustomerInfo(vo.getCustId(), "mobile", vo.getMobile());
+        }
+
+        //账号绑定手机号
+        if (StringUtil.isNotEmpty(vo.getMobile_num())) {
+            customerDao.dealCustomerInfo(vo.getCustId(), "mobile_num", vo.getMobile_num());
         }
         return 1;
     }

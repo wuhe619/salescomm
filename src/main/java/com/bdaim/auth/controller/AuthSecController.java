@@ -30,6 +30,7 @@ public class AuthSecController extends BasicAction {
 
 	@Resource
 	private SendSmsService sendSmsService;
+
 	@Resource
 	private CustomerUserService customerUserService;
 
