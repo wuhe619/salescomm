@@ -9,6 +9,7 @@ import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.util.*;
 import org.springframework.stereotype.Service;
 
@@ -69,7 +70,12 @@ public class NewCustomerUserService {
 
         //账号绑定手机号
         if (StringUtil.isNotEmpty(vo.getMobile_num())) {
-            customerDao.dealCustomerInfo(vo.getCustId(), "mobile_num", vo.getMobile_num());
+            CustomerUserPropertyDO customerUserPropertyDO=new CustomerUserPropertyDO();
+            customerUserPropertyDO.setPropertyName("mobile_num");
+            customerUserPropertyDO.setPropertyValue(vo.getMobile_num());
+//            customerUserPropertyDO.setCreateTime(new Date().getTime());
+            customerUserDao.saveOrUpdate(customerUserPropertyDO);
+//            customerDao.dealCustomerInfo(vo.getCustId(), "mobile_num", vo.getMobile_num());
         }
         return 1;
     }
