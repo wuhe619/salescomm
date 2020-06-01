@@ -23,6 +23,7 @@ import com.bdaim.util.wechat.WeChatUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -67,6 +68,9 @@ public class TokenServiceImpl implements TokenService {
     @Resource
     private CustomerAppService customerAppService;
 
+    @Autowired
+    private HttpServletRequest request;
+
     public static Map name2token = new HashMap();
 
     public static Map listTokens() {
@@ -82,6 +86,7 @@ public class TokenServiceImpl implements TokenService {
 
         LoginUser userdetail = null;
         BASE64Decoder decoder = new BASE64Decoder();
+        String auth_model = request.getParameter("auth_model");
 
         if (username.startsWith("backend.")) {
             //校验 验证码
@@ -375,6 +380,9 @@ public class TokenServiceImpl implements TokenService {
 
         if (userdetail != null) {
             name2token.put(username, userdetail.getTokenid());
+        }
+        if(StringUtil.isNotEmpty(auth_model) && "API".equals(auth_model)){
+            userdetail.setTokenid(null);
         }
         return userdetail;
     }
