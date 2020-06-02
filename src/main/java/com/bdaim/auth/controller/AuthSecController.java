@@ -53,7 +53,11 @@ public class AuthSecController extends BasicAction {
 		if(user==null){
 			return responseInfoAssemble.failure(0,"请确认用户参数正确");
 		}
-		boolean success = sendSmsService.verificationCode(user.getAccount(), NumberConvertUtil.parseInt(type), code) == 1 ? true : false;
+		CustomerUserPropertyDO mobile_num = customerUserdao.getProperty(uid, "mobile_num");
+		if(mobile_num==null){
+			return responseInfoAssemble.failure(0,"请确认手机号参数正确");
+		}
+		boolean success = sendSmsService.verificationCode(mobile_num.getPropertyValue(), NumberConvertUtil.parseInt(type), code) == 1 ? true : false;
 		if (!success) {
 			return responseInfoAssemble.failure(0,"验证错误");
 		}else{
