@@ -77,7 +77,7 @@ public class AuthSecController extends BasicAction {
 				return responseInfoAssemble.failure(0,"请确认用户参数正确");
 			}
 			String phone = mobile_num.getPropertyValue();
-			JSONObject r = (JSONObject) sendSmsService.sendSmsVcCodeByCommChinaAPI(phone, 2, user.getAccount());
+			JSONObject r = (JSONObject) sendSmsService.sendSmsVcCodeByCommChinaAPI(phone, 15, user.getAccount());
 			if(r.getInteger("code")==1){
 				return responseInfoAssemble.success("验证码发送成功");
 			}else{
