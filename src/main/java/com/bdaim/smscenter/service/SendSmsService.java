@@ -441,6 +441,7 @@ public class SendSmsService {
         Map<String, Object> params = new HashMap<>();
         params.put("phone", phone);
         params.put("type", type);
+        logger.info("verificationCode.params:"+params);
         //查询出一个userVerificationCode对象
         dto = userVerificationCodeService.getUserVerificationCodeByCondition(params);
         logger.info("verificationCode::"+dto);
