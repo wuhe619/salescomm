@@ -370,8 +370,9 @@ public class SendSmsService {
         smsParam.setDatas(Arrays.asList(templateValue.split(",")));
         smsParam.setSpuid(AppConfig.getYtx_spuid());
         smsParam.setSppwd(AppConfig.getYtx_sppwd());
+
         String result = SaleApiUtil.sendSms(JSON.toJSONString(smsParam), SaleApiUtil.ENV);
-        LogUtil.info("模板ID:" + smsParam.getTemplateId() + "----手机号：" + smsParam.getMobile());
+        LogUtil.info("模板ID:" + smsParam.getTemplateId() + "----手机号：" + smsParam.getMobile()+"----spuid:"+smsParam.getSpuid()+"----sppwd:"+smsParam.getSppwd());
         //短信
         if (SaleApiUtil.SMS_TYPE == type) {
             smsParam.setAppid(SaleApiUtil.SMS_APP_ID);
