@@ -443,9 +443,11 @@ public class SendSmsService {
         params.put("type", type);
         //查询出一个userVerificationCode对象
         dto = userVerificationCodeService.getUserVerificationCodeByCondition(params);
+        logger.info("verificationCode::"+dto);
         if (dto == null) return 0;
         //获取创建时间计算时间差和验证码验证
         if (System.currentTimeMillis() - dto.getSendTime() <= dto.getEffectiveTimeLength() * 60 * 1000 && code.equals(dto.getVcVode())) {
+            logger.info("verificationCode::时间验证成功");
             dto.setStatus(2);
             smsDao.saveOrUpdate(dto);
             return 1;
