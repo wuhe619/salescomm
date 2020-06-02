@@ -1,11 +1,7 @@
 package com.bdaim.auth.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.auth.LoginUser;
 import com.bdaim.auth.service.impl.TokenServiceImpl;
-import com.bdaim.common.auth.Token;
-import com.bdaim.common.auth.service.TokenCacheService;
-import com.bdaim.common.auth.service.TokenService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
@@ -16,6 +12,8 @@ import com.bdaim.customer.user.service.CustomerUserService;
 import com.bdaim.smscenter.service.SendSmsService;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -24,6 +22,8 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/sec_auth")
 public class AuthSecController extends BasicAction {
+
+	public static final Logger logger = LoggerFactory.getLogger(AuthSecController.class);
 
 	@Resource
 	private CustomerUserDao customerUserdao;
@@ -61,6 +61,7 @@ public class AuthSecController extends BasicAction {
 		if (!success) {
 			return responseInfoAssemble.failure(0,"验证错误");
 		}else{
+			logger.info("account: "+user.getAccount()+"; token:"+TokenServiceImpl.name2token.get(user.getAccount()));
 			return responseInfoAssemble.success(TokenServiceImpl.name2token.get(user.getAccount()));
 		}
 	}
