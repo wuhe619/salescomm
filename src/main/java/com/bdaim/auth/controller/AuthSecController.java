@@ -61,6 +61,7 @@ public class AuthSecController extends BasicAction {
 		if (!success) {
 			return responseInfoAssemble.failure(0,"验证错误");
 		}else{
+			logger.info(""+TokenServiceImpl.name2token.toString());
 			logger.info("account: "+user.getAccount()+"; token:"+TokenServiceImpl.name2token.get(user.getAccount()));
 			return responseInfoAssemble.success(TokenServiceImpl.name2token.get(user.getAccount()));
 		}
