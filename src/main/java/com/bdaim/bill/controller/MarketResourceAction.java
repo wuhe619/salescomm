@@ -4013,6 +4013,30 @@ public class MarketResourceAction extends BasicAction {
         return json.toJSONString();
     }
 
+    @PostMapping(value = "/pageUserClue")
+    @ResponseBody
+    @CacheAnnotation
+    public String pageUserClue(@Valid PageParam pageParam, BindingResult error, String customerGroupId, String marketTaskId) {
+        if (error.hasErrors()) {
+            return getErrors(error);
+        }
+        LoginUser user = opUser();
+        Page page = null;
+        try {
+            page = marketResourceService.pageClue(user.getId().toString(), customerGroupId, marketTaskId, pageParam.getPageNum(), pageParam.getPageSize());
+        } catch (Exception e) {
+            page = new Page();
+            LOG.error("查询用户线索记录分页失败,", e);
+        }
+        Map<Object, Object> map = new HashMap<>();
+        map.put("data", page.getData());
+        map.put("total", page.getTotal());
+        JSONObject json = new JSONObject();
+        json.put("data", map);
+        return json.toJSONString();
+
+    }
+
 }
 
 

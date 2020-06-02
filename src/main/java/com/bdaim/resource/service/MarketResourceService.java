@@ -9485,4 +9485,19 @@ public class MarketResourceService {
         return success ? 1 : -1;
     }
 
+    /**
+     * 线索分页
+     * @param userId
+     * @param customerGroupId
+     * @param marketTaskId
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    public Page pageClue(String userId, String customerGroupId, String marketTaskId, int pageNum, int pageSize) {
+        // 查询是否开启了邮件线索通知
+        Page page = customerDao.sqlPageQuery0("SELECT uid u, substring(p, 2) v,customer_group_id,market_task_id FROM user_clue_log WHERE user_id = ? ORDER BY create_time DESC", pageNum, pageSize, userId);
+        return page;
+    }
+
 }
