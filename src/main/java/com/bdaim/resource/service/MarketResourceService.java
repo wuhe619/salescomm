@@ -81,6 +81,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -103,6 +105,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static com.bdaim.common.exception.BpExceptionHandler.log;
@@ -3855,7 +3858,7 @@ public class MarketResourceService {
     private UserDao userDao;
     @Resource
     private CustomGroupDao customGroupDao;
-    @Resource
+    @Autowired
     private CustomGroupService customGroupService;
     @Resource
     private SendSmsService sendSmsService;
@@ -9343,6 +9346,143 @@ public class MarketResourceService {
         ResourcePropertyEntity property = sourceDao.getSourceProperty(resourceId);
         map.put("property", property);
         return map;
+    }
+
+    /**
+     * @param pushType
+     * @param superId
+     * @param custId
+     * @param userId
+     * @param customerGroupId
+     * @param marketTaskId
+     * @param type
+     * @return
+     */
+    //@Async
+    public int cluePush(String superId, String custId, String userId, String customerGroupId, String marketTaskId, int type) {
+        String phone = phoneService.getPhoneBySuperId(superId);
+        //phone = "3232323";
+        if (StringUtil.isEmpty(phone)) {
+            LOG.warn("线索通知手机号为空superId:{},phone:{}", superId, phone);
+            return -1;
+        }
+        // 查询是否开启了邮件线索通知
+        CustomerProperty emailStatus = customerDao.getProperty(custId, "clue_email_status");
+        if (emailStatus == null) {
+            LOG.warn("客户:{},未配置线索邮件通知", custId);
+            return -1;
+        }
+        if (StringUtil.isEmpty(emailStatus.getPropertyValue()) || "2".equals(emailStatus.getPropertyValue())) {
+            LOG.warn("客户:{},线索邮件通知为空或者为关闭状态:{}", custId, emailStatus);
+            return -1;
+        }
+        Map<String, Object> project = customerDao.queryUniqueSql("SELECT property_value FROM t_system_config WHERE property_name = ? ", "zm_clue_email_project");
+        if (project == null || project.isEmpty() || project.get("property_value") == null) {
+            LOG.warn("线索邮件通知项目ID为空:{}", project);
+            return -1;
+        }
+        List<String> projects = Arrays.asList(String.valueOf(project.get("property_value")).split(","));
+        String projectId = "";
+        CustomGroup customGroup = null;
+        if (StringUtil.isNotEmpty(customerGroupId)) {
+            customGroup = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
+        } else if (StringUtil.isNotEmpty(marketTaskId)) {
+            MarketTask marketTask = marketTaskDao.get(marketTaskId);
+            customGroup = customGroupDao.get(NumberConvertUtil.parseInt(marketTask.getCustomerGroupId()));
+        }
+        if (customGroup == null) {
+            LOG.warn("线索邮件客群:{}或营销任务:{}项目为空", customerGroupId, marketTaskId);
+            return -1;
+        }
+        projectId = String.valueOf(customGroup.getMarketProjectId());
+        if (!projects.contains(projectId)) {
+            LOG.warn("项目ID:{},不属于待通知的项目列表:{}", projectId, Arrays.toString(projects.toArray()));
+            return -1;
+        }
+        boolean success = false;
+        // 查询通话记录
+        if (type == 2) {
+            LocalDateTime nowTime = LocalDateTime.now();
+            String sql = "SELECT touch_id FROM t_touch_voice_log_" + nowTime.format(YYYYMM) + " WHERE called_duration >0 AND superid = ? AND customer_group_id = ? " +
+                    " union all SELECT touch_id FROM t_touch_voice_log_" + nowTime.minusMonths(1).format(YYYYMM) + " WHERE called_duration >0 AND superid = ? AND customer_group_id = ? ";
+            Map<String, Object> log = customerDao.queryUniqueSql(sql, superId, customerGroupId, superId, customerGroupId);
+            if (log == null || log.size() == 0) {
+                LOG.warn("身份ID:{},客群:{}未查询到最近2个月的通话记录:{}", superId, customerGroupId);
+                return -1;
+            }
+            success = true;
+        } else if (type == 1) {
+            success = true;
+        }
+
+        // 发送邮件
+        LOG.info("邮件发送superId:{},customerGroupId:{}判断是否要发送邮件的状态:{}", superId, customerGroupId, success);
+        if (success) {
+            try {
+                LOG.info("众麦线索手机通知uid:{},客群ID:{},userId:{}", superId, customerGroupId, userId);
+                int status = marketTaskDao.executeUpdateSQL("INSERT INTO `user_clue_log` (`customer_group_id`, `market_task_id`, `uid`, `p`, `user_id`, `create_time`) VALUES ( ?, ?, ?, ?, ?, ?);",
+                        customerGroupId, marketTaskId, superId, phone, userId, new Timestamp(System.currentTimeMillis()));
+                return status > 0 ? 1 : 0;
+            } catch (Exception e) {
+                LOG.error("众麦线索手机通知uid:{},客群ID:{},userId:{}", superId, customerGroupId, userId, e);
+                return -1;
+            }
+        }
+        return -1;
+    }
+
+    public int checkClueStatus(int type, String superId, String custId, String userId, String customerGroupId, String marketTaskId) {
+        // 查询是否开启了邮件线索通知
+        CustomerProperty emailStatus = customerDao.getProperty(custId, "clue_email_status");
+        if (emailStatus == null) {
+            LOG.warn("客户:{},未配置线索邮件通知", custId);
+            return -1;
+        }
+        if (StringUtil.isEmpty(emailStatus.getPropertyValue()) || "2".equals(emailStatus.getPropertyValue())) {
+            LOG.warn("客户:{},线索邮件通知为空或者为关闭状态:{}", custId, emailStatus);
+            return -1;
+        }
+        Map<String, Object> project = customerDao.queryUniqueSql("SELECT property_value FROM t_system_config WHERE property_name = ? ", "zm_clue_email_project");
+        if (project == null || project.isEmpty() || project.get("property_value") == null) {
+            LOG.warn("线索邮件通知项目ID为空:{}", project);
+            return -1;
+        }
+        List<String> projects = Arrays.asList(String.valueOf(project.get("property_value")).split(","));
+        String projectId = "";
+        CustomGroup customGroup = null;
+        if (StringUtil.isNotEmpty(customerGroupId)) {
+            customGroup = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
+        } else if (StringUtil.isNotEmpty(marketTaskId)) {
+            MarketTask marketTask = marketTaskDao.get(marketTaskId);
+            customGroup = customGroupDao.get(NumberConvertUtil.parseInt(marketTask.getCustomerGroupId()));
+        }
+        if (customGroup == null) {
+            LOG.warn("线索邮件客群:{}或营销任务:{}项目为空", customerGroupId, marketTaskId);
+            return -1;
+        }
+        projectId = String.valueOf(customGroup.getMarketProjectId());
+        if (!projects.contains(projectId)) {
+            LOG.warn("项目ID:{},不属于待通知的项目列表:{}", projectId, Arrays.toString(projects.toArray()));
+            return -1;
+        }
+        boolean success = false;
+        // 查询通话记录
+        if (type == 2) {
+            LocalDateTime nowTime = LocalDateTime.now();
+            String sql = "SELECT touch_id FROM t_touch_voice_log_" + nowTime.format(YYYYMM) + " WHERE called_duration >0 AND superid = ? AND customer_group_id = ? " +
+                    " union all SELECT touch_id FROM t_touch_voice_log_" + nowTime.minusMonths(1).format(YYYYMM) + " WHERE called_duration >0 AND superid = ? AND customer_group_id = ? ";
+            Map<String, Object> log = customerDao.queryUniqueSql(sql, superId, customerGroupId, superId, customerGroupId);
+            if (log == null || log.size() == 0) {
+                LOG.warn("身份ID:{},客群:{}未查询到最近2个月的通话记录:{}", superId, customerGroupId);
+                return -1;
+            }
+            success = true;
+        } else if (type == 1) {
+            success = true;
+        }
+
+        LOG.info("邮件发送superId:{},customerGroupId:{}判断是否要发送邮件的状态:{}", superId, customerGroupId, success);
+        return success ? 1 : -1;
     }
 
 }

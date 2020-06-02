@@ -3992,13 +3992,7 @@ public class MarketResourceAction extends BasicAction {
         LOG.info("呼叫线索推送参数:" + map);
         LoginUser user = opUser();
         int code = 0;
-        try {
-            code = sendMailService.cluePush(pushType, superId, user.getCustId(), user.getId().toString(), customerGroupId, marketTaskId, type).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
+        code = marketResourceService.cluePush(superId, user.getCustId(), user.getId().toString(), customerGroupId, marketTaskId, type);
         JSONObject json = new JSONObject();
         json.put("code", code);
         return json.toJSONString();
@@ -4013,7 +4007,7 @@ public class MarketResourceAction extends BasicAction {
         String marketTaskId = String.valueOf(map.get("marketTaskId"));
         LOG.info("呼叫线索推送判断参数:" + map);
         LoginUser user = opUser();
-        int code = sendMailService.checkCluePush(type, superId, user.getCustId(), user.getId().toString(), customerGroupId, marketTaskId);
+        int code = marketResourceService.checkClueStatus(type, superId, user.getCustId(), user.getId().toString(), customerGroupId, marketTaskId);
         JSONObject json = new JSONObject();
         json.put("code", code);
         return json.toJSONString();
