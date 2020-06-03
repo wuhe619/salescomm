@@ -16,7 +16,9 @@ import com.bdaim.util.StringUtil;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -613,6 +615,21 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
         if (list.size() > 0)
             cp = (CustomerUser) list.get(0);
         return cp;
+    }
+
+    public void dealCustomerInfo(String userId, String propertyName, String propertyValue) {
+        CustomerUserPropertyDO propertyInfo = this.getProperty(userId, propertyName);
+        if (propertyInfo == null) {
+            propertyInfo = new CustomerUserPropertyDO();
+            propertyInfo.setCreateTime(new Timestamp(new Date().getTime()).toString());
+            propertyInfo.setUserId(userId);
+            propertyInfo.setPropertyValue(propertyValue);
+            logger.info(userId + " 属性不存在，新建该属性" + "\tpropertyName:" + propertyName + "\tpropertyValue:" + propertyValue);
+            propertyInfo.setPropertyName(propertyName);
+        } else {
+            propertyInfo.setPropertyValue(propertyValue);
+        }
+        this.saveOrUpdate(propertyInfo);
     }
 
 }

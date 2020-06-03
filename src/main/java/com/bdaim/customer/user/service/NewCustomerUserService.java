@@ -9,6 +9,7 @@ import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.util.*;
 import org.springframework.stereotype.Service;
 
@@ -59,13 +60,22 @@ public class NewCustomerUserService {
                 customerUserDO.setStatus(Constant.USER_ACTIVE_STATUS);
                 customerUserDO.setCreateTime(String.valueOf(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)));
                 customerUserDao.saveOrUpdate(customerUserDO);
-
             }
         }
 
         //联系人电话
         if (StringUtil.isNotEmpty(vo.getMobile())) {
             customerDao.dealCustomerInfo(vo.getCustId(), "mobile", vo.getMobile());
+        }
+
+        //账号绑定手机号
+        if (StringUtil.isNotEmpty(vo.getMobile_num())) {
+//            CustomerUserPropertyDO customerUserPropertyDO=new CustomerUserPropertyDO();
+//            customerUserPropertyDO.setPropertyName("mobile_num");
+//            customerUserPropertyDO.setPropertyValue(vo.getMobile_num());
+//            customerUserPropertyDO.setCreateTime(new Date().getTime());
+//            customerUserDao.saveOrUpdate(customerUserPropertyDO);
+            customerUserDao.dealCustomerInfo(vo.getUserId(), "mobile_num", vo.getMobile_num());
         }
         return 1;
     }
@@ -81,7 +91,13 @@ public class NewCustomerUserService {
         vo.setUserId(customerUser.getId() + "");
         vo.setPassword(customerUser.getPassword());
         CustomerProperty property = customerDao.getProperty(customerUser.getCust_id(), "mobile");
-        vo.setMobile(property.getPropertyValue());
+        if(property!=null) { //联系人电话
+            vo.setMobile(property.getPropertyValue());
+        }
+        CustomerUserPropertyDO propertyDO =customerUserDao.getProperty(customerUser.getId()+"","mobile_num");
+        if(propertyDO!=null) {//二次验证手机号
+            vo.setMobile_num(propertyDO.getPropertyValue());
+        }
         return vo;
 
     }

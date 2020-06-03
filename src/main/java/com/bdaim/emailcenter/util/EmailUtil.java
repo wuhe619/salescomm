@@ -51,6 +51,10 @@ public class EmailUtil {
         props.put("mail.smtp.host", smtpHost);
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.ssl.enable", String.valueOf(sslEnable));
+
+        props.put("mail.smtp.connectiontimeout", 5000);
+        props.put("mail.smtp.timeout", 3000);
+        props.put("mail.smtp.writetimeout", 5000);
         try {
             // 获得邮件会话对象
             session = Session.getDefaultInstance(props, null);

@@ -370,8 +370,9 @@ public class SendSmsService {
         smsParam.setDatas(Arrays.asList(templateValue.split(",")));
         smsParam.setSpuid(AppConfig.getYtx_spuid());
         smsParam.setSppwd(AppConfig.getYtx_sppwd());
+
         String result = SaleApiUtil.sendSms(JSON.toJSONString(smsParam), SaleApiUtil.ENV);
-        LogUtil.info("模板ID:" + smsParam.getTemplateId() + "----手机号：" + smsParam.getMobile());
+        LogUtil.info("模板ID:" + smsParam.getTemplateId() + "----手机号：" + smsParam.getMobile()+"----spuid:"+smsParam.getSpuid()+"----sppwd:"+smsParam.getSppwd());
         //短信
         if (SaleApiUtil.SMS_TYPE == type) {
             smsParam.setAppid(SaleApiUtil.SMS_APP_ID);
@@ -440,11 +441,14 @@ public class SendSmsService {
         Map<String, Object> params = new HashMap<>();
         params.put("phone", phone);
         params.put("type", type);
+        logger.info("verificationCode.params:"+params);
         //查询出一个userVerificationCode对象
         dto = userVerificationCodeService.getUserVerificationCodeByCondition(params);
+        logger.info("verificationCode::"+dto);
         if (dto == null) return 0;
         //获取创建时间计算时间差和验证码验证
         if (System.currentTimeMillis() - dto.getSendTime() <= dto.getEffectiveTimeLength() * 60 * 1000 && code.equals(dto.getVcVode())) {
+            logger.info("verificationCode::时间验证成功");
             dto.setStatus(2);
             smsDao.saveOrUpdate(dto);
             return 1;
@@ -710,6 +714,12 @@ public class SendSmsService {
                 values.add(vCode);
                 values.add("5");
 //                values.add("30");
+                break;
+            case 15:
+                // 联客CRM登录验证码
+                templateId = "2905";
+                values.add(vCode);
+                values.add("5");
                 break;
             default:
                 throw new RuntimeException("type match value！");
