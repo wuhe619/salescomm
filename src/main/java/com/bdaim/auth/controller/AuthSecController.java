@@ -43,7 +43,7 @@ public class AuthSecController extends BasicAction {
 	 * @throws Exception
 	 */
 	@PostMapping("/checkin/{uid}")
-	public ResponseInfo checkin(@PathVariable("uid") String uid, String code, String type) throws Exception{
+	public ResponseInfo checkin(@PathVariable("uid") String uid, String code, String type,String verCodeStr) throws Exception{
 		//todo 1.验证动态码
 		ResponseInfoAssemble responseInfoAssemble = new ResponseInfoAssemble();
 		if(StringUtil.isEmpty(code) || StringUtil.isEmpty(type)){
@@ -61,9 +61,9 @@ public class AuthSecController extends BasicAction {
 		if (!success) {
 			return responseInfoAssemble.failure(0,"验证错误");
 		}else{
-			logger.info(""+TokenServiceImpl.name2token.toString());
-			logger.info("account: "+user.getAccount()+"; token:"+TokenServiceImpl.name2token.get(user.getAccount()));
-			return responseInfoAssemble.success(TokenServiceImpl.name2token.get(user.getAccount()));
+			logger.info(""+TokenServiceImpl.listTokens());
+			logger.info("account: "+user.getAccount()+"; token:"+TokenServiceImpl.name2token.get(verCodeStr+"."+user.getAccount()));
+			return responseInfoAssemble.success(TokenServiceImpl.name2token.get(verCodeStr+"."+user.getAccount()));
 		}
 	}
 
