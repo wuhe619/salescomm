@@ -54,10 +54,19 @@ public class CustomerRegistDTO implements Serializable {
     private String serviceMode;
     private String resource;
     private String createId;
+    private String mobile_num;
 
     private String agentApiId;
 
     private String agentApiName;
+
+    public String getMobile_num() {
+        return mobile_num;
+    }
+
+    public void setMobile_num(String mobile_num) {
+        this.mobile_num = mobile_num;
+    }
 
     public String getAgentApiId() {
         return agentApiId;

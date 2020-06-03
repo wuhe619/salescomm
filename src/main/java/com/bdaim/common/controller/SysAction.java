@@ -5,9 +5,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.auth.service.impl.TokenServiceImpl;
 import com.bdaim.common.exception.TouchException;
+import com.bdaim.common.service.SystemConfigService;
 import com.bdaim.util.StringUtil;
 import com.bdaim.util.http.HttpUtil;
 import org.apache.commons.httpclient.util.DateUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +20,9 @@ import java.util.*;
 @Controller
 @RequestMapping("/sys")
 public class SysAction extends BasicAction {
+
+    @Autowired
+    private SystemConfigService systemConfigService;
 
     /**
      * token列表
@@ -72,5 +77,14 @@ public class SysAction extends BasicAction {
         } else {
             return new JSONObject().toJSONString();
         }
+    }
+
+    @ResponseBody
+    @RequestMapping("/updateConfig")
+    public String updateConfig(String key, String value) {
+        int code = systemConfigService.saveSystemConfig(key, value);
+        JSONObject json = new JSONObject();
+        json.put("code", code);
+        return json.toJSONString();
     }
 }
