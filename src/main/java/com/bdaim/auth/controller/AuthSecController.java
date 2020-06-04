@@ -1,11 +1,7 @@
 package com.bdaim.auth.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.auth.LoginUser;
 import com.bdaim.auth.service.impl.TokenServiceImpl;
-import com.bdaim.common.auth.Token;
-import com.bdaim.common.auth.service.TokenCacheService;
-import com.bdaim.common.auth.service.TokenService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
@@ -16,6 +12,8 @@ import com.bdaim.customer.user.service.CustomerUserService;
 import com.bdaim.smscenter.service.SendSmsService;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -24,6 +22,8 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/sec_auth")
 public class AuthSecController extends BasicAction {
+
+	public static final Logger logger = LoggerFactory.getLogger(AuthSecController.class);
 
 	@Resource
 	private CustomerUserDao customerUserdao;
@@ -43,7 +43,7 @@ public class AuthSecController extends BasicAction {
 	 * @throws Exception
 	 */
 	@PostMapping("/checkin/{uid}")
-	public ResponseInfo checkin(@PathVariable("uid") String uid, String code, String type) throws Exception{
+	public ResponseInfo checkin(@PathVariable("uid") String uid, String code, String type,String verCodeStr) throws Exception{
 		//todo 1.验证动态码
 		ResponseInfoAssemble responseInfoAssemble = new ResponseInfoAssemble();
 		if(StringUtil.isEmpty(code) || StringUtil.isEmpty(type)){
@@ -53,11 +53,17 @@ public class AuthSecController extends BasicAction {
 		if(user==null){
 			return responseInfoAssemble.failure(0,"请确认用户参数正确");
 		}
-		boolean success = sendSmsService.verificationCode(user.getAccount(), NumberConvertUtil.parseInt(type), code) == 1 ? true : false;
+		CustomerUserPropertyDO mobile_num = customerUserdao.getProperty(uid, "mobile_num");
+		if(mobile_num==null){
+			return responseInfoAssemble.failure(0,"请确认手机号参数正确");
+		}
+		boolean success = sendSmsService.verificationCode(mobile_num.getPropertyValue(), NumberConvertUtil.parseInt(type), code) == 1 ? true : false;
 		if (!success) {
 			return responseInfoAssemble.failure(0,"验证错误");
 		}else{
-			return responseInfoAssemble.success(TokenServiceImpl.name2token.get(user.getAccount()));
+			logger.info(""+TokenServiceImpl.listTokens());
+			logger.info("account: "+user.getAccount()+"; token:"+TokenServiceImpl.name2token.get(verCodeStr+"."+user.getAccount()));
+			return responseInfoAssemble.success(TokenServiceImpl.name2token.get(verCodeStr+"."+user.getAccount()));
 		}
 	}
 
@@ -77,7 +83,7 @@ public class AuthSecController extends BasicAction {
 				return responseInfoAssemble.failure(0,"请确认用户参数正确");
 			}
 			String phone = mobile_num.getPropertyValue();
-			JSONObject r = (JSONObject) sendSmsService.sendSmsVcCodeByCommChinaAPI(phone, 2, user.getAccount());
+			JSONObject r = (JSONObject) sendSmsService.sendSmsVcCodeByCommChinaAPI(phone, 15, user.getAccount());
 			if(r.getInteger("code")==1){
 				return responseInfoAssemble.success("验证码发送成功");
 			}else{

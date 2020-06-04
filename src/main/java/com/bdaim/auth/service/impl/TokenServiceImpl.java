@@ -380,7 +380,9 @@ public class TokenServiceImpl implements TokenService {
 
         if (userdetail != null) {
             name2token.put(username, userdetail.getTokenid());
+            logger.info("tokenid= "+name2token.get(username));
         }
+
         if(StringUtil.isNotEmpty(auth_model) && "API".equals(auth_model)){
             userdetail.setTokenid(null);
         }
