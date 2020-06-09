@@ -1118,6 +1118,7 @@ public class EntDataService {
     public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) {
         JSONObject baseResult = elasticSearchService.getDocumentById0(ESCreditIndexType.BASIC.getIndexName(), ESCreditIndexType.BASIC.getTypeName(), companyId);
         if (baseResult != null) {
+            baseResult.put("regCapNum", baseResult.get("regCapNumf"));
             baseResult.put("phones", handlePhones(baseResult));
             if (seaId > 0) {
                 //处理公司联系方式是否有意向
@@ -1130,6 +1131,7 @@ public class EntDataService {
     public JSONObject getCompanyDetailSrc(String companyId, JSONObject param, String busiType, long seaId) {
         JSONObject baseResult = elasticSearchService.getDocumentById0(ESCreditIndexType.BASIC.getIndexName(), ESCreditIndexType.BASIC.getTypeName(), companyId);
         if (baseResult != null) {
+            baseResult.put("regCapNum", baseResult.get("regCapNumf"));
             baseResult.put("phones", handlePhonesSrc(baseResult));
             if (seaId > 0) {
                 //处理公司联系方式是否有意向
@@ -1160,6 +1162,7 @@ public class EntDataService {
                 phones = handlePhonesSrc(t);
                 t.put("sum", phones.size());
                 t.put("phones", phones);
+                t.put("regCapNum", t.get("regCapNumf"));
                 break;
             }
         }
