@@ -11,7 +11,6 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.service.SequenceService;
-import com.bdaim.crm.ent.dto.ESCreditIndexType;
 import com.bdaim.crm.ent.entity.*;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customer.service.B2BTcbLogService;
@@ -1116,9 +1115,8 @@ public class EntDataService {
     }*/
 
     public JSONObject getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) {
-        JSONObject baseResult = elasticSearchService.getDocumentById0(ESCreditIndexType.BASIC.getIndexName(), ESCreditIndexType.BASIC.getTypeName(), companyId);
+        JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
         if (baseResult != null) {
-            baseResult.put("regCapNum", baseResult.get("regCapNumf"));
             baseResult.put("phones", handlePhones(baseResult));
             if (seaId > 0) {
                 //处理公司联系方式是否有意向
@@ -1129,9 +1127,8 @@ public class EntDataService {
     }
 
     public JSONObject getCompanyDetailSrc(String companyId, JSONObject param, String busiType, long seaId) {
-        JSONObject baseResult = elasticSearchService.getDocumentById0(ESCreditIndexType.BASIC.getIndexName(), ESCreditIndexType.BASIC.getTypeName(), companyId);
+        JSONObject baseResult = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
         if (baseResult != null) {
-            baseResult.put("regCapNum", baseResult.get("regCapNumf"));
             baseResult.put("phones", handlePhonesSrc(baseResult));
             if (seaId > 0) {
                 //处理公司联系方式是否有意向
@@ -1152,7 +1149,7 @@ public class EntDataService {
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
         qb.filter(QueryBuilders.matchQuery("entName", companyName));
         searchSourceBuilder.query(qb);
-        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), ESCreditIndexType.BASIC.getIndexName(), ESCreditIndexType.BASIC.getTypeName());
+        SearchResult result = elasticSearchService.search(searchSourceBuilder.toString(), AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type());
         JSONObject t = null;
         if (result != null && result.isSucceeded() && result.getHits(JSONObject.class) != null) {
             List<Map<String, Object>> phones;
@@ -1162,7 +1159,6 @@ public class EntDataService {
                 phones = handlePhonesSrc(t);
                 t.put("sum", phones.size());
                 t.put("phones", phones);
-                t.put("regCapNum", t.get("regCapNumf"));
                 break;
             }
         }
