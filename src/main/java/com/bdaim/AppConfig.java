@@ -274,11 +274,11 @@ public class AppConfig {
 	}
 
 	public static String getEnt_data_index() {
-		return "retrieve";
+		return ent_data_index;
 	}
-
+	@Value("${ent_data_index:ent_data_test}")
 	public void setEnt_data_index(String ent_data_index) {
-		AppConfig.ent_data_index = "retrieve";
+		AppConfig.ent_data_index = ent_data_index;
 	}
 
 	public static String getEnt_data_type() {
