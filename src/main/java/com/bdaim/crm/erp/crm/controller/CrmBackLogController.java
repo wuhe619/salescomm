@@ -36,12 +36,34 @@ public class CrmBackLogController extends BasicAction {
     }
 
     /**
+     * 即将到期的客户列表
+     * @param basePageRequest
+     * @return
+     */
+    @RequestMapping(value = "/endCustomer", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R endCustomer(BasePageRequest basePageRequest){
+        return(crmBackLogService.endCustomer(basePageRequest));
+    }
+
+    /**
      *今日需联系线索
      */
     @RequestMapping(value = "/todayCrmLeads", method = RequestMethod.POST)
     @ClassTypeCheck(classType = BasePageRequest.class)
     public R todayCrmLeads(BasePageRequest basePageRequest){
         return(crmBackLogService.todayCrmLeads(basePageRequest));
+    }
+
+    /**
+     *  即将到期的线索列表
+     * @param basePageRequest
+     * @return
+     */
+    @RequestMapping(value = "/endLeadsCrmLeads", method = RequestMethod.POST)
+    @ClassTypeCheck(classType = BasePageRequest.class)
+    public R endLeadsCrmLeads(BasePageRequest basePageRequest){
+        return(crmBackLogService.endLeadsCrmLeads(basePageRequest));
     }
 
     /**

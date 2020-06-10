@@ -278,7 +278,7 @@ public class EntDataService {
         if (count.size() > 0) {
             total = NumberConvertUtil.parseLong(count.get(0).get("count"));
         }
-        int limit = 50000;
+        int limit = 500;
         for (int i = 0; i <= total; i += limit) {
             List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from enterprise_info_" + yearMonth + " where create_time between ? and ? LIMIT ?,?",
                     localTime.withHour(0).withMinute(0).withSecond(0), localTime.withHour(23).withMinute(59).withSecond(59), i, limit);
@@ -312,7 +312,7 @@ public class EntDataService {
                     //elasticSearchService.addDocumentToType("test", "business",jsonObject.getString("id"),jsonObject);
                     data.add(jsonObject);
                 }
-                elasticSearchService.bulkInsertDocument0("ent_data", "business", data);
+                elasticSearchService.bulkInsertDocument("ent_data", "business", data);
             }
         }
     }

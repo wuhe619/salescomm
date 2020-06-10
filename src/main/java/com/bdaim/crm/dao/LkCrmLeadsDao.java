@@ -137,7 +137,7 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
     public List<Map<String, Object>> getPublicSeaClue(long seaId, String id) {
         //String fieldSql = "SELECT max( IF ( (`a`.`name` = '客户级别'), `a`.`value`, NULL ) ) AS `客户级别`, max( IF ( (`a`.`name` = '跟进状态'), `a`.`value`, NULL ) ) AS `跟进状态`,  max( IF ( ( `a`.`name` = '最新跟进时间' ), `a`.`value`, NULL ) ) AS `最新跟进时间`, max( IF ( (`a`.`name` = '微信'), `a`.`value`, NULL ) ) AS `微信`, max( IF ( (`a`.`name` = '线索来源'), `a`.`value`, NULL ) ) AS `线索来源`, max( IF ( (`a`.`name` = '省市'), `a`.`value`, NULL ) ) AS `省市`, max( IF ( (`a`.`name` = '部门名称'), `a`.`value`, NULL ) ) AS `部门名称`, max( IF ( (`a`.`name` = '职位'), `a`.`value`, NULL ) ) AS `职位`, max( IF ( (`a`.`name` = 'QQ'), `a`.`value`, NULL ) ) AS `QQ`, max( IF ( (`a`.`name` = '邮箱'), `a`.`value`, NULL ) ) AS `邮箱`, max( IF ( (`a`.`name` = '网址'), `a`.`value`, NULL ) ) AS `网址`, max( IF ( ( `a`.`name` = '进入公海次数' ), `a`.`value`, NULL ) ) AS `进入公海次数`, max( IF ( ( `a`.`name` = '未跟进天数' ), `a`.`value`, NULL ) ) AS `未跟进天数`, max( IF ( ( `a`.`name` = '剩余回收时间' ), `a`.`value`, NULL ) ) AS `剩余回收时间`, max( IF ( (`a`.`name` = '线索标签'), `a`.`value`, NULL ) ) AS `线索标签`, max( IF ( (`a`.`name` = '邮件次数'), `a`.`value`, NULL ) ) AS `邮件次数`, max( IF ( (`a`.`name` = '致电次数'), `a`.`value`, NULL ) ) AS `致电次数`, max( IF ( (`a`.`name` = '短信次数'), `a`.`value`, NULL ) ) AS `短信次数`, max( IF ( (`a`.`name` = '客户行业'), `a`.`value`, NULL ) ) AS `客户行业`, `a`.`batch_id` AS `field_batch_id` FROM ( `lkcrm_admin_fieldv` `a` JOIN `lkcrm_admin_field` `d` ON ( ( `a`.`field_id` = `d`.`field_id` ) ) ) WHERE ( (`d`.`label` = 11) AND (`a`.`batch_id` IS NOT NULL) AND (`a`.`batch_id` <> '') AND (`d`.`field_type` = 0) ) GROUP BY `a`.`batch_id` ";
         String fieldSql = BaseUtil.getViewSqlNotASName("seafieldleadsview");
-        fieldSql = fieldSql.replace("前负责人","_前负责人");
+        fieldSql = fieldSql.replace("前负责人", "_前负责人");
         StringBuffer conditions = new StringBuffer("SELECT a.*,z.*, b.username  as '当前负责人',c.username  as '前负责人' FROM t_customer_sea_list_" + seaId + " AS a left join lkcrm_admin_user as b on a.user_id = b.user_id left join lkcrm_admin_user as c on a.pre_user_id = c.user_id  LEFT JOIN (" + fieldSql + ") AS z ON a.id = z.field_batch_id WHERE id = ? ");
         List param = new ArrayList();
         param.add(id);
@@ -201,6 +201,20 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
             conditions.append(" AND leads_id NOT IN (" + SqlAppendUtil.sqlAppendWhereIn(notInLeadsIds) + ")");
         }
         return sqlQuery(conditions.toString(), custId, company, isTransform);
+    }
+
+    /**
+     * 即将到期的线索
+     * @param followupDay 未跟进天数
+     * @param dealDay 未转为客户天数
+     * @param userId
+     * @return
+     */
+    public int endLeadsNum(int followupDay, int dealDay, String userId) {
+        String sql = "SELECT count(*) FROM lkcrm_crm_leads AS ccc WHERE owner_user_id != 0 AND(followup = 0 OR followup IS NULL) AND (is_lock = 0 OR is_lock IS NULL) " +
+                " AND ( ( to_days(now()) - to_days( IFNULL( ( SELECT car.create_time FROM lkcrm_admin_record AS car WHERE car.types = 'crm_leads' AND car.types_id = ccc.leads_id ORDER BY car.create_time DESC LIMIT 1), ccc.create_time ) ) ) >= abs(?) " +
+                " OR ((to_days(now()) - to_days(create_time) ) >= abs(?) AND ccc.is_transform = 0 )) and ccc.owner_user_id = ?";
+        return queryForInt(sql, followupDay, dealDay, userId);
     }
 
 }
