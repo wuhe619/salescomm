@@ -57,13 +57,49 @@ public class CrmBackLogService {
         Integer config = crmCustomerDao.queryForInt("select status from lkcrm_admin_config where name = 'expiringContractDays' AND cust_id = ? ", user.getCustId());
         Integer checkReceivables = crmCustomerDao.checkReceivablesNum(userId);
         Integer remindReceivablesPlan = crmCustomerDao.remindReceivablesPlanNum(userId);
-        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity where name = ? and cust_id = ?", "expiringContractDays", user.getCustId());
+        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.get("expiringContractDays", user.getCustId());
         Integer endContract = 0;
+        // 即将到期的合同
         if (1 == adminConfig.getStatus()) {
             endContract = crmCustomerDao.endContractNum(adminConfig.getValue(), userId);
         }
+        //即将到期的线索(即将回收的线索)
+        LkCrmAdminConfigEntity seaRule = crmAdminConfigDao.get("seaRule", user.getCustId());
+        Integer endLeads = 0;
+        // 即将到期的线索
+        if (seaRule != null) {
+            JSONObject value = JSON.parseObject(seaRule.getValue());
+            // 线索回收提醒打开状态判断
+            JSONObject recoveryRemind = value.getJSONObject("recoveryRemind");
+            JSONObject recovery = value.getJSONObject("recovery");
+            boolean remindStatus = recoveryRemind != null && recoveryRemind.getBooleanValue("status") && StringUtil.isNotEmpty(recoveryRemind.getString("advanceDay"));
+            boolean recoveryStatus = recovery != null && recovery.getBooleanValue("status");
+            if (remindStatus && recoveryStatus) {
+                endLeads = crmLeadsDao.endLeadsNum(recovery.getIntValue("noFollowDay") + recoveryRemind.getIntValue("advanceDay"),
+                        recovery.getIntValue("noBCDay") + recoveryRemind.getIntValue("advanceDay"), userId);
+            }
+        }
+
+        //即将到期的客户(即将回收的客户)
+        LkCrmAdminConfigEntity customerRule = crmAdminConfigDao.get("customerRule", user.getCustId());
+        Integer endCustomer = 0;
+        // 即将到期的线索
+        if (customerRule != null) {
+            JSONObject value = JSON.parseObject(customerRule.getValue());
+            // 线索回收提醒打开状态判断
+            JSONObject recoveryRemind = value.getJSONObject("recoveryRemind");
+            JSONObject recovery = value.getJSONObject("recovery");
+            boolean remindStatus = recoveryRemind != null && recoveryRemind.getBooleanValue("status") && StringUtil.isNotEmpty(recoveryRemind.getString("advanceDay"));
+            boolean recoveryStatus = recovery != null && recovery.getBooleanValue("status");
+            if (remindStatus && recoveryStatus) {
+                endCustomer = crmCustomerDao.endCustomerNum(recovery.getIntValue("noFollowDay") + recoveryRemind.getIntValue("advanceDay"),
+                        recovery.getIntValue("noBCDay") + recoveryRemind.getIntValue("advanceDay"), userId);
+            }
+        }
+
         Kv kv = Kv.by("todayLeads", todayLeads).set("todayCustomer", todayCustomer).set("followLeads", followLeads).set("followCustomer", followCustomer)
-                .set("checkReceivables", checkReceivables).set("remindReceivablesPlan", remindReceivablesPlan).set("endContract", endContract);
+                .set("checkReceivables", checkReceivables).set("remindReceivablesPlan", remindReceivablesPlan).set("endContract", endContract)
+                .set("endLeads", endLeads).set("endCustomer", endCustomer);
         //if (config == 1) {
         Integer checkContract = crmCustomerDao.checkContractNum(userId);
         kv.set("checkContract", checkContract);
@@ -152,6 +188,61 @@ public class CrmBackLogService {
     }
 
     /**
+     * 即将到期的客户列表
+     */
+    public R endCustomer(BasePageRequest basePageRequest) {
+        LoginUser user = BaseUtil.getUser();
+        JSONObject jsonObject = basePageRequest.getJsonObject();
+        Integer type = jsonObject.getInteger("type");
+        Integer isSub = jsonObject.getInteger("isSub");
+        //即将到期的客户(即将回收的客户)
+        LkCrmAdminConfigEntity customerRule = crmAdminConfigDao.get("customerRule", user.getCustId());
+        if (customerRule == null || StringUtil.isEmpty(customerRule.getValue())) {
+            return R.error("客户回收规则未设置");
+        }
+        // 线索回收设置状态判断
+        JSONObject value = JSON.parseObject(customerRule.getValue());
+        JSONObject recovery = value.getJSONObject("recovery");
+        boolean recoveryStatus = recovery != null && recovery.getBooleanValue("status");
+        if (!recoveryStatus) {
+            return R.error("客户回收规则未设置");
+        }
+        JSONObject recoveryRemind = value.getJSONObject("recoveryRemind");
+        boolean remindStatus = recoveryRemind != null && recoveryRemind.getBooleanValue("status");
+        if (!remindStatus) {
+            return R.error("客户回收提醒未设置");
+        }
+
+        String customerview = BaseUtil.getViewSqlNotASName("customerview");
+        StringBuffer stringBuffer = new StringBuffer("from " + customerview + " as ccc where ");
+        stringBuffer.append(" ccc.owner_user_id != 0 AND ccc.deal_status = '未成交' AND ccc.is_lock = 0 ")
+                .append(" AND( ( to_days(now()) - to_days( IFNULL( ( SELECT car.create_time FROM lkcrm_admin_record AS car WHERE car.types = 'crm_customer' ")
+                .append(" AND car.types_id = ccc.customer_id ORDER BY car.create_time DESC LIMIT 1), ccc.create_time ) ) ) >= abs(?) OR (( to_days(now()) - to_days(create_time) ) >= abs(?) AND ( (SELECT count(customer_id) FROM lkcrm_crm_business WHERE customer_id = ccc.customer_id  )=0 AND (SELECT count(customer_id)  FROM lkcrm_crm_contract WHERE customer_id = ccc.customer_id  )=0) ))  ");
+        if (isSub == 1) {
+            stringBuffer.append(" and ccc.owner_user_id = ").append(user.getUserId());
+        } else if (isSub == 2) {
+            String ids = adminSceneService.getSubUserId(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            if (StrUtil.isEmpty(ids)) {
+                ids = "0";
+            }
+            stringBuffer.append(" and ccc.owner_user_id in (").append(ids).append(")");
+        } else {
+            return R.error("isSub参数不正确");
+        }
+        JSONObject data = jsonObject.getJSONObject("data");
+        if (data != null) {
+            stringBuffer.append(getConditionSql(data));
+        }
+        com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(),
+                basePageRequest.getPage(), basePageRequest.getLimit(),
+                recovery.getIntValue("noFollowDay") + recoveryRemind.getIntValue("advanceDay"),
+                recovery.getIntValue("noBCDay") + recoveryRemind.getIntValue("advanceDay"));
+        // 处理联系方式flist字段
+        handleCallField(page);
+        return R.ok().put("data", BaseUtil.crmPage(page));
+    }
+
+    /**
      * 今日需联系线索
      *
      * @param basePageRequest
@@ -190,6 +281,66 @@ public class CrmBackLogService {
         }
         //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select * ", stringBuffer.toString());
         com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
+        // 处理联系方式flist字段
+        handleCallField(page);
+        return R.ok().put("data", BaseUtil.crmPage(page));
+    }
+
+    /**
+     * 即将到期的线索列表
+     *
+     * @param basePageRequest
+     * @return
+     */
+    public R endCrmLeads(BasePageRequest basePageRequest) {
+        LoginUser user = BaseUtil.getUser();
+        JSONObject jsonObject = basePageRequest.getJsonObject();
+        Integer type = jsonObject.getInteger("type");
+        Integer isSub = jsonObject.getInteger("isSub");
+        String customerview = BaseUtil.getViewSqlNotASName("leadsview");
+        StringBuffer stringBuffer = new StringBuffer("from " + customerview + " as ccc where ");
+
+        LkCrmAdminConfigEntity seaRule = crmAdminConfigDao.get("seaRule", user.getCustId());
+        if (seaRule == null || StringUtil.isEmpty(seaRule.getValue())) {
+            return R.error("线索回收规则未设置");
+        }
+        // 线索回收设置状态判断
+        JSONObject value = JSON.parseObject(seaRule.getValue());
+        JSONObject recovery = value.getJSONObject("recovery");
+        boolean recoveryStatus = recovery != null && recovery.getBooleanValue("status");
+        if (!recoveryStatus) {
+            return R.error("线索回收规则未设置");
+        }
+
+        JSONObject recoveryRemind = value.getJSONObject("recoveryRemind");
+        boolean remindStatus = recoveryRemind != null && recoveryRemind.getBooleanValue("status");
+        if (!remindStatus) {
+            return R.error("线索回收提醒未设置");
+        }
+
+        stringBuffer.append("  ccc.owner_user_id != 0 AND(ccc.followup = 0 OR ccc.followup IS NULL) AND (ccc.is_lock = 0 OR ccc.is_lock IS NULL) ")
+                .append("  AND ( ( to_days(now()) - to_days( IFNULL( ( SELECT car.create_time FROM lkcrm_admin_record AS car WHERE car.types = 'crm_leads' AND car.types_id = ccc.leads_id ORDER BY car.create_time DESC LIMIT 1), ccc.create_time ) ) ) >= abs(?) ")
+                .append("  OR ((to_days(now()) - to_days(create_time) ) >= abs(?) AND ccc.is_transform = 0 )) ");
+
+        if (isSub == 1) {
+            stringBuffer.append(" and ccc.owner_user_id = ").append(user.getUserId());
+        } else if (isSub == 2) {
+            String ids = adminSceneService.getSubUserId(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM).substring(1);
+            if (StrUtil.isEmpty(ids)) {
+                ids = "0";
+            }
+            stringBuffer.append(" and ccc.owner_user_id in (").append(ids).append(")");
+        } else {
+            return R.error("isSub参数不正确");
+        }
+        JSONObject data = jsonObject.getJSONObject("data");
+        if (data != null) {
+            stringBuffer.append(getConditionSql(data));
+        }
+        com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(),
+                basePageRequest.getPage(), basePageRequest.getLimit(),
+                recovery.getIntValue("noFollowDay") + recoveryRemind.getIntValue("advanceDay"),
+                recovery.getIntValue("noBCDay") + recoveryRemind.getIntValue("advanceDay"));
         // 处理联系方式flist字段
         handleCallField(page);
         return R.ok().put("data", BaseUtil.crmPage(page));
@@ -424,7 +575,7 @@ public class CrmBackLogService {
         Integer type = jsonObject.getInteger("type");
         Integer isSub = jsonObject.getInteger("isSub");
         LoginUser user = BaseUtil.getUser();
-        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUnique(" FROM LkCrmAdminConfigEntity WHERE name = ? AND custId= ?", "expiringContractDays", user.getCustId());
+        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.get("expiringContractDays", user.getCustId());
         String contractview = BaseUtil.getViewSqlNotASName("contractview");
         StringBuffer stringBuffer = new StringBuffer("from " + contractview + " as a where");
         if (type == 1) {

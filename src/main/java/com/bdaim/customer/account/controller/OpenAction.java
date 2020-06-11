@@ -15,6 +15,7 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.service.ElasticSearchService;
+import com.bdaim.crm.ent.dto.ESCreditIndexType;
 import com.bdaim.crm.ent.service.EntDataService;
 import com.bdaim.customer.account.service.OpenService;
 import com.bdaim.customer.entity.CustomerUser;
@@ -742,7 +743,7 @@ public class OpenAction extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "企业ID必传");
         }
         try {
-            JSONObject data = elasticSearchService.getDocumentById0(AppConfig.getEnt_data_index(), AppConfig.getEnt_data_type(), companyId);
+            JSONObject data = elasticSearchService.getDocumentById0(ESCreditIndexType.BASIC.getIndexName(), ESCreditIndexType.BASIC.getTypeName(), companyId);
             resp.setData(data);
             if (data == null || data.size() == 0) {
                 resp.setCode(0);

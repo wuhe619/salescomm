@@ -72,6 +72,23 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
         return queryForInt(sql, value, userId);
     }
 
+
+    /**
+     * 即将到期的客户
+     * @param followupDay 未跟进天数
+     * @param dealDay 未创建商机或合同
+     * @param userId
+     * @return
+     */
+    public int endCustomerNum(int followupDay, int dealDay, String userId) {
+        String sql = "SELECT COUNT(0) FROM lkcrm_crm_customer AS ccc WHERE owner_user_id != 0 AND deal_status = '未成交' AND is_lock = 0 " +
+                " AND( ( to_days(now()) - to_days( IFNULL( ( SELECT car.create_time FROM lkcrm_admin_record AS car WHERE car.types = 'crm_customer' " +
+                " AND car.types_id = ccc.customer_id ORDER BY car.create_time DESC LIMIT 1), ccc.create_time ) ) ) >= abs(?) " +
+                " OR (( to_days(now()) - to_days(create_time) ) >= abs(?) AND ( (SELECT count(customer_id) FROM lkcrm_crm_business WHERE customer_id = ccc.customer_id  )=0 AND (SELECT count(customer_id)  FROM lkcrm_crm_contract WHERE customer_id = ccc.customer_id  )=0) )) " +
+                " AND ccc.owner_user_id = ?";
+        return queryForInt(sql, followupDay, dealDay, userId);
+    }
+
     public int checkContractNum(String userId) {
         String sql = "select count(*)\n" +
                 "  from lkcrm_crm_contract as a inner join lkcrm_admin_examine_record as b on a.examine_record_id = b.record_id\n" +
