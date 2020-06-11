@@ -83,7 +83,7 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     public int endCustomerNum(int followupDay, int dealDay, String userId) {
         String sql = "SELECT COUNT(0) FROM lkcrm_crm_customer AS ccc WHERE owner_user_id != 0 AND deal_status = '未成交' AND is_lock = 0 " +
                 " AND( ( to_days(now()) - to_days( IFNULL( ( SELECT car.create_time FROM lkcrm_admin_record AS car WHERE car.types = 'crm_customer' " +
-                " AND car.types_id = ccc.customer_id ORDER BY car.create_time DESC LIMIT 1), ccc.create_time ) ) ) > abs(?) OR ( to_days(now()) - to_days(create_time) ) > abs(?) ) " +
+                " AND car.types_id = ccc.customer_id ORDER BY car.create_time DESC LIMIT 1), ccc.create_time ) ) ) >= abs(?) OR ( to_days(now()) - to_days(create_time) ) >= abs(?) ) " +
                 " AND ccc.owner_user_id = ?";
         return queryForInt(sql, followupDay, dealDay, userId);
     }
