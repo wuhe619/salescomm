@@ -84,7 +84,7 @@ public class CrmBackLogService {
         LkCrmAdminConfigEntity customerRule = crmAdminConfigDao.get("customerRule", user.getCustId());
         Integer endCustomer = 0;
         // 即将到期的线索
-        if (seaRule != null) {
+        if (customerRule != null) {
             JSONObject value = JSON.parseObject(customerRule.getValue());
             // 线索回收提醒打开状态判断
             JSONObject recoveryRemind = value.getJSONObject("recoveryRemind");
