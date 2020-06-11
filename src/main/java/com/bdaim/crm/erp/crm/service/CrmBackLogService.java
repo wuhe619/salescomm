@@ -218,7 +218,6 @@ public class CrmBackLogService {
         stringBuffer.append(" ccc.owner_user_id != 0 AND ccc.deal_status = '未成交' AND ccc.is_lock = 0 ")
                 .append(" AND( ( to_days(now()) - to_days( IFNULL( ( SELECT car.create_time FROM lkcrm_admin_record AS car WHERE car.types = 'crm_customer' ")
                 .append(" AND car.types_id = ccc.customer_id ORDER BY car.create_time DESC LIMIT 1), ccc.create_time ) ) ) >= abs(?) OR (( to_days(now()) - to_days(create_time) ) >= abs(?) AND ( (SELECT count(customer_id) FROM lkcrm_crm_business WHERE customer_id = ccc.customer_id  )=0 AND (SELECT count(customer_id)  FROM lkcrm_crm_contract WHERE customer_id = ccc.customer_id  )=0) ))  ");
-
         if (isSub == 1) {
             stringBuffer.append(" and ccc.owner_user_id = ").append(user.getUserId());
         } else if (isSub == 2) {
