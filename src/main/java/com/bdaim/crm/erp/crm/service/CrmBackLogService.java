@@ -57,14 +57,14 @@ public class CrmBackLogService {
         Integer config = crmCustomerDao.queryForInt("select status from lkcrm_admin_config where name = 'expiringContractDays' AND cust_id = ? ", user.getCustId());
         Integer checkReceivables = crmCustomerDao.checkReceivablesNum(userId);
         Integer remindReceivablesPlan = crmCustomerDao.remindReceivablesPlanNum(userId);
-        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity where name = ? and cust_id = ?", "expiringContractDays", user.getCustId());
+        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.get("expiringContractDays", user.getCustId());
         Integer endContract = 0;
         // 即将到期的合同
         if (1 == adminConfig.getStatus()) {
             endContract = crmCustomerDao.endContractNum(adminConfig.getValue(), userId);
         }
         //即将到期的线索(即将回收的线索)
-        LkCrmAdminConfigEntity seaRule = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity where name = ? and cust_id = ?", "seaRule", user.getCustId());
+        LkCrmAdminConfigEntity seaRule = crmAdminConfigDao.get("seaRule", user.getCustId());
         Integer endLeads = 0;
         // 即将到期的线索
         if (seaRule != null) {
@@ -81,7 +81,7 @@ public class CrmBackLogService {
         }
 
         //即将到期的客户(即将回收的客户)
-        LkCrmAdminConfigEntity customerRule = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity where name = ? and cust_id = ?", "customerRule", user.getCustId());
+        LkCrmAdminConfigEntity customerRule = crmAdminConfigDao.get("customerRule", user.getCustId());
         Integer endCustomer = 0;
         // 即将到期的线索
         if (seaRule != null) {
@@ -188,10 +188,7 @@ public class CrmBackLogService {
     }
 
     /**
-     * <p>即将到期的客户列表</p>
-     * <p>今日需要联系为下次联系时间是今天且没有跟进的客户</p>
-     * <p>已逾期是过了下次联系时间那天的且未跟进的客户</p>
-     * <p>已联系是下次联系时间是今天且已经跟进的客户</p>
+     * 即将到期的客户列表
      */
     public R endCustomer(BasePageRequest basePageRequest) {
         LoginUser user = BaseUtil.getUser();
@@ -199,7 +196,7 @@ public class CrmBackLogService {
         Integer type = jsonObject.getInteger("type");
         Integer isSub = jsonObject.getInteger("isSub");
         //即将到期的客户(即将回收的客户)
-        LkCrmAdminConfigEntity customerRule = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity where name = ? and cust_id = ?", "customerRule", user.getCustId());
+        LkCrmAdminConfigEntity customerRule = crmAdminConfigDao.get("customerRule", user.getCustId());
         if (customerRule == null || StringUtil.isEmpty(customerRule.getValue())) {
             return R.error("客户回收规则未设置");
         }
@@ -296,7 +293,7 @@ public class CrmBackLogService {
      * @param basePageRequest
      * @return
      */
-    public R endLeadsCrmLeads(BasePageRequest basePageRequest) {
+    public R endCrmLeads(BasePageRequest basePageRequest) {
         LoginUser user = BaseUtil.getUser();
         JSONObject jsonObject = basePageRequest.getJsonObject();
         Integer type = jsonObject.getInteger("type");
@@ -304,7 +301,7 @@ public class CrmBackLogService {
         String customerview = BaseUtil.getViewSqlNotASName("leadsview");
         StringBuffer stringBuffer = new StringBuffer("from " + customerview + " as ccc where ");
 
-        LkCrmAdminConfigEntity seaRule = crmAdminConfigDao.findUnique("FROM LkCrmAdminConfigEntity where name = ? and cust_id = ?", "seaRule", user.getCustId());
+        LkCrmAdminConfigEntity seaRule = crmAdminConfigDao.get("seaRule", user.getCustId());
         if (seaRule == null || StringUtil.isEmpty(seaRule.getValue())) {
             return R.error("线索回收规则未设置");
         }
@@ -579,7 +576,7 @@ public class CrmBackLogService {
         Integer type = jsonObject.getInteger("type");
         Integer isSub = jsonObject.getInteger("isSub");
         LoginUser user = BaseUtil.getUser();
-        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUnique(" FROM LkCrmAdminConfigEntity WHERE name = ? AND custId= ?", "expiringContractDays", user.getCustId());
+        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.get("expiringContractDays", user.getCustId());
         String contractview = BaseUtil.getViewSqlNotASName("contractview");
         StringBuffer stringBuffer = new StringBuffer("from " + contractview + " as a where");
         if (type == 1) {

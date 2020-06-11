@@ -56,14 +56,14 @@ public class CrmBackLogController extends BasicAction {
     }
 
     /**
-     *  即将到期的线索列表
+     * 即将到期的线索列表
      * @param basePageRequest
      * @return
      */
-    @RequestMapping(value = "/endLeadsCrmLeads", method = RequestMethod.POST)
+    @RequestMapping(value = "/endCrmLeads", method = RequestMethod.POST)
     @ClassTypeCheck(classType = BasePageRequest.class)
-    public R endLeadsCrmLeads(BasePageRequest basePageRequest){
-        return(crmBackLogService.endLeadsCrmLeads(basePageRequest));
+    public R endCrmLeads(BasePageRequest basePageRequest){
+        return(crmBackLogService.endCrmLeads(basePageRequest));
     }
 
     /**
