@@ -731,6 +731,14 @@ public class ApiService {
         entity.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
         //entity.setSubStatus("BLOCKED");
         subscriptionDao.update(entity);
+
+
+        List<String> params1=new ArrayList<>();
+        params1.add(amApplicationEntity.getSubscriberId()+"");
+        params1.add(apiId);
+        String sql="delete from customer_api_resouse_precent where customer_id=? and api_id=? ";
+
+        this.jdbcTemplate.update(sql,params1.toArray());
         return 1;
     }
 
@@ -1011,6 +1019,8 @@ public class ApiService {
         params.add(custId);
         params.add(apiId);
         String sql="delete from customer_api_resouse_precent where customer_id=? and api_id=? ";
+
+        this.jdbcTemplate.update(sql,params.toArray());
 
         if(updateWay.equals("1")){//均分
 
