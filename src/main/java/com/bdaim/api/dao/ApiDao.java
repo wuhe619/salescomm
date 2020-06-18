@@ -73,13 +73,13 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
                             if (list1 != null && list1.size() > 0) {
                                 for (Map<String, Object> smap : list1) {
                                     CustomerApiResourcePrecent customerApiResourcePrecent = new CustomerApiResourcePrecent();
-                                    customerApiResourcePrecent.setCustomerId(Integer.parseInt(smap.get("id").toString()));
-                                    customerApiResourcePrecent.setApiId(Integer.parseInt(apiId));
+                                    customerApiResourcePrecent.setCustomerId(smap.get("id").toString());
+                                    customerApiResourcePrecent.setApiId(apiId);
 
-                                    customerApiResourcePrecent.setResounseId(Integer.parseInt(rsId));
+                                    customerApiResourcePrecent.setResounseId(rsId);
                                     customerApiResourcePrecent.setBeginPercent("0");
                                     customerApiResourcePrecent.setEndPercent("0");
-                                    customerApiResourcePrecent.setCreatedBy(0);
+                                    customerApiResourcePrecent.setCreatedBy("0");
                                     customerApiResourcePrecent.setPercent("0");
                                     this.saveOrUpdate(customerApiResourcePrecent);
                                 }
