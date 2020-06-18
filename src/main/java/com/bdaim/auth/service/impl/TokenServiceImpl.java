@@ -73,7 +73,6 @@ public class TokenServiceImpl implements TokenService {
     @Autowired
     private HttpServletRequest request;
 
-    @org.springframework.beans.factory.annotation.Value("${xxName}")
     private String xxName;
 
     public static Map name2token = new HashMap();
