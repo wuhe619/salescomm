@@ -73,7 +73,7 @@ public class TokenServiceImpl implements TokenService {
     @Autowired
     private HttpServletRequest request;
 
-    private String xxName;
+
 
     public static Map name2token = new HashMap();
 
@@ -243,8 +243,10 @@ public class TokenServiceImpl implements TokenService {
                 logger.warn("username or password is error");
                 return new LoginUser("guest", "", "用户名密码错误", "401");
             }
-        }else if(username.equals(xxName)){//小熊
-            logger.info(xxName);
+        }else if(username.startsWith("xx.")){//小熊
+            logger.info("xx=="+username);
+            username=username.substring(3,username.length());
+            logger.info("xx=="+username);
             CustomerUser u = customerService.getUserByName(username);
             String md5Password = CipherUtil.generatePassword(password);
             if (u != null && md5Password.equals(u.getPassword())) {
