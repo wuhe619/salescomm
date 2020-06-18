@@ -690,7 +690,7 @@ public class ApiService {
                     beginPercent = (i * sd) + 1;
                 }
                 if (i == jsonObjects.size() - 1) {
-                    endPercent = last;
+                    endPercent = last+beginPercent;
                 } else {
                     endPercent = ((i + 1) * sd);
                 }
@@ -1064,7 +1064,7 @@ public class ApiService {
                         beginPercent = (i * sd) + 1;
                     }
                     if (i == list.size() - 1) {
-                        endPercent = last;
+                        endPercent = beginPercent+last;
                     } else {
                         endPercent = ((i + 1) * sd);
                     }
