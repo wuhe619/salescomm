@@ -698,6 +698,7 @@ public class ApiService {
                     jsonArray.add(rsId);//资源id
                 }
                 CustomerApiResourcePrecent apiResourcePrecent = new CustomerApiResourcePrecent();
+                logger.info("custId===="+params.get("custId").toString());
                 apiResourcePrecent.setCustomerId(params.get("custId").toString());
                 apiResourcePrecent.setApiId(apiId);
                 apiResourcePrecent.setResounseId(rsId);
