@@ -1088,7 +1088,7 @@ public class ApiService {
                     instparams.add(user.getUserId());
                     instparams.add(custId);
                     instparams.add(endPercent);
-                    instparams.add(endPercent - beginPercent);
+                    instparams.add((endPercent - beginPercent)+1);
                     instparams.add(rsId);
                     instparams.add(apiId);
 
@@ -1149,7 +1149,7 @@ public class ApiService {
                     instparams.add(user.getUserId());
                     instparams.add(custId);
                     instparams.add(endPercent);
-                    instparams.add(endPercent - beginPercent);
+                    instparams.add((endPercent - beginPercent)+1);
                     instparams.add(rsId);
                     instparams.add(apiId);
 
