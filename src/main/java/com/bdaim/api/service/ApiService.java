@@ -1007,6 +1007,8 @@ public class ApiService {
             }
         }
 
+        map.put("rsList",mapList);
+
     }
 
     public void updatePercent(Map map){
