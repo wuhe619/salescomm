@@ -375,9 +375,9 @@ public class ResourceAction extends BasicAction {
          return  responseInfo;
     }
 
-    @PostMapping
+    @PostMapping("/updatePercent")
     public ResponseInfo updatePercent(@RequestBody Map map){
-        updatePercent(map);
+        apiService.updatePercent(map);
         ResponseInfo responseInfo=new ResponseInfo();
         responseInfo.setCode(200);
         return responseInfo;
