@@ -687,12 +687,12 @@ public class ApiService {
                 String rsId = jsonObjects.get(i).getString("rsId");//资源id
 
                 if (i > 0) {
-                    beginPercent = (size * sd) + 1;
+                    beginPercent = (i * sd) + 1;
                 }
                 if (i == jsonObjects.size() - 1) {
                     endPercent = last;
                 } else {
-                    endPercent = ((size + 1) * sd);
+                    endPercent = ((i + 1) * sd);
                 }
                 for (int d = 0; d < (endPercent - beginPercent); d++) {
                     jsonArray.add(rsId);//资源id
@@ -982,6 +982,14 @@ public class ApiService {
         list.add(map.get("apiId"));
         list.add(map.get("custId"));
 
+        String subSql1 = "select percent_way as percentWay  from am_subscription where  API_ID = ? and APPLICATION_ID=? ";
+
+        Map<String, Object> stringObjectMap1 = this.jdbcTemplate.queryForMap(subSql1, list.toArray());
+
+       if(stringObjectMap1!=null){
+           map.put("percentWay",stringObjectMap1.get("percentWay"));
+       }
+
         String sql = " select percent,(select resname from t_market_resource t where t.resource_Id=carp.resounse_id) resname,carp.resounse_id rdId  from customer_api_resouse_precent carp where api_id=? and customer_id=? ";
 
         List<Map<String, Object>> mapList = this.jdbcTemplate.queryForList(sql, list.toArray());
@@ -1014,7 +1022,7 @@ public class ApiService {
 
     }
 
-    public void updatePercent(Map map) {
+    public void updatePercent(JSONObject map) {
 
         String apiId = map.get("apiId").toString();
         String custId = map.get("custId").toString();
@@ -1053,12 +1061,12 @@ public class ApiService {
                     String rsId = list.get(i).get("rsId").toString();//资源id
 
                     if (i > 0) {
-                        beginPercent = (size * sd) + 1;
+                        beginPercent = (i * sd) + 1;
                     }
                     if (i == list.size() - 1) {
                         endPercent = last;
                     } else {
-                        endPercent = ((size + 1) * sd);
+                        endPercent = ((i + 1) * sd);
                     }
                     for (int d = 0; d < (endPercent - beginPercent); d++) {
                         jsonArray.add(rsId);//资源id

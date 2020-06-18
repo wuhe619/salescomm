@@ -377,8 +377,10 @@ public class ResourceAction extends BasicAction {
     }
 
     @PostMapping("/updatePercent")
-    public ResponseInfo updatePercent(@RequestBody Map map){
+    public ResponseInfo updatePercent(@RequestBody com.alibaba.fastjson.JSONObject map){
         apiService.updatePercent(map);
+        logger.info("updatePercent"+map.toString());
+
         ResponseInfo responseInfo=new ResponseInfo();
         responseInfo.setCode(200);
         return responseInfo;
