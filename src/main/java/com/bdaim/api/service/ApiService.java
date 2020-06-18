@@ -982,7 +982,7 @@ public class ApiService {
         list.add(map.get("apiId"));
         list.add(map.get("custId"));
 
-        String sql=" select percent,(select resname from t_market_resource where t.resource_Id=carp.resounse_id) resName from customer_api_resouse_precent carp where api_id=? and customer_id=? ";
+        String sql=" select percent,(select resname from t_market_resource where t.resource_Id=carp.resounse_id) resname,carp.resounse_id rdId  from customer_api_resouse_precent carp where api_id=? and customer_id=? ";
 
         List<Map<String, Object>> mapList = this.jdbcTemplate.queryForList(sql, list.toArray());
 
@@ -997,7 +997,7 @@ public class ApiService {
                 for(JSONObject jsonObject:jsonObjects){
                     String rsId=jsonObject.get("rsId").toString();
 
-                    String rssql="select resname,resource_Id from t_market_resource where t.resource_Id=?";
+                    String rssql="select resname resName,resource_Id rdId from t_market_resource where t.resource_Id=?";
 
                     Map<String, Object> stringObjectMap = this.jdbcTemplate.queryForMap(rssql, rsId);
 
