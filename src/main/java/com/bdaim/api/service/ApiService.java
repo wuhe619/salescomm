@@ -698,7 +698,7 @@ public class ApiService {
                     jsonArray.add(rsId);//资源id
                 }
                 CustomerApiResourcePrecent apiResourcePrecent = new CustomerApiResourcePrecent();
-                apiResourcePrecent.setCustomerId((int) amApplicationEntity.getSubscriberId());
+                apiResourcePrecent.setCustomerId(Integer.parseInt(params.getString("custId")));
                 apiResourcePrecent.setApiId(Integer.parseInt(apiId));
                 apiResourcePrecent.setSubId(Integer.parseInt(supplier));
                 apiResourcePrecent.setResounseId(Integer.parseInt(rsId));
@@ -711,8 +711,8 @@ public class ApiService {
             logger.info("订阅成功后 :{}", params.getString("custId"), subscriptionId);
 
 
-            String sql = "update am_subscription  set percent_content=? where SUBSCRIPTION_ID=? ";
-            jdbcTemplate.update(sql, new Object[]{jsonArray.toJSONString(), subscriptionId});
+            String sql = "update am_subscription  set percent_content=?,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
+            jdbcTemplate.update(sql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()), subscriptionId});
             logger.info("更改API订阅状态成功,客户Id:{},subscriptionId:{}", params.getString("custId"), subscriptionId);
             redisUtil.set(amApplicationEntity.getSubscriberId() + ":" + apiId, jsonArray.toJSONString());
         }
@@ -1075,8 +1075,8 @@ public class ApiService {
                 }
 
 
-                String usql = "update am_subscription  set percent_content=? where API_ID=? and APPLICATION_ID=?  ";
-                jdbcTemplate.update(usql, new Object[]{jsonArray.toJSONString(), apiId, custId});
+                String usql = "update am_subscription  set percent_content=?,updated_time=? where API_ID=? and APPLICATION_ID=?  ";
+                jdbcTemplate.update(usql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()), apiId, custId});
                 redisUtil.set(custId + ":" + apiId, jsonArray.toJSONString());
 
             }
@@ -1122,8 +1122,8 @@ public class ApiService {
                 }
 
 
-                String usql = "update am_subscription  set percent_content=? where API_ID=? and APPLICATION_ID=?  ";
-                jdbcTemplate.update(usql, new Object[]{jsonArray.toJSONString(), apiId, custId});
+                String usql = "update am_subscription  set percent_content=?,updated_time=? where API_ID=? and APPLICATION_ID=?  ";
+                jdbcTemplate.update(usql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()), apiId, custId});
                 redisUtil.set(custId + ":" + apiId, jsonArray.toJSONString());
 
             }
