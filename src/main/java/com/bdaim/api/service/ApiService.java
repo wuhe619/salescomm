@@ -1012,7 +1012,7 @@ public class ApiService {
                 for (JSONObject jsonObject : jsonObjects) {
                     String rsId = jsonObject.get("rsId").toString();
 
-                    String rssql = "select resname resName,resource_Id rdId from t_market_resource t where t.resource_Id=?";
+                    String rssql = "select resname,resource_Id rdId from t_market_resource t where t.resource_Id=?";
 
                     Map<String, Object> stringObjectMap = this.jdbcTemplate.queryForMap(rssql, rsId);
 
