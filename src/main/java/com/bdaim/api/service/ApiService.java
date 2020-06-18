@@ -679,7 +679,7 @@ public class ApiService {
                 last = sd;
             }
             for (int i = 0; i <jsonObjects.size(); i++) {
-                int beginPercent = 0;
+                int beginPercent = 1;
 
                 int endPercent = 0;
 
@@ -690,7 +690,7 @@ public class ApiService {
                     beginPercent = (i * sd) + 1;
                 }
                 if (i == jsonObjects.size() - 1) {
-                    endPercent = last+beginPercent;
+                    endPercent = last+beginPercent-1;
                 } else {
                     endPercent = ((i + 1) * sd);
                 }
@@ -705,7 +705,7 @@ public class ApiService {
                 apiResourcePrecent.setBeginPercent(beginPercent + "");
                 apiResourcePrecent.setEndPercent(endPercent + "");
                 apiResourcePrecent.setCreatedBy(lu.getUserId().intValue()+"");
-                apiResourcePrecent.setPercent((endPercent - beginPercent) + "");
+                apiResourcePrecent.setPercent((endPercent - beginPercent)+1 + "");
                 apiDao.saveOrUpdate(apiResourcePrecent);
             }
             logger.info("订阅成功后 :{}", params.getString("custId"), subscriptionId);
@@ -1054,7 +1054,7 @@ public class ApiService {
                 JSONArray jsonArray = new JSONArray();
                 for (int i = 0; i < list.size(); i++) {
 
-                    int beginPercent = 0;
+                    int beginPercent = 1;
 
                     int endPercent = 0;
 
@@ -1064,7 +1064,7 @@ public class ApiService {
                         beginPercent = (i * sd) + 1;
                     }
                     if (i == list.size() - 1) {
-                        endPercent = beginPercent+last;
+                        endPercent = beginPercent+last-1;
                     } else {
                         endPercent = ((i + 1) * sd);
                     }
@@ -1078,7 +1078,7 @@ public class ApiService {
                     apiResourcePrecent.setBeginPercent(beginPercent + "");
                     apiResourcePrecent.setEndPercent(endPercent + "");
                     apiResourcePrecent.setCreatedBy(user.getUserId()+"");
-                    apiResourcePrecent.setPercent((endPercent - beginPercent) + "");
+                    apiResourcePrecent.setPercent((endPercent - beginPercent)+1 + "");
                     List instparams=new ArrayList();
 
                     String insertsql="insert into\n" +
