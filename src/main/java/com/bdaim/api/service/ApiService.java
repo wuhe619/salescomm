@@ -694,7 +694,7 @@ public class ApiService {
                 } else {
                     endPercent = ((i + 1) * sd);
                 }
-                for (int d = 0; d < (endPercent - beginPercent); d++) {
+                for (int d = 0; d <  ((endPercent - beginPercent)+1); d++) {
                     jsonArray.add(rsId);//资源id
                 }
                 CustomerApiResourcePrecent apiResourcePrecent = new CustomerApiResourcePrecent();
@@ -1068,7 +1068,7 @@ public class ApiService {
                     } else {
                         endPercent = ((i + 1) * sd);
                     }
-                    for (int d = 0; d < (endPercent - beginPercent); d++) {
+                    for (int d = 0; d < ((endPercent - beginPercent)+1); d++) {
                         jsonArray.add(rsId);//资源id
                     }
                     CustomerApiResourcePrecent apiResourcePrecent = new CustomerApiResourcePrecent();
@@ -1129,7 +1129,7 @@ public class ApiService {
                     lastEnd=endPercent;
 
 
-                    for (int d = 0; d < (endPercent - beginPercent); d++) {
+                    for (int d = 0; d < ((endPercent - beginPercent)+1); d++) {
                         jsonArray.add(rsId);//资源id
                     }
                     CustomerApiResourcePrecent apiResourcePrecent = new CustomerApiResourcePrecent();
