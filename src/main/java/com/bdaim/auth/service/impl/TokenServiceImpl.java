@@ -384,7 +384,7 @@ public class TokenServiceImpl implements TokenService {
         }
 
         if(StringUtil.isNotEmpty(auth_model) && "API".equals(auth_model)){
-            userdetail.setTokenid(null);
+            //userdetail.setTokenid(null);
         }
         return userdetail;
     }
