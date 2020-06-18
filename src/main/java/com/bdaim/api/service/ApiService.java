@@ -1097,9 +1097,9 @@ public class ApiService {
                 }
 
 
-                String udsql = "update am_subscription  set percent_content=?,updated_time=?,percent_way='2' where API_ID=? and APPLICATION_ID=?  ";
-                jdbcTemplate.update(udsql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()), apiId, custId});
-                redisUtil.set(custId + ":" + apiId, jsonArray.toJSONString());
+                String udsql = "update am_subscription  set percent_content=?,updated_time=?,percent_way=? where API_ID=? and APPLICATION_ID=?  ";
+                jdbcTemplate.update(udsql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()),"1", apiId, custId});
+//                redisUtil.set(custId + ":" + apiId, jsonArray.toJSONString());
 
             }
 
@@ -1161,7 +1161,7 @@ public class ApiService {
                 String usql = "update am_subscription  set percent_content=?,updated_time=?,percent_way=? where API_ID=? and APPLICATION_ID=?  ";
                 jdbcTemplate.update(usql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()),"2",apiId, custId});
                logger.info("usql"+usql);
-                redisUtil.set(custId + ":" + apiId, jsonArray.toJSONString());
+//                redisUtil.set(custId + ":" + apiId, jsonArray.toJSONString());
 
             }
         }
