@@ -988,6 +988,9 @@ public class ApiService {
         if (mapList == null || mapList.size() == 0) {
 
             mapList = new ArrayList<Map<String, Object>>();
+            logger.info("apidp"+apiDao);
+            logger.info("map"+map);
+            logger.info("map.get(\"apiId\")=="+map.get("apiId"));
 
             ApiProperty property = apiDao.getProperty(map.get("apiId").toString(), "rsIds");
             if (property != null && StringUtils.isNotEmpty(property.getPropertyValue())) {
