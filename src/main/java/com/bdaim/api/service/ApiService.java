@@ -1052,7 +1052,7 @@ public class ApiService {
                     last = sd;
                 }
                 JSONArray jsonArray = new JSONArray();
-                for (int i = 0; i < list.size(); i--) {
+                for (int i = 0; i < list.size(); i++) {
 
                     int beginPercent = 0;
 
@@ -1079,7 +1079,20 @@ public class ApiService {
                     apiResourcePrecent.setEndPercent(endPercent + "");
                     apiResourcePrecent.setCreatedBy(user.getUserId()+"");
                     apiResourcePrecent.setPercent((endPercent - beginPercent) + "");
-                    apiDao.saveOrUpdate(apiResourcePrecent);
+                    List instparams=new ArrayList();
+
+                    String insertsql="insert into\n" +
+                            "        customer_api_resouse_precent\n" +
+                            "        (begin_percent, created_by, customer_id, end_percent, percent, resounse_id,api_id) values ( ?, ?,?, ?, ?, ?,?) ";
+                    instparams.add(beginPercent);
+                    instparams.add(user.getUserId());
+                    instparams.add(custId);
+                    instparams.add(endPercent);
+                    instparams.add(endPercent - beginPercent);
+                    instparams.add(rsId);
+                    instparams.add(apiId);
+
+                    this.jdbcTemplate.update(insertsql,instparams.toArray());
                 }
 
 
@@ -1097,7 +1110,7 @@ public class ApiService {
                 JSONArray jsonArray = new JSONArray();
                 int total = 100;
                 int lastEnd = 0;
-                for (int i = 0; i < list.size(); i--) {
+                for (int i = 0; i < list.size(); i++) {
 
 
                     int size = list.size();
@@ -1126,7 +1139,20 @@ public class ApiService {
                     apiResourcePrecent.setEndPercent(endPercent + "");
                     apiResourcePrecent.setCreatedBy(user.getUserId()+"");
                     apiResourcePrecent.setPercent((endPercent - beginPercent) + "");
-                    apiDao.saveOrUpdate(apiResourcePrecent);
+                    List instparams=new ArrayList();
+
+                    String insertsql="insert into\n" +
+                            "        customer_api_resouse_precent\n" +
+                            "        (begin_percent, created_by, customer_id, end_percent, percent, resounse_id,api_id) values ( ?, ?,?, ?, ?, ?,?) ";
+                    instparams.add(beginPercent);
+                    instparams.add(user.getUserId());
+                    instparams.add(custId);
+                    instparams.add(endPercent);
+                    instparams.add(endPercent - beginPercent);
+                    instparams.add(rsId);
+                    instparams.add(apiId);
+
+                    this.jdbcTemplate.update(insertsql,instparams.toArray());
                 }
 
 
