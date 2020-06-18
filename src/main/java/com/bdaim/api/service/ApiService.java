@@ -1058,7 +1058,7 @@ public class ApiService {
 
                     int endPercent = 0;
 
-                    String rsId = list.get(i).get("rsId").toString();//资源id
+                    String rsId = list.get(i).get("rdId").toString();//资源id
 
                     if (i > 0) {
                         beginPercent = (i * sd) + 1;
@@ -1108,7 +1108,7 @@ public class ApiService {
                     int beginPercent = 0;
 
 
-                    String rsId = list.get(i).get("rsId").toString();//资源id
+                    String rsId = list.get(i).get("rdId").toString();//资源id
 
                     if (i > 0) {
                         beginPercent = (lastEnd) + 1;
