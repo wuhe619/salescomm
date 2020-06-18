@@ -988,6 +988,7 @@ public class ApiService {
 
         if(mapList1!=null&&mapList1.size()>0){
            map.put("percentWay",mapList1.get(0).get("percentWay"));
+           logger.info("percentWay"+map.get("percentWay"));
        }
 
         String sql = " select percent,(select resname from t_market_resource t where t.resource_Id=carp.resounse_id) resname,carp.resounse_id rdId  from customer_api_resouse_precent carp where api_id=? and customer_id=? ";
@@ -1096,8 +1097,8 @@ public class ApiService {
                 }
 
 
-                String usql = "update am_subscription  set percent_content=?,updated_time=?,percent_way='2' where API_ID=? and APPLICATION_ID=?  ";
-                jdbcTemplate.update(usql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()), apiId, custId});
+                String udsql = "update am_subscription  set percent_content=?,updated_time=?,percent_way='2' where API_ID=? and APPLICATION_ID=?  ";
+                jdbcTemplate.update(udsql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()), apiId, custId});
                 redisUtil.set(custId + ":" + apiId, jsonArray.toJSONString());
 
             }
@@ -1157,8 +1158,9 @@ public class ApiService {
                 }
 
 
-                String usql = "update am_subscription  set percent_content=?,updated_time=?,percent_way='2' where API_ID=? and APPLICATION_ID=?  ";
-                jdbcTemplate.update(usql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()), apiId, custId});
+                String usql = "update am_subscription  set percent_content=?,updated_time=?,percent_way=? where API_ID=? and APPLICATION_ID=?  ";
+                jdbcTemplate.update(usql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()),"2",apiId, custId});
+               logger.info("usql"+usql);
                 redisUtil.set(custId + ":" + apiId, jsonArray.toJSONString());
 
             }
