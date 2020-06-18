@@ -678,7 +678,7 @@ public class ApiService {
             } else {
                 last = sd;
             }
-            for (int i = 0; i < jsonObjects.size(); i--) {
+            for (int i = 0; i <jsonObjects.size(); i++) {
                 int beginPercent = 0;
 
                 int endPercent = 0;
@@ -977,6 +977,7 @@ public class ApiService {
 
 
     public void getPersentByApi(Map map) {
+        logger.info("map"+map.toString());
         List list = new ArrayList();
         list.add(map.get("apiId"));
         list.add(map.get("custId"));

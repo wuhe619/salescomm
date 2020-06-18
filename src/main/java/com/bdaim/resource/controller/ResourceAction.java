@@ -368,6 +368,7 @@ public class ResourceAction extends BasicAction {
 
     @GetMapping("/getPersentByApi")
     public ResponseInfo getPersentByApi(Map map){
+        logger.info("map"+map.toString());
        ResponseInfo responseInfo=new ResponseInfo();
        responseInfo.setCode(200);
         apiService.getPersentByApi(map);
