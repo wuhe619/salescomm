@@ -367,7 +367,7 @@ public class ResourceAction extends BasicAction {
 
 
     @GetMapping("/getPersentByApi")
-    public ResponseInfo getPersentByApi(@RequestBody Map map){
+    public ResponseInfo getPersentByApi(Map map){
        ResponseInfo responseInfo=new ResponseInfo();
        responseInfo.setCode(200);
         apiService.getPersentByApi(map);
