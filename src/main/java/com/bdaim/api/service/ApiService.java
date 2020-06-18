@@ -698,13 +698,12 @@ public class ApiService {
                     jsonArray.add(rsId);//资源id
                 }
                 CustomerApiResourcePrecent apiResourcePrecent = new CustomerApiResourcePrecent();
-                apiResourcePrecent.setCustomerId(Integer.parseInt(params.getString("custId")));
-                apiResourcePrecent.setApiId(Integer.parseInt(apiId));
-                apiResourcePrecent.setSubId(Integer.parseInt(supplier));
-                apiResourcePrecent.setResounseId(Integer.parseInt(rsId));
+                apiResourcePrecent.setCustomerId(params.get("custId").toString());
+                apiResourcePrecent.setApiId(apiId);
+                apiResourcePrecent.setResounseId(rsId);
                 apiResourcePrecent.setBeginPercent(beginPercent + "");
                 apiResourcePrecent.setEndPercent(endPercent + "");
-                apiResourcePrecent.setCreatedBy(lu.getUserId().intValue());
+                apiResourcePrecent.setCreatedBy(lu.getUserId().intValue()+"");
                 apiResourcePrecent.setPercent((endPercent - beginPercent) + "");
                 apiDao.saveOrUpdate(apiResourcePrecent);
             }
@@ -1064,12 +1063,12 @@ public class ApiService {
                         jsonArray.add(rsId);//资源id
                     }
                     CustomerApiResourcePrecent apiResourcePrecent = new CustomerApiResourcePrecent();
-                    apiResourcePrecent.setCustomerId(Integer.parseInt(custId));
-                    apiResourcePrecent.setApiId(Integer.parseInt(apiId));
-                    apiResourcePrecent.setResounseId(Integer.parseInt(rsId));
+                    apiResourcePrecent.setCustomerId(custId);
+                    apiResourcePrecent.setApiId(apiId);
+                    apiResourcePrecent.setResounseId(rsId);
                     apiResourcePrecent.setBeginPercent(beginPercent + "");
                     apiResourcePrecent.setEndPercent(endPercent + "");
-                    apiResourcePrecent.setCreatedBy(BaseUtil.getUserId().intValue());
+                    apiResourcePrecent.setCreatedBy(BaseUtil.getUserId().intValue()+"");
                     apiResourcePrecent.setPercent((endPercent - beginPercent) + "");
                     apiDao.saveOrUpdate(apiResourcePrecent);
                 }
@@ -1111,12 +1110,12 @@ public class ApiService {
                         jsonArray.add(rsId);//资源id
                     }
                     CustomerApiResourcePrecent apiResourcePrecent = new CustomerApiResourcePrecent();
-                    apiResourcePrecent.setCustomerId(Integer.parseInt(custId));
-                    apiResourcePrecent.setApiId(Integer.parseInt(apiId));
-                    apiResourcePrecent.setResounseId(Integer.parseInt(rsId));
+                    apiResourcePrecent.setCustomerId(custId);
+                    apiResourcePrecent.setApiId(apiId);
+                    apiResourcePrecent.setResounseId(rsId);
                     apiResourcePrecent.setBeginPercent(beginPercent + "");
                     apiResourcePrecent.setEndPercent(endPercent + "");
-                    apiResourcePrecent.setCreatedBy(BaseUtil.getUserId().intValue());
+                    apiResourcePrecent.setCreatedBy(BaseUtil.getUserId().intValue()+"");
                     apiResourcePrecent.setPercent((endPercent - beginPercent) + "");
                     apiDao.saveOrUpdate(apiResourcePrecent);
                 }

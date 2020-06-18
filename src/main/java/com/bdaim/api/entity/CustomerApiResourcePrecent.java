@@ -13,16 +13,16 @@ public class CustomerApiResourcePrecent implements Serializable {
     @Column(name = "id")
     private int id;
     @Column(name = "customer_id")
-    private int customerId;
+    private String customerId;
     @Column(name = "api_id")
-    private int apiId;
+    private String apiId;
 
     @Column(name = "resounse_id")
-    private int resounseId;
+    private String resounseId;
     @Column(name = "CREATED_BY")
-    private int createdBy;
+    private String createdBy;
     @Column(name = "UPDATED_BY")
-    private int updateBy;
+    private String updateBy;
     @Column(name = "CREATED_TIME")
     private Date createdTime;
     @Column(name = "UPDATED_TIME")
@@ -32,7 +32,31 @@ public class CustomerApiResourcePrecent implements Serializable {
     @Column(name = "end_percent")
     private String  endPercent;
     @Column(name = "sub_id")
-    private int subId;
+    private String subId;
+
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
+    }
+
+    public void setApiId(String apiId) {
+        this.apiId = apiId;
+    }
+
+    public void setResounseId(String resounseId) {
+        this.resounseId = resounseId;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public void setUpdateBy(String updateBy) {
+        this.updateBy = updateBy;
+    }
+
+    public void setSubId(String subId) {
+        this.subId = subId;
+    }
 
     @Column(name = "percent")
     private String percent;
@@ -45,13 +69,7 @@ public class CustomerApiResourcePrecent implements Serializable {
         this.percent = percent;
     }
 
-    public int getSubId() {
-        return subId;
-    }
 
-    public void setSubId(int subId) {
-        this.subId = subId;
-    }
 
     public int getId() {
         return id;
@@ -61,45 +79,7 @@ public class CustomerApiResourcePrecent implements Serializable {
         this.id = id;
     }
 
-    public int getCustomerId() {
-        return customerId;
-    }
 
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
-    }
-
-    public int getApiId() {
-        return apiId;
-    }
-
-    public void setApiId(int apiId) {
-        this.apiId = apiId;
-    }
-
-    public int getResounseId() {
-        return resounseId;
-    }
-
-    public void setResounseId(int resounseId) {
-        this.resounseId = resounseId;
-    }
-
-    public int getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(int createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public int getUpdateBy() {
-        return updateBy;
-    }
-
-    public void setUpdateBy(int updateBy) {
-        this.updateBy = updateBy;
-    }
 
     public Date getCreatedTime() {
         return createdTime;
