@@ -980,7 +980,8 @@ public class ApiService {
         logger.info("map"+map.toString());
         List list = new ArrayList();
         list.add(map.get("apiId"));
-        list.add(map.get("custId"));
+        AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(map.getString("custId"));
+        list.add(amApplicationEntity.getId());
 
         String subSql1 = "select percent_way as percentWay  from am_subscription where  API_ID = ? and APPLICATION_ID=? ";
 
@@ -990,7 +991,9 @@ public class ApiService {
            map.put("percentWay",mapList1.get(0).get("percentWay"));
            logger.info("percentWay"+map.get("percentWay"));
        }
-
+         list = new ArrayList();
+        list.add(map.get("apiId"));
+        list.add(map.get("custId"));
         String sql = " select percent,(select resname from t_market_resource t where t.resource_Id=carp.resounse_id) resname,carp.resounse_id rdId  from customer_api_resouse_precent carp where api_id=? and customer_id=? ";
 
         List<Map<String, Object>> mapList = this.jdbcTemplate.queryForList(sql, list.toArray());
@@ -1028,6 +1031,7 @@ public class ApiService {
         String apiId = map.get("apiId").toString();
         String custId = map.get("custId").toString();
         String updateWay = map.get("updateWay").toString();
+        AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(map.getString("custId"));
 
         List<String> params = new ArrayList<>();
         params.add(custId);
@@ -1098,7 +1102,7 @@ public class ApiService {
 
 
                 String udsql = "update am_subscription  set percent_content=?,updated_time=?,percent_way=? where API_ID=? and APPLICATION_ID=?  ";
-                jdbcTemplate.update(udsql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()),"1", apiId, custId});
+                jdbcTemplate.update(udsql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()),"1", apiId, amApplicationEntity.getId()});
 //                redisUtil.set(custId + ":" + apiId, jsonArray.toJSONString());
 
             }
@@ -1159,7 +1163,7 @@ public class ApiService {
 
 
                 String usql = "update am_subscription  set percent_content=?,updated_time=?,percent_way=? where API_ID=? and APPLICATION_ID=?  ";
-                jdbcTemplate.update(usql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()),"2",apiId, custId});
+                jdbcTemplate.update(usql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()),"2",apiId,  amApplicationEntity.getId()});
                logger.info("usql"+usql);
 //                redisUtil.set(custId + ":" + apiId, jsonArray.toJSONString());
 
