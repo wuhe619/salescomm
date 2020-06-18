@@ -1022,7 +1022,7 @@ public class ApiService {
 
     }
 
-    public void updatePercent(JSONObject map) {
+    public void updatePercent(JSONObject map,LoginUser user) {
 
         String apiId = map.get("apiId").toString();
         String custId = map.get("custId").toString();
@@ -1077,7 +1077,7 @@ public class ApiService {
                     apiResourcePrecent.setResounseId(rsId);
                     apiResourcePrecent.setBeginPercent(beginPercent + "");
                     apiResourcePrecent.setEndPercent(endPercent + "");
-                    apiResourcePrecent.setCreatedBy(BaseUtil.getUserId().intValue()+"");
+                    apiResourcePrecent.setCreatedBy(user.getUserId()+"");
                     apiResourcePrecent.setPercent((endPercent - beginPercent) + "");
                     apiDao.saveOrUpdate(apiResourcePrecent);
                 }
@@ -1124,7 +1124,7 @@ public class ApiService {
                     apiResourcePrecent.setResounseId(rsId);
                     apiResourcePrecent.setBeginPercent(beginPercent + "");
                     apiResourcePrecent.setEndPercent(endPercent + "");
-                    apiResourcePrecent.setCreatedBy(BaseUtil.getUserId().intValue()+"");
+                    apiResourcePrecent.setCreatedBy(user.getUserId()+"");
                     apiResourcePrecent.setPercent((endPercent - beginPercent) + "");
                     apiDao.saveOrUpdate(apiResourcePrecent);
                 }
