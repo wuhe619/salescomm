@@ -976,7 +976,7 @@ public class ApiService {
     }
 
 
-    public void getPersentByApi(Map map) {
+    public void getPersentByApi(JSONObject map) {
         logger.info("map"+map.toString());
         List list = new ArrayList();
         list.add(map.get("apiId"));

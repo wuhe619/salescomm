@@ -119,13 +119,13 @@ public class ApiController extends BasicAction {
     @PostMapping("/subscription/{apiId}")
     public ResponseInfo subApi(@RequestBody JSONObject params, @PathVariable(name = "apiId") String apiId) throws Exception {
         LoginUser lu = opUser();
-//        if (lu == null || lu.getAuths() == null || !lu.getAuths().contains("admin"))
-//            throw new Exception("no auth");
-//
+        if (lu == null || lu.getAuths() == null || !lu.getAuths().contains("admin"))
+            throw new Exception("no auth");
+
         ResponseInfo info = new ResponseInfo();
-//        if (!params.containsKey("custId")) {
-//            return new ResponseInfoAssemble().failure(-1, "企业id不能为空");
-//        }
+        if (!params.containsKey("custId")) {
+            return new ResponseInfoAssemble().failure(-1, "企业id不能为空");
+        }
         logger.info("开始订阅");
         try {
             info.setData(apiService.subApi(params, apiId, lu));

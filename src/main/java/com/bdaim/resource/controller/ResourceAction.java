@@ -366,13 +366,13 @@ public class ResourceAction extends BasicAction {
     }
 
 
-    @GetMapping("/getPersentByApi")
-    public ResponseInfo getPersentByApi(Map map){
-        logger.info("map"+map.toString());
+    @PostMapping("/getPersentByApi")
+    public ResponseInfo getPersentByApi(@RequestBody com.alibaba.fastjson.JSONObject jsonObject){
+        logger.info("map"+jsonObject.toString());
        ResponseInfo responseInfo=new ResponseInfo();
        responseInfo.setCode(200);
-        apiService.getPersentByApi(map);
-        responseInfo.setData(map);
+        apiService.getPersentByApi(jsonObject);
+        responseInfo.setData(jsonObject);
          return  responseInfo;
     }
 
