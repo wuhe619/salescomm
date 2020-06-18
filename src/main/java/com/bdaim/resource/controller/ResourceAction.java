@@ -364,5 +364,23 @@ public class ResourceAction extends BasicAction {
         }
         return resp;
     }
+
+
+    @GetMapping("/getPersentByApi")
+    public ResponseInfo getPersentByApi(@RequestBody Map map){
+       ResponseInfo responseInfo=new ResponseInfo();
+       responseInfo.setCode(200);
+        apiService.getPersentByApi(map);
+        responseInfo.setData(map);
+         return  responseInfo;
+    }
+
+    @PostMapping
+    public ResponseInfo updatePercent(@RequestBody Map map){
+        updatePercent(map);
+        ResponseInfo responseInfo=new ResponseInfo();
+        responseInfo.setCode(200);
+        return responseInfo;
+    }
 }
 
