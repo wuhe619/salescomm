@@ -984,10 +984,10 @@ public class ApiService {
 
         String subSql1 = "select percent_way as percentWay  from am_subscription where  API_ID = ? and APPLICATION_ID=? ";
 
-        Map<String, Object> stringObjectMap1 = this.jdbcTemplate.queryForMap(subSql1, list.toArray());
+        List<Map<String, Object>> mapList1 = this.jdbcTemplate.queryForList(subSql1, list.toArray());
 
-       if(stringObjectMap1!=null){
-           map.put("percentWay",stringObjectMap1.get("percentWay"));
+        if(mapList1!=null&&mapList1.size()>0){
+           map.put("percentWay",mapList1.get(0).get("percentWay"));
        }
 
         String sql = " select percent,(select resname from t_market_resource t where t.resource_Id=carp.resounse_id) resname,carp.resounse_id rdId  from customer_api_resouse_precent carp where api_id=? and customer_id=? ";
