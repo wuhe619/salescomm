@@ -1118,7 +1118,7 @@ public class ApiService {
 
                     int endPercent = lastEnd + Integer.parseInt(percent);
 
-                    int beginPercent = 0;
+                    int beginPercent = 1;
 
 
                     String rsId = list.get(i).get("rdId").toString();//资源id
@@ -1139,7 +1139,7 @@ public class ApiService {
                     apiResourcePrecent.setBeginPercent(beginPercent + "");
                     apiResourcePrecent.setEndPercent(endPercent + "");
                     apiResourcePrecent.setCreatedBy(user.getUserId()+"");
-                    apiResourcePrecent.setPercent((endPercent - beginPercent) + "");
+                    apiResourcePrecent.setPercent((endPercent - beginPercent)+1 + "");
                     List instparams=new ArrayList();
 
                     String insertsql="insert into\n" +
