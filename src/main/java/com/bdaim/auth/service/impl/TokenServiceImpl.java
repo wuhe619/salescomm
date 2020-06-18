@@ -1,6 +1,7 @@
 package com.bdaim.auth.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.bdaim.AppConfig;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.auth.Token;
 import com.bdaim.common.auth.service.TokenCacheService;
@@ -21,6 +22,7 @@ import com.bdaim.rbac.service.impl.UserInfoService;
 import com.bdaim.util.*;
 import com.bdaim.util.wechat.WeChatUtil;
 
+import io.lettuce.core.dynamic.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +72,8 @@ public class TokenServiceImpl implements TokenService {
 
     @Autowired
     private HttpServletRequest request;
+
+
 
     public static Map name2token = new HashMap();
 
@@ -239,7 +243,44 @@ public class TokenServiceImpl implements TokenService {
                 logger.warn("username or password is error");
                 return new LoginUser("guest", "", "用户名密码错误", "401");
             }
-        } else {
+        }else if(username.startsWith("xx.")){//小熊
+            logger.info("xx=="+username);
+            username=username.substring(3,username.length());
+            logger.info("xx=="+username);
+            CustomerUser u = customerService.getUserByName(username);
+            String md5Password = CipherUtil.generatePassword(password);
+            if (u != null && md5Password.equals(u.getPassword())) {
+
+                userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()));
+                if (1 == u.getStatus()) {
+                    userdetail.addAuth("USER_FREEZE");
+                } else if (3 == u.getStatus()) {
+                    userdetail.addAuth("USER_NOT_EXIST");
+                } else if (0 == u.getStatus()) {
+                    //user_type: 1=管理员 2=普通员工
+                    userdetail.addAuth("ROLE_CUSTOMER");
+                }
+                userdetail.setCustId(u.getCust_id());
+                userdetail.setId(u.getId());
+                userdetail.setUserId(u.getId());
+                userdetail.setUserType(String.valueOf(u.getUserType()));
+                userdetail.setRole(userdetail.getAuths().size() > 0 ? userdetail.getAuths().get(0) : "");
+
+                userdetail.setStatus(u.getStatus().toString());
+                userdetail.setStateCode("200");
+                userdetail.setMsg("SUCCESS");
+                userdetail.setAuth(userdetail.getAuths().size() > 0 ? userdetail.getAuths().get(0) : "");
+                userdetail.setUserName(userdetail.getUsername());
+                userdetail.setUser_id(userdetail.getId().toString());
+            } else {
+            logger.warn("username or password is error");
+            return new LoginUser("guest", "", "用户名密码错误", "401");
+           }
+
+
+
+
+        }else {
             //校验 验证码
             String[] usernameArray = username.split("\\.");
             if (usernameArray[0].length() < 4) {
@@ -384,7 +425,7 @@ public class TokenServiceImpl implements TokenService {
         }
 
         if(StringUtil.isNotEmpty(auth_model) && "API".equals(auth_model)){
-            userdetail.setTokenid(null);
+            //userdetail.setTokenid(null);
         }
         return userdetail;
     }

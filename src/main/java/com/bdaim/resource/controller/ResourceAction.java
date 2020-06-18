@@ -364,5 +364,28 @@ public class ResourceAction extends BasicAction {
         }
         return resp;
     }
+
+
+    @PostMapping("/getPersentByApi")
+    public ResponseInfo getPersentByApi(@RequestBody com.alibaba.fastjson.JSONObject jsonObject){
+        logger.info("map"+jsonObject.toString());
+       ResponseInfo responseInfo=new ResponseInfo();
+       responseInfo.setCode(200);
+        apiService.getPersentByApi(jsonObject);
+        responseInfo.setData(jsonObject);
+         return  responseInfo;
+    }
+
+    @PostMapping("/updatePercent")
+    public ResponseInfo updatePercent(@RequestBody com.alibaba.fastjson.JSONObject map){
+        LoginUser user = opUser();
+        apiService.updatePercent(map,user);
+
+        logger.info("updatePercent"+map.toString());
+
+        ResponseInfo responseInfo=new ResponseInfo();
+        responseInfo.setCode(200);
+        return responseInfo;
+    }
 }
 

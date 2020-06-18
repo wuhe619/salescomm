@@ -8,15 +8,14 @@ import com.bdaim.api.Dto.ApiDefine;
 import com.bdaim.api.dao.ApiDao;
 import com.bdaim.api.dao.ApiUrlMappingDao;
 import com.bdaim.api.dao.SubscriptionDao;
-import com.bdaim.api.entity.ApiEntity;
-import com.bdaim.api.entity.ApiProperty;
-import com.bdaim.api.entity.ApiUrlMappingEntity;
-import com.bdaim.api.entity.SubscriptionEntity;
+import com.bdaim.api.entity.*;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
+import com.bdaim.crm.common.config.redis.Redis;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customer.dao.AmApplicationDao;
 import com.bdaim.customer.entity.AmApplicationEntity;
 import com.bdaim.customer.service.CustomerAppService;
@@ -25,6 +24,8 @@ import com.bdaim.util.BigDecimalUtil;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
+import com.bdaim.util.redis.RedisUtil;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +62,8 @@ public class ApiService {
 
     @Resource
     private CreateXML createXML;
+    @Resource
+    private RedisUtil redisUtil;
 
     private static Logger logger = LoggerFactory.getLogger(ApiService.class);
 
@@ -612,8 +615,8 @@ public class ApiService {
         calendar.add(Calendar.DATE, 365 * 100);
         if (list.size() == 0) {
 
-            String subSql = " insert into am_subscription (CREATED_BY,CREATED_TIME,API_ID,LAST_ACCESSED,SUB_STATUS,SUBS_CREATE_STATE,APPLICATION_ID,UPDATED_TIME) " +
-                    "values (?,?,?,?,?,?,?,?)";
+            String subSql = " insert into am_subscription (CREATED_BY,CREATED_TIME,API_ID,LAST_ACCESSED,SUB_STATUS,SUBS_CREATE_STATE,APPLICATION_ID,UPDATED_TIME,percent_way) " +
+                    "values (?,?,?,?,?,?,?,?,1)";
 //                    "values('" + lu.getUserName() + "','" + new Timestamp(System.currentTimeMillis()) + "'," + apiEntity.getApiId() + ",'" + new Timestamp(System.currentTimeMillis()) +
 //                    "','UNBLOCKED','SUBSCRIBE'," + amApplicationEntity.getId() + ",'" + new Timestamp(System.currentTimeMillis()) + "')";
             KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -638,6 +641,8 @@ public class ApiService {
                     "VALUES (?,?,?,?,?,?,?,?,?,?)";
             jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 10000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
             logger.info("初始化API定价信息成功,客户Id:{},subscriptionId:{}", params.getString("custId"), subscriptionId);
+
+
         } else {
             subscriptionId = Integer.valueOf(list.get(0).get("id").toString());
             logger.info("重新订阅API只更改订阅状态,客户Id:{},subscriptionId:{}", params.getString("custId"), subscriptionId);
@@ -653,6 +658,64 @@ public class ApiService {
                 jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
             }
         }
+
+
+        //分配百分比
+        ApiProperty rsIds = apiDao.getProperty(apiId, "rsIds");//查出api所有资源
+        JSONArray jsonArray = new JSONArray();
+        if (rsIds != null) {
+            String propertyValue = rsIds.getPropertyValue();
+            JSONArray objects = JSONArray.parseArray(propertyValue);
+            List<JSONObject> jsonObjects = objects.toJavaList(JSONObject.class);
+            int size = jsonObjects.size();
+            int sd = 0;
+            if (size > 0) {
+                sd = 100 / size;
+            }
+            int last = 0;
+            if ((100 - (sd * size)) > 0) {
+                last += (sd + (100 - (sd * size)));
+            } else {
+                last = sd;
+            }
+            for (int i = 0; i <jsonObjects.size(); i++) {
+                int beginPercent = 1;
+
+                int endPercent = 0;
+
+                String supplier = jsonObjects.get(i).getString("supplier");//供应商id
+                String rsId = jsonObjects.get(i).getString("rsId");//资源id
+
+                if (i > 0) {
+                    beginPercent = (i * sd) + 1;
+                }
+                if (i == jsonObjects.size() - 1) {
+                    endPercent = last+beginPercent-1;
+                } else {
+                    endPercent = ((i + 1) * sd);
+                }
+                for (int d = 0; d <  ((endPercent - beginPercent)+1); d++) {
+                    jsonArray.add(rsId);//资源id
+                }
+                CustomerApiResourcePrecent apiResourcePrecent = new CustomerApiResourcePrecent();
+                logger.info("custId===="+params.get("custId").toString());
+                apiResourcePrecent.setCustomerId(params.get("custId").toString());
+                apiResourcePrecent.setApiId(apiId);
+                apiResourcePrecent.setResounseId(rsId);
+                apiResourcePrecent.setBeginPercent(beginPercent + "");
+                apiResourcePrecent.setEndPercent(endPercent + "");
+                apiResourcePrecent.setCreatedBy(lu.getUserId().intValue()+"");
+                apiResourcePrecent.setPercent((endPercent - beginPercent)+1 + "");
+                apiDao.saveOrUpdate(apiResourcePrecent);
+            }
+            logger.info("订阅成功后 :{}", params.getString("custId"), subscriptionId);
+
+
+            String sql = "update am_subscription  set percent_content=?,UPDATED_TIME=?,percent_way='1' where SUBSCRIPTION_ID=? ";
+            jdbcTemplate.update(sql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()), subscriptionId});
+            logger.info("更改API订阅状态成功,客户Id:{},subscriptionId:{}", params.getString("custId"), subscriptionId);
+            redisUtil.set(amApplicationEntity.getSubscriberId() + ":" + apiId, jsonArray.toJSONString());
+        }
         return subscriptionId;
     }
 
@@ -667,6 +730,14 @@ public class ApiService {
         entity.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
         //entity.setSubStatus("BLOCKED");
         subscriptionDao.update(entity);
+
+
+        List<String> params1 = new ArrayList<>();
+        params1.add(amApplicationEntity.getSubscriberId() + "");
+        params1.add(apiId);
+        String sql = "delete from customer_api_resouse_precent where customer_id=? and api_id=? ";
+
+        this.jdbcTemplate.update(sql, params1.toArray());
         return 1;
     }
 
@@ -903,5 +974,204 @@ public class ApiService {
         PageList list = new Pagination().getPageData(sql.toString(), new Object[]{params.getString("rsId")}, page, jdbcTemplate);
         return list;
     }
+
+
+    public void getPersentByApi(JSONObject map) {
+        logger.info("map"+map.toString());
+        List list = new ArrayList();
+        list.add(map.get("apiId"));
+        AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(map.getString("custId"));
+        list.add(amApplicationEntity.getId());
+
+        String subSql1 = "select percent_way as percentWay  from am_subscription where  API_ID = ? and APPLICATION_ID=? ";
+
+        List<Map<String, Object>> mapList1 = this.jdbcTemplate.queryForList(subSql1, list.toArray());
+
+        if(mapList1!=null&&mapList1.size()>0){
+           map.put("percentWay",mapList1.get(0).get("percentWay"));
+           logger.info("percentWay"+map.get("percentWay"));
+       }
+         list = new ArrayList();
+        list.add(map.get("apiId"));
+        list.add(map.get("custId"));
+        String sql = " select percent,(select resname from t_market_resource t where t.resource_Id=carp.resounse_id) resname,carp.resounse_id rdId  from customer_api_resouse_precent carp where api_id=? and customer_id=? ";
+
+        List<Map<String, Object>> mapList = this.jdbcTemplate.queryForList(sql, list.toArray());
+
+        if (mapList == null || mapList.size() == 0) {
+
+            mapList = new ArrayList<Map<String, Object>>();
+            logger.info("apidp"+apiDao);
+            logger.info("map"+map);
+            logger.info("map.get(\"apiId\")=="+map.get("apiId"));
+
+            ApiProperty property = apiDao.getProperty(map.get("apiId").toString(), "rsIds");
+            if (property != null && StringUtils.isNotEmpty(property.getPropertyValue())) {
+                String propertyValue = property.getPropertyValue();
+                List<JSONObject> jsonObjects = JSONArray.parseArray(propertyValue, JSONObject.class);
+                for (JSONObject jsonObject : jsonObjects) {
+                    String rsId = jsonObject.get("rsId").toString();
+
+                    String rssql = "select resname,resource_Id rdId from t_market_resource t where t.resource_Id=?";
+
+                    Map<String, Object> stringObjectMap = this.jdbcTemplate.queryForMap(rssql, rsId);
+
+                    mapList.add(stringObjectMap);
+                }
+
+            }
+        }
+
+        map.put("rsList", mapList);
+
+    }
+
+    public void updatePercent(JSONObject map,LoginUser user) {
+
+        String apiId = map.get("apiId").toString();
+        String custId = map.get("custId").toString();
+        String updateWay = map.get("updateWay").toString();
+        AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(map.getString("custId"));
+
+        List<String> params = new ArrayList<>();
+        params.add(custId);
+        params.add(apiId);
+        String sql = "delete from customer_api_resouse_precent where customer_id=? and api_id=? ";
+
+        this.jdbcTemplate.update(sql, params.toArray());
+
+        if (updateWay.equals("1")) {//均分
+
+            List<HashMap<String, Object>> list = (List<HashMap<String, Object>>) map.get("resources");
+            if (list != null && list.size() > 0) {
+
+                int sd = 0;
+                int size = list.size();
+                if (size > 0) {
+                    sd = 100 / size;
+                }
+                int last = 0;
+                if ((100 - (sd * size)) > 0) {
+                    last += (sd + (100 - (sd * size)));
+                } else {
+                    last = sd;
+                }
+                JSONArray jsonArray = new JSONArray();
+                for (int i = 0; i < list.size(); i++) {
+
+                    int beginPercent = 1;
+
+                    int endPercent = 0;
+
+                    String rsId = list.get(i).get("rdId").toString();//资源id
+
+                    if (i > 0) {
+                        beginPercent = (i * sd) + 1;
+                    }
+                    if (i == list.size() - 1) {
+                        endPercent = beginPercent+last-1;
+                    } else {
+                        endPercent = ((i + 1) * sd);
+                    }
+                    for (int d = 0; d < ((endPercent - beginPercent)+1); d++) {
+                        jsonArray.add(rsId);//资源id
+                    }
+                    CustomerApiResourcePrecent apiResourcePrecent = new CustomerApiResourcePrecent();
+                    apiResourcePrecent.setCustomerId(custId);
+                    apiResourcePrecent.setApiId(apiId);
+                    apiResourcePrecent.setResounseId(rsId);
+                    apiResourcePrecent.setBeginPercent(beginPercent + "");
+                    apiResourcePrecent.setEndPercent(endPercent + "");
+                    apiResourcePrecent.setCreatedBy(user.getUserId()+"");
+                    apiResourcePrecent.setPercent((endPercent - beginPercent)+1 + "");
+                    List instparams=new ArrayList();
+
+                    String insertsql="insert into\n" +
+                            "        customer_api_resouse_precent\n" +
+                            "        (begin_percent, created_by, customer_id, end_percent, percent, resounse_id,api_id) values ( ?, ?,?, ?, ?, ?,?) ";
+                    instparams.add(beginPercent);
+                    instparams.add(user.getUserId());
+                    instparams.add(custId);
+                    instparams.add(endPercent);
+                    instparams.add((endPercent - beginPercent)+1);
+                    instparams.add(rsId);
+                    instparams.add(apiId);
+
+                    this.jdbcTemplate.update(insertsql,instparams.toArray());
+                }
+
+
+                String udsql = "update am_subscription  set percent_content=?,updated_time=?,percent_way=? where API_ID=? and APPLICATION_ID=?  ";
+                jdbcTemplate.update(udsql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()),"1", apiId, amApplicationEntity.getId()});
+//                redisUtil.set(custId + ":" + apiId, jsonArray.toJSONString());
+
+            }
+
+        } else {//自定义
+            List<HashMap<String, Object>> list = (List<HashMap<String, Object>>) map.get("resources");
+            if (list != null && list.size() > 0) {
+
+
+                JSONArray jsonArray = new JSONArray();
+                int total = 100;
+                int lastEnd = 0;
+                for (int i = 0; i < list.size(); i++) {
+
+
+                    int size = list.size();
+                    String percent = list.get(i).get("percent").toString();
+
+                    int endPercent = lastEnd + Integer.parseInt(percent);
+
+                    int beginPercent = 1;
+
+
+                    String rsId = list.get(i).get("rdId").toString();//资源id
+
+                    if (i > 0) {
+                        beginPercent = (lastEnd) + 1;
+                    }
+                    lastEnd=endPercent;
+
+
+                    for (int d = 0; d < ((endPercent - beginPercent)+1); d++) {
+                        jsonArray.add(rsId);//资源id
+                    }
+                    CustomerApiResourcePrecent apiResourcePrecent = new CustomerApiResourcePrecent();
+                    apiResourcePrecent.setCustomerId(custId);
+                    apiResourcePrecent.setApiId(apiId);
+                    apiResourcePrecent.setResounseId(rsId);
+                    apiResourcePrecent.setBeginPercent(beginPercent + "");
+                    apiResourcePrecent.setEndPercent(endPercent + "");
+                    apiResourcePrecent.setCreatedBy(user.getUserId()+"");
+                    apiResourcePrecent.setPercent((endPercent - beginPercent)+1 + "");
+                    List instparams=new ArrayList();
+
+                    String insertsql="insert into\n" +
+                            "        customer_api_resouse_precent\n" +
+                            "        (begin_percent, created_by, customer_id, end_percent, percent, resounse_id,api_id) values ( ?, ?,?, ?, ?, ?,?) ";
+                    instparams.add(beginPercent);
+                    instparams.add(user.getUserId());
+                    instparams.add(custId);
+                    instparams.add(endPercent);
+                    instparams.add((endPercent - beginPercent)+1);
+                    instparams.add(rsId);
+                    instparams.add(apiId);
+
+                    this.jdbcTemplate.update(insertsql,instparams.toArray());
+                }
+
+
+                String usql = "update am_subscription  set percent_content=?,updated_time=?,percent_way=? where API_ID=? and APPLICATION_ID=?  ";
+                jdbcTemplate.update(usql, new Object[]{jsonArray.toJSONString(), new Timestamp(System.currentTimeMillis()),"2",apiId,  amApplicationEntity.getId()});
+               logger.info("usql"+usql);
+//                redisUtil.set(custId + ":" + apiId, jsonArray.toJSONString());
+
+            }
+        }
+
+
+    }
+
 
 }
