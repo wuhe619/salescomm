@@ -803,10 +803,10 @@ public class CustomGroupService {
         JSONArray tmp = new JSONArray();
         // 获取具体特征发现
         JSONArray _tmp = json.getJSONArray("data");
-        log.info("te"+_tmp.toJSONString());
+        log.info("te" + _tmp.toJSONString());
         for (int i = 0; i < _tmp.size(); i++) {
             JSONObject _json = _tmp.getJSONObject(i);
-            log.info("te"+_json.toJSONString());
+            log.info("te" + _json.toJSONString());
             String labelID = _json.getString("labelID");
             LabelInfo label = labelInfoService.getLabelInfoByLabelId(labelID);
             String path = label.getPath();
@@ -886,6 +886,28 @@ public class CustomGroupService {
             // }).start();
         }
         return group.getDownloadStatus();
+    }
+
+    /**
+     * 判断是否拥有相同条件待支付的客户群
+     * @param custId
+     * @param groupCondition
+     * @return
+     */
+    public int checkSameConditionCustomerGroup(String custId, String groupCondition) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(" SELECT ");
+        sb.append(" 	count(*) as count ");
+        sb.append(" FROM ");
+        sb.append(" 	`customer_group` c ");
+        sb.append(" LEFT JOIN t_order t ON t.order_id = c.order_id ");
+        sb.append(" WHERE ");
+        sb.append(" 	t.order_state = 1 ");
+        sb.append(" AND c.`STATUS` =2 ");
+        sb.append(" AND c.cust_id=?");
+        sb.append(" AND c.group_condition=?");
+        int count = customerDao.queryForInt(sb.toString(), custId, groupCondition);
+        return count
     }
 
 
