@@ -890,6 +890,7 @@ public class CustomGroupService {
 
     /**
      * 判断是否拥有相同条件待支付的客户群
+     *
      * @param custId
      * @param groupCondition
      * @return
@@ -907,7 +908,7 @@ public class CustomGroupService {
         sb.append(" AND c.cust_id=?");
         sb.append(" AND c.group_condition=?");
         int count = customerDao.queryForInt(sb.toString(), custId, groupCondition);
-        return count
+        return count;
     }
 
 
@@ -7259,6 +7260,26 @@ public class CustomGroupService {
                 log.error("导出运营后台客群列表异常", e);
             }
         }
+    }
+
+    /**
+     * 获取客群中的一条数据
+     *
+     * @param cgId
+     * @param superId
+     * @return
+     */
+    public Map<String, Object> getSuperData(String cgId, String superId) {
+        String sql = " select * from t_customer_group_list_" + cgId + " where id=?";
+        try {
+            List<Map<String, Object>> d = jdbcTemplate.queryForList(sql, superId);
+            if (d != null && d.size() > 0) {
+                return d.get(0);
+            }
+        } catch (DataAccessException e) {
+            log.error("getSuperData异常", e);
+        }
+        return null;
     }
 }
 

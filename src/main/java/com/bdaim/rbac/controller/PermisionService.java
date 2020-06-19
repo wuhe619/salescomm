@@ -25,8 +25,6 @@ import javax.servlet.http.HttpServletRequest;
 public class PermisionService {
 
 	@Resource
-	private ResourceDao resourceDao;
-	@Resource
 	private ResourceService resourceService;
 	
     @RequestMapping("/queryPersionByID/{userid}/{pid}/{type}")
@@ -38,9 +36,9 @@ public class PermisionService {
         UserDTO user = new UserDTO();
         user.setId(userid);
         if ("all".equals(type)) {
-            all = resourceDao.queryUserTree(user, abstractTreeResource, null);
+            all = resourceService.queryUserTree(userid, abstractTreeResource, null);
         } else {
-            all = resourceDao.queryUserTree(user, abstractTreeResource, new String[]{type});
+            all = resourceService.queryUserTree(userid, abstractTreeResource, new String[]{type});
         }
         return all.toJArray(all.getNotes()).toString();
     }
@@ -54,9 +52,9 @@ public class PermisionService {
         UserDTO user = new UserDTO();
         user.setId(userid);
         if ("all".equals(type)) {
-            all = resourceDao.queryUserTree(user, resourceDao.getObj(resource), null);
+            all = resourceService.queryUserTree(userid, resourceService.getObj(resource), null);
         } else {
-            all = resourceDao.queryUserTree(user, resourceDao.getObj(resource), new String[]{type});
+            all = resourceService.queryUserTree(userid, resourceService.getObj(resource), new String[]{type});
         }
         return all.toJArray(all.getNotes()).toString();
     }

@@ -7,6 +7,7 @@ import com.bdaim.callcenter.dto.RecordVoiceQueryParam;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.user.service.CustomerUserService;
 import com.bdaim.image.service.impl.UploadDowloadImgServiceImpl;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.util.*;
@@ -47,7 +48,7 @@ public class UploadAction extends BasicAction {
     @Resource
     private BatchService batchService;
     @Resource
-    private CustomerUserDao customerUserDao;
+    private CustomerUserService customerUserService;
 
     /*
      * 上传企业营业执照副本
@@ -249,7 +250,7 @@ public class UploadAction extends BasicAction {
                 }
                 if (map.get("user_id") != null) {
                     userid = map.get("user_id").toString();
-                    realName = customerUserDao.getName(userid);
+                    realName = customerUserService.getName(NumberConvertUtil.parseLong(userid));
                 }
                 if (map.get("create_time") != null) {
                     logger.info("致电时间：" + createTime);

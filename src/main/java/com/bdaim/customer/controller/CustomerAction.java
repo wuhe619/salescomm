@@ -82,8 +82,6 @@ public class CustomerAction extends BasicAction {
     @Resource
     SeatsService seatsService;
     @Resource
-    CustomerUserDao customerUserDao;
-    @Resource
     SupplierService supplierService;
     @Resource
     MarketProjectService marketProjectService;
@@ -438,14 +436,14 @@ public class CustomerAction extends BasicAction {
             userdetail.setUserType(String.valueOf(u.getUserType()));
             userdetail.setRole("ROLE_CUSTOMER");
 
-            CustomerUserPropertyDO mobile_num = customerUserDao.getProperty(u.getId().toString(), "mobile_num");
+            CustomerUserPropertyDO mobile_num = customerUserService.getProperty(u.getId(), "mobile_num");
             if (mobile_num != null && StringUtil.isNotEmpty(mobile_num.getPropertyValue())) {
                 responseResult.setMobile_num(mobile_num.getPropertyValue());
             } else {
                 responseResult.setMobile_num("");
             }
             // 查询用户组信息
-            CustomerUserGroupRelDTO cug = customerUserDao.getCustomerUserGroupByUserId(u.getId());
+            CustomerUserGroupRelDTO cug = customerUserService.getCustomerUserGroupByUserId(u.getId());
             if (cug != null) {
                 userdetail.setUserGroupId(cug.getGroupId());
                 userdetail.setUserGroupRole(String.valueOf(cug.getType()));
@@ -533,14 +531,14 @@ public class CustomerAction extends BasicAction {
             userDetail.setUserType(String.valueOf(u.getUserType()));
             userDetail.setRole("ROLE_CUSTOMER");
 
-            CustomerUserPropertyDO mobile_num = customerUserDao.getProperty(u.getId().toString(), "mobile_num");
+            CustomerUserPropertyDO mobile_num = customerUserService.getProperty(u.getId(), "mobile_num");
             if (mobile_num != null && StringUtil.isNotEmpty(mobile_num.getPropertyValue())) {
                 responseResult.setMobile_num(mobile_num.getPropertyValue());
             } else {
                 responseResult.setMobile_num("");
             }
             // 查询用户组信息
-            CustomerUserGroupRelDTO cug = customerUserDao.getCustomerUserGroupByUserId(u.getId());
+            CustomerUserGroupRelDTO cug = customerUserService.getCustomerUserGroupByUserId(u.getId());
             if (cug != null) {
                 userDetail.setUserGroupId(cug.getGroupId());
                 userDetail.setUserGroupRole(String.valueOf(cug.getType()));
