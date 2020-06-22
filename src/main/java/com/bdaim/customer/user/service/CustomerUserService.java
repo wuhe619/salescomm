@@ -1848,4 +1848,19 @@ public class CustomerUserService {
         }
     }
 
+    public CustomerUserPropertyDO getProperty(long userId, String propertyName) {
+        return customerUserDao.getProperty(String.valueOf(userId), propertyName);
+    }
+
+    public String getName(long userId) {
+        return customerUserDao.getName(String.valueOf(userId));
+    }
+
+    public String getLoginName(long userId) {
+        return customerUserDao.getLoginName(String.valueOf(userId));
+    }
+
+    public CustomerUserGroupRelDTO getCustomerUserGroupByUserId(long userId) {
+        return  customerUserDao.getCustomerUserGroupByUserId(userId);
+    }
 }

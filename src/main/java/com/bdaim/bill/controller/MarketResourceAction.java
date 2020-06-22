@@ -26,13 +26,12 @@ import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.service.CrmContactsService;
 import com.bdaim.crm.erp.crm.service.CrmCustomerService;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
-import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerLabelDTO;
 import com.bdaim.customer.entity.CustomerLabel;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerLabelService;
 import com.bdaim.customer.service.CustomerService;
+import com.bdaim.customer.user.service.CustomerUserService;
 import com.bdaim.customersea.dto.CustomerSeaSmsSearch;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customgroup.dto.CustomerGrpOrdParam;
@@ -77,7 +76,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author yanls@bdaim.com
@@ -93,10 +91,6 @@ public class MarketResourceAction extends BasicAction {
     @Resource
     private MarketResourceService marketResourceService;
     @Resource
-    private CustomerUserDao customerUserDao;
-    @Resource
-    private CustomerDao customerDao;
-    @Resource
     private BatchService batchService;
     @Autowired
     private CrmLeadsService crmLeadsService;
@@ -106,6 +100,8 @@ public class MarketResourceAction extends BasicAction {
     private CrmContactsService crmContactsService;
     @Autowired
     private AdminFieldService adminFieldService;
+    @Autowired
+    private CustomerUserService customerUserService;
 
     /**
      * 通话历史
@@ -161,14 +157,14 @@ public class MarketResourceAction extends BasicAction {
                     if (StringUtil.isEmpty(realname)) {
                         if (mapObj.get("user_id") != null) {
                             String user_id = mapObj.get("user_id").toString();
-                            realname = customerUserDao.getName(user_id);
-                            account = customerUserDao.getLoginName(user_id);
+                            realname = customerUserService.getName(NumberConvertUtil.parseLong(user_id));
+                            account = customerUserService.getLoginName(NumberConvertUtil.parseLong(user_id));
                         }
                     }
                     if (StringUtil.isEmpty(enterprisename)) {
                         if (mapObj.get("cust_id") != null) {
                             String custId = mapObj.get("cust_id").toString();
-                            enterprisename = customerDao.getEnterpriseName(custId);
+                            enterprisename = customerService.getEnterpriseName(custId);
                         }
                     }
                     mapObj.put("enterpriseName", enterprisename);
@@ -257,7 +253,7 @@ public class MarketResourceAction extends BasicAction {
                 if (StringUtil.isEmpty(enterprisename)) {
                     LOG.info("调用接口获取企业名称，企业id:" + smsCustID);
                     if (map.get("enterprise_id") != null) {
-                        enterprisename = customerDao.getEnterpriseName(smsCustID);
+                        enterprisename = customerService.getEnterpriseName(smsCustID);
                     }
                 }
                 if (StringUtil.isEmpty(batchname)) {

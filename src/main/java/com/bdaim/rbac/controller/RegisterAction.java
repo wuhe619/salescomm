@@ -34,9 +34,6 @@ public class RegisterAction extends BasicAction {
     @Resource
     private SendSmsService sendSmsService;
 
-    @Resource
-    private JdbcTemplate jdbcTemplate;
-
     /**
      * 注册用户
      *

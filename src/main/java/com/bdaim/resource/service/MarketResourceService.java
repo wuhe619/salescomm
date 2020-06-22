@@ -7173,6 +7173,8 @@ public class MarketResourceService {
         sb.append(" GROUP BY email.batch_number ");
         sb.append(" ORDER BY email.create_time DESC ");
         sb.append(" LIMIT ?,?");
+        params.add(pageNum);
+        params.add(pageSize);
         List<Map<String, Object>> list = this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
         return list;
     }

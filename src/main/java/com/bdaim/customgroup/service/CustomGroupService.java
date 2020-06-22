@@ -803,10 +803,10 @@ public class CustomGroupService {
         JSONArray tmp = new JSONArray();
         // 获取具体特征发现
         JSONArray _tmp = json.getJSONArray("data");
-        log.info("te"+_tmp.toJSONString());
+        log.info("te" + _tmp.toJSONString());
         for (int i = 0; i < _tmp.size(); i++) {
             JSONObject _json = _tmp.getJSONObject(i);
-            log.info("te"+_json.toJSONString());
+            log.info("te" + _json.toJSONString());
             String labelID = _json.getString("labelID");
             LabelInfo label = labelInfoService.getLabelInfoByLabelId(labelID);
             String path = label.getPath();
@@ -886,6 +886,29 @@ public class CustomGroupService {
             // }).start();
         }
         return group.getDownloadStatus();
+    }
+
+    /**
+     * 判断是否拥有相同条件待支付的客户群
+     *
+     * @param custId
+     * @param groupCondition
+     * @return
+     */
+    public int checkSameConditionCustomerGroup(String custId, String groupCondition) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(" SELECT ");
+        sb.append(" 	count(*) as count ");
+        sb.append(" FROM ");
+        sb.append(" 	`customer_group` c ");
+        sb.append(" LEFT JOIN t_order t ON t.order_id = c.order_id ");
+        sb.append(" WHERE ");
+        sb.append(" 	t.order_state = 1 ");
+        sb.append(" AND c.`STATUS` =2 ");
+        sb.append(" AND c.cust_id=?");
+        sb.append(" AND c.group_condition=?");
+        int count = customerDao.queryForInt(sb.toString(), custId, groupCondition);
+        return count;
     }
 
 
@@ -7237,6 +7260,26 @@ public class CustomGroupService {
                 log.error("导出运营后台客群列表异常", e);
             }
         }
+    }
+
+    /**
+     * 获取客群中的一条数据
+     *
+     * @param cgId
+     * @param superId
+     * @return
+     */
+    public Map<String, Object> getSuperData(String cgId, String superId) {
+        String sql = " select * from t_customer_group_list_" + cgId + " where id=?";
+        try {
+            List<Map<String, Object>> d = jdbcTemplate.queryForList(sql, superId);
+            if (d != null && d.size() > 0) {
+                return d.get(0);
+            }
+        } catch (DataAccessException e) {
+            log.error("getSuperData异常", e);
+        }
+        return null;
     }
 }
 

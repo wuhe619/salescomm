@@ -304,6 +304,10 @@ public class CustomerService {
         return m;
     }
 
+    public CustomerProperty getProperty(String custId, String propertyName) {
+       return customerDao.getProperty(custId,propertyName);
+    }
+
     public String getUserRealName(String userId) {
         return customerUserDao.getName(userId);
     }

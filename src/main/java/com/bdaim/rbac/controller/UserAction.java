@@ -77,20 +77,18 @@ public class UserAction extends BasicAction {
     @Resource
     private ResourceService resourceService;
 
-
     @Resource
     private UserService userService;
+
     @Resource
     UserInfoService userInfoService;
-    @Resource
-    UserVerificationCodeService userVerificationCodeService;
-    UserVerificationCode userVerificationCode = null;
-    @Resource
-    private CustomerDao customerDao;
+
     @Resource
     private CustomerService customerService;
+
     @Resource
     private TokenCacheService<LoginUser> tokenCacheService;
+
     @Resource
     private CustomerUserService customerUserService;
 
@@ -213,7 +211,7 @@ public class UserAction extends BasicAction {
     @ResponseBody
     public Object getUserToken(String userName) throws Exception {
         CustomerUser u = customerService.getUserByName(userName);
-        CustomerProperty customerProperty = customerDao.getProperty(u.getCust_id(), "token");
+        CustomerProperty customerProperty = customerService.getProperty(u.getCust_id(), "token");
         String token = customerProperty.getPropertyValue();
 
 

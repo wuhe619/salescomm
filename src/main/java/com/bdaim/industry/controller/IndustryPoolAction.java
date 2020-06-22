@@ -11,19 +11,15 @@ import com.bdaim.dataexport.service.DataPermissionService;
 import com.bdaim.industry.dto.IndustryLabelsDTO;
 import com.bdaim.industry.dto.IndustryPoolDTO;
 import com.bdaim.industry.service.IndustryPoolService;
-import com.bdaim.label.dao.IndustryPoolDao;
-import com.bdaim.label.dao.LabelInfoDao;
 import com.bdaim.label.dto.Label;
 import com.bdaim.label.dto.LabelGroup;
 import com.bdaim.label.dto.QueryParam;
 import com.bdaim.label.dto.QueryType;
-import com.bdaim.label.entity.*;
-import com.bdaim.label.service.LabelCategoryService;
+import com.bdaim.label.entity.DataNode;
+import com.bdaim.label.entity.LabelInfo;
 import com.bdaim.label.service.LabelInfoService;
 import com.bdaim.util.AuthPassport;
-import com.bdaim.util.Constant;
 import com.bdaim.util.StringUtil;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,15 +42,9 @@ public class IndustryPoolAction extends BasicAction {
     @Resource
     private IndustryPoolService industryPoolService;
     @Resource
-    private IndustryPoolDao industryPoolDao;
-    @Resource
-    private LabelCategoryService labelCategoryService;
-    @Resource
     private DataPermissionService dataPermissionService;
     @Resource
     private LabelInfoService labelInfoService;
-    @Resource
-    private LabelInfoDao labelInfoDao;
 
     /**
      * 查看客户行业标签池
