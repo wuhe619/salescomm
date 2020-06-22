@@ -500,6 +500,8 @@ public class CustomerAppService {
         //        int money = Integer.valueOf(String.valueOf(Float.valueOf(deposit.getMoney()) * 10000));
         int pre_money = 0;
         CustomerProperty customerProperty = customerDao.getProperty(id, "remain_amount");
+        customerDao.dealCustomerInfo(id, "aomunt_reaMark", String.valueOf(money));
+
         if (customerProperty == null) {
             customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf(money));
         } else {
@@ -525,6 +527,9 @@ public class CustomerAppService {
                     break;
                 case "remain_amount":
                     map.put("remain_amount", BigDecimalUtil.strDiv(m.get("property_value").toString(),"10000",3));
+                    break;
+                case "aomunt_reaMark":
+                    map.put("amountReamark", m.get("property_value"));
                     break;
             }
         });
