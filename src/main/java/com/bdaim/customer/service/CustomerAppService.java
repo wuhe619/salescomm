@@ -566,6 +566,9 @@ public class CustomerAppService {
             if (depositMap.get("account") != null) {
                 deposit.setAccount(depositMap.get("account").toString());
             }
+            if (depositMap.get("amountReamark") != null) {
+                deposit.setAmountReamark(depositMap.get("amountReamark").toString());
+            }
             depositList.add(deposit);
         });
         Customer customer = customerDao.get(custId);
