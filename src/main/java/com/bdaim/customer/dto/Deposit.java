@@ -14,6 +14,15 @@ public class Deposit {
     private String userId;
     private String preMoney;
     private String account;
+    private String amountReamark;//充值备注
+
+    public String getAmountReamark() {
+        return amountReamark;
+    }
+
+    public void setAmountReamark(String amountReamark) {
+        this.amountReamark = amountReamark;
+    }
 
     public String getAccount() {
         return account;

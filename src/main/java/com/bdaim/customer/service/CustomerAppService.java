@@ -500,6 +500,7 @@ public class CustomerAppService {
         //        int money = Integer.valueOf(String.valueOf(Float.valueOf(deposit.getMoney()) * 10000));
         int pre_money = 0;
         CustomerProperty customerProperty = customerDao.getProperty(id, "remain_amount");
+
         if (customerProperty == null) {
             customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf(money));
         } else {
@@ -507,9 +508,9 @@ public class CustomerAppService {
             pre_money = Integer.valueOf(customerProperty.getPropertyValue());
             customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf(pre_money + money));
         }
-        String sql = "INSERT INTO am_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
+        String sql = "INSERT INTO am_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id,aomunt_reamark) VALUE (?,?,?,?,?,?,?) ";
 
-        jdbcTemplate.update(sql, Long.valueOf(id), money, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getPicId(), pre_money, userId);
+        jdbcTemplate.update(sql, Long.valueOf(id), money, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getPicId(), pre_money, userId,deposit.getAmountReamark());
         return 0;
     }
 
@@ -526,10 +527,11 @@ public class CustomerAppService {
                 case "remain_amount":
                     map.put("remain_amount", BigDecimalUtil.strDiv(m.get("property_value").toString(),"10000",3));
                     break;
+
             }
         });
 
-        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.name as account from am_pay pay left join  t_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = ? ";
+        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.name as account,pay.aomunt_reamark as amountReamark  from am_pay pay left join  t_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = ? ";
         page.setSort("pay.pay_time");
         page.setDir(" desc");
         PageList list = new Pagination().getPageData(sql1, new Object[]{custId}, page, jdbcTemplate);
@@ -563,6 +565,9 @@ public class CustomerAppService {
             }
             if (depositMap.get("account") != null) {
                 deposit.setAccount(depositMap.get("account").toString());
+            }
+            if (depositMap.get("amountReamark") != null) {
+                deposit.setAmountReamark(depositMap.get("amountReamark").toString());
             }
             depositList.add(deposit);
         });

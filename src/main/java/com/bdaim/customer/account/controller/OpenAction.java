@@ -1,12 +1,11 @@
 package com.bdaim.customer.account.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.AppConfig;
-import com.bdaim.batch.dao.BatchDetailDao;
 import com.bdaim.batch.dto.FixInfo;
 import com.bdaim.batch.entity.BatchDetail;
+import com.bdaim.batch.service.impl.BatchServiceImpl;
 import com.bdaim.callcenter.dto.RecordVoiceQueryParam;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
@@ -15,8 +14,6 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.service.ElasticSearchService;
-import com.bdaim.crm.ent.dto.ESCreditIndexType;
-import com.bdaim.crm.ent.service.EntDataService;
 import com.bdaim.customer.account.service.OpenService;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerExtensionService;
@@ -53,7 +50,7 @@ public class OpenAction extends BasicAction {
     @Resource
     private MarketResourceService marketResourceService;
     @Resource
-    private BatchDetailDao batchDetailDao;
+    private BatchServiceImpl batchService;
 
     @Autowired
     private CustomsService customsService;
@@ -491,7 +488,7 @@ public class OpenAction extends BasicAction {
     public ResponseInfo testBatchDetail(@RequestBody Map map) {
         String id = String.valueOf(map.get("id"));
         String batchId = String.valueOf(map.get("batch_id"));
-        BatchDetail batchDetail = batchDetailDao.getBatchDetail(id, batchId);
+        BatchDetail batchDetail = batchService.getBatchDetail(id, batchId);
         return new ResponseInfoAssemble().success(batchDetail);
     }
 

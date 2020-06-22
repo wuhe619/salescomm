@@ -55,11 +55,7 @@ public class OpenApiAction extends BasicAction {
     @Resource
     private CustomGroupService customGroupService;
     @Resource
-    private JdbcTemplate jdbcTemplate;
-    @Resource
     private PhoneService phoneService;
-    @Resource
-    private SeatsService seatsService;
 
     /**
      * 发送短信
@@ -396,8 +392,7 @@ public class OpenApiAction extends BasicAction {
             result.put("errorDesc", "04");
             return result;
         }
-        String sql = " select * from t_customer_group_list_" + customerGroupId + " where id='" + userId + "'";
-        List<Map<String, Object>> d = jdbcTemplate.queryForList(sql);
+        Map<String, Object> d = customGroupService.getSuperData(customerGroupId,userId);
         if (d == null || d.isEmpty()) {
             LOG.error("客群 " + customerGroupId + " 无" + userId);
             result.put("errorDesc", "04");

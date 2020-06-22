@@ -39,7 +39,6 @@ import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -73,8 +72,6 @@ public class CustomGroupAction extends BasicAction {
     private IndustryPoolService industryService;
     @Resource
     private LabelInfoService labelInfoService;
-    @Resource
-    private JdbcTemplate jdbcTemplate;
     @Resource
     private MarketResourceService marketResourceService;
     @Resource
@@ -417,18 +414,7 @@ public class CustomGroupAction extends BasicAction {
         Map<String, Object> resultMap = new HashMap<>();
         try {
             //判断当前用户是否存在相同条件的待支付的客户群
-            StringBuffer sb = new StringBuffer();
-            sb.append(" SELECT ");
-            sb.append(" 	count(*) as count ");
-            sb.append(" FROM ");
-            sb.append(" 	`customer_group` c ");
-            sb.append(" LEFT JOIN t_order t ON t.order_id = c.order_id ");
-            sb.append(" WHERE ");
-            sb.append(" 	t.order_state = 1 ");
-            sb.append(" AND c.`STATUS` =2 ");
-            sb.append(" AND c.cust_id=?");
-            sb.append(" AND c.group_condition=?");
-            Integer count = jdbcTemplate.queryForObject(sb.toString(), Integer.class, lu.getCustId(), customGroup.getGroupCondition());
+            int count = customGroupService.checkSameConditionCustomerGroup(lu.getCustId(), customGroup.getGroupCondition());
             if (count > 0) {
                 resultMap.put("remainSource", null);
                 resultMap.put("message", "您拥有相同条件待支付的客户群,请先支付!");

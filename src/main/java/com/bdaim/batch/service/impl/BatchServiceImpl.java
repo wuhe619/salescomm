@@ -1,6 +1,8 @@
 package com.bdaim.batch.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.batch.dao.BatchDetailDao;
+import com.bdaim.batch.entity.BatchDetail;
 import com.bdaim.batch.entity.BatchSendToFileResp;
 import com.bdaim.batch.service.BatchService;
 import com.bdaim.util.StringUtil;
@@ -16,6 +18,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +31,8 @@ public class BatchServiceImpl implements BatchService {
     private static Logger logger = LoggerFactory.getLogger(BatchServiceImpl.class);
     @Resource
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private BatchDetailDao batchDetailDao;
 
 
     private String createId = "unicom_bigdatabjhk";
@@ -166,7 +171,7 @@ public class BatchServiceImpl implements BatchService {
             p.add(batchId);
         }
 
-        List<Map<String, Object>> mapRepeat = jdbcTemplate.queryForList(sqlBuilder.toString(),p.toArray());
+        List<Map<String, Object>> mapRepeat = jdbcTemplate.queryForList(sqlBuilder.toString(), p.toArray());
         if (mapRepeat != null && mapRepeat.size() > 0) {
             if (mapRepeat.get(0).get("batch_name") != null) batchName = mapRepeat.get(0).get("batch_name").toString();
         }
@@ -191,6 +196,10 @@ public class BatchServiceImpl implements BatchService {
             }
         }
         return uploadNum;
+    }
+
+    public BatchDetail getBatchDetail(String id, String batchId) {
+        return batchDetailDao.getBatchDetail(id, batchId);
     }
 
 }
