@@ -339,7 +339,7 @@ public class UserInfoService {
                 " t_cust_industry t2" +
                 " WHERE 1=1 and ");
         sql.append("t2.cust_id=? ");
-        params.add(StringEscapeUtils.escapeSql(customerId));
+//        params.add(StringEscapeUtils.escapeSql(customerId));
         sql.append(") t3 ON t1.industry_pool_id = t3.industry_pool_id " +
                 "LEFT JOIN (" +
                 "SELECT " +
@@ -357,9 +357,46 @@ public class UserInfoService {
                 " GROUP BY " +
                 " t6.industry_pool_id " +
                 ") t7 ON t7.industryPoolId = t1.industry_pool_id where t1.`STATUS`= 3 order by t1.create_time DESC, status ");
-        logger.info(sql.toString(),params);
-        Page page = userInfoDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, params);
+
+        /*StringBuilder sql = new StringBuilder("SELECT t1.`NAME` AS industryPoolName," +
+                "t1.industry_pool_id AS industryPoolId," +
+                "IFNULL (t7.industryName, '') AS industryName ");
+            sql.append(" FROM t_industry_pool t1 ");
+            sql.append(" LEFT JOIN ( SELECT" +
+                    " t6.industry_pool_id AS industryPoolId, " +
+                    " GROUP_CONCAT(t6.industy_name) AS industryName " +
+                    " FROM (" +
+                    " SELECT " +
+                    " t4.industry_pool_id," +
+                    " t5.industy_name" +
+                    " FROM " +
+                    " t_industry_info_rel t4 " +
+                    " LEFT JOIN t_industry_info t5 ON t4.industry_info_id = t5.industry_info_id " +
+                    " ) t6 GROUP BY t6.industry_pool_id ) t7 ON t7.industryPoolId = t1.industry_pool_id " +
+                    " WHERE t1.`STATUS` = 3 ORDER BY t1.create_time DESC ");
+        logger.info(sql.toString());*/
+
+        Page page = userInfoDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, customerId);
         logger.info("result:"+ JSONObject.toJSONString(page));
+
+       /* if(page.getTotal()>0) {
+            String sql2 = "SELECT industry_pool_id as industryPoolId,cust_id as custId,status FROM  t_cust_industry t2 WHERE 1=1 and t2.cust_id=? ";
+            List<Map<String, Object>> list = userInfoDao.queryMapsListBySql(sql2, customerId);
+
+                List<Map<String,Object>> data = page.getData();
+                for(Map<String,Object> d:data){
+                    for(Map<String,Object> m:list) {
+                        if(m.get("industryPoolId").toString().equals(d.get("industryPoolId").toString())){
+                            d.put("status",m.get("status"));
+                            break;
+                        }
+                    }
+                    if(d.get("status")==null){
+                        d.put("status",2);
+                    }
+                }
+            }*/
+
         map.put("total", page.getTotal());
         map.put("industryPoolStatusList", page.getData());
         return map;
