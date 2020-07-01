@@ -35,7 +35,7 @@ public class ESUtil {
                     termv.add(leaf.getString("name"));
                 }
 
-                term.put(element.getString("labelId"), termv);
+                term.put(element.getString("labelId") + ".keyword", termv);
                 terms.put("terms", term);
                 must.add(terms);
             }
