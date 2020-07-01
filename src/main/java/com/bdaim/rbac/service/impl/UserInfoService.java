@@ -1,5 +1,7 @@
 package com.bdaim.rbac.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.customer.dao.CustomerDao;
@@ -15,6 +17,8 @@ import com.bdaim.util.StringUtil;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.transform.Transformers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +34,9 @@ import java.util.*;
 @Service("userInfoService")
 @Transactional
 public class UserInfoService {
+
+    private static Logger logger = LoggerFactory.getLogger(UserInfoService.class);
+
     @Resource
     UserInfoDao userInfoDao;
     @Resource
@@ -317,40 +324,79 @@ public class UserInfoService {
         if (StringUtil.isEmpty(customerId)) {
             throw new TouchException("300", "客户id为空");
         }
-        List<Object> params = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT\n" +
-                "\tt1.`NAME` as industryPoolName,\n" +
-                "\tt1.industry_pool_id as industryPoolId,\n" +
-                "\tIFNULL(t7.industryName,'') as industryName,\n" +
-                "\t(case when t3.status is NULL THEN 2 ELSE t3.status END) as status\n" +
-                "FROM\n" +
-                "\tt_industry_pool t1\n" +
-                "LEFT JOIN (\n" +
-                "\tSELECT\n" +
-                "\t\t*\n" +
-                "\tFROM\n" +
-                "\t\tt_cust_industry t2\n" +
-                "\tWHERE 1=1 and ");
+//        List<Object> params = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT " +
+                " t1.`NAME` as industryPoolName," +
+                " t1.industry_pool_id as industryPoolId," +
+                " IFNULL(t7.industryName,'') as industryName," +
+                " (case when t3.status is NULL THEN 2 ELSE t3.status END) as status " +
+                " FROM " +
+                " t_industry_pool t1" +
+                " LEFT JOIN (" +
+                " SELECT " +
+                " *" +
+                " FROM " +
+                " t_cust_industry t2" +
+                " WHERE 1=1 and ");
         sql.append("t2.cust_id=? ");
-        params.add(StringEscapeUtils.escapeSql(customerId));
-        sql.append(") t3 ON t1.industry_pool_id = t3.industry_pool_id\n" +
-                "LEFT JOIN (\n" +
-                "\tSELECT\n" +
-                "\t\tt6.industry_pool_id AS industryPoolId,\n" +
-                "\t\tGROUP_CONCAT(t6.industy_name) AS industryName\n" +
-                "\tFROM\n" +
-                "\t\t(\n" +
-                "\t\t\tSELECT\n" +
-                "\t\t\t\tt4.industry_pool_id,\n" +
-                "\t\t\t\tt5.industy_name\n" +
-                "\t\t\tFROM\n" +
-                "\t\t\t\tt_industry_info_rel t4\n" +
-                "\t\t\tLEFT JOIN t_industry_info t5 ON t4.industry_info_id = t5.industry_info_id\n" +
-                "\t\t) t6\n" +
-                "\tGROUP BY\n" +
-                "\t\tt6.industry_pool_id\n" +
+//        params.add(StringEscapeUtils.escapeSql(customerId));
+        sql.append(") t3 ON t1.industry_pool_id = t3.industry_pool_id " +
+                "LEFT JOIN (" +
+                "SELECT " +
+                "t6.industry_pool_id AS industryPoolId, " +
+                "GROUP_CONCAT(t6.industy_name) AS industryName " +
+                "FROM" +
+                "(" +
+                " SELECT " +
+                " t4.industry_pool_id," +
+                " t5.industy_name " +
+                " FROM " +
+                " t_industry_info_rel t4 " +
+                " LEFT JOIN t_industry_info t5 ON t4.industry_info_id = t5.industry_info_id " +
+                " ) t6 " +
+                " GROUP BY " +
+                " t6.industry_pool_id " +
                 ") t7 ON t7.industryPoolId = t1.industry_pool_id where t1.`STATUS`= 3 order by t1.create_time DESC, status ");
-        Page page = userInfoDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, params);
+
+        /*StringBuilder sql = new StringBuilder("SELECT t1.`NAME` AS industryPoolName," +
+                "t1.industry_pool_id AS industryPoolId," +
+                "IFNULL (t7.industryName, '') AS industryName ");
+            sql.append(" FROM t_industry_pool t1 ");
+            sql.append(" LEFT JOIN ( SELECT" +
+                    " t6.industry_pool_id AS industryPoolId, " +
+                    " GROUP_CONCAT(t6.industy_name) AS industryName " +
+                    " FROM (" +
+                    " SELECT " +
+                    " t4.industry_pool_id," +
+                    " t5.industy_name" +
+                    " FROM " +
+                    " t_industry_info_rel t4 " +
+                    " LEFT JOIN t_industry_info t5 ON t4.industry_info_id = t5.industry_info_id " +
+                    " ) t6 GROUP BY t6.industry_pool_id ) t7 ON t7.industryPoolId = t1.industry_pool_id " +
+                    " WHERE t1.`STATUS` = 3 ORDER BY t1.create_time DESC ");
+        logger.info(sql.toString());*/
+
+        Page page = userInfoDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, customerId);
+        logger.info("result:"+ JSONObject.toJSONString(page));
+
+       /* if(page.getTotal()>0) {
+            String sql2 = "SELECT industry_pool_id as industryPoolId,cust_id as custId,status FROM  t_cust_industry t2 WHERE 1=1 and t2.cust_id=? ";
+            List<Map<String, Object>> list = userInfoDao.queryMapsListBySql(sql2, customerId);
+
+                List<Map<String,Object>> data = page.getData();
+                for(Map<String,Object> d:data){
+                    for(Map<String,Object> m:list) {
+                        if(m.get("industryPoolId").toString().equals(d.get("industryPoolId").toString())){
+                            d.put("status",m.get("status"));
+                            break;
+                        }
+                    }
+                    if(d.get("status")==null){
+                        d.put("status",2);
+                    }
+                }
+            }*/
+
         map.put("total", page.getTotal());
         map.put("industryPoolStatusList", page.getData());
         return map;
