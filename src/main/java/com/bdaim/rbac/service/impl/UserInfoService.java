@@ -324,7 +324,7 @@ public class UserInfoService {
         if (StringUtil.isEmpty(customerId)) {
             throw new TouchException("300", "客户id为空");
         }
-        List<Object> params = new ArrayList<>();
+//        List<Object> params = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT " +
                 " t1.`NAME` as industryPoolName," +
                 " t1.industry_pool_id as industryPoolId," +
