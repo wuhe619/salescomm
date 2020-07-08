@@ -182,6 +182,8 @@ public class CustomerAppService {
         }
         //销售负责人
         //if (StringUtil.isNotEmpty(vo.getSalePerson())) {
+        logger.info("sale_person"+vo.getSalePerson());
+        logger.info("address"+vo.getAddress());
         if (StringUtil.isNotEmpty(vo.getSalePerson())) {
             if (StringUtil.isNotEmpty(vo.getCustId())) {
                 customerDao.dealCustomerInfo(vo.getCustId(), "sale_person", vo.getSalePerson());
@@ -429,10 +431,10 @@ public class CustomerAppService {
                 case "bank_account_certificate":
                     vo.setBankAccountCertificate(property_value);
                     break;
-                case "sale_person":
+                case "reg_address":
                     vo.setAddress(property_value);
                     break;
-                case "reg_address":
+                case "sale_person":
                     vo.setSalePerson(property_value);
                     break;
                 case "mobile":
