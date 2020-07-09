@@ -486,7 +486,7 @@ public class ApiService {
     public Map<String, Object> apiCustomerLogs(PageParam page, JSONObject params) {
         List<Object> arr = new ArrayList<>();
         StringBuffer sql = new StringBuffer();
-        String callMonthDate = params.get("callMonthDate").toString();
+        String callMonthDate = params.get("callMonth").toString();
         String mounth=callMonthDate.substring(0,6);
         String day=callMonthDate.substring(6,8);
         sql.append("select charge.api_id apiId,api.api_name apiName,request_param requestParam,charge/10000 as charge,event_time eventTime,response_msg responseMsg from am_charge_")
