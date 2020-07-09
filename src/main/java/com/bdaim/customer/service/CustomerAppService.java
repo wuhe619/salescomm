@@ -228,7 +228,7 @@ public class CustomerAppService {
         if (StringUtil.isNotEmpty(vo.getAgentApiId())) {
             Long cusAgentNum=redisUtil.incre("cusAgentNum");
            logger.info("cusAgentNum=="+cusAgentNum);
-            CustomerProperty cusAgentNum1 = customerDao.getProperty(customerId, "cusAgentNum");
+            CustomerProperty cusAgentNum1 = customerDao.getProperty(vo.getCustId(), "cusAgentNum");
             String cusnum="";
             if(cusAgentNum1==null){
 
