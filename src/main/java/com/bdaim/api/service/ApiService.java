@@ -489,7 +489,7 @@ public class ApiService {
         String callMonthDate = params.get("callMonth").toString();
         String mounth=callMonthDate.substring(0,6);
         String day=callMonthDate.substring(6,8);
-        sql.append("select charge.api_id apiId,api.api_name apiName,request_param requestParam,charge/10000 as charge,event_time eventTime,response_msg responseMsg from am_charge_")
+        sql.append("select charge.api_id apiId,api.api_name apiName,request_param requestParam,charge/10000 as charge,event_time eventTime,response_msg responseMsg,response_time responseTime from am_charge_")
                 .append(mounth).append(" charge ").append(" left join am_api api")
                 .append(" on charge.api_id=api.api_id")
                 .append(" where charge.api_id=? and charge.SUBSCRIBER_ID=? and charge.event_date=?");
