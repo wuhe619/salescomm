@@ -36,6 +36,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -257,28 +258,28 @@ public class ApiService {
             Integer count = jdbcTemplate.queryForObject(countSql, param.toArray(), Integer.class);
             dataMap.put("subscribeNum", count);
             if (params.containsKey("callMonth") && StringUtil.isNotEmpty(params.getString("callMonth"))) {
-                String monCallsSql = "select count(0) from am_charge_" + params.getString("callMonth") + " where api_id=?";
+                String monCallsSql = "select sum(total_num) from agent_api_charge where apiid=? and left(account_time,6)=? ";
                 param = new ArrayList();
                 param.add(apiId);
+                param.add(params.getString("callMonth"));
                 logger.info("monCallsSql: " + monCallsSql + ";" + apiId);
                 Integer callNum = jdbcTemplate.queryForObject(monCallsSql, param.toArray(), Integer.class);
                 logger.info("monthcallnum: " + callNum);
                 dataMap.put("monthCallNum", callNum);
-                String monCallFeeSql = "select sum(charge)monthCharge from am_charge_" + params.getString("callMonth") + " " +
-                        " where api_id=? ";
+                String monCallFeeSql = "select sum(total_amount) monthCharge from agent_api_charge where apiid=? and left(account_time,6)=? ";
+
                 Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
                 if (monthCharge != null) {
-                    String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 3);
+                    String monChargeStr = BigDecimalUtil.strRound(monthCharge.toString(),  3);
                     dataMap.put("monthFee", monChargeStr);
                 }
-                String monthSuccessSql = "SELECT IFNULL(SUM(case response_msg->>'$.cost' WHEN '1' THEN 1 ELSE 0 END ),0) monthSuccess "
-                        + " FROM am_charge_" + params.getString("callMonth") + " WHERE api_id='" + apiId + "'";
-                Integer monthSuccess = jdbcTemplate.queryForObject(monthSuccessSql, Integer.class);
+                String monthSuccessSql = "select sum(effective_num) efs from agent_api_charge where apiid=? and left(account_time,6)=? ";
+                Integer monthSuccess = jdbcTemplate.queryForObject(monthSuccessSql, param.toArray(), Integer.class);
                 dataMap.put("monthSuccess", monthSuccess);
             }
             try {
                 String sql2 = " select  property_value from am_api_property  where api_id = ? and property_name='rsIds'";
-                Map<String, Object> propertyMap = jdbcTemplate.queryForMap(sql2, param.toArray());
+                Map<String, Object> propertyMap = jdbcTemplate.queryForMap(sql2,apiId);
                 logger.info("propertyMap:{} ", propertyMap);
                 if (propertyMap != null && propertyMap.containsKey("property_value")) {
                     JSONArray ar = JSON.parseArray((String) propertyMap.get("property_value"));
@@ -298,6 +299,7 @@ public class ApiService {
             }
             return dataMap;
         }).collect(Collectors.toList());
+
         map.put("list", collect);
         map.put("total", list.getTotal());
         return map;
@@ -306,10 +308,11 @@ public class ApiService {
     public Map<String, Object> apiLogs(PageParam page, JSONObject params) {
         List<Object> arr = new ArrayList<>();
         StringBuffer sql = new StringBuffer();
-        sql.append("select c.enterprise_name enterpriseName,SUBSCRIBER_ID subscriberId,u.account,count(0)monthCallNum from am_charge_").append(params.get("callMonth")).append(" charge ")
-                .append(" left join t_customer c on charge.SUBSCRIBER_ID = c.cust_id ")
+        String callMonth = params.get("callMonth").toString();
+        sql.append("select c.enterprise_name enterpriseName,customer_Id subscriberId,u.account,count(0)monthCallNum from agent_api_charge  charge ")
+                .append(" left join t_customer c on charge.customer_Id = c.cust_id ")
                 .append(" left join t_customer_user u on c.cust_id = u.cust_id ")
-                .append(" where charge.api_id=?");
+                .append(" where charge.apiid=?   ");
         arr.add(params.getString("apiId"));
         if (params.containsKey("enterpriseName")) {
             sql.append(" and c.enterprise_name like ?");
@@ -319,26 +322,30 @@ public class ApiService {
             sql.append(" u.account=?");
             arr.add(params.getString("account").trim());
         }
-        sql.append(" group by charge.SUBSCRIBER_ID ");
-        sql.append(" order by charge.event_time desc ");
+        sql.append(" group by charge.customer_Id ");
+        sql.append(" order by charge.account_time desc ");
         PageList list = new Pagination().getPageData(sql.toString(), arr.toArray(), page, jdbcTemplate);
         Map<String, Object> map = new HashMap<>();
         Object collect = list.getList().stream().map(m -> {
             Map dataMap = (Map) m;
             List param = new ArrayList();
             dataMap.put("monthFee", 0);
-            String monCallFeeSql = "select sum(charge)monthCharge" +
-                    " from am_charge_" + params.getString("callMonth") + " " +
-                    " where SUBSCRIBER_ID=? and api_id=?";
+            String monCallFeeSql = "select sum(total_amount)monthCharge" +
+                    " from agent_api_charge " +
+                    " where customer_Id=? and apiid=? and  left(account_time,6)=?";
             param.add(dataMap.get("SUBSCRIBERID"));
             param.add(params.getString("apiId"));
-            Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
-            String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 3);
-            dataMap.put("monthFee", monChargeStr);
+            param.add(params.getString("callMonth"));
+            BigDecimal monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), BigDecimal.class);
+            if(monthCharge!=null){
+                dataMap.put("monthFee", monthCharge.toString());
+            }else{
+                dataMap.put("monthFee",0);
+            }
+
             //SUM(case response_msg when response_msg->>'$.cost'='1' THEN 1 ELSE 0 END ) monthSuccess
-            String monthSuccessSql = "select SUM(case response_msg->>'$.cost' WHEN '1' THEN 1 ELSE 0 END ) monthSuccess " +
-                    " from am_charge_" + params.getString("callMonth") + " " +
-                    " where SUBSCRIBER_ID=? and api_id=?";
+            String monthSuccessSql = "select sum(effective_num) efs from agent_api_charge where customer_Id=? and apiid=?  and left(account_time,6)=? ";
+
             Integer monthSuccess = jdbcTemplate.queryForObject(monthSuccessSql, param.toArray(), Integer.class);
             dataMap.put("monthSuccess", monthSuccess);
             return dataMap;
@@ -352,37 +359,26 @@ public class ApiService {
     public Map<String, Object> customerApiLogs(PageParam page, JSONObject params) {
         List<Object> arr = new ArrayList<>();
         StringBuffer sql = new StringBuffer();
-        sql.append("select c.api_name apiName,SUBSCRIBER_ID subscriberId,charge.api_id apiId,count(0)monthCallNum from am_charge_").append(params.get("callMonth")).append(" charge ")
-                .append(" left join am_api c on charge.api_id = c.api_id ")
-                .append(" where charge.SUBSCRIBER_ID=?");
+        sql.append("select c.api_name apiName,customer_Id subscriberId,charge.apiid apiId,sum(total_num)monthCallNum,sum(total_amount) monthFee,sum(effective_num) monthCallSuccessNum from agent_api_charge charge ")
+                .append(" left join am_api c on charge.apiid = c.api_id ")
+                .append(" where charge.customer_Id=?")
+                .append(" and  left(account_time,6)=?");
         arr.add(params.getString("customerId"));
-        sql.append("group by charge.api_id ");
-        sql.append(" order by charge.event_TIME desc");
+        arr.add(params.get("callMonth"));
+        sql.append("group by charge.apiid" +
+                " ");
+        sql.append(" order by charge.account_time desc");
         logger.info("customerApiLogs.sql:{}", sql.toString());
         PageList list = new Pagination().getPageData(sql.toString(), arr.toArray(), page, jdbcTemplate);
         Map<String, Object> map = new HashMap<>();
         Object collect = list.getList().stream().map(m -> {
             Map dataMap = (Map) m;
-            List param = new ArrayList();
-            dataMap.put("monthFee", 0);
-            dataMap.put("monthCallSuccessNum", 0);
+
+
             dataMap.put("salePrice", 0);
 
-            param.add(dataMap.get("apiId"));
 
-            Map<String, Object> callSuccessnumMap = getCallSuccessNum(dataMap.get("subscriberId").toString(), params.getString("callMonth"), dataMap.get("apiId").toString(), "", "");
-            if (callSuccessnumMap != null && callSuccessnumMap.containsKey("callSuccessnum")) {
-                dataMap.put("monthCallSuccessNum", callSuccessnumMap.get("callSuccessnum"));
-            }
 
-            String monCallFeeSql = "select sum(charge) monthCharge from am_charge_" + params.getString("callMonth") + " " +
-                    " where api_id=? and SUBSCRIBER_ID =? and RESPONSE_MSG like  '%cost\":1,%' ";
-            param.add(dataMap.get("subscriberId"));
-            Float monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Float.class);
-            if (monthCharge != null) {
-                String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 3);
-                dataMap.put("monthFee", monChargeStr);
-            }
             Map<String, Object> salePriceMap = getApiSalePrice(dataMap.get("subscriberId").toString(), dataMap.get("apiId").toString());
             if (salePriceMap != null && salePriceMap.containsKey("salePrice")) {
                 dataMap.put("salePrice", salePriceMap.get("salePrice"));
@@ -411,10 +407,13 @@ public class ApiService {
             return null;
         }
         List param = new ArrayList();
-        StringBuffer totalFeeSql = new StringBuffer("select sum(charge) /10000 totalCharge from am_charge_" + callMonth +
-                " charge where charge.api_id=? and charge.application_id=? and charge.RESPONSE_MSG like  '%cost\":1,%'");
+       String mounth=callMonth.substring(0,6);
+       String day=callMonth.substring(6,8);
+        StringBuffer totalFeeSql = new StringBuffer("select sum(charge)/10000 totalCharge from am_charge_" + mounth +
+                " charge where charge.api_id=? and charge.application_id=? and charge.RESPONSE_MSG like  '%cost\":1,%' and event_date=? ");
         param.add(apiId);
         param.add(entity.getId());
+        param.add(day);
         if (StringUtil.isNotEmpty(startDate)) {
             totalFeeSql.append(" and charge.event_time>=?");
             param.add(startDate);
@@ -439,10 +438,13 @@ public class ApiService {
             return null;
         }
         List param = new ArrayList();
-        StringBuffer monthcallSuccesNumSql = new StringBuffer("select count(0)callSuccessnum from am_charge_" + callMonth +
-                " charge where charge.api_id=? and charge.application_id=? and charge.RESPONSE_MSG like  '%cost\":1,%'");
+        String mounth=callMonth.substring(0,6);
+        String day=callMonth.substring(6,8);
+        StringBuffer monthcallSuccesNumSql = new StringBuffer("select count(0)callSuccessnum from am_charge_" + mounth +
+                " charge where charge.api_id=? and charge.application_id=? and charge.RESPONSE_MSG like  '%cost\":1,%' and event_date=? ");
         param.add(apiId);
         param.add(entity.getId());
+        param.add(day);
         if (StringUtil.isNotEmpty(startDate)) {
             monthcallSuccesNumSql.append(" and charge.event_time>=?");
             param.add(startDate);
@@ -484,12 +486,16 @@ public class ApiService {
     public Map<String, Object> apiCustomerLogs(PageParam page, JSONObject params) {
         List<Object> arr = new ArrayList<>();
         StringBuffer sql = new StringBuffer();
+        String callMonthDate = params.get("callMonthDate").toString();
+        String mounth=callMonthDate.substring(0,6);
+        String day=callMonthDate.substring(6,8);
         sql.append("select charge.api_id apiId,api.api_name apiName,request_param requestParam,charge/10000 as charge,event_time eventTime,response_msg responseMsg from am_charge_")
-                .append(params.get("callMonth")).append(" charge ").append(" left join am_api api")
+                .append(mounth).append(" charge ").append(" left join am_api api")
                 .append(" on charge.api_id=api.api_id")
-                .append(" where charge.api_id=? and charge.SUBSCRIBER_ID=?");
+                .append(" where charge.api_id=? and charge.SUBSCRIBER_ID=? and charge.event_date=?");
         arr.add(params.getString("apiId"));
         arr.add(params.getString("customerId"));
+        arr.add(day);
         if (params.containsKey("startDate") && StringUtil.isNotEmpty(params.getString("startDate"))) {
             sql.append(" and charge.event_time>=?");
             arr.add(params.getString("startDate"));
@@ -936,23 +942,21 @@ public class ApiService {
                 Map map = (Map) m;
                 map.put("amount", "0");
                 map.put("num", 0);
-                String countSql = "select count(0)num from rs_log_" + params.getString("callMonth") + " where rs_id= ?";
-                Map<String, Object> countNum = jdbcTemplate.queryForMap(countSql, map.get("rsId"));
+                String countSql = "select sum(total_num) as num,sum(effective_num) as monthSuccess,sum(total_amount) as amount from agent_api_charge  where resource_Id= ? and  left(account_time,6)=?";
+                List paramsa=new ArrayList();
+                paramsa.add(map.get("rsId"));
+                paramsa.add(params.getString("callMonth"));
+                Map<String, Object> countNum = jdbcTemplate.queryForMap(countSql,paramsa.toArray());
+
                 map.put("num", countNum.get("num"));
-                String sumsql = " select sum(charge) as amount from rs_log_" + params.getString("callMonth") + " where rs_id=? ";
-                Map<String, Object> amountMap = jdbcTemplate.queryForMap(sumsql, map.get("rsId"));
-                if (amountMap != null) {
-                    Object amount = amountMap.get("amount");
+                if (countNum != null) {
+                    Object amount = countNum.get("amount");
                     if (amount != null) {
-                        String amountStr = BigDecimalUtil.strDiv(amount.toString(), "10000", 3);
-                        map.put("amount", amountStr);
+                        map.put("amount", String.valueOf(amount));
                     }
-                }
-                String successSql = "SELECT count(*) monthSuccess FROM am_charge_" + params.getString("callMonth") + " WHERE length(response_msg)!='0' " +
-                        "AND response_msg->>'$.cost'='1'  AND response_msg->>'$.rs'='" + map.get("rsId") + "'";
-                Map<String, Object> successMap = jdbcTemplate.queryForMap(successSql);
-                if (successMap != null) {
-                    map.put("monthSuccess", String.valueOf(successMap.get("monthSuccess")));
+
+
+                    map.put("monthSuccess", String.valueOf(countNum.get("monthSuccess")));
                 }
                 return map;
             }).collect(Collectors.toList());
@@ -965,13 +969,16 @@ public class ApiService {
 
     public PageList resApiLogDetail(JSONObject params, PageParam page) {
         StringBuffer sql = new StringBuffer();
-        sql.append("select log.rs_id as rsId,res.resname,log.charge/10000 as charge,log.event_time eventTime,que.SERVICE_TIME as serviceTime," +
-                " que.RESPONSE_MSG responseMsg,que.RESPONSE_TIME as responseTime from rs_log_" + params.getString("callMonth") + " log " +
-                " left join  t_market_resource res on log.rs_id = res.resource_id " +
-                " left join am_charge_" + params.getString("callMonth") + " que on que.id=log.api_log_id " +
-                "  where log.rs_id=? order by log.event_time desc ");
+        String callMonth = params.getString("callMonth");
+        String month = callMonth.substring(0,6);
+        String day = callMonth.substring(6,8);
+        sql.append("select (((CASE WHEN JSON_VALID(que.RESPONSE_MSG) then Json_extract(que.RESPONSE_MSG, \"$.rs\") else null end))) as rsId,res.resname,que.charge/10000 as charge,que.event_time eventTime,que.SERVICE_TIME as serviceTime," +
+                " que.RESPONSE_MSG responseMsg,que.RESPONSE_TIME as responseTime from am_charge_" + month  + " que " +
+                " left join  t_market_resource res on ((CASE WHEN JSON_VALID(que.RESPONSE_MSG) then Json_extract(que.RESPONSE_MSG, \"$.rs\") else null end))= res.resource_id " +
 
-        PageList list = new Pagination().getPageData(sql.toString(), new Object[]{params.getString("rsId")}, page, jdbcTemplate);
+                "  where ((CASE WHEN JSON_VALID(que.RESPONSE_MSG) then Json_extract(que.RESPONSE_MSG, \"$.rs\") else null end))=? and event_date=? order by que.event_time desc ");
+
+        PageList list = new Pagination().getPageData(sql.toString(), new Object[]{Integer.parseInt(params.getString("rsId")),day}, page, jdbcTemplate);
         return list;
     }
 
