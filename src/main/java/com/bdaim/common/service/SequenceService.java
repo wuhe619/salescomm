@@ -23,6 +23,7 @@ public class SequenceService {
     private Snowflake snowflake = IdUtil.createSnowflake(1, 1);
 
     private Set<String> snowflakeTypes = new HashSet() {{
+        add("b2b_tcb");
         add("b2b_tcb_log");
         add("ent_export_task");
         add("ent_search_condition");
