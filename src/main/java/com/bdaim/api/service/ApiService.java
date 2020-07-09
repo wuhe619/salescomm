@@ -948,7 +948,7 @@ public class ApiService {
                 paramsa.add(params.getString("callMonth"));
                 Map<String, Object> countNum = jdbcTemplate.queryForMap(countSql,paramsa.toArray());
 
-                map.put("num", countNum.get("num"));
+                map.put("num", countNum.get("num")==null?0: countNum.get("num"));
                 if (countNum != null) {
                     Object amount = countNum.get("amount");
                     if (amount != null) {
@@ -956,7 +956,7 @@ public class ApiService {
                     }
 
 
-                    map.put("monthSuccess", String.valueOf(countNum.get("monthSuccess")));
+                    map.put("monthSuccess", countNum.get("monthSuccess")==null?0:countNum.get("monthSuccess"));
                 }
                 return map;
             }).collect(Collectors.toList());
