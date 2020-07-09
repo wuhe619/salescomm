@@ -309,11 +309,12 @@ public class ApiService {
         List<Object> arr = new ArrayList<>();
         StringBuffer sql = new StringBuffer();
         String callMonth = params.get("callMonth").toString();
-        sql.append("select c.enterprise_name enterpriseName,customer_Id subscriberId,u.account,count(0)monthCallNum from agent_api_charge  charge ")
+        sql.append("select c.enterprise_name enterpriseName,customer_Id subscriberId,u.account,ifnull(sum(total_num),0) monthCallNum,ifnull(sum(effective_num),0) monthSuccess,IFNULL(sum(total_amount),0) monthFee from agent_api_charge  charge ")
                 .append(" left join t_customer c on charge.customer_Id = c.cust_id ")
                 .append(" left join t_customer_user u on c.cust_id = u.cust_id ")
-                .append(" where charge.apiid=?   ");
+                .append(" where charge.apiid=?   and left(account_time,6)=?");
         arr.add(params.getString("apiId"));
+        arr.add(callMonth);
         if (params.containsKey("enterpriseName")) {
             sql.append(" and c.enterprise_name like ?");
             arr.add("%" + params.getString("enterpriseName").trim() + "%");
@@ -328,26 +329,26 @@ public class ApiService {
         Map<String, Object> map = new HashMap<>();
         Object collect = list.getList().stream().map(m -> {
             Map dataMap = (Map) m;
-            List param = new ArrayList();
-            dataMap.put("monthFee", 0);
-            String monCallFeeSql = "select sum(total_amount)monthCharge" +
-                    " from agent_api_charge " +
-                    " where customer_Id=? and apiid=? and  left(account_time,6)=?";
-            param.add(dataMap.get("SUBSCRIBERID"));
-            param.add(params.getString("apiId"));
-            param.add(params.getString("callMonth"));
-            BigDecimal monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), BigDecimal.class);
-            if(monthCharge!=null){
-                dataMap.put("monthFee", monthCharge.toString());
-            }else{
-                dataMap.put("monthFee",0);
-            }
-
-            //SUM(case response_msg when response_msg->>'$.cost'='1' THEN 1 ELSE 0 END ) monthSuccess
-            String monthSuccessSql = "select sum(effective_num) efs from agent_api_charge where customer_Id=? and apiid=?  and left(account_time,6)=? ";
-
-            Integer monthSuccess = jdbcTemplate.queryForObject(monthSuccessSql, param.toArray(), Integer.class);
-            dataMap.put("monthSuccess", monthSuccess);
+//            List param = new ArrayList();
+//            dataMap.put("monthFee", 0);
+//            String monCallFeeSql = "select sum(total_amount)monthCharge" +
+//                    " from agent_api_charge " +
+//                    " where customer_Id=? and apiid=? and  left(account_time,6)=?";
+//            param.add(dataMap.get("SUBSCRIBERID"));
+//            param.add(params.getString("apiId"));
+//            param.add(params.getString("callMonth"));
+//            BigDecimal monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), BigDecimal.class);
+//            if(monthCharge!=null){
+//                dataMap.put("monthFee", monthCharge.toString());
+//            }else{
+//                dataMap.put("monthFee",0);
+//            }
+//
+//            //SUM(case response_msg when response_msg->>'$.cost'='1' THEN 1 ELSE 0 END ) monthSuccess
+//            String monthSuccessSql = "select sum(effective_num) efs from agent_api_charge where customer_Id=? and apiid=?  and left(account_time,6)=? ";
+//
+//            Integer monthSuccess = jdbcTemplate.queryForObject(monthSuccessSql, param.toArray(), Integer.class);
+//            dataMap.put("monthSuccess", monthSuccess);
             return dataMap;
         }).collect(Collectors.toList());
         map.put("list", collect);
