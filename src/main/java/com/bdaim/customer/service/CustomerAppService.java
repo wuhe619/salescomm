@@ -248,13 +248,13 @@ public class CustomerAppService {
 
             customerDao.dealCustomerInfo(vo.getCustId(), "agent_api_id", vo.getAgentApiId());
         } else {
-            customerDao.dealCustomerInfo(customerId, "agent_api_id", vo.getAgentApiId());
+            customerDao.dealCustomerInfo(vo.getCustId(), "agent_api_id", vo.getAgentApiId());
         }
 
         if (StringUtil.isNotEmpty(vo.getAgentApiName())) {
             customerDao.dealCustomerInfo(vo.getCustId(), "agent_api_name", vo.getAgentApiName());
         } else {
-            customerDao.dealCustomerInfo(customerId, "agent_api_name", vo.getAgentApiName());
+            customerDao.dealCustomerInfo(vo.getCustId(), "agent_api_name", vo.getAgentApiName());
         }
 
         //创建企业id
