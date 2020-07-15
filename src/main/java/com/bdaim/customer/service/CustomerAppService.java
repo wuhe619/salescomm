@@ -226,8 +226,16 @@ public class CustomerAppService {
         }
 
         if (StringUtil.isNotEmpty(vo.getAgentApiId())) {
+
+
+            customerDao.dealCustomerInfo(vo.getCustId(), "agent_api_id", vo.getAgentApiId());
+        } else {
+            customerDao.dealCustomerInfo(vo.getCustId(), "agent_api_id", vo.getAgentApiId());
+        }
+
+
             Long cusAgentNum=redisUtil.incre("cusAgentNum");
-           logger.info("cusAgentNum=="+cusAgentNum);
+            logger.info("cusAgentNum=="+cusAgentNum);
             CustomerProperty cusAgentNum1 = customerDao.getProperty(vo.getCustId(), "cusAgentNum");
             String cusnum="";
             if(cusAgentNum1==null){
@@ -246,10 +254,6 @@ public class CustomerAppService {
 
             }
 
-            customerDao.dealCustomerInfo(vo.getCustId(), "agent_api_id", vo.getAgentApiId());
-        } else {
-            customerDao.dealCustomerInfo(vo.getCustId(), "agent_api_id", vo.getAgentApiId());
-        }
 
         if (StringUtil.isNotEmpty(vo.getAgentApiName())) {
             customerDao.dealCustomerInfo(vo.getCustId(), "agent_api_name", vo.getAgentApiName());
