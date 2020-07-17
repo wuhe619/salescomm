@@ -473,12 +473,11 @@ public class AccountAction extends BasicAction {
 
     @RequestMapping(value = "/transaction/query0", method = RequestMethod.GET)
     @ResponseBody
-    public Object queryTransactions(TransactionQryParam param) throws Exception {
+    public Object queryTransactions(TransactionQryParam param, String custId) throws Exception {
         //Todo 需要在登录的时候将customerId加入到session
         Map<String, Object> resultMap = new HashMap<String, Object>();
         HashMap<String, Object> ret = new HashMap<>();
         // 处理前台客户权限
-        String custId = null;
         if (RoleEnum.ROLE_CUSTOMER.getRole().equals(opUser().getRole())) {
             custId = opUser().getCustId();
         }
