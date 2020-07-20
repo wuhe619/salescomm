@@ -59,8 +59,9 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
                 {
                     list.add(map.get("id").toString());
                 }
-                List<String> proid = new ArrayList<>();
 
+            }
+            List<String> proid = new ArrayList<>();
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
                     if (StringUtils.isNotEmpty(jsonObject.getString("rsId"))) {
@@ -124,7 +125,7 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
                         jdbcTemplate.update(upsql);
                     }
                 }
-            }
+
         }
         this.saveOrUpdate(propertyInfo);
     }
