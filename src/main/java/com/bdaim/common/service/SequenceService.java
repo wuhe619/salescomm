@@ -3,6 +3,7 @@ package com.bdaim.common.service;
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
 import com.bdaim.customs.entity.BusiTypeEnum;
+import com.bdaim.util.IDHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -12,6 +13,7 @@ import javax.annotation.Resource;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -21,8 +23,11 @@ public class SequenceService {
     @Resource
     private JdbcTemplate jdbcTemplate;
 
-    private Snowflake snowflake = IdUtil.createSnowflake(1, 1);
-
+    public static void main(String[] args) {
+        /*while (true){
+            System.out.println(IDHelper.getID());
+        }*/
+    }
     private Set<String> snowflakeTypes = new HashSet() {{
         for (BusiTypeEnum be : BusiTypeEnum.values()) {
             add(be.getType());
@@ -37,7 +42,7 @@ public class SequenceService {
 
     public Long getSeq(String type) throws Exception {
         if (snowflakeTypes.contains(type)) {
-            return snowflake.nextId();
+            return IDHelper.getID();
         }
         Long seq = 1L;
         Connection conn = null;
