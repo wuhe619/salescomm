@@ -112,6 +112,7 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
 
                                 List<String> strings = JSONArray.parseArray(content, String.class);
                                 if(strings.contains(s)){
+                                    logger.info("被删除id"+s);
                                     throw new Exception("只有资源调用百分比为零时才能删除");
                                 }
 
