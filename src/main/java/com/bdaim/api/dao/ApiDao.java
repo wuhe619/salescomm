@@ -37,7 +37,7 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
     /**
      * 企业属性编辑与新增
      */
-    public void dealCustomerInfo(String apiId, String propertyName, String propertyValue) {
+    public void dealCustomerInfo(String apiId, String propertyName, String propertyValue) throws Exception{
         ApiProperty propertyInfo = this.getProperty(apiId, propertyName);
         if (propertyInfo == null) {
             propertyInfo = new ApiProperty();
@@ -58,7 +58,6 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
             for (Map map : mapList) {
                 {
                     list.add(map.get("id").toString());
-                    logger.info("id"+map.get("id").toString());
                 }
 
             }
@@ -112,21 +111,26 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
                                 List parms = new ArrayList();
 
                                 List<String> strings = JSONArray.parseArray(content, String.class);
-                                strings.remove(s);
+                                if(strings.contains(s)){
+                                    logger.info("被删除id"+s);
+                                    throw new Exception("只有资源调用百分比为零时才能删除");
+                                }
+
+
+
+
                                 String s1 = JSONArray.toJSONString(strings);
                                 parms.add(s1);
                                 parms.add(suid);
                                 String usql = "update am_subscription  set percent_content=? where SUBSCRIPTION_ID=? ";
-                                jdbcTemplate.update(sql, new Object[]{jsonArray.toJSONString(), parms});
+                                jdbcTemplate.update(usql, parms.toArray());
                                 redisUtil.set(cusId + ":" + apiId, jsonArray.toJSONString());
 
                             }
                         }
 
-                        String upsql = " update customer_api_resouse_precent set begin_percent='0',end_percent='0',percent='0',UPDATED_BY=0 where resounse_id=? and  api_id=? ";
-                        List parms = new ArrayList();
-                        parms.add(s);
-                        parms.add(apiId);
+                        String upsql = "delete from customer_api_resouse_precent  where resounse_id='"+s+"' and  api_id='"+apiId+"'";
+                        logger.info("被删除id"+upsql);
                         jdbcTemplate.update(upsql);
                     }
                 }
