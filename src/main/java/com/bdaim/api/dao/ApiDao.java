@@ -132,7 +132,7 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
                         List parms = new ArrayList();
                         parms.add(s);
                         parms.add(apiId);
-                        jdbcTemplate.update(upsql);
+                        jdbcTemplate.update(upsql,parms.toArray());
                     }
                 }
 
