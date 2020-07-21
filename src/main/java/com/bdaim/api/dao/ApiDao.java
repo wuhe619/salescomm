@@ -129,11 +129,9 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
                             }
                         }
 
-                        String upsql = "delete from customer_api_resouse_precent  where resounse_id=? and  api_id=? ";
-                        List parms = new ArrayList();
-                        parms.add(s);
-                        parms.add(apiId);
-                        jdbcTemplate.update(upsql,parms.toArray());
+                        String upsql = "delete from customer_api_resouse_precent  where resounse_id='"+s+"' and  api_id='"+apiId+"'";
+                        logger.info("被删除id"+upsql);
+                        jdbcTemplate.update(upsql);
                     }
                 }
 
