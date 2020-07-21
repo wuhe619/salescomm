@@ -66,7 +66,7 @@ public class ApiController extends BasicAction {
             }
         } catch (Exception e) {
             logger.error("api保存失败", e);
-            return new ResponseInfoAssemble().failure(-1, "Api操作失败:");
+            return new ResponseInfoAssemble().failure(-1, e.getMessage());
         }
 
         return resp;

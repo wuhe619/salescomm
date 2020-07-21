@@ -122,7 +122,7 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
                                 parms.add(s1);
                                 parms.add(suid);
                                 String usql = "update am_subscription  set percent_content=? where SUBSCRIPTION_ID=? ";
-                                jdbcTemplate.update(sql, parms.toArray());
+                                jdbcTemplate.update(usql, parms.toArray());
                                 redisUtil.set(cusId + ":" + apiId, jsonArray.toJSONString());
 
                             }
