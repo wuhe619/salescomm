@@ -44,7 +44,7 @@ public class BgdFService implements BusiService {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    private ElasticSearchService elasticSearchService;
+    private ElasticSearchService elasticSearchService1;
 
     @Autowired
     private CustomerDao customerDao;

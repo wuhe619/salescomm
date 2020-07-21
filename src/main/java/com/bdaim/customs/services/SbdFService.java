@@ -45,7 +45,7 @@ public class SbdFService implements BusiService {
     //    @Autowired
 //    private HBusiDataManagerDao hBusiDataManagerDao;
     @Autowired
-    private ElasticSearchService elasticSearchService;
+    private ElasticSearchService elasticSearchService1;
 
     @Autowired
     private SequenceService sequenceService;
@@ -203,7 +203,7 @@ public class SbdFService implements BusiService {
                             " ,ext_6='' " +
                             " where id=" + d.getId() + " and type='" + d.getType() + "'";
                     jdbcTemplate.update(sql, jsonObject.toJSONString());
-                    elasticSearchService.update(d, d.getId());
+                    //elasticSearchService.update(d, d.getId());
                     customsService.updateMainDanIdCardNumber(jsonObject.getIntValue("pid"), cust_id);
                 }
             }
@@ -257,7 +257,7 @@ public class SbdFService implements BusiService {
         // 批量删除数据库税单
         serviceUtils.deleteByIds(cust_id, BusiTypeEnum.SS.getType(), sdIds);
         // 批量删除es税单
-        elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, sdIds);
+        //elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, sdIds);
         Integer zid = json.getInteger("pid");
         totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id, "del", null);
         // 更新主单身份证照片数量
