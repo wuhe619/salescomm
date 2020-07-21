@@ -58,13 +58,19 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
             for (Map map : mapList) {
                 {
                     list.add(map.get("id").toString());
+                    logger.info("id"+map.get("id").toString());
                 }
-                List<String> proid = new ArrayList<>();
 
+            }
+
+            List<String> proid = new ArrayList<>();
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
+
                     if (StringUtils.isNotEmpty(jsonObject.getString("rsId"))) {
+
                         String rsId = jsonObject.getString("rsId");
+                        logger.info("ddid"+list.contains(rsId));
                         if (list.size() > 0 && !list.contains(rsId)) {//如果原来没有这个资源说明是新增
                             String sqlCustId = "select customer_Id id from customer_api_resouse_precent cpr,am_subscription am where cpr.api_id=am.API_ID and am.API_ID=? group by  customer_Id";
 
@@ -124,7 +130,7 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
                         jdbcTemplate.update(upsql);
                     }
                 }
-            }
+
         }
         this.saveOrUpdate(propertyInfo);
     }
