@@ -67,6 +67,7 @@ public class CipherUtil{
     }
 
     public static void main(String[] args) {
+        System.out.println(encodeByMD5("qqq111"));
         System.out.println(generatePassword("xuHui_123"));
         System.out.println(validatePassword("c39191420f117092163aee8ef3169fb6","t#0nline!"));
     }

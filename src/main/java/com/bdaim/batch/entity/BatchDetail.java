@@ -72,6 +72,39 @@ public class BatchDetail implements Serializable {
     private Timestamp fixTime;
 
 
+    private String labelFour;
+    private String labelFive;
+    private String labelSix;
+
+    @Basic
+    @Column(name = "label_four")
+    public String getLabelFour() {
+        return labelFour;
+    }
+
+    public void setLabelFour(String labelFour) {
+        this.labelFour = labelFour;
+    }
+
+    @Basic
+    @Column(name = "label_five")
+    public String getLabelFive() {
+        return labelFive;
+    }
+
+    public void setLabelFive(String labelFive) {
+        this.labelFive = labelFive;
+    }
+    @Basic
+    @Column(name = "label_six")
+    public String getLabelSix() {
+        return labelSix;
+    }
+
+    public void setLabelSix(String labelSix) {
+        this.labelSix = labelSix;
+    }
+
     //标记信息
     private String remark;
 

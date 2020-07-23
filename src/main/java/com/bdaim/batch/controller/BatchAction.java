@@ -14,6 +14,7 @@ import com.bdaim.util.DateUtil;
 import com.bdaim.util.FileUrlEntity;
 import com.bdaim.util.StringUtil;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -21,10 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -62,12 +60,18 @@ public class BatchAction extends BasicAction {
      */
     @RequestMapping("/upload")
     @ResponseBody
-    public String BatchuploadParse(@RequestParam(value = "file") MultipartFile file, String batchname, String repairStrategy, int certifyType, String channel) {
+    public String BatchuploadParse(@RequestParam(value = "file") MultipartFile file, String batchname, String compIdf,String repairStrategy, int certifyType, String channel,String province,String city) {
         String compId = opUser().getCustId();
+        if(StringUtils.isEmpty(compId)){
+            compId=compIdf;
+        }
         Map<String, Object> resultMap = null;
         try {
-            resultMap = batchListService.uploadBatchFile(file, batchname, repairStrategy, certifyType, channel, compId, opUser().getId(), opUser().getName());
+
+
+            resultMap = batchListService.uploadBatchFile(file, batchname, repairStrategy, certifyType, channel, compId, opUser().getId(), opUser().getName(),province,city);
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error("失联修复文件上传失败！\t" + e.getMessage());
             resultMap.put("code", "001");
             resultMap.put("_message", "失联修复文件上传失败！");
@@ -413,6 +417,13 @@ public class BatchAction extends BasicAction {
         Object list = batchListService.getTime();
         return JSON.toJSONString(list);
 
+    }
+
+    @GetMapping("/getArea")
+    @ResponseBody
+    public List<Map<String, Object>> getArea(String parentId){
+
+     return batchListService.getArea(parentId);
     }
 
 

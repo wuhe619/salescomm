@@ -510,7 +510,7 @@ public class OpenService {
                     resultMap.put("msg", "录入企业自带id数据不能重复，上传失败！");
                     return resultMap;
                 }
-                batchListService.saveBatch(batchname, uploadNum, repairMode, compId, batchId, 0, SupplierEnum.CUC.getSupplierId());
+                batchListService.saveBatch(batchname, uploadNum, repairMode, compId, batchId, 0, SupplierEnum.CUC.getSupplierId(),fixInfo.getProvince(),fixInfo.getCity());
                 resultMap.put("status", "000");
                 resultMap.put("_message", "失联修复文件上传成功！");
                 return resultMap;

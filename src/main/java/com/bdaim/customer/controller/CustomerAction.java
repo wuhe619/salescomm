@@ -311,7 +311,7 @@ public class CustomerAction extends BasicAction {
         Map<String, Object> data = null;
         try {
             LoginUser lu = opUser();
-            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+            if ("ROLE_USER".equals(lu.getRole())||lu!=null || "admin".equals(lu.getRole())) {
                 data = customerService.selectCustomerConfig(custId, callType);
             }
         } catch (Exception e) {
@@ -333,7 +333,7 @@ public class CustomerAction extends BasicAction {
         logger.info("修改企业配置信息传递参数是：" + json.toString());
         try {
             LoginUser lu = opUser();
-            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+            if ("ROLE_USER".equals(lu.getRole()) ||lu!=null || "admin".equals(lu.getRole())) {
                 json.put("optUserId", lu.getId());
                 customerService.saveCustSetting(json);
                 data.put("code", 1);

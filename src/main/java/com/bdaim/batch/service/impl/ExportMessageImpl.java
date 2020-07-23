@@ -57,6 +57,18 @@ public class ExportMessageImpl implements ExportMessageService {
         // 处理表头
         List<String> labelIdList = new ArrayList<>();
         List<String> headers = new ArrayList<>();
+        String getResourceType="select channel from nl_batch where id='"+batchId+"'";
+
+        List<Map<String, Object>> mapList = batchDetailDao.queryListBySql(getResourceType);
+        if(mapList!=null&&mapList.size()>0){
+             String channel=mapList.get(0).get("channel").toString();
+             if(channel.equals("10")){
+                 headers.add("中间号/分机号");
+                 headers.add("中间号状态");
+                 headers.add("中间号有效期至");
+                 headers.add("中间号区号");
+             }
+        }
         headers.add("用户ID");
         headers.add("企业自带ID");
         headers.add("唯一标识");
@@ -94,7 +106,7 @@ public class ExportMessageImpl implements ExportMessageService {
         List<List<Object>> data = new ArrayList<>();
         List<Map<String, Object>> messageList = new ArrayList<>();
         StringBuffer sqlBuilder = new StringBuffer();
-        sqlBuilder.append("SELECT t.* FROM ( select custG.id,custG.batch_id,custG.user_id,custG.enterprise_id,custG.id_card,custG.label_one,custG.label_two,custG.label_three,custG.`status`,custG.channel, t.realname,t4.super_name,t4.super_age,t4.super_sex,t4.super_telphone,t4.super_phone,t4.super_address_street,GROUP_CONCAT(t2.label_id) AS labelId,\n" +
+        sqlBuilder.append("SELECT t.* FROM ( select custG.id,custG.label_four,custG.label_five,custG.label_six,custG.label_seven,custG.label_eight,custG.midle_status,custG.batch_id,custG.user_id,custG.enterprise_id,custG.id_card,custG.label_one,custG.label_two,custG.label_three,custG.`status`,custG.channel, t.realname,t4.super_name,t4.super_age,t4.super_sex,t4.super_telphone,t4.super_phone,t4.super_address_street,GROUP_CONCAT(t2.label_id) AS labelId,\n" +
                 "\tGROUP_CONCAT(t3.label_name) AS labelName,GROUP_CONCAT(t2.option_value) AS optionValue,");
         sqlBuilder.append(" (SELECT create_time FROM t_touch_voice_log where  t_touch_voice_log.superid = custG.id AND t_touch_voice_log.batch_id = custG.batch_id ORDER BY create_time DESC LIMIT 1) lastCallTime, ");
         sqlBuilder.append(" (SELECT COUNT(0) FROM t_touch_voice_log where t_touch_voice_log.superid = custG.id  AND t_touch_voice_log.batch_id = custG.batch_id ORDER BY create_time DESC LIMIT 1) callCount ");
@@ -105,7 +117,7 @@ public class ExportMessageImpl implements ExportMessageService {
         sqlBuilder.append("  LEFT JOIN t_customer_label t3 ON t2.label_id = t3.label_id AND custG.batch_id = t4.batch_id");
         sqlBuilder.append(" where 1 = 1 ");
         List<Object> p = new ArrayList<>();
-        if (userType.equals("2") && "ROLE_CUSTOMER".equals(role)) {
+        if (userType!=null&&userType.equals("2") && "ROLE_CUSTOMER".equals(role)) {
             sqlBuilder.append("AND custG.user_id = ? ");
             p.add(userId);
         }
@@ -209,6 +221,15 @@ public class ExportMessageImpl implements ExportMessageService {
         List<Object> rowList;
         for (Map<String, Object> column : messageList) {
             rowList = new ArrayList<>();
+            if(mapList!=null&&mapList.size()>0){
+                String channel=mapList.get(0).get("channel").toString();
+                if(channel.equals("10")){
+                    rowList.add((column.get("label_four") != null ? column.get("label_four") : "").toString()+(column.get("label_five") != null ? column.get("label_five") : "").toString());
+                    rowList.add((column.get("midle_status") != null ? column.get("midle_status") : "").toString());
+                    rowList.add((column.get("label_eight") != null ? column.get("label_eight") : "").toString());
+                    rowList.add((column.get("label_six") != null ? column.get("label_six") : "").toString());
+                }
+            }
             rowList.add(column.get("id") != null ? column.get("id") : "");
             rowList.add(column.get("enterprise_id") != null ? column.get("enterprise_id") : "");
             rowList.add(column.get("idCard") != null ? column.get("idCard") : "");

@@ -80,7 +80,7 @@ public class BatchListServiceImpl implements BatchListService {
      * @method
      * @date: 2019/4/8 10:39
      */
-    public Map<String, Object> uploadBatchFile(MultipartFile file, String batchname, String repairStrategy, int certifyType, String channel, String compId, Long optUser, String optUserName) throws Exception {
+    public Map<String, Object> uploadBatchFile(MultipartFile file, String batchname, String repairStrategy, int certifyType, String channel, String compId, Long optUser, String optUserName,String province,String city) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
         List<String> channels = null;
         int type = 0;
@@ -102,7 +102,7 @@ public class BatchListServiceImpl implements BatchListService {
             String fixPrice = null;
             //根据供应商和type查询resourceId
             MarketResourceEntity marketResourceEntity = sourceDao.getResourceId(channels.get(k), type);
-            if (marketResourceEntity != null && marketResourceEntity.getResourceId() > 0) {
+            if (marketResourceEntity != null && marketResourceEntity.getResourceId() >= 0) {
                 resourceId = String.valueOf(marketResourceEntity.getResourceId());
                 LOG.info("查询企业客户资源类型是:" + type + "渠道是：" + channels.get(k) + "资源id是" + resourceId);
             }
@@ -145,6 +145,8 @@ public class BatchListServiceImpl implements BatchListService {
                 //String classPath = new BatchAction().getClass().getResource("/").getPath();
                 //服务器
                 String classPath = "/data/upload/";
+//                String classPath = "E:\\";
+
                 String fileName = file.getOriginalFilename();
                 File localFile = null;
                 //文件名加上时间戳
@@ -171,52 +173,106 @@ public class BatchListServiceImpl implements BatchListService {
                 Boolean repeatIdCardStatus = false;
                 Boolean repeateEntrpriseIdStatus = false;
                 int uploadNum = 0;//弃用lastRowNum 防止其他空白行点击后产生空字符串数据
-                for (int i = 1; i <= lastRowNum; i++) {
-                    Row row = sheet.getRow(i);
-                    String certifyMd5 = "", kehuId = "", label_one = "", label_two = "", label_three = "";
-                    if (row != null) {
-                        short lastCellNum = row.getLastCellNum();
-                        for (int j = 0; j < lastCellNum; j++) {
-                            Cell cell = row.getCell(j);
-                            if (cell != null && cell.getCellType() != CellType.BLANK) {
-                                cell.setCellType(CellType.STRING);
-                                switch (j) {
-                                    case 0:
-                                        certlist.add(cell.getStringCellValue().trim());
-                                        certifyMd5 = cell.getStringCellValue().trim();
-                                        break;
-                                    case 1:
-                                        custuserIdlist.add(cell.getStringCellValue().trim());
-                                        kehuId = cell.getStringCellValue().trim();
-                                        break;
-                                    case 2:
-                                        certlist.add(cell.getStringCellValue().trim());
-                                        label_one = cell.getStringCellValue().trim();
-                                        break;
-                                    case 3:
-                                        custuserIdlist.add(cell.getStringCellValue().trim());
-                                        label_two = cell.getStringCellValue().trim();
-                                        break;
-                                    case 4:
-                                        custuserIdlist.add(cell.getStringCellValue().trim());
-                                        label_three = cell.getStringCellValue().trim();
-                                        break;
-                                }
-                            }
-                        }
+               if(resourceId.equals("0")){
+                   for (int i = 1; i <= lastRowNum; i++) {
+                       Row row = sheet.getRow(i);
+                       String certifyMd5 = "", kehuId = "", label_one = "", label_two = "", label_three = "",invaMobList = "";
+                       if (row != null) {
+                           short lastCellNum = row.getLastCellNum();
+                           for (int j = 0; j < lastCellNum; j++) {
+                               Cell cell = row.getCell(j);
+                               if (cell != null && cell.getCellType() != CellType.BLANK) {
+                                   cell.setCellType(CellType.STRING);
+                                   switch (j) {
+                                       case 0:
+                                           certlist.add(cell.getStringCellValue().trim());
+                                           certifyMd5 = cell.getStringCellValue().trim();
+                                           break;
+                                       case 1:
+                                           custuserIdlist.add(cell.getStringCellValue().trim());
+                                           invaMobList = cell.getStringCellValue().trim();
+                                           break;
+                                       case 2:
+                                           custuserIdlist.add(cell.getStringCellValue().trim());
+                                           kehuId = cell.getStringCellValue().trim();
+                                           break;
+                                       case 3:
+                                           certlist.add(cell.getStringCellValue().trim());
+                                           label_one = cell.getStringCellValue().trim();
+                                           break;
+                                       case 4:
+                                           custuserIdlist.add(cell.getStringCellValue().trim());
+                                           label_two = cell.getStringCellValue().trim();
+                                           break;
+                                       case 5:
+                                           custuserIdlist.add(cell.getStringCellValue().trim());
+                                           label_three = cell.getStringCellValue().trim();
+                                           break;
+                                   }
+                               }
+                           }
 
-                        if (StringUtil.isNotEmpty(certifyMd5) && StringUtil.isNotEmpty(kehuId)) {
-                            uploadNum += 1;
-                            BatchDetail batchDetail = new BatchDetail();
-                            batchDetail.setIdCard(certifyMd5);
-                            batchDetail.setEnterpriseId(kehuId);
-                            batchDetail.setLabelOne(label_one);
-                            batchDetail.setLabelTwo(label_two);
-                            batchDetail.setLabelThree(label_three);
-                            batchDetailList.add(batchDetail);
-                        }
-                    }
-                }
+                           if (StringUtil.isNotEmpty(certifyMd5) && StringUtil.isNotEmpty(kehuId)) {
+                               uploadNum += 1;
+                               BatchDetail batchDetail = new BatchDetail();
+                               batchDetail.setIdCard(certifyMd5);
+                               batchDetail.setEnterpriseId(kehuId);
+                               batchDetail.setLabelOne(label_one);
+                               batchDetail.setLabelTwo(label_two);
+                               batchDetail.setLabelThree(label_three);
+                               batchDetail.setLabelFour(invaMobList);
+                               batchDetailList.add(batchDetail);
+                           }
+                       }
+                   }
+               }else {
+                   for (int i = 1; i <= lastRowNum; i++) {
+                       Row row = sheet.getRow(i);
+                       String certifyMd5 = "", kehuId = "", label_one = "", label_two = "", label_three = "";
+                       if (row != null) {
+                           short lastCellNum = row.getLastCellNum();
+                           for (int j = 0; j < lastCellNum; j++) {
+                               Cell cell = row.getCell(j);
+                               if (cell != null && cell.getCellType() != CellType.BLANK) {
+                                   cell.setCellType(CellType.STRING);
+                                   switch (j) {
+                                       case 0:
+                                           certlist.add(cell.getStringCellValue().trim());
+                                           certifyMd5 = cell.getStringCellValue().trim();
+                                           break;
+                                       case 1:
+                                           custuserIdlist.add(cell.getStringCellValue().trim());
+                                           kehuId = cell.getStringCellValue().trim();
+                                           break;
+                                       case 2:
+                                           certlist.add(cell.getStringCellValue().trim());
+                                           label_one = cell.getStringCellValue().trim();
+                                           break;
+                                       case 3:
+                                           custuserIdlist.add(cell.getStringCellValue().trim());
+                                           label_two = cell.getStringCellValue().trim();
+                                           break;
+                                       case 4:
+                                           custuserIdlist.add(cell.getStringCellValue().trim());
+                                           label_three = cell.getStringCellValue().trim();
+                                           break;
+                                   }
+                               }
+                           }
+
+                           if (StringUtil.isNotEmpty(certifyMd5) && StringUtil.isNotEmpty(kehuId)) {
+                               uploadNum += 1;
+                               BatchDetail batchDetail = new BatchDetail();
+                               batchDetail.setIdCard(certifyMd5);
+                               batchDetail.setEnterpriseId(kehuId);
+                               batchDetail.setLabelOne(label_one);
+                               batchDetail.setLabelTwo(label_two);
+                               batchDetail.setLabelThree(label_three);
+                               batchDetailList.add(batchDetail);
+                           }
+                       }
+                   }
+               }
                 String custFixPrice = null;
                 //查询企业账户余额
                 Double remainAmount = customerService.getRemainMoney(compId) / 100;
@@ -271,7 +327,7 @@ public class BatchListServiceImpl implements BatchListService {
                         resultMap.put("_message", "录入企业自带id数据不能重复，上传失败！");
                         return resultMap;
                     } else {
-                        batchListService.saveBatch(batchname, uploadNum, repairStrategy, compId, batchId, certifyType, channelall);
+                        batchListService.saveBatch(batchname, uploadNum, repairStrategy, compId, batchId, certifyType, channelall,province,city);
                     }
                         /*String errorCode = batchService.sendtofile(certlist,custuserIdlist,repairMode,batchId);
                 if(errorCode.equals("00")){
@@ -530,7 +586,7 @@ public class BatchListServiceImpl implements BatchListService {
     public void saveBatchDetailList(List<BatchDetail> batchDetailList, String channel, String resourceId,
                                     int certifyType, String batchId, Long operUserId, String operName) {
 
-        String kehuId = null, certifyMd5 = null, lalel_one = null, label_two = null, label_three = null;
+        String kehuId = null, certifyMd5 = null, lalel_one = null, label_two = null, label_three = null,label_four=null;
         if (batchDetailList.size() > 0) {
             for (int i = 0; i < batchDetailList.size(); i++) {
                 String touchId = String.valueOf(UUID.randomUUID()).replaceAll("-", "");
@@ -541,11 +597,12 @@ public class BatchListServiceImpl implements BatchListService {
                     lalel_one = batchDetail.getLabelOne();
                     label_two = batchDetail.getLabelTwo();
                     label_three = batchDetail.getLabelThree();
+                    label_four = batchDetail.getLabelFour();
                 }
                 LOG.info("resourceId是" + resourceId);
-                StringBuilder sqlBuilder = new StringBuilder("INSERT INTO nl_batch_detail(touch_id,batch_id,enterprise_id,id_card,channel,status,upload_time,label_one,label_two,label_three,resource_id) values(?,?,?,?,?,?,?,?,?,?,?)");
-                batchDetailDao.executeUpdateSQL(sqlBuilder.toString(), touchId, batchId, kehuId, certifyMd5, channel, 2, new Timestamp(new Date().getTime()), lalel_one, label_two, label_three, resourceId);
-                LOG.info("修复文件上传，插入批次明细表： 批次ID:" + batchId + "\t身份证加密：" + certifyMd5 + "\t客户侧用户id:" + kehuId);
+                StringBuilder sqlBuilder = new StringBuilder("INSERT INTO nl_batch_detail(id,touch_id,batch_id,enterprise_id,id_card,channel,status,upload_time,label_one,label_two,label_three,resource_id,label_four) values(?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                batchDetailDao.executeUpdateSQL(sqlBuilder.toString(), IDHelper.getID()+"",touchId, batchId, kehuId, certifyMd5, channel, 2, new Timestamp(new Date().getTime()), lalel_one, label_two, label_three, resourceId,label_four);
+                LOG.info(IDHelper.getID()+""+"修复文件上传，插入批次明细表： 批次ID:" + batchId + "\t身份证加密：" + certifyMd5 + "\t客户侧用户id:" + kehuId);
                 //保存修复记录信息
                 if (operUserId != null) {
                     if (StringUtil.isEmpty(operName)) {
@@ -563,15 +620,15 @@ public class BatchListServiceImpl implements BatchListService {
 
     @Override
     public void saveBatch(String batchname, int uploadNum, String repairStrategy, String compId, String batchId,
-                          int certifyType, String channel) throws Exception {
+                          int certifyType, String channel,String province,String city) throws Exception {
         int channels = Integer.parseInt(channel);
         String compName = "";
         Customer customer = customerDao.findUniqueBy("custId", compId);
         if (customer != null) {
             compName = customer.getEnterpriseName();
         }
-        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO nl_batch(batch_name,certify_type,channel,id,comp_id,comp_name,upload_time,status,upload_num,repair_strategy,cuc_received) values(?,?,?,?,?,?,?,?,?,?,?)");
-        batchDetailDao.executeUpdateSQL(sqlBuilder.toString(), batchname, certifyType, channels, batchId, compId, compName, (new Timestamp(new Date().getTime())), 2, uploadNum, repairStrategy, 0);
+        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO nl_batch(batch_name,certify_type,channel,id,comp_id,comp_name,upload_time,status,upload_num,repair_strategy,cuc_received,midle_number_province,midle_number_city) values(?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        batchDetailDao.executeUpdateSQL(sqlBuilder.toString(), batchname, certifyType, channels, batchId, compId, compName, (new Timestamp(new Date().getTime())), 2, uploadNum, repairStrategy, 0,province,city);
         LOG.info("修复文件上传成功，插入批次表： 企业ID:" + compId + "\t批次ID:" + batchId + "\t批次名称：" + batchname + "\t上传数量:" + uploadNum + "\t修复模式：" + repairStrategy);
 
     }
@@ -1111,6 +1168,16 @@ public class BatchListServiceImpl implements BatchListService {
     public List<Map<String, Object>> getTime() {
         List<Map<String, Object>> list = batchDetailDao.sqlQuery("select now()");
         return list;
+    }
+
+    @Override
+    public List<Map<String, Object>> getArea(String parentId) {
+
+
+        List<Map<String, Object>> mapList = batchDetailDao.queryMapsListBySql(" select area_id,area_name,level  from area where parent_id=? ", parentId);
+
+
+        return mapList;
     }
 
 }
