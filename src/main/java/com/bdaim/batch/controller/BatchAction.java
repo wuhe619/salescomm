@@ -62,9 +62,9 @@ public class BatchAction extends BasicAction {
     @ResponseBody
     public String BatchuploadParse(@RequestParam(value = "file") MultipartFile file, String batchname, String compIdf,String repairStrategy, int certifyType, String channel,String province,String city) {
         String compId = opUser().getCustId();
-        if(StringUtils.isEmpty(compId)){
-            compId=compIdf;
-        }
+//        if(StringUtils.isEmpty(compId)){
+//            compId=compIdf;
+//        }
         Map<String, Object> resultMap = null;
         try {
 
