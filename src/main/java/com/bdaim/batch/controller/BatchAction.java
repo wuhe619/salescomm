@@ -86,13 +86,21 @@ public class BatchAction extends BasicAction {
 
     @RequestMapping("/downloadModel")
     @ResponseBody
-    public String BatchModelfileDownload(HttpServletRequest request, HttpServletResponse response) {
+    public String BatchModelfileDownload(HttpServletRequest request, HttpServletResponse response,String type) {
         InputStream in = null;
         OutputStream bos = null;
         try {
             String classPath = fileUrlEntity.getFileUrl();
             logger.info("hello classpath" + classPath);
-            String fileName = "nolose_upload.xlsx";
+            String fileName="";
+            if(StringUtils.isNotEmpty(type)&&type.equals("6")){
+                fileName = "gdyd_nolose.xlsx";
+
+            }else{
+                fileName = "nolose_upload.xlsx";
+
+            }
+
             String pathF = PROPERTIES.getProperty("file.separator");
             classPath = classPath.replace("/", pathF);
             String path = classPath + pathF + "tp" + pathF + fileName;
