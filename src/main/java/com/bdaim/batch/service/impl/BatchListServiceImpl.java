@@ -1,5 +1,7 @@
 package com.bdaim.batch.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.ResourceEnum;
 import com.bdaim.batch.controller.BatchAction;
 import com.bdaim.batch.dao.BatchDao;
@@ -12,6 +14,8 @@ import com.bdaim.batch.entity.BatchListParam;
 import com.bdaim.batch.service.BatchListService;
 import com.bdaim.batch.service.BatchService;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.customer.dto.CustomerPropertyDTO;
 import com.bdaim.util.*;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
@@ -24,6 +28,9 @@ import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.price.dto.ResourcesPriceDto;
 
+import com.bdaim.util.http.HttpUtil;
+import net.sf.json.JSONString;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -80,7 +87,7 @@ public class BatchListServiceImpl implements BatchListService {
      * @method
      * @date: 2019/4/8 10:39
      */
-    public Map<String, Object> uploadBatchFile(MultipartFile file, String batchname, String repairStrategy, int certifyType, String channel, String compId, Long optUser, String optUserName,String province,String city) throws Exception {
+    public Map<String, Object> uploadBatchFile(MultipartFile file, String batchname, String repairStrategy, int certifyType, String channel, String compId, Long optUser, String optUserName,String province,String city,int extNumber) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
         List<String> channels = null;
         int type = 0;
@@ -144,8 +151,8 @@ public class BatchListServiceImpl implements BatchListService {
                 //本地
                 //String classPath = new BatchAction().getClass().getResource("/").getPath();
                 //服务器
-                String classPath = "/data/upload/";
-//                String classPath = "E:\\";
+//                String classPath = "/data/upload/";
+                String classPath = "E:\\";
 
                 String fileName = file.getOriginalFilename();
                 File localFile = null;
@@ -327,7 +334,7 @@ public class BatchListServiceImpl implements BatchListService {
                         resultMap.put("_message", "录入企业自带id数据不能重复，上传失败！");
                         return resultMap;
                     } else {
-                        batchListService.saveBatch(batchname, uploadNum, repairStrategy, compId, batchId, certifyType, channelall,province,city);
+                        batchListService.saveBatch(batchname, uploadNum, repairStrategy, compId, batchId, certifyType, channelall,province,city,extNumber);
                     }
                         /*String errorCode = batchService.sendtofile(certlist,custuserIdlist,repairMode,batchId);
                 if(errorCode.equals("00")){
@@ -620,15 +627,22 @@ public class BatchListServiceImpl implements BatchListService {
 
     @Override
     public void saveBatch(String batchname, int uploadNum, String repairStrategy, String compId, String batchId,
-                          int certifyType, String channel,String province,String city) throws Exception {
+                          int certifyType, String channel,String province,String city,int extNumber) throws Exception {
         int channels = Integer.parseInt(channel);
         String compName = "";
         Customer customer = customerDao.findUniqueBy("custId", compId);
         if (customer != null) {
             compName = customer.getEnterpriseName();
         }
-        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO nl_batch(batch_name,certify_type,channel,id,comp_id,comp_name,upload_time,status,upload_num,repair_strategy,cuc_received,midle_number_province,midle_number_city) values(?,?,?,?,?,?,?,?,?,?,?,?,?)");
-        batchDetailDao.executeUpdateSQL(sqlBuilder.toString(), batchname, certifyType, channels, batchId, compId, compName, (new Timestamp(new Date().getTime())), 2, uploadNum, repairStrategy, 0,province,city);
+        long extNumberSecond=0;
+        if(extNumber>0){
+            extNumberSecond=extNumber*60*60;
+            if(extNumberSecond>4294967296l){
+                extNumberSecond=4294967296l;
+            }
+        }
+        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO nl_batch(batch_name,certify_type,channel,id,comp_id,comp_name,upload_time,status,upload_num,repair_strategy,cuc_received,midle_number_province,midle_number_city,midle_number_expiry_time) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        batchDetailDao.executeUpdateSQL(sqlBuilder.toString(), batchname, certifyType, channels, batchId, compId, compName, (new Timestamp(new Date().getTime())), 2, uploadNum, repairStrategy, 0,province,city,extNumberSecond+"");
         LOG.info("修复文件上传成功，插入批次表： 企业ID:" + compId + "\t批次ID:" + batchId + "\t批次名称：" + batchname + "\t上传数量:" + uploadNum + "\t修复模式：" + repairStrategy);
 
     }
@@ -1179,5 +1193,84 @@ public class BatchListServiceImpl implements BatchListService {
 
         return mapList;
     }
+
+    @Override
+    public ResponseInfo unBind(String bindId, String coolDown,String custId) {
+
+      ResponseInfo responseInfo=new ResponseInfo();
+
+        JSONObject prams=new JSONObject();
+        prams.put("bindId",bindId);
+        prams.put("coolDown",coolDown);
+        String s = prams.toJSONString();
+        CustomerProperty customerProperty=new CustomerProperty();
+        customerProperty.setCustId(custId);
+        customerProperty.setPropertyName("15_config");
+        CustomerPropertyDTO customerProperty1 = customerService.getCustomerProperty(customerProperty);
+        String propertyValue = customerProperty1.getPropertyValue();
+        JSONObject jsonObject = JSONObject.parseObject(propertyValue);
+        try {
+            String secretKey = ThreeDES.encryptDESCBC(s, jsonObject.getString("secretKey"), "", "");
+          JSONObject request=new JSONObject();
+            request.put("request",secretKey);
+
+            String s1 = HttpUtil.httpsPost("", request.toJSONString());
+            LogUtil.info("unbind id"+bindId+"return"+s1);
+            JSONObject returnObj = JSONObject.parseObject(s1);
+            String status =returnObj.get("status").toString();
+            responseInfo.setCode(200);
+            if(status.equals("0")){
+                responseInfo.setMsg("解绑成功");
+            }else{
+                responseInfo.setMsg("解绑失败");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            responseInfo.setCode(500);
+        }
+
+
+        return responseInfo;
+    }
+
+    @Override
+    public ResponseInfo delta(String bindId, int  delta, String custId) {
+        ResponseInfo responseInfo=new ResponseInfo();
+
+        JSONObject prams=new JSONObject();
+        prams.put("bindId",bindId);
+        delta=delta/24;
+        prams.put("delta",delta);
+        String s = prams.toJSONString();
+        CustomerProperty customerProperty=new CustomerProperty();
+        customerProperty.setCustId(custId);
+        customerProperty.setPropertyName("15_config");
+        CustomerPropertyDTO customerProperty1 = customerService.getCustomerProperty(customerProperty);
+        String propertyValue = customerProperty1.getPropertyValue();
+        JSONObject jsonObject = JSONObject.parseObject(propertyValue);
+        try {
+            String secretKey = ThreeDES.encryptDESCBC(s, jsonObject.getString("secretKey"), "", "");
+            JSONObject request=new JSONObject();
+            request.put("request",secretKey);
+
+            String s1 = HttpUtil.httpsPost("", request.toJSONString());
+            LogUtil.info("unbind id"+bindId+"return"+s1);
+            JSONObject returnObj = JSONObject.parseObject(s1);
+            String status =returnObj.get("status").toString();
+            responseInfo.setCode(200);
+            if(status.equals("0")){
+                responseInfo.setMsg("成功");
+            }else{
+                responseInfo.setMsg("延期失败");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            responseInfo.setCode(500);
+        }
+
+
+        return responseInfo;
+    }
+
 
 }

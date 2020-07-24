@@ -19,6 +19,16 @@ public class FixInfo {
 
     private String city;
 
+    private int extNumber;
+
+    public int getExtNumber() {
+        return extNumber;
+    }
+
+    public void setExtNumber(int extNumber) {
+        this.extNumber = extNumber;
+    }
+
     public String getProvince() {
         return province;
     }

@@ -4,6 +4,7 @@ import com.bdaim.batch.entity.BatchDetail;
 import com.bdaim.batch.entity.BatchListParam;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
+import com.bdaim.common.response.ResponseInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -56,7 +57,7 @@ public interface BatchListService {
 
     void saveBatchDetailList(List<BatchDetail> batchDetailList, String channelall, String resourceId, int certifyType, String batchId, Long operUserId, String operName);
 
-    void saveBatch(String batchname, int uploadNum, String repairStrategy, String compId, String batchId, int certifyType, String channl,String province,String city) throws Exception;
+    void saveBatch(String batchname, int uploadNum, String repairStrategy, String compId, String batchId, int certifyType, String channl,String province,String city,int extNumber) throws Exception;
 
     void cucIsreceive(String batchId, int cucIsReceived) throws Exception;
 
@@ -94,4 +95,6 @@ public interface BatchListService {
     List<Map<String, Object>> getTime();
 
     List<Map<String, Object>> getArea(String parentId);
+    ResponseInfo unBind(String bindId,String coolDown,String custId);
+    ResponseInfo delta(String bindId,int  delta,String custId);
 }

@@ -7,6 +7,7 @@ import com.bdaim.batch.dto.ImportErr;
 import com.bdaim.batch.service.BatchService;
 import com.bdaim.batch.service.impl.BatchListServiceImpl;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.resource.price.service.SalePriceService;
 import com.bdaim.resource.service.MarketResourceService;
@@ -60,7 +61,7 @@ public class BatchAction extends BasicAction {
      */
     @RequestMapping("/upload")
     @ResponseBody
-    public String BatchuploadParse(@RequestParam(value = "file") MultipartFile file, String batchname, String compIdf,String repairStrategy, int certifyType, String channel,String province,String city) {
+    public String BatchuploadParse(@RequestParam(value = "file") MultipartFile file, String batchname, String compIdf,String repairStrategy, int certifyType, String channel,String province,String city,int extNumber) {
         String compId = opUser().getCustId();
 //        if(StringUtils.isEmpty(compId)){
 //            compId=compIdf;
@@ -69,7 +70,7 @@ public class BatchAction extends BasicAction {
         try {
 
 
-            resultMap = batchListService.uploadBatchFile(file, batchname, repairStrategy, certifyType, channel, compId, opUser().getId(), opUser().getName(),province,city);
+            resultMap = batchListService.uploadBatchFile(file, batchname, repairStrategy, certifyType, channel, compId, opUser().getId(), opUser().getName(),province,city,extNumber);
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("失联修复文件上传失败！\t" + e.getMessage());
@@ -429,10 +430,23 @@ public class BatchAction extends BasicAction {
 
     @GetMapping("/getArea")
     @ResponseBody
-    public List<Map<String, Object>> getArea(String parentId){
-
-     return batchListService.getArea(parentId);
+    public ResponseInfo getArea(String parentId){
+        ResponseInfo responseInfo=new ResponseInfo();
+        responseInfo.setCode(200);
+        responseInfo.setData(batchListService.getArea(parentId));
+     return responseInfo;
     }
 
+    @GetMapping("/unBind")
+    public ResponseInfo unBind(String bindId,String coolDown,String custId){
+
+         return  batchListService.unBind(bindId,coolDown,custId);
+    }
+
+    @GetMapping("/delta")
+    public ResponseInfo delta(String bindId,int  delta,String custId){
+
+        return  batchListService.delta(bindId,delta,custId);
+    }
 
 }
