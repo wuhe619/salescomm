@@ -151,8 +151,8 @@ public class BatchListServiceImpl implements BatchListService {
                 //本地
                 //String classPath = new BatchAction().getClass().getResource("/").getPath();
                 //服务器
-//                String classPath = "/data/upload/";
-                String classPath = "E:\\";
+                String classPath = "/data/upload/";
+//                String classPath = "E:\\";
 
                 String fileName = file.getOriginalFilename();
                 File localFile = null;
@@ -180,7 +180,7 @@ public class BatchListServiceImpl implements BatchListService {
                 Boolean repeatIdCardStatus = false;
                 Boolean repeateEntrpriseIdStatus = false;
                 int uploadNum = 0;//弃用lastRowNum 防止其他空白行点击后产生空字符串数据
-               if(resourceId.equals("0")){
+               if(resourceId.equals("15")){
                    for (int i = 1; i <= lastRowNum; i++) {
                        Row row = sheet.getRow(i);
                        String certifyMd5 = "", kehuId = "", label_one = "", label_two = "", label_three = "",invaMobList = "";
