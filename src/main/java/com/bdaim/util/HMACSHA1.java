@@ -1,3 +1,4 @@
+package com.bdaim.util;
 
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;

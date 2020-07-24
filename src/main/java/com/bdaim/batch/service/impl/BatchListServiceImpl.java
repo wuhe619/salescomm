@@ -151,8 +151,8 @@ public class BatchListServiceImpl implements BatchListService {
                 //本地
                 //String classPath = new BatchAction().getClass().getResource("/").getPath();
                 //服务器
-                String classPath = "/data/upload/";
-//                String classPath = "E:\\";
+//                String classPath = "/data/upload/";
+                String classPath = "E:\\";
 
                 String fileName = file.getOriginalFilename();
                 File localFile = null;
@@ -1210,9 +1210,21 @@ public class BatchListServiceImpl implements BatchListService {
         String propertyValue = customerProperty1.getPropertyValue();
         JSONObject jsonObject = JSONObject.parseObject(propertyValue);
         try {
+            String secretId = jsonObject.getString("secretId");
+            String secretKeyd = jsonObject.getString("secretKey");
+            String requestRefId=IDHelper.getID()+"";
+            JSONObject headObj=new JSONObject();
+            headObj.put("requestRefId",requestRefId);
+            String idKey="requestRefId="+requestRefId+"&secretId="+secretId;
+            String s2 = HMACSHA1.hmacSHA1Encrypt(idKey, secretKeyd);
+            headObj.put("requestRefId",requestRefId);
+            headObj.put("secretId",secretId);
+            headObj.put("signature",s2);
+
             String secretKey = ThreeDES.encryptDESCBC(s, jsonObject.getString("secretKey"), "", "");
           JSONObject request=new JSONObject();
             request.put("request",secretKey);
+            request.put("head",headObj);
 
             String s1 = HttpUtil.httpsPost("", request.toJSONString());
             LogUtil.info("unbind id"+bindId+"return"+s1);
@@ -1249,9 +1261,20 @@ public class BatchListServiceImpl implements BatchListService {
         String propertyValue = customerProperty1.getPropertyValue();
         JSONObject jsonObject = JSONObject.parseObject(propertyValue);
         try {
+            String secretId = jsonObject.getString("secretId");
+            String secretKeyd = jsonObject.getString("secretKey");
+            String requestRefId=IDHelper.getID()+"";
+            JSONObject headObj=new JSONObject();
+            headObj.put("requestRefId",requestRefId);
+            String idKey="requestRefId="+requestRefId+"&secretId="+secretId;
+            String s2 = HMACSHA1.hmacSHA1Encrypt(idKey, secretKeyd);
+            headObj.put("requestRefId",requestRefId);
+            headObj.put("secretId",secretId);
+            headObj.put("signature",s2);
             String secretKey = ThreeDES.encryptDESCBC(s, jsonObject.getString("secretKey"), "", "");
             JSONObject request=new JSONObject();
             request.put("request",secretKey);
+            request.put("head",headObj);
 
             String s1 = HttpUtil.httpsPost("", request.toJSONString());
             LogUtil.info("unbind id"+bindId+"return"+s1);
