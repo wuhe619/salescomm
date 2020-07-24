@@ -1251,7 +1251,7 @@ public class BatchListServiceImpl implements BatchListService {
 
         JSONObject prams=new JSONObject();
         prams.put("bindId",bindId);
-        delta=delta/24;
+        delta=delta;
         prams.put("delta",delta);
         String s = prams.toJSONString();
         CustomerProperty customerProperty=new CustomerProperty();
