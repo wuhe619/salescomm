@@ -678,7 +678,7 @@ public class OpenService {
                 marketResourceLogDTO.setRemark(message);
             }
 
-        } catch (Exception e) {
+         } catch (Exception e) {
             marketResourceLogDTO.setStatus(1002);
             log.error("外呼接口异常,", e);
             code = "009";
