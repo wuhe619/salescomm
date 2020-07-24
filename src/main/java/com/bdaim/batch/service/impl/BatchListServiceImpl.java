@@ -151,8 +151,8 @@ public class BatchListServiceImpl implements BatchListService {
                 //本地
                 //String classPath = new BatchAction().getClass().getResource("/").getPath();
                 //服务器
-//                String classPath = "/data/upload/";
-                String classPath = "E:\\";
+                String classPath = "/data/upload/";
+//                String classPath = "E:\\";
 
                 String fileName = file.getOriginalFilename();
                 File localFile = null;
