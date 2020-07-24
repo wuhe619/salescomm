@@ -62,7 +62,7 @@ public class BatchDetailImpl implements BatchDetaiService {
     public PageList getDetailList(DetailQueryParam detailQueryParam, Long userId, String userType, JSONArray custProperty, String role) {
         String batchId = detailQueryParam.getBatchId();
         StringBuffer sqlBuilder = new StringBuffer();
-        sqlBuilder.append("SELECT t.* FROM ( select custG.label_seven AS bindId,custG.label_eight AS exTime,(concat(IFNULL(custG.label_four,\"\"),(CASE WHEN custG.label_five IS NOT NULL THEN CONCAT(custG.label_five,\",\") else  \"\" end ))) AS midleNumber,(case when t2.label_eight is not null then (case when STR_TO_DATE(t2.label_eight, '%Y-%m-%d %H:%i:%s')<now() then '有效' else '已过期' end) else '' end) effectStatus,custG.id,custG.batch_id,custG.enterprise_id,custG.id_card,custG.`status`,custG.channel,custG.user_id, t.realname,GROUP_CONCAT(t2.label_id) AS labelId,\n" +
+        sqlBuilder.append("SELECT t.* FROM ( select custG.label_seven AS bindId,custG.label_eight AS exTime,(concat(IFNULL(custG.label_four,\"\"),(CASE WHEN custG.label_five IS NOT NULL THEN CONCAT(custG.label_five,\",\") else  \"\" end ))) AS midleNumber,(case when custG.label_eight is not null then (case when STR_TO_DATE(custG.label_eight, '%Y-%m-%d %H:%i:%s')<now() then '有效' else '已过期' end) else '' end) effectStatus,custG.id,custG.batch_id,custG.enterprise_id,custG.id_card,custG.`status`,custG.channel,custG.user_id, t.realname,GROUP_CONCAT(t2.label_id) AS labelId,\n" +
                 "\tGROUP_CONCAT(t3.label_name) AS labelName,GROUP_CONCAT(t2.option_value) AS optionValue");
         sqlBuilder.append("  from nl_batch_detail custG ");
         sqlBuilder.append("  LEFT JOIN t_customer_user t  ON custG.user_id = t.id");
