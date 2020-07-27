@@ -280,7 +280,7 @@ public class MarketResourceService {
         StringBuffer sb = new StringBuffer();
         //user_type 1.管理员   2.普通用户   superId为用户id(联通返回的) 移动返回的bindId
         sb.append(
-                "  select ((select (concat(IFNULL(custG.label_nine,\"\"),(CASE WHEN custG.label_five IS NOT NULL THEN CONCAT(custG.label_five,\",\") else  \"\" end ))) from nl_batch_detail custG where label_seven=voicLog.superid) AS mindlNumber,voicLog.active_number,voicLog.touch_id,voicLog.cust_id,voicLog.batch_id, voicLog.enterprise_id, voicLog.superid, voicLog.create_time create_time," +
+                "  select ((select (concat(IFNULL(custG.label_nine,\"\"),(CASE WHEN custG.label_five IS NOT NULL THEN CONCAT(custG.label_five,\",\") else  \"\" end ))) from nl_batch_detail custG where label_seven=voicLog.superid)) AS mindlNumber,voicLog.active_number,voicLog.touch_id,voicLog.cust_id,voicLog.batch_id, voicLog.enterprise_id, voicLog.superid, voicLog.create_time create_time," +
                         "voicLog.status,CAST(voicLog.user_id AS CHAR) user_id,voicLog.remark,backInfo.Callerduration,backInfo.Callercaller mainNumber, " +
                         "substring_index( backInfo.recordurl ,'/' , -1 ) as recordurl ")
                 .append("  from t_touch_voice_log voicLog")
