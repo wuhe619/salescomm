@@ -61,16 +61,18 @@ public class BatchAction extends BasicAction {
      */
     @RequestMapping("/upload")
     @ResponseBody
-    public String BatchuploadParse(@RequestParam(value = "file") MultipartFile file, String batchname, String compIdf,String repairStrategy, int certifyType, String channel,String province,String city,int extNumber) {
+    public String BatchuploadParse(@RequestParam(value = "file") MultipartFile file, String batchname, String compIdf,String repairStrategy, int certifyType, String channel,String province,String city,String extNumber) {
         String compId = opUser().getCustId();
 //        if(StringUtils.isEmpty(compId)){
 //            compId=compIdf;
 //        }
         Map<String, Object> resultMap = null;
         try {
-
-
-            resultMap = batchListService.uploadBatchFile(file, batchname, repairStrategy, certifyType, channel, compId, opUser().getId(), opUser().getName(),province,city,extNumber);
+          int expaire=0;
+            if(StringUtils.isNotEmpty(extNumber)){
+                expaire=Integer.parseInt(extNumber);
+            }
+            resultMap = batchListService.uploadBatchFile(file, batchname, repairStrategy, certifyType, channel, compId, opUser().getId(), opUser().getName(),province,city,expaire);
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("失联修复文件上传失败！\t" + e.getMessage());
