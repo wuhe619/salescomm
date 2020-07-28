@@ -769,7 +769,7 @@ public class OpenAction extends BasicAction {
      * 广东移动录音文件推送
      * @param jsonObject
      */
-    @PostMapping("/nolose/callrecord")
+    @PostMapping("/nolose/soundRecording")
     public void soundRecording(@RequestBody JSONObject jsonObject){
 
 //        openService.soundRecording(jsonObject);
