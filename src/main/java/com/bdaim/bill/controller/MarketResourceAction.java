@@ -418,7 +418,6 @@ public class MarketResourceAction extends BasicAction {
      */
     @RequestMapping(value = "/countMarketData", method = RequestMethod.GET)
     @ResponseBody
-    @CacheAnnotation
     public ResponseInfo countMarketData(String customerId) {
         Map<String, Object> marketData = marketResourceService.countMarketData(customerId);
         return new ResponseInfoAssemble().success(marketData);

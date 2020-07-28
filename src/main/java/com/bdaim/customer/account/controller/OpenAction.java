@@ -750,5 +750,32 @@ public class OpenAction extends BasicAction {
         }
         return resp;
     }
+
+    /**
+     * 广东移动接受话单
+     * @param jsonObject
+     */
+    @PostMapping("/nolose/callrecord")
+    public void getCall(@RequestBody JSONObject jsonObject){
+
+        openService.getCall(jsonObject);
+
+
+
+    }
+
+
+    /**
+     * 广东移动录音文件推送
+     * @param jsonObject
+     */
+    @PostMapping("/nolose/callrecord")
+    public void soundRecording(@RequestBody JSONObject jsonObject){
+
+//        openService.soundRecording(jsonObject);
+
+
+
+    }
 }
 
