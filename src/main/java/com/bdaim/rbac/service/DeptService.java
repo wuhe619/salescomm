@@ -182,7 +182,7 @@ public class DeptService {
             queryDeptSql.append(" and ID =?");
             params.add(deptId);
         }
-        List<Map<String, Object>> deptList = deptDao.sqlQuery(queryDeptSql.toString(), params);
+        List<Map<String, Object>> deptList = deptDao.sqlQuery(queryDeptSql.toString(), params.toArray());
         if (deptList.size() > 0) {
             List<Map<String, Object>> roleList = null;
             String roleSql = "SELECT ID roleId,`NAME` roleName  FROM t_role WHERE DEPTID =?";
