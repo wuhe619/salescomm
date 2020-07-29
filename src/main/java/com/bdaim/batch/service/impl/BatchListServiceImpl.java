@@ -780,7 +780,7 @@ public class BatchListServiceImpl implements BatchListService {
         seccussCall.add(batchId);
         if (StringUtil.isNotEmpty(userId)) {
             seccussCallSql.append(" AND t.user_id = ? ");
-            sp.add(userId);
+            seccussCall.add(userId);
         }
         //查询短信信息
         StringBuffer smsSql = new StringBuffer();
