@@ -1030,9 +1030,12 @@ public class SeatsService {
         boolean flag = true;
         List<SeatsInfo> seatsInfoList = seatsMessageParam.getSeatsInfoList();
         for (int i = 0; i < seatsInfoList.size(); i++) {
+            logger.info("Account===after"+seatsInfoList.get(i).getAccount()+(seatsInfoList.get(i).getAccount() != null && !seatsInfoList.get(i).getAccount().equals("")));
+
             if (seatsInfoList.get(i).getAccount() != null && !seatsInfoList.get(i).getAccount().equals("")) {
                 //查询此登陆账户是否存在
                 List<CustomerUser> userAccount = customerUserDao.findBy("account", seatsInfoList.get(i).getAccount());
+                logger.info("Account===before"+userAccount+seatsInfoList.get(i).getAccount());
                 if (userAccount.size() > 0) {
                     //账号已经存在
                     flag = true;
