@@ -128,7 +128,7 @@ public class BatchListServiceImpl implements BatchListService {
                 resultMap.put("_message", "未设置销售定价，请联系管理员！");
                 return resultMap;
             }
-            if (StringUtil.isEmpty(resourcesPriceDto.getActivityId())) {
+            if (((resourceId.equals("15")&&StringUtil.isEmpty(resourcesPriceDto.getSecretId()))||(resourceId.equals("11")&&StringUtil.isEmpty(resourcesPriceDto.getActivityId())))) {
                 resultMap.put("_message", "未配置资源信息，请联系管理员！");
                 return resultMap;
             }
