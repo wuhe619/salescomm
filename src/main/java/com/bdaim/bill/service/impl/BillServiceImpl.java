@@ -511,7 +511,7 @@ public class BillServiceImpl implements BillService {
         List<Object> p = new ArrayList<>();
         String logListSql = getBillType(p, param.getType(), param.getBillDate(), param.getCustId(), param.getSupplierId(), param.getTransActionId(), param.getBatchId(), param.getEnterpriseName(), param.getStartTime(), param.getEndTime());
         //return new Pagination().getPageData(logListSql, null, page, jdbcTemplate);
-        return customerDao.sqlPageQuery(logListSql, page.getPageNum(), page.getPageSize());
+        return customerDao.sqlPageQuery(logListSql, page.getPageNum(), page.getPageSize(),p.toArray());
     }
 
     @Override
