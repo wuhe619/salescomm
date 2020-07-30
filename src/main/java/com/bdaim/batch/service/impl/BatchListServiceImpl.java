@@ -46,6 +46,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -1232,6 +1234,12 @@ public class BatchListServiceImpl implements BatchListService {
             String status =returnObj.get("status").toString();
             responseInfo.setCode(200);
             if(status.equals("0")){
+
+                String bindSql="update set label_nine='',label_five='' where label_seven=?";
+
+                batchDetailDao.executeUpdateSQL(bindSql,bindId);
+
+
                 responseInfo.setMsg("解绑成功");
             }else{
                 responseInfo.setMsg("解绑失败");
@@ -1282,6 +1290,16 @@ public class BatchListServiceImpl implements BatchListService {
             String status =returnObj.get("status").toString();
             responseInfo.setCode(200);
             if(status.equals("0")){
+                String getDetailByBindid="select label_eight from nl_batch_detail where label_seven=? ";
+                Map<String, Object> stringObjectMap = batchDetailDao.queryUniqueSql(getDetailByBindid, bindId);
+                if(stringObjectMap!=null){
+                   String date=String.valueOf(stringObjectMap.get("label_eight"));
+                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("YYYY-MM-dd hh:mm:ss");
+                    String format = LocalDateTime.parse(date).plusDays(delta).format(dateTimeFormatter);
+                    String bindSql="update set label_nine=?  where label_seven=?";
+
+                    batchDetailDao.executeUpdateSQL(bindSql,format,bindId);
+                }
                 responseInfo.setMsg("成功");
             }else{
                 responseInfo.setMsg("延期失败");
