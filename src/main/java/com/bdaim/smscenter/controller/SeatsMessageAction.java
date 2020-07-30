@@ -356,7 +356,7 @@ public class SeatsMessageAction extends BasicAction {
             e.printStackTrace();
             logger.error("修改坐席信息异常" + e);
             resultMap.put("result", "0");
-            resultMap.put("_message", "编辑失败！");
+            resultMap.put("_message", e.getMessage());
         }
         return JSONObject.toJSON(resultMap);
     }

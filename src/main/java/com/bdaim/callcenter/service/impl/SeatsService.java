@@ -1194,7 +1194,7 @@ public class SeatsService {
     }
 
 
-    public int updateCallerID(SeatsMessageParam seatsMessageParam, String custId) {
+    public int updateCallerID(SeatsMessageParam seatsMessageParam, String custId)throws Exception {
         List<SeatsInfo> list = seatsMessageParam.getSeatsInfoList();
         String UserId = list.get(0).getUserId();
         HashMap<String, String> map = new HashMap<>();
@@ -1283,7 +1283,10 @@ public class SeatsService {
                             } else {
                                 String updateSql = "update t_customer_user_property SET property_value= ? where property_name=? AND user_id= ? ";
                                 update = jdbcTemplate.update(updateSql, new Object[]{JSON.toJSONString(map), propertyName, list.get(i).getUserId()});
+
                             }
+                        }else if( resultl.get("code").equals("210")){
+                             throw new Exception("该企业没有报备");
                         }
                     } else {
                         if (seatList.size() == 0) {
