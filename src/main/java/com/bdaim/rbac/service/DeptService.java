@@ -112,6 +112,7 @@ public class DeptService {
         //组装返回值
         Map<String, Object> result = new HashMap<>(16);
         result.put("data", data);
+        logger.info("分页总数 " +  page.getTotal());
         result.put("total", page.getTotal());
         return result;
     }
