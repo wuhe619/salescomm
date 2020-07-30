@@ -1232,6 +1232,7 @@ public class SeatsService {
                             map.put("seatPassword", json.getString("seatPassword"));
                             map.put("seatName", json.getString("seatName"));
                             map.put("mainNumber", list.get(i).getMainNumber());
+                            logger.info("主叫号==" + map.get("mainNumber"));
                         }
                         if (propertyName.equals("xz_seat")) {
                             map.put("seatId", json.getString("seatId"));

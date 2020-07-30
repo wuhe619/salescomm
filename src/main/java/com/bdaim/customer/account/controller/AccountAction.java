@@ -370,7 +370,10 @@ public class AccountAction extends BasicAction {
                 Double remainAmount = customerService.getSourceRemainMoney(supplierId);
                 remainMap.put("cucRemainMoney", remainAmount);
             } else {
-                throw new RuntimeException("参数错误");
+                Double remainAmount = customerService.getSourceRemainMoney("2");
+                Double remainAmount1 = customerService.getSourceRemainMoney("3");
+                Double remainAmount2 = customerService.getSourceRemainMoney("4");
+                remainMap.put("cucRemainMoney", remainAmount+remainAmount1+remainAmount2);
             }
 
         } catch (Exception e) {

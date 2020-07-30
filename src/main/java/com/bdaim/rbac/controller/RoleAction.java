@@ -69,7 +69,7 @@ public class RoleAction extends BasicAction {
     @RequestMapping(value = "/getRoleDetails", method = RequestMethod.GET)
     @ResponseBody
     public String getRoleDetails(Long roleId,String platform) {
-        //平台 1-精准营销 2-金融超市 3-信函
+        //平台 1-精准营销 2-金融超市 3-信函 4-失联修复
         JSONArray array = null;
         try {
             LoginUser operateUser = opUser();
