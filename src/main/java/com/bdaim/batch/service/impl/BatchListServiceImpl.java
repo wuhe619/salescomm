@@ -708,7 +708,7 @@ public class BatchListServiceImpl implements BatchListService {
                 for (int i = 0; i < userDoMap.size(); i++) {
                     Map<String, Object> userMap = new HashMap<>();
                     String userId = String.valueOf(userDoMap.get(i).get("id"));
-                    String realname = String.valueOf(userDoMap.get(i).get("realname"));
+                    String realname = userDoMap.get(i).get("realname")==null?"":String.valueOf(userDoMap.get(i).get("realname"));
                     String account = String.valueOf(userDoMap.get(i).get("account"));
                     userMap = getTouchLog(userId, batchId);
                     userMap.put("realname", realname);

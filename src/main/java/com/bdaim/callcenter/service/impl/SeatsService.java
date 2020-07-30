@@ -1286,7 +1286,7 @@ public class SeatsService {
 
                             }
                         }else if( resultl.get("code").equals("210")){
-                             throw new Exception("该企业没有报备");
+                             throw new Exception("添加主叫号失败，请稍后重试");
                         }
                     } else {
                         if (seatList.size() == 0) {
