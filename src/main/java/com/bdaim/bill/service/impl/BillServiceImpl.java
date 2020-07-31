@@ -521,6 +521,7 @@ public class BillServiceImpl implements BillService {
         StringBuffer customerConsumeTotalSql = new StringBuffer("SELECT IFNULL(SUM(s.amount) / 100,0) amountSum,IFNULL(SUM(s.prod_amount) / 100,0) supAmountSum  from stat_bill_month s\n" +
                 "where s.cust_id =?");
         List<Object> customerParam = new ArrayList<>();
+        customerParam.add(custId);
         //查询全部
         if ("0".equals(billDate) || StringUtil.isEmpty(billDate)) {
             customerConsumeTotalSql = new StringBuffer("SELECT IFNULL(SUM(s.amount) / 100,0)amountSum,IFNULL(SUM(s.prod_amount) / 100,0) supAmountSum from stat_bill_month s\n" +
@@ -539,7 +540,7 @@ public class BillServiceImpl implements BillService {
             customerConsumeTotalSql.append(" AND stat_time= ? ");
             customerParam.add(billDate);
         }
-        List<Map<String, Object>> consumeTotalsCount = sourceDao.sqlQuery(customerConsumeTotalSql.toString(), custId, customerParam.toArray());
+        List<Map<String, Object>> consumeTotalsCount = sourceDao.sqlQuery(customerConsumeTotalSql.toString(), customerParam.toArray());
         String consumeTotal = null, supAmountSum = null, profitAmount = null;
         if (consumeTotalsCount != null && consumeTotalsCount.size() > 0) {
             //企业消费金额
