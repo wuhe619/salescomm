@@ -1187,7 +1187,7 @@ public class BillServiceImpl implements BillService {
         StringBuffer custSumMoneySql = new StringBuffer("SELECT (IFNULL(SUM(amount), 0) /100) AS totalAcount FROM stat_bill_month WHERE cust_id = ?");
         //查询企业账单信息
         List<Object> p = new ArrayList<>();
-        StringBuilder billCustomer = new StringBuilder("SELECT GROUP_CONCAT(s.resource_id) channel,s.bill_type type,SUM(s.prod_amount) /100 costAmountSum,SUM(s.amount) /100 consumeAmountsum  FROM stat_bill_month s WHERE s.cust_id = ?");
+        StringBuilder billCustomer = new StringBuilder("SELECT GROUP_CONCAT(s.resource_id) channel,s.bill_type type,SUM(s.prod_amount) /100 costAmountSum,SUM(s.amount) /100 AS consumeAmountsum  FROM stat_bill_month s WHERE s.cust_id = ?");
         if ("0".equals(billDate) || StringUtil.isEmpty(billDate)) {
             custSumMoneySql = new StringBuffer("SELECT IFNULL(SUM(amount), 0) /100 totalAcount FROM stat_bill_month WHERE cust_id = ?");
             //查看一年
