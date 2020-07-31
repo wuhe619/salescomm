@@ -1211,7 +1211,9 @@ public class BillServiceImpl implements BillService {
             headerData = customerMessage.get(0);
             //查询企业总消费金额
             List<Map<String, Object>> totalAcount = sourceDao.sqlQuery(custSumMoneySql.toString(), customerId, p.toArray());
+            logger.info("查询企业总消费金额，企业id是：" + totalAcount.size());
             if (totalAcount.size() > 0) {
+                logger.info("查询企业总消费金额，企业id是：" + totalAcount.get(0).get("totalAcount"));
                 headerData.put("totalAcount", totalAcount.get(0).get("totalAcount"));
             }
         }
