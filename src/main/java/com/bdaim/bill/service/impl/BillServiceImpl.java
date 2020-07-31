@@ -749,8 +749,8 @@ public class BillServiceImpl implements BillService {
         sqlBuilder.append("LEFT JOIN t_customer m ON nl.comp_id = m.cust_id\t");
         sqlBuilder.append("LEFT JOIN t_market_resource re ON re.resource_id = t1.resource_id\t");
         sqlBuilder.append("WHERE nl.certify_type = 0 AND nl.`status` = 0 AND t1.`status` = 1\t");
-        sqlBuilder.append("AND YEAR (nl.repair_time) = ?");
-        sqlBuilder.append("AND MONTH (nl.repair_time) = ?");
+        sqlBuilder.append(" AND YEAR (nl.repair_time) = ? ");
+        sqlBuilder.append(" AND MONTH (nl.repair_time) = ? ");
         p.add(year);
         p.add(mouth);
         if (StringUtil.isNotEmpty(custId)) {
