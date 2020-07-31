@@ -28,6 +28,20 @@ public class ApiData {
     private int urlMappingId;
     private String status;
     private int apiId;
+    /**
+     * API类型 1-接口服务 2-建模服务
+     */
+    private int apiType;
+
+    /**
+     * 产品用途
+     */
+    private String productUse;
+
+    /**
+     * 请求地址
+     */
+    private String baseUrl;
 
     public ApiData() {
     }
@@ -216,5 +230,29 @@ public class ApiData {
 
     public void setApi_define(ApiDefine api_define) {
         this.api_define = api_define;
+    }
+
+    public int getApiType() {
+        return apiType;
+    }
+
+    public void setApiType(int apiType) {
+        this.apiType = apiType;
+    }
+
+    public String getProductUse() {
+        return productUse;
+    }
+
+    public void setProductUse(String productUse) {
+        this.productUse = productUse;
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 }

@@ -44,6 +44,12 @@ public class ApiEntity implements Serializable {
 //    @Column(name = "status")
     private int status = 0;
 
+    /**
+     * API类型 1-接口服务 2-建模服务
+     */
+    @Column(name = "api_type")
+    private int apiType;
+
     public int getStatus() {
         return status;
     }
@@ -164,4 +170,11 @@ public class ApiEntity implements Serializable {
 		this.endpointUrl = endpointUrl;
 	}
 
+    public int getApiType() {
+        return apiType;
+    }
+
+    public void setApiType(int apiType) {
+        this.apiType = apiType;
+    }
 }
