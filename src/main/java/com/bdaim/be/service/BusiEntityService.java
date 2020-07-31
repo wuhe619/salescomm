@@ -81,7 +81,7 @@ public class BusiEntityService {
                 }
             } else {
                 jo = JSONObject.parseObject(content);
-                jo.put("id", id);
+                jo.put("id", String.valueOf(id));
                 jo.put("cust_id", data.get("cust_id"));
                 jo.put("cust_group_id", data.get("cust_group_id"));
                 jo.put("cust_user_id", data.get("cust_user_id"));
@@ -256,7 +256,7 @@ public class BusiEntityService {
                 try {
                     if (m.containsKey("content")) {
                         jo = JSONObject.parseObject((String) m.get("content"));
-                        jo.put("id", m.get("id"));
+                        jo.put("id", String.valueOf(m.get("id")));
                         jo.put("cust_id", m.get("cust_id"));
                         jo.put("cust_group_id", m.get("cust_group_id"));
                         jo.put("cust_user_id", m.get("cust_user_id"));

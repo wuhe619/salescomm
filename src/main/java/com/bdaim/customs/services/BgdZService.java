@@ -36,7 +36,7 @@ public class BgdZService implements BusiService {
     private static Logger log = LoggerFactory.getLogger(BgdZService.class);
 
     @Autowired
-    private ElasticSearchService elasticSearchService;
+    private ElasticSearchService elasticSearchService1;
 
     @Autowired
     private CustomerDao customerDao;
@@ -98,10 +98,10 @@ public class BgdZService implements BusiService {
                 }
             }
             if (fdData.size() > 0) {
-                elasticSearchService.bulkInsertDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.BF.getType()), Constants.INDEX_TYPE, fdData);
+                //elasticSearchService.bulkInsertDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.BF.getType()), Constants.INDEX_TYPE, fdData);
             }
             if (sData.size() > 0) {
-                elasticSearchService.bulkInsertDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.BS.getType()), Constants.INDEX_TYPE, sData);
+                //elasticSearchService.bulkInsertDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.BS.getType()), Constants.INDEX_TYPE, sData);
             }
             if (index > -1) {
                 dataList.remove(index);

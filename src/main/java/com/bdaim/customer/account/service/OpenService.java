@@ -32,10 +32,7 @@ import com.bdaim.supplier.dto.SupplierEnum;
 import com.bdaim.supplier.service.SupplierService;
 import com.bdaim.template.dao.MarketTemplateDao;
 import com.bdaim.template.entity.MarketTemplate;
-import com.bdaim.util.CipherUtil;
-import com.bdaim.util.IDHelper;
-import com.bdaim.util.StringHelper;
-import com.bdaim.util.StringUtil;
+import com.bdaim.util.*;
 import com.bdaim.util.http.HttpUtil;
 
 import io.jsonwebtoken.Claims;
@@ -60,12 +57,14 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -510,7 +509,7 @@ public class OpenService {
                     resultMap.put("msg", "录入企业自带id数据不能重复，上传失败！");
                     return resultMap;
                 }
-                batchListService.saveBatch(batchname, uploadNum, repairMode, compId, batchId, 0, SupplierEnum.CUC.getSupplierId());
+                batchListService.saveBatch(batchname, uploadNum, repairMode, compId, batchId, 0, SupplierEnum.CUC.getSupplierId(),fixInfo.getProvince(),fixInfo.getCity(),fixInfo.getExtNumber());
                 resultMap.put("status", "000");
                 resultMap.put("_message", "失联修复文件上传成功！");
                 return resultMap;
@@ -678,7 +677,7 @@ public class OpenService {
                 marketResourceLogDTO.setRemark(message);
             }
 
-        } catch (Exception e) {
+         } catch (Exception e) {
             marketResourceLogDTO.setStatus(1002);
             log.error("外呼接口异常,", e);
             code = "009";
@@ -1211,6 +1210,218 @@ public class OpenService {
                 e.printStackTrace();
             }
         }
+    }
+
+
+    public  void getCall(JSONObject jsonObject){
+
+        String bindId = jsonObject.getString("bindId");//中间号绑定id
+        if(StringUtil.isEmpty(bindId)){
+            log.info("绑定id为空");
+        }
+
+
+        String secretId = jsonObject.getString("secretId");//企业id
+        if(StringUtil.isEmpty(bindId)){
+            log.info("企业secretId为空");
+        }
+
+        String activeNumber = jsonObject.getString("activeNumber");//主叫号
+        if(StringUtil.isEmpty(bindId)){
+            log.info("通话记录主叫号为空");
+        }
+
+        String callerstarttime = jsonObject.getString("callerstarttime");//通话开始时间
+        if(StringUtil.isEmpty(callerstarttime)){
+            log.info("通话开始时间为空");
+        }
+
+        String callerendtime = jsonObject.getString("callerendtime");//通话结束时间
+        if(StringUtil.isEmpty(callerendtime)){
+            log.info("通话开始时间为空");
+        }
+
+        String callSid = jsonObject.getString("callSid");//本次通话唯一标识
+        if(StringUtil.isEmpty(callSid)){
+            log.info("本次通话唯一标识为空");
+        }
+
+        String status = jsonObject.getString("status");//接听标识
+        if(StringUtil.isEmpty(status)){
+            log.info("接听标识为空");
+        }
+
+        String getBatch="select nb.batch_id,nb.comp_id,nbd.resource_id from  nl_batch_detail nbd left join nl_batch nb on nb.id=nbd.batch_id  where nb.label_seven=?";
+
+        Map<String, Object> stringObjectMap = customerDao.queryUniqueSql(getBatch, new String[]{bindId});
+
+        String getResource="select resname,supplier_id from t_market_resource tmr,t_market_resource_property  tmrp where  tmr.resource_id=? and tmr.resource_id=tmrp.resource_id and  tmrp.property_name='' ";
+
+        Map<String, Object> resource_id = customerDao.queryUniqueSql(getResource, new String[]{stringObjectMap.get("resource_id").toString()});
+
+        String insertVoiceLog="insert into t_touch_voice_log (touch_id,cust_id,type_code,resname,remark,create_time,status,callSid,batch_id,activity_id,amount,prod_amount,resource_id,active_number) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+        customerDao.executeUpdateSQL(insertVoiceLog,IDHelper.getID(),stringObjectMap.get("comp_id").toString(),"1",resource_id.get("resname"),"呼叫线路扣费",new Timestamp(new Date().getTime()),status,callSid,stringObjectMap.get("batch_id").toString(),secretId,0,0,stringObjectMap.get("resource_id").toString(),activeNumber);
+
+        if(status.equals("1")){//如果是接通状态 执行扣费逻辑
+
+            String custPrice="select property_value from t_customer tc,t_customer_property tcp where tc.cust_id=tcp.cust_id where tcp.cust_id=? and tcp.property_name=\"30_conifg\"";
+            Map<String, Object> comp_id = customerDao.queryUniqueSql(custPrice, stringObjectMap.get("comp_id").toString());
+            DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            String price = comp_id.get("property_value").toString();
+            JSONObject jsonObject1 = JSONObject.parseObject(price);
+            LocalDateTime parse = LocalDateTime.parse(callerstarttime, df);
+            LocalDateTime end =   LocalDateTime.parse(callerendtime,df);
+            Duration between = Duration.between(parse, end);
+            long time = between.toMinutes();//通话时长（分钟）
+            int rantPrice = NumberConvertUtil.transformtionCent(Double.parseDouble(jsonObject1.getString("callPrice")));//月租单价（分）
+
+            long callPric=time*rantPrice;
+
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("YYYYMMDD");
+            String format = LocalDate.now().format(dateTimeFormatter);
+
+            //插入交易明细
+            StringBuilder sql=new StringBuilder();
+            sql.append("create table IF NOT EXISTS t_transaction_");
+            sql.append(format);
+            sql.append(" like t_transaction");
+            customerDao.executeUpdateSQL(sql.toString());
+            sql.setLength(0);
+            sql.append("insert into t_transaction_");
+            sql.append(format);
+
+            sql.append(" (transaction_id, cust_id, type, pay_mode, meta_data, amount, remark, create_time, supplier_id, user_id, certificate, batch_id, prod_amount, resource_id)values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+            String    transactionId = Long.toString(IDHelper.getTransactionId());
+
+            customerDao.executeUpdateSQL(sql.toString(), transactionId, stringObjectMap.get("comp_id").toString(), 4,
+                    1, "", Math.abs(callPric), "通话", new Timestamp(System.currentTimeMillis()), 4, stringObjectMap.get("comp_id").toString(), "", "", 0, 30);
+
+           String custId=stringObjectMap.get("comp_id").toString();
+           String subId=resource_id.get("supplier_id").toString();
+           try {
+               accountDeductions(custId,new BigDecimal(callPric));
+               accountSupplierDeductions(subId,new BigDecimal(callPric));
+           }catch (Exception e){
+               e.printStackTrace();
+           }
+
+
+        }
+    }
+
+
+
+    public boolean accountDeductions(String custId, BigDecimal amount) throws Exception {
+        String sql = "SELECT * FROM t_customer_property m where m.cust_id=? and m.property_name=?";
+        List<Map<String, Object>> list = customerDao.queryMapsListBySql(sql, custId, "remain_amount");
+        String remainAmount = null;
+        if (list.size() > 0) {
+            remainAmount = String.valueOf(list.get(0).get("property_value"));
+        }
+        // 处理账户不存在
+        if (remainAmount == null) {
+            remainAmount = "0";
+            log.info(custId + " 账户不存在开始新建账户信息");
+            String insertSql = "INSERT INTO `t_customer_property` (`cust_id`, `property_name`, `property_value`, `create_time`) VALUES (?, ?, ?, ?);";
+            int status = customerDao.executeUpdateSQL(insertSql, custId, "remain_amount", remainAmount, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            log.info(custId + " 账户创建结果:" + status);
+        }
+        // 处理累计消费金额不存在
+        List<Map<String, Object>> usedAmountList = customerDao.queryMapsListBySql(sql, custId, "used_amount");
+        String usedAmount = null;
+        if (usedAmountList.size() > 0) {
+            usedAmount = String.valueOf(usedAmountList.get(0).get("property_value"));
+        }
+
+        if (usedAmount == null) {
+            // 累计消费 处理账户不存在
+            usedAmount = "0";
+            log.info(custId + " 账户累计消费不存在开始新建账户信息");
+            String insertSql = "INSERT INTO `t_customer_property` (`cust_id`, `property_name`, `property_value`, `create_time`) VALUES (?, ?, ?, ?);";
+            int status = customerDao.executeUpdateSQL(insertSql, custId, "used_amount", usedAmount, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            log.info(custId + " 账户累计消费创建结果:" + status);
+
+        }
+        if (StringUtil.isNotEmpty(remainAmount)) {
+            if (Double.parseDouble(remainAmount) <= 0) {
+                log.warn(custId + " 账户余额已经透支:" + remainAmount);
+            }
+            log.info(custId + " 账户余额:" + remainAmount + ",先执行扣减");
+            DecimalFormat df = new DecimalFormat("#");
+            BigDecimal remainAmountBigDecimal = new BigDecimal(remainAmount);
+            String nowMoney = df.format(remainAmountBigDecimal.subtract(amount));
+            String updateSql = "UPDATE t_customer_property SET property_value = ? WHERE cust_id = ? AND property_name = ?";
+            log.info("客户ID:" + custId + "扣减后的余额:" + nowMoney);
+            customerDao.executeUpdateSQL(updateSql, nowMoney, custId, "remain_amount");
+
+            // 处理累计消费累加
+            BigDecimal usedAmountBigDecimal = new BigDecimal(usedAmount);
+            String usedAmountMoney = df.format(usedAmountBigDecimal.add(amount));
+            log.info("客户ID:" + custId + "累计消费的金额是:" + usedAmountMoney);
+            customerDao.executeUpdateSQL(updateSql, usedAmountMoney, custId, "used_amount");
+            return true;
+
+        }
+        return false;
+    }
+
+
+    /**
+     * 供应商余额、累计金额扣减
+     *
+     * @param
+     * @param amount
+     * @return
+     */
+    public boolean accountSupplierDeductions(String supplierId, BigDecimal amount) throws Exception {
+        String sql = "SELECT property_value FROM t_supplier_property m where m.supplier_id=? and m.property_name=?";
+        List<Map<String, Object>> list = customerDao.queryMapsListBySql(sql, supplierId, "remain_amount");
+        String remainAmount = null;
+        if (list.size() > 0) {
+            remainAmount = String.valueOf(list.get(0).get("property_value"));
+        }
+        // 处理账户不存在
+        if (remainAmount == null) {
+            remainAmount = "0";
+            log.info(supplierId + " 供应商账户不存在开始新建账户信息");
+            String insertSql = "INSERT INTO t_supplier_property (supplier_id, property_name, property_value,create_time) VALUES (?, ?, ?,NOW());";
+            int status = customerDao.executeUpdateSQL(insertSql, supplierId, "remain_amount", remainAmount);
+            log.info("供应商id：" + supplierId + "\t供应商账户创建结果:" + status);
+        }
+        // 处理累计消费金额不存在
+        List<Map<String, Object>> usedAmountList = customerDao.queryMapsListBySql(sql, supplierId, "used_amount");
+        String usedAmount = null;
+        if (usedAmountList.size() > 0) {
+            usedAmount = String.valueOf(usedAmountList.get(0).get("property_value"));
+        }
+
+        if (usedAmount == null) {
+            // 累计消费 处理账户不存在
+            usedAmount = "0";
+            log.info(supplierId + " 供应商账户累计消费不存在开始新建账户信息");
+            String insertSql = "INSERT INTO t_supplier_property (supplier_id, property_name, property_value,create_time) VALUES (?, ?, ?,NOW());";
+            int status = customerDao.executeUpdateSQL(insertSql, supplierId, "used_amount", usedAmount);
+            log.info("供应商id：" + supplierId + "\t供应商账户创建结果:" + status);
+        }
+        if (StringUtil.isNotEmpty(remainAmount)) {
+            if (Double.parseDouble(remainAmount) <= 0) {
+                log.info("供应商id" + supplierId + "\t账户余额:" + remainAmount + ",先执行扣减");
+            }
+            DecimalFormat df = new DecimalFormat("#");
+            BigDecimal remainAmountBigDecimal = new BigDecimal(remainAmount);
+            String nowMoney = df.format(remainAmountBigDecimal.subtract(amount));
+            String updateSql = "UPDATE t_supplier_property SET property_value = ? WHERE supplier_id = ? AND property_name = ?";
+            customerDao.executeUpdateSQL(updateSql, nowMoney, supplierId, "remain_amount");
+
+            // 处理累计消费累加
+            BigDecimal usedAmountBigDecimal = new BigDecimal(usedAmount);
+            String usedAmountMoney = df.format(usedAmountBigDecimal.add(amount));
+            customerDao.executeUpdateSQL(updateSql, usedAmountMoney, supplierId, "used_amount");
+            return true;
+
+        }
+        return false;
     }
 }
 

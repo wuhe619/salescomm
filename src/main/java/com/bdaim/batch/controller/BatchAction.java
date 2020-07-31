@@ -7,6 +7,7 @@ import com.bdaim.batch.dto.ImportErr;
 import com.bdaim.batch.service.BatchService;
 import com.bdaim.batch.service.impl.BatchListServiceImpl;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.resource.price.service.SalePriceService;
 import com.bdaim.resource.service.MarketResourceService;
@@ -14,6 +15,7 @@ import com.bdaim.util.DateUtil;
 import com.bdaim.util.FileUrlEntity;
 import com.bdaim.util.StringUtil;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -21,10 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -62,12 +61,20 @@ public class BatchAction extends BasicAction {
      */
     @RequestMapping("/upload")
     @ResponseBody
-    public String BatchuploadParse(@RequestParam(value = "file") MultipartFile file, String batchname, String repairStrategy, int certifyType, String channel) {
+    public String BatchuploadParse(@RequestParam(value = "file") MultipartFile file, String batchname, String compIdf,String repairStrategy, int certifyType, String channel,String province,String city,String extNumber) {
         String compId = opUser().getCustId();
+//        if(StringUtils.isEmpty(compId)){
+//            compId=compIdf;
+//        }
         Map<String, Object> resultMap = null;
         try {
-            resultMap = batchListService.uploadBatchFile(file, batchname, repairStrategy, certifyType, channel, compId, opUser().getId(), opUser().getName());
+          int expaire=0;
+            if(StringUtils.isNotEmpty(extNumber)){
+                expaire=Integer.parseInt(extNumber);
+            }
+            resultMap = batchListService.uploadBatchFile(file, batchname, repairStrategy, certifyType, channel, compId, opUser().getId(), opUser().getName(),province,city,expaire);
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error("失联修复文件上传失败！\t" + e.getMessage());
             resultMap.put("code", "001");
             resultMap.put("_message", "失联修复文件上传失败！");
@@ -82,13 +89,21 @@ public class BatchAction extends BasicAction {
 
     @RequestMapping("/downloadModel")
     @ResponseBody
-    public String BatchModelfileDownload(HttpServletRequest request, HttpServletResponse response) {
+    public String BatchModelfileDownload(HttpServletRequest request, HttpServletResponse response,String type) {
         InputStream in = null;
         OutputStream bos = null;
         try {
             String classPath = fileUrlEntity.getFileUrl();
             logger.info("hello classpath" + classPath);
-            String fileName = "nolose_upload.xlsx";
+            String fileName="";
+            if(StringUtils.isNotEmpty(type)&&type.equals("6")){
+                fileName = "gdyd_nolose.xlsx";
+
+            }else{
+                fileName = "nolose_upload.xlsx";
+
+            }
+
             String pathF = PROPERTIES.getProperty("file.separator");
             classPath = classPath.replace("/", pathF);
             String path = classPath + pathF + "tp" + pathF + fileName;
@@ -415,5 +430,25 @@ public class BatchAction extends BasicAction {
 
     }
 
+    @GetMapping("/getArea")
+    @ResponseBody
+    public ResponseInfo getArea(String parentId){
+        ResponseInfo responseInfo=new ResponseInfo();
+        responseInfo.setCode(200);
+        responseInfo.setData(batchListService.getArea(parentId));
+     return responseInfo;
+    }
+
+    @GetMapping("/unBind")
+    public ResponseInfo unBind(String bindId,String coolDown,String custId){
+
+         return  batchListService.unBind(bindId,coolDown,custId);
+    }
+
+    @GetMapping("/delta")
+    public ResponseInfo delta(String bindId,int  delta,String custId){
+
+        return  batchListService.delta(bindId,delta,custId);
+    }
 
 }

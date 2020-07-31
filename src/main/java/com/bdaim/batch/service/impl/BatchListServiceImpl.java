@@ -1,5 +1,7 @@
 package com.bdaim.batch.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.ResourceEnum;
 import com.bdaim.batch.controller.BatchAction;
 import com.bdaim.batch.dao.BatchDao;
@@ -12,6 +14,8 @@ import com.bdaim.batch.entity.BatchListParam;
 import com.bdaim.batch.service.BatchListService;
 import com.bdaim.batch.service.BatchService;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.customer.dto.CustomerPropertyDTO;
 import com.bdaim.util.*;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
@@ -24,6 +28,9 @@ import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.price.dto.ResourcesPriceDto;
 
+import com.bdaim.util.http.HttpUtil;
+import net.sf.json.JSONString;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -39,6 +46,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -80,7 +89,7 @@ public class BatchListServiceImpl implements BatchListService {
      * @method
      * @date: 2019/4/8 10:39
      */
-    public Map<String, Object> uploadBatchFile(MultipartFile file, String batchname, String repairStrategy, int certifyType, String channel, String compId, Long optUser, String optUserName) throws Exception {
+    public Map<String, Object> uploadBatchFile(MultipartFile file, String batchname, String repairStrategy, int certifyType, String channel, String compId, Long optUser, String optUserName,String province,String city,int extNumber) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
         List<String> channels = null;
         int type = 0;
@@ -102,7 +111,7 @@ public class BatchListServiceImpl implements BatchListService {
             String fixPrice = null;
             //根据供应商和type查询resourceId
             MarketResourceEntity marketResourceEntity = sourceDao.getResourceId(channels.get(k), type);
-            if (marketResourceEntity != null && marketResourceEntity.getResourceId() > 0) {
+            if (marketResourceEntity != null && marketResourceEntity.getResourceId() >= 0) {
                 resourceId = String.valueOf(marketResourceEntity.getResourceId());
                 LOG.info("查询企业客户资源类型是:" + type + "渠道是：" + channels.get(k) + "资源id是" + resourceId);
             }
@@ -121,7 +130,7 @@ public class BatchListServiceImpl implements BatchListService {
                 resultMap.put("_message", "未设置销售定价，请联系管理员！");
                 return resultMap;
             }
-            if (StringUtil.isEmpty(resourcesPriceDto.getActivityId())) {
+            if (((resourceId.equals("15")&&StringUtil.isEmpty(resourcesPriceDto.getSecretId()))||(resourceId.equals("11")&&StringUtil.isEmpty(resourcesPriceDto.getActivityId())))) {
                 resultMap.put("_message", "未配置资源信息，请联系管理员！");
                 return resultMap;
             }
@@ -145,6 +154,8 @@ public class BatchListServiceImpl implements BatchListService {
                 //String classPath = new BatchAction().getClass().getResource("/").getPath();
                 //服务器
                 String classPath = "/data/upload/";
+//                String classPath = "E:\\";
+
                 String fileName = file.getOriginalFilename();
                 File localFile = null;
                 //文件名加上时间戳
@@ -171,52 +182,106 @@ public class BatchListServiceImpl implements BatchListService {
                 Boolean repeatIdCardStatus = false;
                 Boolean repeateEntrpriseIdStatus = false;
                 int uploadNum = 0;//弃用lastRowNum 防止其他空白行点击后产生空字符串数据
-                for (int i = 1; i <= lastRowNum; i++) {
-                    Row row = sheet.getRow(i);
-                    String certifyMd5 = "", kehuId = "", label_one = "", label_two = "", label_three = "";
-                    if (row != null) {
-                        short lastCellNum = row.getLastCellNum();
-                        for (int j = 0; j < lastCellNum; j++) {
-                            Cell cell = row.getCell(j);
-                            if (cell != null && cell.getCellType() != CellType.BLANK) {
-                                cell.setCellType(CellType.STRING);
-                                switch (j) {
-                                    case 0:
-                                        certlist.add(cell.getStringCellValue().trim());
-                                        certifyMd5 = cell.getStringCellValue().trim();
-                                        break;
-                                    case 1:
-                                        custuserIdlist.add(cell.getStringCellValue().trim());
-                                        kehuId = cell.getStringCellValue().trim();
-                                        break;
-                                    case 2:
-                                        certlist.add(cell.getStringCellValue().trim());
-                                        label_one = cell.getStringCellValue().trim();
-                                        break;
-                                    case 3:
-                                        custuserIdlist.add(cell.getStringCellValue().trim());
-                                        label_two = cell.getStringCellValue().trim();
-                                        break;
-                                    case 4:
-                                        custuserIdlist.add(cell.getStringCellValue().trim());
-                                        label_three = cell.getStringCellValue().trim();
-                                        break;
-                                }
-                            }
-                        }
+               if(resourceId.equals("15")){
+                   for (int i = 1; i <= lastRowNum; i++) {
+                       Row row = sheet.getRow(i);
+                       String certifyMd5 = "", kehuId = "", label_one = "", label_two = "", label_three = "",invaMobList = "";
+                       if (row != null) {
+                           short lastCellNum = row.getLastCellNum();
+                           for (int j = 0; j < lastCellNum; j++) {
+                               Cell cell = row.getCell(j);
+                               if (cell != null && cell.getCellType() != CellType.BLANK) {
+                                   cell.setCellType(CellType.STRING);
+                                   switch (j) {
+                                       case 0:
+                                           certlist.add(cell.getStringCellValue().trim());
+                                           certifyMd5 = cell.getStringCellValue().trim();
+                                           break;
+                                       case 1:
+                                           custuserIdlist.add(cell.getStringCellValue().trim());
+                                           invaMobList = cell.getStringCellValue().trim();
+                                           break;
+                                       case 2:
+                                           custuserIdlist.add(cell.getStringCellValue().trim());
+                                           kehuId = cell.getStringCellValue().trim();
+                                           break;
+                                       case 3:
+                                           certlist.add(cell.getStringCellValue().trim());
+                                           label_one = cell.getStringCellValue().trim();
+                                           break;
+                                       case 4:
+                                           custuserIdlist.add(cell.getStringCellValue().trim());
+                                           label_two = cell.getStringCellValue().trim();
+                                           break;
+                                       case 5:
+                                           custuserIdlist.add(cell.getStringCellValue().trim());
+                                           label_three = cell.getStringCellValue().trim();
+                                           break;
+                                   }
+                               }
+                           }
 
-                        if (StringUtil.isNotEmpty(certifyMd5) && StringUtil.isNotEmpty(kehuId)) {
-                            uploadNum += 1;
-                            BatchDetail batchDetail = new BatchDetail();
-                            batchDetail.setIdCard(certifyMd5);
-                            batchDetail.setEnterpriseId(kehuId);
-                            batchDetail.setLabelOne(label_one);
-                            batchDetail.setLabelTwo(label_two);
-                            batchDetail.setLabelThree(label_three);
-                            batchDetailList.add(batchDetail);
-                        }
-                    }
-                }
+                           if (StringUtil.isNotEmpty(certifyMd5) && StringUtil.isNotEmpty(kehuId)) {
+                               uploadNum += 1;
+                               BatchDetail batchDetail = new BatchDetail();
+                               batchDetail.setIdCard(certifyMd5);
+                               batchDetail.setEnterpriseId(kehuId);
+                               batchDetail.setLabelOne(label_one);
+                               batchDetail.setLabelTwo(label_two);
+                               batchDetail.setLabelThree(label_three);
+                               batchDetail.setLabelFour(invaMobList);
+                               batchDetailList.add(batchDetail);
+                           }
+                       }
+                   }
+               }else {
+                   for (int i = 1; i <= lastRowNum; i++) {
+                       Row row = sheet.getRow(i);
+                       String certifyMd5 = "", kehuId = "", label_one = "", label_two = "", label_three = "";
+                       if (row != null) {
+                           short lastCellNum = row.getLastCellNum();
+                           for (int j = 0; j < lastCellNum; j++) {
+                               Cell cell = row.getCell(j);
+                               if (cell != null && cell.getCellType() != CellType.BLANK) {
+                                   cell.setCellType(CellType.STRING);
+                                   switch (j) {
+                                       case 0:
+                                           certlist.add(cell.getStringCellValue().trim());
+                                           certifyMd5 = cell.getStringCellValue().trim();
+                                           break;
+                                       case 1:
+                                           custuserIdlist.add(cell.getStringCellValue().trim());
+                                           kehuId = cell.getStringCellValue().trim();
+                                           break;
+                                       case 2:
+                                           certlist.add(cell.getStringCellValue().trim());
+                                           label_one = cell.getStringCellValue().trim();
+                                           break;
+                                       case 3:
+                                           custuserIdlist.add(cell.getStringCellValue().trim());
+                                           label_two = cell.getStringCellValue().trim();
+                                           break;
+                                       case 4:
+                                           custuserIdlist.add(cell.getStringCellValue().trim());
+                                           label_three = cell.getStringCellValue().trim();
+                                           break;
+                                   }
+                               }
+                           }
+
+                           if (StringUtil.isNotEmpty(certifyMd5) && StringUtil.isNotEmpty(kehuId)) {
+                               uploadNum += 1;
+                               BatchDetail batchDetail = new BatchDetail();
+                               batchDetail.setIdCard(certifyMd5);
+                               batchDetail.setEnterpriseId(kehuId);
+                               batchDetail.setLabelOne(label_one);
+                               batchDetail.setLabelTwo(label_two);
+                               batchDetail.setLabelThree(label_three);
+                               batchDetailList.add(batchDetail);
+                           }
+                       }
+                   }
+               }
                 String custFixPrice = null;
                 //查询企业账户余额
                 Double remainAmount = customerService.getRemainMoney(compId) / 100;
@@ -271,7 +336,7 @@ public class BatchListServiceImpl implements BatchListService {
                         resultMap.put("_message", "录入企业自带id数据不能重复，上传失败！");
                         return resultMap;
                     } else {
-                        batchListService.saveBatch(batchname, uploadNum, repairStrategy, compId, batchId, certifyType, channelall);
+                        batchListService.saveBatch(batchname, uploadNum, repairStrategy, compId, batchId, certifyType, channelall,province,city,extNumber);
                     }
                         /*String errorCode = batchService.sendtofile(certlist,custuserIdlist,repairMode,batchId);
                 if(errorCode.equals("00")){
@@ -530,7 +595,7 @@ public class BatchListServiceImpl implements BatchListService {
     public void saveBatchDetailList(List<BatchDetail> batchDetailList, String channel, String resourceId,
                                     int certifyType, String batchId, Long operUserId, String operName) {
 
-        String kehuId = null, certifyMd5 = null, lalel_one = null, label_two = null, label_three = null;
+        String kehuId = null, certifyMd5 = null, lalel_one = null, label_two = null, label_three = null,label_four=null;
         if (batchDetailList.size() > 0) {
             for (int i = 0; i < batchDetailList.size(); i++) {
                 String touchId = String.valueOf(UUID.randomUUID()).replaceAll("-", "");
@@ -541,11 +606,12 @@ public class BatchListServiceImpl implements BatchListService {
                     lalel_one = batchDetail.getLabelOne();
                     label_two = batchDetail.getLabelTwo();
                     label_three = batchDetail.getLabelThree();
+                    label_four = batchDetail.getLabelFour();
                 }
                 LOG.info("resourceId是" + resourceId);
-                StringBuilder sqlBuilder = new StringBuilder("INSERT INTO nl_batch_detail(touch_id,batch_id,enterprise_id,id_card,channel,status,upload_time,label_one,label_two,label_three,resource_id) values(?,?,?,?,?,?,?,?,?,?,?)");
-                batchDetailDao.executeUpdateSQL(sqlBuilder.toString(), touchId, batchId, kehuId, certifyMd5, channel, 2, new Timestamp(new Date().getTime()), lalel_one, label_two, label_three, resourceId);
-                LOG.info("修复文件上传，插入批次明细表： 批次ID:" + batchId + "\t身份证加密：" + certifyMd5 + "\t客户侧用户id:" + kehuId);
+                StringBuilder sqlBuilder = new StringBuilder("INSERT INTO nl_batch_detail(id,touch_id,batch_id,enterprise_id,id_card,channel,status,upload_time,label_one,label_two,label_three,resource_id,label_four) values(?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                batchDetailDao.executeUpdateSQL(sqlBuilder.toString(), IDHelper.getID()+"",touchId, batchId, kehuId, certifyMd5, channel, 2, new Timestamp(new Date().getTime()), lalel_one, label_two, label_three, resourceId,label_four);
+                LOG.info(IDHelper.getID()+""+"修复文件上传，插入批次明细表： 批次ID:" + batchId + "\t身份证加密：" + certifyMd5 + "\t客户侧用户id:" + kehuId);
                 //保存修复记录信息
                 if (operUserId != null) {
                     if (StringUtil.isEmpty(operName)) {
@@ -563,15 +629,22 @@ public class BatchListServiceImpl implements BatchListService {
 
     @Override
     public void saveBatch(String batchname, int uploadNum, String repairStrategy, String compId, String batchId,
-                          int certifyType, String channel) throws Exception {
+                          int certifyType, String channel,String province,String city,int extNumber) throws Exception {
         int channels = Integer.parseInt(channel);
         String compName = "";
         Customer customer = customerDao.findUniqueBy("custId", compId);
         if (customer != null) {
             compName = customer.getEnterpriseName();
         }
-        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO nl_batch(batch_name,certify_type,channel,id,comp_id,comp_name,upload_time,status,upload_num,repair_strategy,cuc_received) values(?,?,?,?,?,?,?,?,?,?,?)");
-        batchDetailDao.executeUpdateSQL(sqlBuilder.toString(), batchname, certifyType, channels, batchId, compId, compName, (new Timestamp(new Date().getTime())), 2, uploadNum, repairStrategy, 0);
+        long extNumberSecond=0;
+        if(extNumber>0){
+            extNumberSecond=extNumber*60*60;
+            if(extNumberSecond>4294967296l){
+                extNumberSecond=4294967296l;
+            }
+        }
+        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO nl_batch(batch_name,certify_type,channel,id,comp_id,comp_name,upload_time,status,upload_num,repair_strategy,cuc_received,midle_number_province,midle_number_city,midle_number_expiry_time) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        batchDetailDao.executeUpdateSQL(sqlBuilder.toString(), batchname, certifyType, channels, batchId, compId, compName, (new Timestamp(new Date().getTime())), 2, uploadNum, repairStrategy, 0,province,city,extNumberSecond+"");
         LOG.info("修复文件上传成功，插入批次表： 企业ID:" + compId + "\t批次ID:" + batchId + "\t批次名称：" + batchname + "\t上传数量:" + uploadNum + "\t修复模式：" + repairStrategy);
 
     }
@@ -637,7 +710,7 @@ public class BatchListServiceImpl implements BatchListService {
                 for (int i = 0; i < userDoMap.size(); i++) {
                     Map<String, Object> userMap = new HashMap<>();
                     String userId = String.valueOf(userDoMap.get(i).get("id"));
-                    String realname = String.valueOf(userDoMap.get(i).get("realname"));
+                    String realname = userDoMap.get(i).get("realname")==null?"":String.valueOf(userDoMap.get(i).get("realname"));
                     String account = String.valueOf(userDoMap.get(i).get("account"));
                     userMap = getTouchLog(userId, batchId);
                     userMap.put("realname", realname);
@@ -709,7 +782,7 @@ public class BatchListServiceImpl implements BatchListService {
         seccussCall.add(batchId);
         if (StringUtil.isNotEmpty(userId)) {
             seccussCallSql.append(" AND t.user_id = ? ");
-            sp.add(userId);
+            seccussCall.add(userId);
         }
         //查询短信信息
         StringBuffer smsSql = new StringBuffer();
@@ -1112,5 +1185,133 @@ public class BatchListServiceImpl implements BatchListService {
         List<Map<String, Object>> list = batchDetailDao.sqlQuery("select now()");
         return list;
     }
+
+    @Override
+    public List<Map<String, Object>> getArea(String parentId) {
+
+
+        List<Map<String, Object>> mapList = batchDetailDao.queryMapsListBySql(" select area_id,area_name,level  from area where parent_id=? ", parentId);
+
+
+        return mapList;
+    }
+
+    @Override
+    public ResponseInfo unBind(String bindId, String coolDown,String custId) {
+
+      ResponseInfo responseInfo=new ResponseInfo();
+
+        JSONObject prams=new JSONObject();
+        prams.put("bindId",bindId);
+        prams.put("coolDown",coolDown);
+        String s = prams.toJSONString();
+        CustomerProperty customerProperty=new CustomerProperty();
+        customerProperty.setCustId(custId);
+        customerProperty.setPropertyName("15_config");
+        CustomerPropertyDTO customerProperty1 = customerService.getCustomerProperty(customerProperty);
+        String propertyValue = customerProperty1.getPropertyValue();
+        JSONObject jsonObject = JSONObject.parseObject(propertyValue);
+        try {
+            String secretId = jsonObject.getString("secretId");
+            String secretKeyd = jsonObject.getString("secretKey");
+            String requestRefId=IDHelper.getID()+"";
+            JSONObject headObj=new JSONObject();
+            headObj.put("requestRefId",requestRefId);
+            String idKey="requestRefId="+requestRefId+"&secretId="+secretId;
+            String s2 = HMACSHA1.hmacSHA1Encrypt(idKey, secretKeyd);
+            headObj.put("requestRefId",requestRefId);
+            headObj.put("secretId",secretId);
+            headObj.put("signature",s2);
+
+            String secretKey = ThreeDES.encryptDESCBC(s, jsonObject.getString("secretKey"), "", "");
+          JSONObject request=new JSONObject();
+            request.put("request",secretKey);
+            request.put("head",headObj);
+
+            String s1 = HttpUtil.httpsPost("", request.toJSONString());
+            LogUtil.info("unbind id"+bindId+"return"+s1);
+            JSONObject returnObj = JSONObject.parseObject(s1);
+            String status =returnObj.get("status").toString();
+            responseInfo.setCode(200);
+            if(status.equals("0")){
+
+                String bindSql="update set label_nine='',label_five='' where label_seven=?";
+
+                batchDetailDao.executeUpdateSQL(bindSql,bindId);
+
+
+                responseInfo.setMsg("解绑成功");
+            }else{
+                responseInfo.setMsg("解绑失败");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            responseInfo.setCode(500);
+        }
+
+
+        return responseInfo;
+    }
+
+    @Override
+    public ResponseInfo delta(String bindId, int  delta, String custId) {
+        ResponseInfo responseInfo=new ResponseInfo();
+
+        JSONObject prams=new JSONObject();
+        prams.put("bindId",bindId);
+        delta=delta;
+        prams.put("delta",delta);
+        String s = prams.toJSONString();
+        CustomerProperty customerProperty=new CustomerProperty();
+        customerProperty.setCustId(custId);
+        customerProperty.setPropertyName("15_config");
+        CustomerPropertyDTO customerProperty1 = customerService.getCustomerProperty(customerProperty);
+        String propertyValue = customerProperty1.getPropertyValue();
+        JSONObject jsonObject = JSONObject.parseObject(propertyValue);
+        try {
+            String secretId = jsonObject.getString("secretId");
+            String secretKeyd = jsonObject.getString("secretKey");
+            String requestRefId=IDHelper.getID()+"";
+            JSONObject headObj=new JSONObject();
+            headObj.put("requestRefId",requestRefId);
+            String idKey="requestRefId="+requestRefId+"&secretId="+secretId;
+            String s2 = HMACSHA1.hmacSHA1Encrypt(idKey, secretKeyd);
+            headObj.put("requestRefId",requestRefId);
+            headObj.put("secretId",secretId);
+            headObj.put("signature",s2);
+            String secretKey = ThreeDES.encryptDESCBC(s, jsonObject.getString("secretKey"), "", "");
+            JSONObject request=new JSONObject();
+            request.put("request",secretKey);
+            request.put("head",headObj);
+
+            String s1 = HttpUtil.httpsPost("", request.toJSONString());
+            LogUtil.info("unbind id"+bindId+"return"+s1);
+            JSONObject returnObj = JSONObject.parseObject(s1);
+            String status =returnObj.get("status").toString();
+            responseInfo.setCode(200);
+            if(status.equals("0")){
+                String getDetailByBindid="select label_eight from nl_batch_detail where label_seven=? ";
+                Map<String, Object> stringObjectMap = batchDetailDao.queryUniqueSql(getDetailByBindid, bindId);
+                if(stringObjectMap!=null){
+                   String date=String.valueOf(stringObjectMap.get("label_eight"));
+                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("YYYY-MM-dd hh:mm:ss");
+                    String format = LocalDateTime.parse(date).plusDays(delta).format(dateTimeFormatter);
+                    String bindSql="update set label_nine=?  where label_seven=?";
+
+                    batchDetailDao.executeUpdateSQL(bindSql,format,bindId);
+                }
+                responseInfo.setMsg("成功");
+            }else{
+                responseInfo.setMsg("延期失败");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            responseInfo.setCode(500);
+        }
+
+
+        return responseInfo;
+    }
+
 
 }

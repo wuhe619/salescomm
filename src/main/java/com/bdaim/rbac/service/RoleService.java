@@ -59,7 +59,7 @@ public class RoleService {
             p.add(id);
             querySql.append(" WHERE t.ID= ? ");
         }
-        querySql.append(" GROUP BY t.ID, r.ID");
+        querySql.append(" GROUP BY t.ID, r.ID order by r.CREATE_TIME desc");
         Page dataPage = roleDao.sqlPageQuery(querySql.toString(), pageNum, pageSize, p.toArray());
         List<Map<String, Object>> data = dataPage.getData();
         //判断当前职位是否有用户

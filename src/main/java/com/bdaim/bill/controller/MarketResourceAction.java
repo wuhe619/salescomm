@@ -110,7 +110,7 @@ public class MarketResourceAction extends BasicAction {
     @ResponseBody
     @CacheAnnotation
     public String queryRecordVoicelog(@Valid PageParam page, BindingResult error, String superId, Integer pageNum, Integer pageSize, String realName, String createTimeStart,
-                                      String createTimeEnd, String enterpriseId, String batchId, String touchStatus, String enterpriseName) {
+                                      String createTimeEnd,String mindlNumber,String enterpriseId, String batchId, String touchStatus, String enterpriseName) {
         if (error.hasFieldErrors()) {
             page.setPageNum(1);
             page.setPageSize(20);
@@ -138,7 +138,7 @@ public class MarketResourceAction extends BasicAction {
         }
         try {
             list = marketResourceService.queryRecordVoicelog(page, cust_id, userid, user_type, superId,
-                    realName, createTimeStart, createTimeEnd, enterpriseId, batchId, touchStatu, enterpriseName);
+                    realName, createTimeStart, createTimeEnd, enterpriseId, batchId, touchStatu, enterpriseName,mindlNumber);
 
             Map<String, Object> mapObj;
             for (int i = 0; i < list.getList().size(); i++) {
@@ -418,7 +418,6 @@ public class MarketResourceAction extends BasicAction {
      */
     @RequestMapping(value = "/countMarketData", method = RequestMethod.GET)
     @ResponseBody
-    @CacheAnnotation
     public ResponseInfo countMarketData(String customerId) {
         Map<String, Object> marketData = marketResourceService.countMarketData(customerId);
         return new ResponseInfoAssemble().success(marketData);

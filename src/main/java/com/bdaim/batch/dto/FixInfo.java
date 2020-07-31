@@ -15,6 +15,36 @@ public class FixInfo {
 
     private String repairMode;
 
+    private String province;
+
+    private String city;
+
+    private int extNumber;
+
+    public int getExtNumber() {
+        return extNumber;
+    }
+
+    public void setExtNumber(int extNumber) {
+        this.extNumber = extNumber;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
     private List<Fixentity> fixentity;
 
     public String getBatchname() {

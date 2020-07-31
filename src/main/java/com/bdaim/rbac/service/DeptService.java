@@ -111,7 +111,8 @@ public class DeptService {
 
         //组装返回值
         Map<String, Object> result = new HashMap<>(16);
-        result.put("data", data);
+        result.put("list", data);
+        logger.info("分页总数 " +  page.getTotal());
         result.put("total", page.getTotal());
         return result;
     }
@@ -182,7 +183,7 @@ public class DeptService {
             queryDeptSql.append(" and ID =?");
             params.add(deptId);
         }
-        List<Map<String, Object>> deptList = deptDao.sqlQuery(queryDeptSql.toString(), params);
+        List<Map<String, Object>> deptList = deptDao.sqlQuery(queryDeptSql.toString(), params.toArray());
         if (deptList.size() > 0) {
             List<Map<String, Object>> roleList = null;
             String roleSql = "SELECT ID roleId,`NAME` roleName  FROM t_role WHERE DEPTID =?";

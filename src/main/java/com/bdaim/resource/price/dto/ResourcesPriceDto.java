@@ -46,6 +46,26 @@ public class ResourcesPriceDto {
     private String partnerName;
     private String supplierId;
 
+    public String getSecretId() {
+        return secretId;
+    }
+
+    public void setSecretId(String secretId) {
+        this.secretId = secretId;
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
+    }
+
+    private String secretId;
+
+    private String secretKey;
+
     public ResourcesPriceDto() {
     }
 

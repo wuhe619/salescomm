@@ -1030,9 +1030,12 @@ public class SeatsService {
         boolean flag = true;
         List<SeatsInfo> seatsInfoList = seatsMessageParam.getSeatsInfoList();
         for (int i = 0; i < seatsInfoList.size(); i++) {
+            logger.info("Account===after"+seatsInfoList.get(i).getAccount()+(seatsInfoList.get(i).getAccount() != null && !seatsInfoList.get(i).getAccount().equals("")));
+
             if (seatsInfoList.get(i).getAccount() != null && !seatsInfoList.get(i).getAccount().equals("")) {
                 //查询此登陆账户是否存在
                 List<CustomerUser> userAccount = customerUserDao.findBy("account", seatsInfoList.get(i).getAccount());
+                logger.info("Account===before"+userAccount+seatsInfoList.get(i).getAccount());
                 if (userAccount.size() > 0) {
                     //账号已经存在
                     flag = true;
@@ -1191,7 +1194,7 @@ public class SeatsService {
     }
 
 
-    public int updateCallerID(SeatsMessageParam seatsMessageParam, String custId) {
+    public int updateCallerID(SeatsMessageParam seatsMessageParam, String custId)throws Exception {
         List<SeatsInfo> list = seatsMessageParam.getSeatsInfoList();
         String UserId = list.get(0).getUserId();
         HashMap<String, String> map = new HashMap<>();
@@ -1229,6 +1232,7 @@ public class SeatsService {
                             map.put("seatPassword", json.getString("seatPassword"));
                             map.put("seatName", json.getString("seatName"));
                             map.put("mainNumber", list.get(i).getMainNumber());
+                            logger.info("主叫号==" + map.get("mainNumber"));
                         }
                         if (propertyName.equals("xz_seat")) {
                             map.put("seatId", json.getString("seatId"));
@@ -1279,7 +1283,10 @@ public class SeatsService {
                             } else {
                                 String updateSql = "update t_customer_user_property SET property_value= ? where property_name=? AND user_id= ? ";
                                 update = jdbcTemplate.update(updateSql, new Object[]{JSON.toJSONString(map), propertyName, list.get(i).getUserId()});
+
                             }
+                        }else if( resultl.get("code").equals("210")){
+                             throw new Exception("添加主叫号失败，请稍后重试");
                         }
                     } else {
                         if (seatList.size() == 0) {

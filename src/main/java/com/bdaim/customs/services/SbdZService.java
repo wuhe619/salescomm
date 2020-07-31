@@ -54,7 +54,7 @@ public class SbdZService implements BusiService {
     private ServiceUtils serviceUtils;
 
     @Autowired
-    ElasticSearchService elasticSearchService;
+    ElasticSearchService elasticSearchService1;
 
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         CustomerProperty station_idProperty = customerDao.getProperty(cust_id, "station_id");
@@ -112,10 +112,10 @@ public class SbdZService implements BusiService {
                     }
                 }
                 if (sfdData.size() > 0) {
-                    elasticSearchService.bulkInsertDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SF.getType()), Constants.INDEX_TYPE, sfdData);
+                    //elasticSearchService.bulkInsertDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SF.getType()), Constants.INDEX_TYPE, sfdData);
                 }
                 if (ssData.size() > 0) {
-                    elasticSearchService.bulkInsertDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, ssData);
+                    //elasticSearchService.bulkInsertDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, ssData);
                 }
 
                 if (index > -1) {
@@ -409,11 +409,11 @@ public class SbdZService implements BusiService {
         // 批量删除数据库分单
         serviceUtils.deleteByIds(cust_id, BusiTypeEnum.SF.getType(), fdIds);
         // 批量删除es分单
-        elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SF.getType()), Constants.INDEX_TYPE, fdIds);
+        //elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SF.getType()), Constants.INDEX_TYPE, fdIds);
         // 批量删除数据库税单
         serviceUtils.deleteByIds(cust_id, BusiTypeEnum.SS.getType(), sdIds);
         // 批量删除es税单
-        elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, sdIds);
+        //elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, sdIds);
     }
 
     @Override
