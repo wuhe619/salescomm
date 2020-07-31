@@ -1187,6 +1187,7 @@ public class BillServiceImpl implements BillService {
         StringBuffer custSumMoneySql = new StringBuffer("SELECT (IFNULL(SUM(amount), 0) /100) AS \"totalAcount\" FROM stat_bill_month WHERE cust_id = ?");
         //查询企业账单信息
         List<Object> p = new ArrayList<>();
+        p.add(customerId);
         StringBuilder billCustomer = new StringBuilder("SELECT GROUP_CONCAT(s.resource_id) channel,s.bill_type type,SUM(s.prod_amount) /100 costAmountSum,SUM(s.amount) /100 AS \"consumeAmountsum\"  FROM stat_bill_month s WHERE s.cust_id = ?");
         if ("0".equals(billDate) || StringUtil.isEmpty(billDate)) {
             custSumMoneySql = new StringBuffer("SELECT IFNULL(SUM(amount), 0) /100 totalAcount FROM stat_bill_month WHERE cust_id = ?");
@@ -1210,7 +1211,7 @@ public class BillServiceImpl implements BillService {
         if (customerMessage.size() > 0) {
             headerData = customerMessage.get(0);
             //查询企业总消费金额
-            List<Map<String, Object>> totalAcount = sourceDao.sqlQuery(custSumMoneySql.toString(), customerId, p.toArray());
+            List<Map<String, Object>> totalAcount = sourceDao.sqlQuery(custSumMoneySql.toString(), p.toArray());
             logger.info("查询企业总消费金额，企业id是：" + totalAcount.size());
             if (totalAcount.size() > 0) {
                 logger.info("查询企业总消费金额，企业id是：" + totalAcount.get(0).get("totalAcount"));
@@ -1221,7 +1222,7 @@ public class BillServiceImpl implements BillService {
         //企业账单信息
         billCustomer.append(" GROUP BY s.bill_type");
         logger.info("查询企业账单，企业id是：" + customerId);
-        List<Map<String, Object>> customerBillList = sourceDao.sqlQuery(billCustomer.toString(), customerId, p.toArray());
+        List<Map<String, Object>> customerBillList = sourceDao.sqlQuery(billCustomer.toString(),  p.toArray());
         if (customerBillList.size() > 0) {
             for (int i = 0; i < customerBillList.size(); i++) {
                 String channel = String.valueOf(customerBillList.get(i).get("channel"));
