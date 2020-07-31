@@ -89,7 +89,7 @@ public class BatchListServiceImpl implements BatchListService {
      * @method
      * @date: 2019/4/8 10:39
      */
-    public Map<String, Object> uploadBatchFile(MultipartFile file, String batchname, String repairStrategy, int certifyType, String channel, String compId, Long optUser, String optUserName,String province,String city,int extNumber) throws Exception {
+    public Map<String, Object> uploadBatchFile(MultipartFile file, String batchname, String repairStrategy, int certifyType, String channel, String compId, Long optUser, String optUserName,String province,String city,double extNumber) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
         List<String> channels = null;
         int type = 0;
@@ -629,14 +629,14 @@ public class BatchListServiceImpl implements BatchListService {
 
     @Override
     public void saveBatch(String batchname, int uploadNum, String repairStrategy, String compId, String batchId,
-                          int certifyType, String channel,String province,String city,int extNumber) throws Exception {
+                          int certifyType, String channel,String province,String city,double extNumber) throws Exception {
         int channels = Integer.parseInt(channel);
         String compName = "";
         Customer customer = customerDao.findUniqueBy("custId", compId);
         if (customer != null) {
             compName = customer.getEnterpriseName();
         }
-        long extNumberSecond=0;
+        double extNumberSecond=0;
         if(extNumber>0){
             extNumberSecond=extNumber*60*60;
             if(extNumberSecond>4294967296l){

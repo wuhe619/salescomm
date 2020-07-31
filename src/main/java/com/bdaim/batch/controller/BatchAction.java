@@ -68,9 +68,9 @@ public class BatchAction extends BasicAction {
 //        }
         Map<String, Object> resultMap = null;
         try {
-          int expaire=0;
+          double expaire=0;
             if(StringUtils.isNotEmpty(extNumber)){
-                expaire=Integer.parseInt(extNumber);
+                expaire=Double.parseDouble(extNumber);
             }
             resultMap = batchListService.uploadBatchFile(file, batchname, repairStrategy, certifyType, channel, compId, opUser().getId(), opUser().getName(),province,city,expaire);
         } catch (Exception e) {

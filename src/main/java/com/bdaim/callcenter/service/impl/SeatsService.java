@@ -296,7 +296,15 @@ public class SeatsService {
         //获取企业id
         String custId = seatsMessageParam.getCustId();
         //添加坐席前判断余额是否充足和是否设置销售定价
-        Map<String, String> resultMap = checkSeatsBalance(custId, seatsInfoList);
+        CustomerProperty property = customerDao.getProperty(custId, "30_config");
+        Map<String, String> resultMap = new HashMap<>();
+
+        if(property!=null){
+            resultMap.put("result","1");
+        }else{
+         resultMap = checkSeatsBalance(custId, seatsInfoList);
+
+        }
         logger.info("查询坐席是否设置销售定价返回结果" + resultMap.toString());
         if (resultMap.size() > 0 && "1".equals(resultMap.get("result"))) {
             //添加坐席前判断坐席账号是否重复
