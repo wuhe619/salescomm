@@ -345,7 +345,7 @@ public class BillAction extends BasicAction {
     /*
      * 账单管理--导出企业账单明细
      * */
-    @RequestMapping(value = "/exportCustomerBill", method = RequestMethod.GET, produces = "text/html;charset=UTF-8")
+    @RequestMapping(value = "/exportCustomerBill", method = RequestMethod.GET)
     @ResponseBody
     public Object exportCustomerBill(CustomerBillQueryParam param, HttpServletResponse response) {
         return billService.exportCustomerBill(param, response);

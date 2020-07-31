@@ -1184,7 +1184,7 @@ public class BillServiceImpl implements BillService {
         customerMessageSql.append("WHERE c.cust_id =? AND u.user_type = 1 GROUP BY c.cust_id");
         List<Map<String, Object>> customerMessage = sourceDao.sqlQuery(customerMessageSql.toString(), customerId);
         //查询企业消费总额
-        StringBuffer custSumMoneySql = new StringBuffer("SELECT IFNULL(SUM(amount), 0) /100 totalAcount FROM stat_bill_month WHERE cust_id = ?");
+        StringBuffer custSumMoneySql = new StringBuffer("SELECT (IFNULL(SUM(amount), 0) /100) AS totalAcount FROM stat_bill_month WHERE cust_id = ?");
         //查询企业账单信息
         List<Object> p = new ArrayList<>();
         StringBuilder billCustomer = new StringBuilder("SELECT GROUP_CONCAT(s.resource_id) channel,s.bill_type type,SUM(s.prod_amount) /100 costAmountSum,SUM(s.amount) /100 consumeAmountsum  FROM stat_bill_month s WHERE s.cust_id = ?");
